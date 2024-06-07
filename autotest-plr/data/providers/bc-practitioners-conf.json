@@ -1,0 +1,17 @@
+{
+    "default": {
+        "pauth": "86255",
+        "ipc": "IPC.00086255.BC.PRS",
+        "cpn": "CPN.00086255.BC.PRS",
+        "name": {
+            "first": "John",
+            "last": "Smith"
+        },
+        "status": "Active",
+        "owner": "CPS"
+    },
+    "minimum": {
+        "pauth": "86254",
+        "ipc": "IPC.00086254.BC.PRS"
+    }
+}

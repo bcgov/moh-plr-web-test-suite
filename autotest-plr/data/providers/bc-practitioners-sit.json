@@ -1,0 +1,17 @@
+{
+    "default": {
+        "pauth": "103330",
+        "ipc": "IPC.00103330.BC.PRS",
+        "cpn": "CPN.00103330.BC.PRS",
+        "name": {
+            "first": "John",
+            "last": "Smith"
+        },
+        "status": "Active",
+        "owner": "CDS"
+    },
+    "minimum": {
+        "pauth": "103551",
+        "ipc": "IPC.00103551.BC.PRS"
+    }
+}

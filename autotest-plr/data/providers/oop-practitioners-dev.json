@@ -1,0 +1,17 @@
+{
+    "default": {
+        "pauth": "156251",
+        "ipc": "IPC.00156251.BC.PRS",
+        "cpn": "CPN.00156251.BC.PRS",
+        "name": {
+            "first": "Test",
+            "last": "Provider"
+        },
+        "status": "Active",
+        "owner": "MOH"
+    },
+    "minimum": {
+        "pauth": "156250",
+        "ipc": "IPC.00156250.BC.PRS"
+    }
+}

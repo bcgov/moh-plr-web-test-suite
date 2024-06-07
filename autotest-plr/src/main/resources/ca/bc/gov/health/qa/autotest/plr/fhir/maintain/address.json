@@ -1,0 +1,24 @@
+{
+  "extension": [
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-communication-purpose-code-extension",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-communication-purpose-code",
+            "code": ""
+          }
+        ]
+      }
+    }
+  ],
+  "type": "postal",
+  "line": [],
+  "city": "",
+  "state": "BC",
+  "postalCode": "",
+  "country": "CA",
+  "period": {
+    "start": ""
+  }
+}

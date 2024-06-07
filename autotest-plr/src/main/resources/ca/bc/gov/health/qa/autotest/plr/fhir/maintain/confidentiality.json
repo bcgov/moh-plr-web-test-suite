@@ -1,0 +1,22 @@
+{
+  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-confidentiality-extension",
+  "extension": [
+    {
+      "url": "code",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+            "code": ""
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
+      "valuePeriod": {
+        "start": ""
+      }
+    }
+  ]
+}
