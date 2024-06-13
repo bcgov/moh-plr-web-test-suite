@@ -1,9 +1,0 @@
-/*/.classpath
-/*/.project
-/*/.settings/
-/*/target/
-
-/autotest-plr/data/security/*.pfx
-/autotest-plr/data/security/credentials-*.properties
-/autotest-plr/executions/
-/autotest-plr/test-output/
