@@ -47,7 +47,7 @@ implements AutoCloseable
      * @param keyStorePassword
      *        ???
      */
-    public PlrFhirActions(URI fhirURI, URI keycloakURI, Path keyStorePath, String keyStorePassword)
+    public PlrFhirActions(URI fhirURI, URI keycloakURI, Path keyStorePath, char[] keyStorePassword)
     {
         requireNonNull(fhirURI, "Null URI.");
         uri_ = fhirURI;
