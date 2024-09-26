@@ -1,0 +1,8 @@
+/.classpath
+/.project
+/.settings/
+/data/security/*.pfx
+/data/security/credentials-*.properties
+/executions/
+/target/
+/test-output/

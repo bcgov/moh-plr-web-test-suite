@@ -1,0 +1,39 @@
+{
+  "extension": [
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-qualification-extension",
+      "extension": [
+        {
+          "url": "designation",
+          "valueString": ""
+        },
+        {
+          "url": "registrationNumber",
+          "valueString": ""
+        },
+        {
+          "url": "equivalencyFlag",
+          "valueBoolean": null
+        },
+        {
+          "url": "issuedDate",
+          "valueDate": ""
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "https://fhir.infoway-inforoute.ca/CodeSystem/scpqual",
+        "code": ""
+      }
+    ]
+  },
+  "period": {
+    "start": ""
+  },
+  "issuer": {
+    "reference": ""
+  }
+}

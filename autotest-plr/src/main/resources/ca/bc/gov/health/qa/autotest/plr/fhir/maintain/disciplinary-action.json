@@ -1,0 +1,23 @@
+{
+  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-disciplinary-action-extension",
+  "extension": [
+    {
+      "url": "description",
+      "valueString": ""
+    },
+    {
+      "url": "displayFlag",
+      "valueBoolean": null
+    },
+    {
+      "url": "archiveDate",
+      "valueDateTime": ""
+    },
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
+      "valuePeriod": {
+        "start": ""
+      }
+    }
+  ]
+}

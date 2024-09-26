@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+  <Properties>
+    <Property name="ConsolePattern">
+      %d{yy-MM-dd HH:mm:ss.SSS} %-5p [%thread] [%logger{1.2*}] %msg%n
+    </Property>
+    <Property name="FilePattern">
+      %d{yyyy-MM-dd HH:mm:ss.SSS z} %-5p [%thread] [%logger] %NDC%MDC %marker&gt; %msg%n
+    </Property>
+  </Properties>
+
+  <Appenders>
+    <Console name="ConsoleAppender" target="SYSTEM_OUT">
+      <PatternLayout pattern="${ConsolePattern}"/>
+      <ThresholdFilter level="DEBUG"/>
+    </Console>
+    <File name="FileAppender" fileName="${sys:LOG_DIR:-log}/execution.log">
+      <PatternLayout pattern="${FilePattern}"/>
+      <ThresholdFilter level="TRACE"/>
+    </File>
+  </Appenders>
+
+  <Loggers>
+    <Logger name="org.testng.internal" level="WARN" />
+    <Root level="INFO">
+      <AppenderRef ref="ConsoleAppender"/>
+      <AppenderRef ref="FileAppender"/>
+    </Root>
+  </Loggers>
+
+</Configuration>

@@ -1,0 +1,125 @@
+{
+  "resourceType": "Parameters",
+  "id": "Example-Request-Add-Practitioner",
+  "parameter": [
+    {
+      "name": "messageId",
+      "valueString": "12344329"
+    },
+    {
+      "name": "messageTime",
+      "valueDateTime": "2023-01-13T01:01:01-08:00"
+    },
+    {
+      "name": "maintain",
+      "resource": {
+        "resourceType": "Bundle",
+        "id": "example-addpractitioner-bundle1",
+        "meta": {
+          "profile": [
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-bundle"
+          ]
+        },
+        "type": "collection",
+        "entry": [
+          {
+            "fullUrl": "urn:uuid:f431631b-ed68-4716-80be-cca6904309fc",
+            "resource": {
+              "resourceType": "PractitionerRole",
+              "id": "Example-PractitionerRole-Role-FromPrac-RNID",
+              "meta": {
+                "profile": [
+                  "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-role"
+                ]
+              },
+              "practitioner": {
+                "identifier": {
+                  "system": "",
+                  "value": "",
+                  "period": {
+                    "start": "2005-01-01"
+                  }
+                }
+              },
+              "code": [
+                {
+                  "coding": [
+                    {
+                      "system": "https://fhir.infoway-inforoute.ca/CodeSystem/scptype",
+                      "code": "RN"
+                    }
+                  ]
+                }
+              ],
+              "specialty": []
+            }
+          },
+          {
+            "fullUrl": "urn:uuid:67b11c73-c2ee-474f-ab64-56b863a1cc87",
+            "resource": {
+              "resourceType": "Practitioner",
+              "id": "Example-AddPractitioner-Practitioner",
+              "meta": {
+                "profile": [
+                  "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner"
+                ]
+              },
+              "contained": [],
+              "extension": [
+                {
+                  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
+                  "valuePeriod": {
+                    "start": "2012-12-07"
+                  }
+                },
+                {
+                  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-deathdate-extension",
+                  "valueDateTime": ""
+                },
+                {
+                  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-birthplace-extension",
+                  "valueAddress": {
+                    "state": "AB",
+                    "country": "CA"
+                  }
+                }
+              ],
+              "identifier": [
+                {
+                  "system": "",
+                  "value": "",
+                  "period": {
+                    "start": "2005-01-01"
+                  }
+                }
+              ],
+              "name": [
+                {
+                  "use": "official",
+                  "family": "",
+                  "given": [],
+                  "period": {
+                    "start": "2013-12-08"
+                  }
+                }
+              ],
+              "address": [],
+              "telecom": [],
+              "gender": "",
+              "_birthDate": {
+                "extension": [
+                  {
+                    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-birthtime-extension",
+                    "valueDateTime": ""
+                  }
+                ]
+              },
+              "qualification": [],
+              "communication": []
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
