@@ -1,0 +1,22 @@
+{
+  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-note-extension",
+  "extension": [
+    {
+      "url": "identifier",
+      "valueIdentifier": {
+        "system": "http://hlth.gov.bc.ca/fhir/provider/identifier-system/bc-note-id",
+        "value": ""
+      }
+    },
+    {
+      "url": "text",
+      "valueString": ""
+    },
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
+      "valuePeriod": {
+        "start": ""
+      }
+    }
+  ]
+}

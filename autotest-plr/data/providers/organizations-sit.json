@@ -1,0 +1,13 @@
+{
+    "default": {
+        "pauth": "103552",
+        "ipc": "IPC.00103552.BC.PRS",
+        "name": "Auto Test Org 1",
+        "status": "Active",
+        "owner": "CPS"
+    },
+    "minimum": {
+        "pauth": "103571",
+        "ipc": "IPC.00103571.BC.PRS"
+    }
+}

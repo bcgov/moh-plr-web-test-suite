@@ -1,0 +1,17 @@
+{
+  "resourceType": "Organization",
+  "id": "",
+  "meta": {
+    "profile": [
+      "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization"
+    ]
+  },
+  "name": "",
+  "address": [
+    {
+      "city": "",
+      "state": "BC",
+      "country": "CA"
+    }
+  ]
+}

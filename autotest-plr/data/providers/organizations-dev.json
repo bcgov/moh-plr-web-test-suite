@@ -1,0 +1,13 @@
+{
+    "default": {
+        "pauth": "156232",
+        "ipc": "IPC.00156232.BC.PRS",
+        "name": "Testing Organization",
+        "status": "Active",
+        "owner": "MOH"
+    },
+    "minimum": {
+        "pauth": "156231",
+        "ipc": "IPC.00156231.BC.PRS"
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "default": {
+        "pauth": "86435",
+        "ipc": "IPC.00086435.BC.PRS",
+        "cpn": "CPN.00086435.BC.PRS",
+        "name": {
+            "first": "Bob",
+            "last": "Smith"
+        },
+        "status": "Active",
+        "owner": "RNA"
+    },
+    "minimum": {
+        "pauth": "86434",
+        "ipc": "IPC.00086434.BC.PRS"
+    }
+}

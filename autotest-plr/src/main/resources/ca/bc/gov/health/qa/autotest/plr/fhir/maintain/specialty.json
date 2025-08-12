@@ -1,0 +1,20 @@
+{
+  "extension": [
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-specialty-source-extension",
+      "valueString": ""
+    },
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
+      "valuePeriod": {
+        "start": ""
+      }
+    }
+  ],
+  "coding": [
+    {
+      "system": "https://fhir.infoway-inforoute.ca/ValueSet/practitionerspecialty",
+      "code": ""
+    }
+  ]
+}

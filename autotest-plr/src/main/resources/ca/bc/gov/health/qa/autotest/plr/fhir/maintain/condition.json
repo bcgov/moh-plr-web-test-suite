@@ -1,0 +1,37 @@
+{
+  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-condition-extension",
+  "extension": [
+    {
+        "url": "identifier",
+        "valueIdentifier": {
+                "system": "http://hlth.gov.bc.ca/fhir/provider/identifier-system/bc-condition-id",
+                "value": ""
+        }
+    },
+    {
+      "url": "restrictionText",
+      "valueString": ""
+    },
+    {
+      "url": "restriction",
+      "valueBoolean": null
+    },
+    {
+      "url": "code",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-condition-type-code-system",
+            "code": ""
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
+      "valuePeriod": {
+        "start": ""
+      }
+    }
+  ]
+}
