@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.core.util.context.LocalContext;
 import ca.bc.gov.health.qa.autotest.core.util.io.PropertyUtils;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
@@ -27,7 +28,7 @@ public class PlrData
     private static final Path   KEY_STORE_PATH;
     static
     {
-        Config config  = LocalContext.get().getConfig();
+        Config config  = ConfigProvider.get().getConfig();
         Path dataDir   = Path.of(config.get("data.dir"));
         ENV_NAME       = config.get("env.name");
         PROVIDERS_DIR  = dataDir.resolve("providers");

@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.core.util.context.LocalContext;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
@@ -71,7 +72,7 @@ implements AutoCloseable
      */
     public static PlrWebWorkflow create(UserType userType)
     {
-        Config config = LocalContext.get().getConfig();
+        Config config = ConfigProvider.get().getConfig();
         URI uri = URI.create(config.get("web.url"));
         LOG.info("URL ({}).", uri);
         SeleniumSession selenium = SeleniumSession.createChromeSeleniumSession();
