@@ -14,7 +14,7 @@ import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpRequest;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpRequestBuilder;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpResponse;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainProviderAccessor;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainAccessor;
 import ca.bc.gov.health.qa.autotest.plr.keycloak.actions.KeycloakActions;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
@@ -124,12 +124,12 @@ implements AutoCloseable
         if (response.getStatusCode() == 200)
         {
             JSONObject json = new JSONObject(response.getTextResponseBody());
-            MaintainProviderAccessor accessor = new MaintainProviderAccessor(json);
+            MaintainAccessor accessor = new MaintainAccessor(json);
             id = accessor.getResourceJson(0, null).getString("id");
         }
         else
         {
-            throw new IllegalStateException("FHIR maintain request failed.");
+            throw new IllegalStateException("FHIR maintain request failed. " + response.getTextResponseBody());
         }
         return id;
     }

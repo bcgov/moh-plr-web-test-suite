@@ -171,7 +171,7 @@ public class MaintainOrgBuilder
                 MethodHandles.lookup().lookupClass(), "maintain-organization.json");
         JSONObject json = new JSONObject(template);
 
-        MaintainProviderAccessor accessor = new MaintainProviderAccessor(json);
+        MaintainAccessor accessor = new MaintainAccessor(json);
         JSONObject orgJson = accessor.getOrgJson();
         orgJson.getJSONObject("type")
                .getJSONArray("coding")

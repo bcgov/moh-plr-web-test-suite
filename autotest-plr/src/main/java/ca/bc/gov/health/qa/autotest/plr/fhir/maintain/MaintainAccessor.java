@@ -6,7 +6,7 @@ import org.json.JSONObject;
 /**
  * TODO (AZ) - doc
  */
-public class MaintainProviderAccessor
+public class MaintainAccessor
 {
     /**
      * TODO (AZ) - doc
@@ -19,7 +19,7 @@ public class MaintainProviderAccessor
      * @param json
      *        ???
      */
-    public MaintainProviderAccessor(JSONObject json)
+    public MaintainAccessor(JSONObject json)
     {
         json_ = json;
     }
@@ -99,6 +99,55 @@ public class MaintainProviderAccessor
     public JSONObject getPracRoleJson()
     {
         return getResourceJson(0, "PractitionerRole");
+    }
+
+    /**
+     * TODO (AZ) - doc
+     *
+     * @return ???
+     */
+    public JSONObject getFacilityJson()
+    {
+        return getResourceJson(0, "Location");
+    }
+
+    /**
+     * TODO (AZ) - doc
+     *
+     * @param index
+     *        ???
+     *
+     * @return ???
+     */
+    public JSONObject getFacilityIdentifierJson(int index)
+    {
+        return getFacilityJson().getJSONArray("identifier").getJSONObject(0);
+    }
+
+    /**
+     * TODO (AZ) - doc
+     *
+     * 
+     *        ???
+     *
+     * @return ???
+     */
+    public JSONArray getFacilityExtensionJson()
+    {
+        return getFacilityJson().getJSONArray("extension");
+    }
+
+    /**
+     * TODO (AZ) - doc
+     *
+     * @param index
+     *        ???
+     *
+     * @return ???
+     */
+    public JSONObject getFacilityAddressJson(int index)
+    {
+        return getFacilityExtensionJson().getJSONObject(0).getJSONObject("valueAddress");
     }
 
     /**

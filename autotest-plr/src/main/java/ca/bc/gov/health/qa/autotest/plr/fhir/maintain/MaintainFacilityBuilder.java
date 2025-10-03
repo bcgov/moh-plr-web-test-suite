@@ -24,7 +24,8 @@ public class MaintainFacilityBuilder
     private String                    description_     = null;
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
     private  List<Map<String,String>> noteList_        = new ArrayList<>();
-
+    //private List<Map<String,String>>  facilityRelationships  = new ArrayList<>();
+    private final String              PURPOSE           = "FC";
     /**
      * TODO (AZ) - doc
      */
@@ -38,9 +39,6 @@ public class MaintainFacilityBuilder
      *        ???
      *        physical, postal
      *
-     * @param purpose
-     *        ???
-     *        BC, CC, DC, EC, FC, HC, MC, OC
      *
      * @param line1
      *        ???
@@ -55,14 +53,14 @@ public class MaintainFacilityBuilder
      */
     public MaintainFacilityBuilder addAddress(
             String type,
-            String purpose,
+            //String purpose = "FC",
             String line1,
             String city,
             String postalCode)
     {
         Map<String,String> addressInfo = new HashMap<>();
         addressInfo.put("type",       type);
-        addressInfo.put("purpose",    purpose);
+        addressInfo.put("purpose",    PURPOSE);
         addressInfo.put("line1",      line1);
         addressInfo.put("city",       city);
         addressInfo.put("postalCode", postalCode);
@@ -99,19 +97,16 @@ public class MaintainFacilityBuilder
      *        sms   (Mobile)
      *        url   (HTTP)
      *
-     * @param purpose
-     *        ???
-     *        BC, CC, DC, FC, HC, MC, OC
      *
      * @param value
      *        ???
      *
      * @return ???
      */
-    public MaintainFacilityBuilder addTelecom(String type, String purpose, String value)
+    public MaintainFacilityBuilder addTelecom(String type, String value)
     {
         telecomList_.add(Map.of(
-                "purpose", purpose,
+                "purpose", PURPOSE,
                 "type",    type,
                 "value",   value));
         return this;
@@ -143,28 +138,29 @@ public class MaintainFacilityBuilder
                 MethodHandles.lookup().lookupClass(), "maintain-facility.json");
         JSONObject json = new JSONObject(template);
 
-        MaintainProviderAccessor accessor = new MaintainProviderAccessor(json);
-        JSONObject orgJson = accessor.getOrgJson();
+        MaintainAccessor accessor = new MaintainAccessor(json);
+        JSONObject facilityJson = accessor.getFacilityJson();
 
-        accessor.getOrgIdentifierJson(0).put("value", identifier_);
-        orgJson.put("name", name_);
+        accessor.getFacilityIdentifierJson(0).put("value", identifier_);
+        facilityJson.put("name", name_);
         if (description_ != null)
         {
-            orgJson.getJSONArray("description").put(0, description_);
+            facilityJson.getJSONArray("alias").put(0, description_);
         }
 
-        JSONArray addressesJson = orgJson.getJSONArray("address");
-
-        addressesJson.put(MaintainUtils.createAddress(address_));
+        // Populate the Location.extension[0].valueAddress with the built address.
+        // The template has extension[0].valueAddress = null, so we replace it.
+        JSONObject extension0 = facilityJson.getJSONArray("extension").getJSONObject(0);
+        extension0.put("valueAddress", MaintainUtils.createAddress(address_));
         
 
-        JSONArray telecomJson = orgJson.getJSONArray("telecom");
+        JSONArray telecomJson = facilityJson.getJSONArray("telecom");
         for (Map<String,String> info : telecomList_)
         {
             telecomJson.put(MaintainUtils.createTelecom(info));
         }
 
-        JSONArray extensionJson = accessor.getOrgExtensionJson();
+        JSONArray extensionJson = accessor.getFacilityExtensionJson();
         
         for (Map<String,String> info : noteList_)
         {
@@ -204,7 +200,13 @@ public class MaintainFacilityBuilder
 
     private void verifyParameters()
     {
-        requireNonNull(identifier_, "Missing organization identifier.");
-        requireNonNull(name_,       "Missing organization name.");
+        //requireNonNull(identifier_, "Missing facility identifier.");
+        
+        if (address_.isEmpty())
+        {
+            requireNonNull(null, "Missing facility address.");
+            
+        }
+
     }
 }

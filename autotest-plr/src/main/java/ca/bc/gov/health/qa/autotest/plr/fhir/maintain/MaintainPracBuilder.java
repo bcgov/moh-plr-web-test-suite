@@ -315,7 +315,7 @@ public class MaintainPracBuilder
                 MethodHandles.lookup().lookupClass(), "maintain-practitioner.json");
         JSONObject json = new JSONObject(template);
 
-        MaintainProviderAccessor accessor = new MaintainProviderAccessor(json);
+        MaintainAccessor accessor = new MaintainAccessor(json);
         JSONObject nameJson     = accessor.getPracNameJson(0);
         JSONObject pracJson     = accessor.getPracJson();
         JSONObject pracRoleJson = accessor.getPracRoleJson();
