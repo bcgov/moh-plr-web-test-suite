@@ -11,7 +11,6 @@ import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
-import ca.bc.gov.health.qa.autotest.core.util.context.LocalContext;
 import ca.bc.gov.health.qa.autotest.core.util.io.PropertyUtils;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
@@ -52,7 +51,7 @@ public class PlrData
      *
      * @return ???
      */
-    public static Map<String,String> getCreadentials(String credentialType, UserType userType)
+    public static Map<String,String> getCredentials(String credentialType, UserType userType)
     {
         Path filePath = SECURITY_DIR.resolve("credentials-" + ENV_NAME + ".properties");
         Map<String,String> credentialsMap;
@@ -79,6 +78,26 @@ public class PlrData
     public static Path getKeyStorePath()
     {
         return KEY_STORE_PATH;
+    }
+
+    /**
+     * Returns the PLR FHIR keystore password (may be {@code null} if not present).
+     *
+     * @return keystore password or {@code null} if not defined
+     */
+    public static String getKeystorePassword()
+    {
+        Path filePath = SECURITY_DIR.resolve("credentials-" + ENV_NAME + ".properties");
+        try
+        {
+            Map<String,String> map = PropertyUtils.loadPropertyMap(filePath);
+            return map.get("plr.fhir.keystore.password");
+        }
+        catch (IOException e)
+        {
+            String msg = String.format("Failed to read credentials (%s).", filePath);
+            throw new IllegalStateException(msg, e);
+        }
     }
 
     /**
