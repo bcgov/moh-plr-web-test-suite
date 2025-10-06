@@ -1,18 +1,9 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir;
 
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Path;
 import java.util.Locale;
-import java.util.Map;
-
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-
-import ca.bc.gov.health.qa.autotest.core.util.config.Config;
-import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
-import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
-import ca.bc.gov.health.qa.autotest.plr.fhir.actions.PlrFhirActions;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainPracBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
@@ -23,65 +14,14 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
  * <p>Intended for quick automation smoke scenarios. Adjust defaults as needed.</p>
  *
  */
-public final class PracMaintainExecutor implements AutoCloseable
+public final class PracMaintainExecutor extends BaseMaintainExecutor
 {
     private static final Logger LOG = ExecutionLogManager.getLogger();
-
-    // Environment / configuration derived once in constructor
-    private final URI fhirUri_;
-    private final URI keycloakUri_;
-    private final Path keyStorePath_;
-    private final char[] keyStorePassword_;
-    private final UserType userType_;
-    private final PlrFhirActions actions_;
 
     /**
      * Constructor performs all configuration and login side-effects so later method only builds and submits.
      */
-    public PracMaintainExecutor(UserType userType)
-    {
-        this.userType_ = userType;
-        Config config = ConfigProvider.get().getConfig();
-        String fhirUrl = config.get("fhir.url");
-        String keycloakUrl = config.get("keycloak.url");
-        if (fhirUrl == null || keycloakUrl == null)
-        {
-            throw new IllegalStateException("Missing required config properties (fhir.url and/or keycloak.url)");
-        }
-        this.fhirUri_ = URI.create(fhirUrl);
-        this.keycloakUri_ = URI.create(keycloakUrl);
-
-        this.keyStorePath_ = PlrData.getKeyStorePath();
-        String ksPwd = PlrData.getKeystorePassword();
-        if (ksPwd == null || ksPwd.isBlank())
-        {
-            LOG.warn("Keystore password not set (property plr.fhir.keystore.password). Proceeding with blank password; SSL context will fail if keystore requires one.");
-            ksPwd = "";
-        }
-        this.keyStorePassword_ = ksPwd.toCharArray();
-        if (!java.nio.file.Files.exists(this.keyStorePath_))
-        {
-            throw new IllegalStateException("Keystore file not found: " + this.keyStorePath_);
-        }
-
-        Map<String,String> creds = PlrData.getCredentials("plr.fhir", userType_);
-
-        try
-        {
-            actions_ = new PlrFhirActions(fhirUri_, keycloakUri_, keyStorePath_, keyStorePassword_);
-            actions_.login(creds.get("username"), creds.get("password"));
-            LOG.info("Logged in (userType={}, user={}).", userType_, creds.get("username"));
-        }
-        catch (InterruptedException e)
-        {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted during login", e);
-        }
-        catch (IOException e)
-        {
-            throw new IllegalStateException("I/O failure during login", e);
-        }
-    }
+    public PracMaintainExecutor(UserType userType) { super(userType); }
 
     /**
      * Single public operation: build the practitioner maintain payload and submit it.
@@ -145,20 +85,4 @@ public final class PracMaintainExecutor implements AutoCloseable
         }
     }
 
-    @Override
-    public void close()
-    {
-        try
-        {
-            actions_.logout();
-        }
-        catch (Exception ignore)
-        {
-            // ignore
-        }
-        finally
-        {
-            try { actions_.close(); } catch (Exception ignore) {}
-        }
-    }
 }
