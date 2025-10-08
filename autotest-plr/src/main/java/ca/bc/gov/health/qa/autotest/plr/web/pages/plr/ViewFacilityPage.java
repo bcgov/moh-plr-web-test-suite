@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * TODO
+ * A page object class for the View Facility page.
  */
 public class ViewFacilityPage extends BasicWebPage {
     private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
@@ -20,18 +20,18 @@ public class ViewFacilityPage extends BasicWebPage {
     private final ViewHeaderFragment viewHeader_;
 
     /**
-     * TODO
+     * Initializes page object, overloaded constructor for no specified URL
      *
-     * @param selenium
+     * @param selenium  the current SeleniumSession
      */
     public ViewFacilityPage(SeleniumSession selenium) { this(selenium, null); }
 
 
     /**
-     * TODO
+     * Initializes page object and changes selenium's main locator to View Facility Details heading
      *
-     * @param selenium
-     * @param uri
+     * @param selenium  the current SeleniumSession
+     * @param uri   the URL to navigate to in inherited methods if applicable
      */
     public ViewFacilityPage(SeleniumSession selenium, URI uri)
     {
@@ -40,25 +40,25 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Gets the view header
      *
-     * @return
+     * @return  a ViewHeaderFragment reference for the current page
      */
     public ViewHeaderFragment getViewHeader() { return viewHeader_; }
 
     /**
-     * TODO
+     * Constructs a CSS selector string to select a facility section's div panel
      *
-     * @param section
-     * @return
+     * @param section   the Facility Section to select
+     * @return  a CSS selector string for the facility section's div panel
      */
     private String getSectionSelector(FacilitySection section) { return "div#" + section.getPanelId_(); }
 
     /**
-     * TODO
+     * Constructs a CSS selector string to select a facility section's div content panel.
      *
-     * @param section
-     * @return
+     * @param section   the Facility Section to select
+     * @return  a CSS selector string for the facility section's div content panel
      */
     private String getSectionContentSelector(FacilitySection section)
     {
@@ -66,10 +66,11 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Constructs a CSS selector to select a facility section's "data blocks" where each div is a separate record
+     * inside the section (e.g.) in the Organization Relationship sections, each data block is a different relationship.
      *
-     * @param section
-     * @return
+     * @param section   the Facility Section to select
+     * @return  a CSS selector string for the facility section's data blocks
      */
     private String getDataBlocksSelector(FacilitySection section)
     {
@@ -77,11 +78,11 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Constructs a CSS selector to select a specific "data block" from a facility section by index.
      *
-     * @param section
-     * @param index
-     * @return
+     * @param section   the Facility Section to select
+     * @param index     the index of data block to specifically select
+     * @return  a CSS selector string for a specific data block in a facility section
      */
     private String getDataBlockSelector(FacilitySection section, int index)
     {
@@ -94,11 +95,11 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Constructs a CSS selector to select the content panel for a specific "data block" from a facility section by index.
      *
-     * @param section
-     * @param index
-     * @return
+     * @param section   the Facility Section to select
+     * @param index     the index of data block to specifically select
+     * @return      a CSS selector string for a specific data block's content panel.
      */
     public String getDataBlockContentSelector(FacilitySection section, int index)
     {
@@ -106,11 +107,11 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Finds the content panel for a specific "data block" in a facility section
      *
-     * @param section
-     * @param index
-     * @return
+     * @param section   the facility section to select
+     * @param index     the index of data block to specifically select
+     * @return  a WebElement of a div containing a specific data block's content panel.
      */
     private WebElement findDataBlockContent(FacilitySection section, int index)
     {
@@ -118,11 +119,11 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Determines whether a specific "data block"'s content panel in a facility section is displayed or not
      *
-     * @param section
-     * @param index
-     * @return
+     * @param section   the facility section to select
+     * @param index     the index of data block to specifically select
+     * @return  whether the data block is displayed (true) or not displayed (false)
      */
     public boolean grabDataBlockExpanded(FacilitySection section, int index)
     {
@@ -130,11 +131,11 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Constructs a CSS selector for the header of a specific "data block" in a facility section
      *
-     * @param section
-     * @param index
-     * @return
+     * @param section   the facility section to select
+     * @param index     the index of data block to specifically select
+     * @return  a CSS selector string to select the header panel of a data block
      */
     private String getDataBlockHeaderSelector(FacilitySection section, int index)
     {
@@ -142,11 +143,11 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Constructs a CSS selector for the button to expand/collapse a "data block" in a facility section
      *
-     * @param section
-     * @param index
-     * @return
+     * @param section   the facility section to select
+     * @param index     the index of the data block within the facility section to specifically select
+     * @return      a CSS selector string to select the expand/collapse button of a data block
      */
     private String getDataBlockHeaderExpandSelector(FacilitySection section, int index)
     {
@@ -154,11 +155,11 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Expands/collapses a "data block" or a specific instance of data within a facility section
      *
-     * @param section
-     * @param index
-     * @param expand
+     * @param section   the facility section to select
+     * @param index     the index of the data block within the facility section to select
+     * @param expand    whether to expand (true) or collapse (false) the data block
      */
     public void expandDataBlock(FacilitySection section, int index, boolean expand)
     {
@@ -183,10 +184,10 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Removes the colon and parentheses from data fields for easier reference
      *
-     * @param key
-     * @return
+     * @param key   the key to be formatted and subsequently used in a hash map
+     * @return  the formatted key as a string
      */
     private static String formatDataKey(String key)
     {
@@ -196,11 +197,13 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Gets the content from a specific data block within a facility section
+     * The Civic Address field has a different structure, so grabCivicAddressBlockContent must be used instead to obtain civic address details.
      *
-     * @param section
-     * @param index
-     * @return
+     * @param section   the facility section to get content from
+     * @param index     the index of data block within the facility section to get content from
+     * @return  a hash map mapping data block fields (String) to its associated values (String)
+     * @throws IllegalStateException    If a specific row of data in the block is formatted unexpectedly
      */
     public LinkedHashMap<String,String> grabDataBlockContent(FacilitySection section, int index)
     {
@@ -232,10 +235,10 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * TODO
+     * Adds a civic address data field to a hash map.
      *
-     * @param dataMap
-     * @param dataEntryList
+     * @param dataMap   the hash map to add the data field to
+     * @param dataEntryList     a list of web elements from a civic address block
      */
     private void addFieldDataMap(LinkedHashMap<String,String> dataMap, List<WebElement> dataEntryList, int index)
     {
@@ -243,6 +246,13 @@ public class ViewFacilityPage extends BasicWebPage {
                 dataEntryList.get(index+1).findElement(By.cssSelector("td")).getText());
     }
 
+    /**
+     * Gets the content from a Civic Addresses data block.
+     * All other facility sections are structured differently, so grabDataBlockContent must be used instead for any other facility section.
+     *
+     * @param index     the index of data block to get content from
+     * @return  a hash map mapping civic address data fields (String) to their associated values (String)
+     */
     public LinkedHashMap<String,String> grabCivicAddressBlockContent(int index)
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
