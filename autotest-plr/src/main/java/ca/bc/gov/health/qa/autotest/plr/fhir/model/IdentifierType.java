@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
+package ca.bc.gov.health.qa.autotest.plr.fhir.model;
 
 /**
  * TODO (AZ) - doc

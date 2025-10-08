@@ -13,8 +13,9 @@ import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpClient;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpRequest;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpRequestBuilder;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpResponse;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainAccessor;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.ResourceType;
 import ca.bc.gov.health.qa.autotest.plr.keycloak.actions.KeycloakActions;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
@@ -136,7 +137,10 @@ implements AutoCloseable
 
     /**
      * TODO (AZ) - doc
-     *
+     * @param resourceType
+     *        ???
+     *        Organization, Practitioner, Facility
+     * 
      * @param identifier
      *        ???
      *
@@ -148,16 +152,20 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    public JSONObject queryOrganizationByIdentifier(String identifier)
+    public JSONObject queryByIdentifier(ResourceType resourceType, String identifier)
     throws InterruptedException,
            IOException
     {
-        return queryProviderByIdentifier("Organization", identifier);
+        return  entityQueryByIdentifier(resourceType.wire(), identifier);
     }
 
     /**
      * TODO (AZ) - doc
-     *
+     * 
+     * @param resourceType
+     *        ???
+     *        Organization, Practitioner, Facility
+     * 
      * @param identifierType
      *        ???
      *
@@ -172,60 +180,13 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    public JSONObject queryOrganizationByIdentifier(
-            IdentifierType identifierType, String identifierValue)
+    public JSONObject queryByIdentifier(
+            ResourceType resourceType, IdentifierType identifierType, String identifierValue)
     throws InterruptedException,
            IOException
     {
-        return queryOrganizationByIdentifier(
-                identifierType.getSourceSystem() + "|" + identifierValue);
-    }
-
-    /**
-     * TODO (AZ) - doc
-     *
-     * @param identifier
-     *        ???
-     *
-     * @return ???
-     *
-     * @throws InterruptedException
-     *         if the current thread is interrupted
-     *
-     * @throws IOException
-     *         if an I/O error occurs
-     */
-    public JSONObject queryPractitionerByIdentifier(String identifier)
-    throws InterruptedException,
-           IOException
-    {
-        return queryProviderByIdentifier("Practitioner", identifier);
-    }
-
-    /**
-     * TODO (AZ) - doc
-     *
-     * @param identifierType
-     *        ???
-     *
-     * @param identifierValue
-     *        ???
-     *
-     * @return ???
-     *
-     * @throws InterruptedException
-     *         if the current thread is interrupted
-     *
-     * @throws IOException
-     *         if an I/O error occurs
-     */
-    public JSONObject queryPractitionerByIdentifier(
-            IdentifierType identifierType, String identifierValue)
-    throws InterruptedException,
-           IOException
-    {
-        return queryPractitionerByIdentifier(
-                identifierType.getSourceSystem() + "|" + identifierValue);
+        return queryByIdentifier(
+                resourceType, identifierType.getSourceSystem() + "|" + identifierValue);
     }
 
     /**
@@ -263,7 +224,7 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    public SimpleHttpResponse sendMaintainRequest(String requestPayload)
+    private SimpleHttpResponse sendMaintainRequest(String requestPayload)
     throws InterruptedException,
            IOException
     {
@@ -301,9 +262,9 @@ implements AutoCloseable
     /**
      * TODO (AZ) - doc
      *
-     * @param providerType
+     * @param resourceType
      *        ???
-     *        Organization, Practitioner
+     *        Organization, Practitioner, Facility
      *
      * @param identifier
      *        ???
@@ -316,14 +277,14 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    protected JSONObject queryProviderByIdentifier(String providerType, String identifier)
+    private JSONObject  entityQueryByIdentifier(String resourceType, String identifier)
     throws InterruptedException,
            IOException
     {
         verifyLoggedIn();
         SimpleHttpRequest request = createHttpRequestBuilder()
-                .transactionName("FHIR:Query" + providerType)
-                .uri(uri_.resolve(providerType + "/$entityQuery"))
+                .transactionName("FHIR:Query" + resourceType)
+                .uri(uri_.resolve(resourceType + "/$entityQuery"))
                 .queryParameter("identifier", identifier)
                 .build();
         SimpleHttpResponse response = client_.send(request);
@@ -334,7 +295,7 @@ implements AutoCloseable
         }
         else
         {
-            throw new IllegalStateException(providerType + " FHIR query failed.");
+            throw new IllegalStateException(resourceType + " FHIR query failed.");
         }
         return responseData;
     }

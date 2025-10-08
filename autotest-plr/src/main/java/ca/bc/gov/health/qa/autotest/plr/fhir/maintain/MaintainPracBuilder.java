@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 
 /**
  * TODO (AZ) - doc

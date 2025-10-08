@@ -35,6 +35,17 @@
                 {
                   "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-physical-address-extension",
                   "valueAddress": null
+                },
+                {
+                  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-details-extension",
+                  "extension": [
+                    {
+                      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
+                      "valuePeriod": {
+                        "start": "2022-10-25T10:44:59-07:00"
+                      }
+                    }
+                  ]
                 }
               ],
               "identifier": [

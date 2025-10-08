@@ -26,6 +26,7 @@ public class MaintainFacilityBuilder
     private  List<Map<String,String>> noteList_        = new ArrayList<>();
     //private List<Map<String,String>>  facilityRelationships  = new ArrayList<>();
     private final String              PURPOSE           = "FC";
+    private final String              ADDRESS_TYPE_PHYS = "physical";
     /**
      * TODO (AZ) - doc
      */
@@ -52,14 +53,12 @@ public class MaintainFacilityBuilder
      * @return ???
      */
     public MaintainFacilityBuilder addAddress(
-            String type,
-            //String purpose = "FC",
             String line1,
             String city,
             String postalCode)
     {
         Map<String,String> addressInfo = new HashMap<>();
-        addressInfo.put("type",       type);
+        addressInfo.put("type",       ADDRESS_TYPE_PHYS);
         addressInfo.put("purpose",    PURPOSE);
         addressInfo.put("line1",      line1);
         addressInfo.put("city",       city);

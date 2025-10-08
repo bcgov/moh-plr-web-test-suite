@@ -5,8 +5,11 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.PracMaintainExecutor;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRExecutor;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.ResourceType;
+import java.util.HashMap;
+import java.util.Map;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -44,22 +47,34 @@ implements SimpleTest
     public void test0()
     {
 
-        PracMaintainExecutor executor = new PracMaintainExecutor(UserType.ADMIN);
+        FHIRExecutor executor = new FHIRExecutor(UserType.ADMIN);
         
-        executor.submitPractitioner(
-                IdentifierType.IPC, 
-                "1231424324", 
-                "Smith", 
-                "Jhon", 
-                "male", 
-                "1900-04-01", 
-                "RN", 
-                "postal", 
-                "BC", 
-                "1755 Douglas St", 
-                "Victoria", 
-                "V6D 1B9");
-        
+    Map<String,String> prac = new HashMap<>();
+    prac.put("identifierType", IdentifierType.IPC.name());
+    prac.put("identifierValue", "554254734341");
+    prac.put("familyName", "Smith");
+    prac.put("givenName", "Jhon");
+    prac.put("gender", "male");
+    prac.put("birthDate", "1900-04-01");
+    prac.put("roleType", "RN");
+    prac.put("addressType", "postal");
+    prac.put("addressPurpose", "BC");
+    prac.put("addressLine1", "1755 Douglas St");
+    prac.put("addressCity", "Victoria");
+    prac.put("addressPostalCode", "V6D 1B9");
+
+    executor.submitMaintainRequest(ResourceType.PRACTITIONER, prac);
+
+    Map<String,String> facility = new HashMap<>();
+    facility.put("identifier", "8792169028");
+    facility.put("name", "Test Facility");
+    facility.put("description", "This is a test facility");
+    facility.put("addressLine1", "805 Griffiths Wy");
+    facility.put("addressCity", "Vancouver");
+    facility.put("addressPostal", "V6B 6G1");
+
+    executor.submitMaintainRequest(ResourceType.FACILITY, facility);
+
         executor.close();
            
     }
