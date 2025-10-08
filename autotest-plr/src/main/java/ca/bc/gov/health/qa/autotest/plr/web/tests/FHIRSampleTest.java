@@ -49,32 +49,41 @@ implements SimpleTest
 
         FHIRExecutor executor = new FHIRExecutor(UserType.ADMIN);
         
-    Map<String,String> prac = new HashMap<>();
-    prac.put("identifierType", IdentifierType.IPC.name());
-    prac.put("identifierValue", "554254734341");
-    prac.put("familyName", "Smith");
-    prac.put("givenName", "Jhon");
-    prac.put("gender", "male");
-    prac.put("birthDate", "1900-04-01");
-    prac.put("roleType", "RN");
-    prac.put("addressType", "postal");
-    prac.put("addressPurpose", "BC");
-    prac.put("addressLine1", "1755 Douglas St");
-    prac.put("addressCity", "Victoria");
-    prac.put("addressPostalCode", "V6D 1B9");
+        Map<String,String> prac = new HashMap<>();
+        prac.put("identifierType", IdentifierType.IPC.name());
+        prac.put("identifierValue", "24354284341");
+        prac.put("familyName", "Smith");
+        prac.put("givenName", "Jhon");
+        prac.put("gender", "male");
+        prac.put("birthDate", "1900-04-01");
+        prac.put("roleType", "RN");
+        prac.put("addressType", "postal");
+        prac.put("addressPurpose", "BC");
+        prac.put("addressLine1", "1755 Douglas St");
+        prac.put("addressCity", "Victoria");
+        prac.put("addressPostalCode", "V6D 1B9");
 
-    executor.submitMaintainRequest(ResourceType.PRACTITIONER, prac);
+        String prac_id = executor.submitMaintainRequest(ResourceType.PRACTITIONER, prac);
 
-    Map<String,String> facility = new HashMap<>();
-    facility.put("identifier", "8792169028");
-    facility.put("name", "Test Facility");
-    facility.put("description", "This is a test facility");
-    facility.put("addressLine1", "805 Griffiths Wy");
-    facility.put("addressCity", "Vancouver");
-    facility.put("addressPostal", "V6B 6G1");
+        Map<String,String> facility = new HashMap<>();
+        facility.put("identifier", "87081632128");
+        facility.put("name", "Test Facility");
+        facility.put("description", "This is a test facility");
+        facility.put("addressLine1", "810 Griffiths Wy");
+        facility.put("addressCity", "Vancouver");
+        facility.put("addressPostal", "V6B 6G1");
 
-    executor.submitMaintainRequest(ResourceType.FACILITY, facility);
+        String facility_id = executor.submitMaintainRequest(ResourceType.FACILITY, facility);
 
+
+        LOG.info("Created practitioner id {}, facility id {}.", prac_id, facility_id);
+
+        String pracQueryResponse = executor.queryByIdentifier(ResourceType.PRACTITIONER, IdentifierType.IPC, prac_id).toString();
+        String facQueryResponse = executor.queryByIdentifier(ResourceType.FACILITY, IdentifierType.IFC, facility_id).toString();
+
+        LOG.info("Practitioner query response: {}", pracQueryResponse);
+        LOG.info("Facility query response: {}", facQueryResponse);
+        
         executor.close();
            
     }

@@ -27,15 +27,31 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
  */
 public class FHIRExecutor implements AutoCloseable
 {
+    /**
+     * Class logger used for diagnostic and execution trace output.
+     */
     protected static final Logger LOG = ExecutionLogManager.getLogger();
 
+    /**
+     * Base FHIR endpoint (base URL) used for all subsequent REST/FHIR calls.
+     */
     protected final URI fhirUri_;
+
+    /**
+     * Keycloak base endpoint used for obtaining / refreshing access tokens.
+     */
     protected final URI keycloakUri_;
-    protected final Path keyStorePath_;
-    protected final char[] keyStorePassword_;
+
+    /**
+     * Test user type (role/profile) which determines the credential set pulled from configuration / test data.
+     */
     protected final UserType userType_;
-    protected final PlrFhirActions actions_;
-    protected final String username_;
+
+    /**
+     * Facade encapsulating low‑level HTTPS connection handling, authentication lifecycle (login / logout),
+     * token management and FHIR request submission helpers. Shared safely per executor instance.
+     */
+    protected final PlrFhirActions actions_; // Connection, requests and credential manager
 
     /**
      * Constructor. Will set up credentials by logging in into keycloack based on the userType profile provided.
@@ -55,20 +71,22 @@ public class FHIRExecutor implements AutoCloseable
         this.fhirUri_ = URI.create(fhirUrl);
         this.keycloakUri_ = URI.create(keycloakUrl);
 
-        this.keyStorePath_ = PlrData.getKeyStorePath();
+        Path keyStorePath_ = PlrData.getKeyStorePath();
         String ksPwd = PlrData.getKeystorePassword();
         if (ksPwd == null || ksPwd.isBlank())
         {
             throw new IllegalStateException("Keystore password is missing");
         }
-        this.keyStorePassword_ = ksPwd.toCharArray();
-        if (!Files.exists(this.keyStorePath_))
+
+        char[] keyStorePassword_ = ksPwd.toCharArray();
+
+        if (!Files.exists(keyStorePath_))
         {
-            throw new IllegalStateException("Keystore file not found: " + this.keyStorePath_);
+            throw new IllegalStateException("Keystore file not found: " + keyStorePath_);
         }
 
         Map<String,String> creds = PlrData.getCredentials("plr.fhir", userType_);
-        this.username_ = creds.get("username");
+
         try
         {
             actions_ = new PlrFhirActions(fhirUri_, keycloakUri_, keyStorePath_, keyStorePassword_);
@@ -141,11 +159,13 @@ public class FHIRExecutor implements AutoCloseable
 
     /**
      * Generic submit method that builds the correct resource payload based on the ResourceType and provided parameters map.
-     * Required keys per resource type:
+     * Keys per resource type:
      *  PRACTITIONER: identifierType, identifierValue, familyName, givenName, gender, birthDate, roleType, addressType, addressPurpose, addressLine1, addressCity, addressPostalCode
      *  FACILITY: identifier, name, addressLine1, addressCity, addressPostalCode, description
      * @param resourceType target resource type
      * @param params key/value parameters (see above)
+     * 
+     * @return the created Facility, Practitioner or Organization id
      */
     public String submitMaintainRequest(ResourceType resourceType, Map<String,String> params){
 
@@ -188,6 +208,15 @@ public class FHIRExecutor implements AutoCloseable
     }
 
     
+    /**
+     * Query a resource (facility / practitioner / organization) using a single identifier value
+     * where the identifier system is implied by the server configuration / default search behavior.
+     *
+     * @param resourceType the FHIR resource type to search (e.g. PRACTITIONER, FACILITY, ORGANIZATION)
+     * @param identifier   the identifier value (system determined implicitly)
+     * @return JSON object representing the FHIR search response or resource bundle
+     * @throws IllegalStateException if the thread is interrupted or an I/O error occurs during the request
+     */
     public JSONObject queryByIdentifier(ResourceType resourceType, String identifier) {
 
         try
@@ -206,6 +235,15 @@ public class FHIRExecutor implements AutoCloseable
 
     }
 
+    /**
+     * Query a resource by an explicit identifier type + value pair.
+     *
+     * @param resourceType   the FHIR resource type to search (e.g. PRACTITIONER, FACILITY, ORGANIZATION)
+     * @param identifierType the logical / business identifier type enum used to derive the identifier system
+     * @param identifierValue the identifier value
+     * @return JSON search response (bundle or single resource representation depending on server behavior)
+     * @throws IllegalStateException if the thread is interrupted or an I/O error occurs during the request
+     */
     public JSONObject queryByIdentifier(ResourceType resourceType, IdentifierType identifierType, String identifierValue) {
         try
         {

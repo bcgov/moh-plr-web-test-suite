@@ -34,23 +34,15 @@ public class MaintainFacilityBuilder
     {}
 
     /**
-     * TODO (AZ) - doc
+     * Adds (or replaces) the single facility address used in the maintain payload. The builder keeps only
+     * one address instance; invoking this again overwrites the previous address.
+     * <p>
+     * Address type is fixed to {@code physical} and purpose to {@code FC}
      *
-     * @param type
-     *        ???
-     *        physical, postal
-     *
-     *
-     * @param line1
-     *        ???
-     *
-     * @param city
-     *        ???
-     *
-     * @param postalCode
-     *        ???
-     *
-     * @return ???
+     * @param line1      first address line (street / civic)
+     * @param city       city name
+     * @param postalCode postal code (format as accepted by upstream service)
+     * @return this builder for fluent chaining
      */
     public MaintainFacilityBuilder addAddress(
             String line1,
@@ -68,12 +60,10 @@ public class MaintainFacilityBuilder
     }
 
     /**
-     * TODO (AZ) - doc
+     * Adds a free-form note that will be rendered as an extension element in the outgoing FHIR payload.
      *
-     * @param text
-     *        ???
-     *
-     * @return ???
+     * @param text human readable note text (ignored if null)
+     * @return this builder for fluent chaining
      */
     public MaintainFacilityBuilder addNote(String text)
     {
@@ -84,23 +74,11 @@ public class MaintainFacilityBuilder
     }
 
     /**
-     * TODO (AZ) - doc
+     * Adds a telecom (contact) channel for the facility. Purpose is always set to {@code FC}.
      *
-     * @param type
-     *        ???
-     *        email (Email)
-     *        fax   (Fax)
-     *        other (Modem)
-     *        pager (Pager)
-     *        phone (Telephone)
-     *        sms   (Mobile)
-     *        url   (HTTP)
-     *
-     *
-     * @param value
-     *        ???
-     *
-     * @return ???
+     * @param type  channel type (e.g. phone, fax, email, url, sms)
+     * @param value channel value (e.g. number or address)
+     * @return this builder for fluent chaining
      */
     public MaintainFacilityBuilder addTelecom(String type, String value)
     {
@@ -112,12 +90,10 @@ public class MaintainFacilityBuilder
     }
 
     /**
-     * TODO (AZ) - doc
+     * Sets a description / alias for the facility.
      *
-     * @param description
-     *        ???
-     *
-     * @return ???
+     * @param description alias / secondary display name (null to omit)
+     * @return this builder for fluent chaining
      */
     public MaintainFacilityBuilder description(String description)
     {
@@ -126,9 +102,10 @@ public class MaintainFacilityBuilder
     }
 
     /**
-     * TODO (AZ) - doc
+     * Builds the FHIR maintain JSON object for the configured facility attributes.
      *
-     * @return ???
+     * @return immutable JSON representation ready for submission
+     * @throws NullPointerException if required parameters are missing (see {@link #verifyParameters()})
      */
     public JSONObject build()
     {
@@ -170,12 +147,10 @@ public class MaintainFacilityBuilder
     }
 
     /**
-     * TODO (AZ) - doc
+     * Sets the facility identifier.
      *
-     * @param identifier
-     *        ???
-     *
-     * @return ???
+     * @param identifier identifier value
+     * @return this builder for fluent chaining
      */
     public MaintainFacilityBuilder identifier(String identifier)
     {
@@ -184,12 +159,10 @@ public class MaintainFacilityBuilder
     }
 
     /**
-     * TODO (AZ) - doc
+     * Sets the facility primary name.
      *
-     * @param name
-     *        ???
-     *
-     * @return ???
+     * @param name facility display name 
+     * @return this builder for fluent chaining
      */
     public MaintainFacilityBuilder name(String name)
     {
