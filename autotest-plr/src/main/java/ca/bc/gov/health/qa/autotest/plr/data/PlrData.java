@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
@@ -27,7 +28,7 @@ public class PlrData
     private static final Path   KEY_STORE_PATH;
     static
     {
-        Config config  = LocalContext.get().getConfig();
+        Config config  = ConfigProvider.get().getConfig();
         Path dataDir   = Path.of(config.get("data.dir"));
         ENV_NAME       = config.get("env.name");
         PROVIDERS_DIR  = dataDir.resolve("providers");

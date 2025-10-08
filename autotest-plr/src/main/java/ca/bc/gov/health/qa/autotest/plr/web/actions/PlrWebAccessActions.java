@@ -3,7 +3,6 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions;
 import java.net.URI;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.SearchFacilityTests;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.HomePage;
