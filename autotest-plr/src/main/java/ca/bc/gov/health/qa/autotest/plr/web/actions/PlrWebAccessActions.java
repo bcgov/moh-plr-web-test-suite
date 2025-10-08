@@ -2,6 +2,8 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions;
 
 import java.net.URI;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.SearchFacilityTests;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.HomePage;
@@ -92,6 +94,12 @@ public class PlrWebAccessActions
         return waitForSearchProviderPage();
     }
 
+    public SearchFacilityPage openSearchFacility()
+    {
+        waitForPlrNavigationMenuFragment().openItem(Item.SEARCH_FACILITY);
+        return waitForSearchFacilityPage();
+    }
+
     private PlrNavigationMenuFragment waitForPlrNavigationMenuFragment()
     {
         PlrNavigationMenuFragment fragment = new PlrNavigationMenuFragment(selenium_);
@@ -104,5 +112,12 @@ public class PlrWebAccessActions
         SearchProviderPage searchProvider = new SearchProviderPage(selenium_);
         searchProvider.waitForReady();
         return searchProvider;
+    }
+
+    private SearchFacilityPage waitForSearchFacilityPage()
+    {
+        SearchFacilityPage searchFacility = new SearchFacilityPage(selenium_);
+        searchFacility.waitForReady();
+        return searchFacility;
     }
 }

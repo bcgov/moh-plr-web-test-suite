@@ -5,6 +5,8 @@ import static java.util.Objects.requireNonNull;
 import java.net.URI;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchFacilityActions;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
@@ -71,7 +73,8 @@ implements AutoCloseable
      */
     public static PlrWebWorkflow create(UserType userType)
     {
-        Config config = LocalContext.get().getConfig();
+        Config config = ConfigProvider.get().getConfig();
+        // Config config = LocalContext.get().getConfig();
         URI uri = URI.create(config.get("web.url"));
         LOG.info("URL ({}).", uri);
         SeleniumSession selenium = SeleniumSession.createChromeSeleniumSession();
@@ -96,6 +99,11 @@ implements AutoCloseable
     public SearchProviderActions getSearchProviderActions()
     {
         return new SearchProviderActions(selenium_);
+    }
+
+    public SearchFacilityActions getSearchFacilityActions()
+    {
+        return new SearchFacilityActions(selenium_);
     }
 
     /**
