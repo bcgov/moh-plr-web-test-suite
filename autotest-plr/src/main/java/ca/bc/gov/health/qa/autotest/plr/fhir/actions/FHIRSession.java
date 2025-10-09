@@ -1,11 +1,10 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir;
+package ca.bc.gov.health.qa.autotest.plr.fhir.actions;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
-import java.util.Map;
+import java.util.Map; // Needed for credentials retrieval
 
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
@@ -13,19 +12,17 @@ import org.json.JSONObject;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
-import ca.bc.gov.health.qa.autotest.plr.fhir.actions.PlrFhirActions;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainPracBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.ResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
 /**
- * Base executor encapsulating common FHIR + Keycloak setup, keystore loading and login lifecycle.
+ * Base session encapsulating common FHIR + Keycloak setup, keystore loading and login lifecycle.
  * Subclasses only need to focus on building and submitting resource specific payloads.
  */
-public class FHIRExecutor implements AutoCloseable
+public class FHIRSession implements AutoCloseable
 {
     /**
      * Class logger used for diagnostic and execution trace output.
@@ -57,7 +54,7 @@ public class FHIRExecutor implements AutoCloseable
      * Constructor. Will set up credentials by logging in into keycloack based on the userType profile provided.
      * @param userType user role (determines credential set)
      */
-    public FHIRExecutor(UserType userType)
+    public FHIRSession(UserType userType)
     {
         this.userType_ = userType;
 
@@ -121,79 +118,25 @@ public class FHIRExecutor implements AutoCloseable
         }
     }
 
-    private JSONObject buildPractitionerMaintainPayload(Map<String,String> params){
-
-        IdentifierType idType = IdentifierType.valueOf(params.get("identifierType"));
-                MaintainPracBuilder b = new MaintainPracBuilder()
-                        .identifier(idType, params.get("identifierValue"))
-                        .familyName(params.get("familyName"))
-                        .firstName(params.get("givenName"))
-                        .gender(params.get("gender").toLowerCase(Locale.ROOT))
-                        .birthDate(params.get("birthDate"))
-                        .roleType(params.get("roleType"))
-                        .addStatus("LIC", "ACTIVE", "GS")
-                        .addAddress(
-                                params.get("addressType"),
-                                params.get("addressPurpose"),
-                                params.get("addressLine1"),
-                                params.get("addressCity"),
-                                params.get("addressPostalCode"));
-        
-        return b.build();
-    }
-
-
-    private JSONObject buildFacilityMaintainPayload(Map<String,String> params){
-
-        MaintainFacilityBuilder b = new MaintainFacilityBuilder()
-                        .identifier(params.get("identifier"))
-                        .name(params.get("name"))
-                        .description(params.get("description"))
-                        .addAddress(
-                                params.get("addressLine1"),
-                                params.get("addressCity"),
-                                params.get("addressPostalCode"));
-
-        return b.build();
-    }
-
     /**
-     * Generic submit method that builds the correct resource payload based on the ResourceType and provided parameters map.
-     * Keys per resource type:
-     *  PRACTITIONER: identifierType, identifierValue, familyName, givenName, gender, birthDate, roleType, addressType, addressPurpose, addressLine1, addressCity, addressPostalCode
-     *  FACILITY: identifier, name, addressLine1, addressCity, addressPostalCode, description
-     * @param resourceType target resource type
-     * @param params key/value parameters (see above)
-     * 
-     * @return the created Facility, Practitioner or Organization id
+     * Unified submission entry point for all maintain builders.
+     * @param builder maintain builder (facility, practitioner, etc.)
+     * @return created resource id
      */
-    public String submitMaintainRequest(ResourceType resourceType, Map<String,String> params){
-
-        JSONObject payload;
-        switch (resourceType)
-        {
-            case PRACTITIONER:
-            {
-                payload = buildPractitionerMaintainPayload(params);
-                break;
-            }
-            case FACILITY:
-            {
-                payload = buildFacilityMaintainPayload(params);
-                break;
-            }
-            case ORGANIZATION:
-                // TO DO
-            default:
-                throw new UnsupportedOperationException("Submit not implemented for resource type: " + resourceType);
+    public String submitMaintain(MaintainRequestBuilder builder) {
+        if (builder == null) {
+            throw new IllegalArgumentException("builder must not be null");
         }
+        JSONObject payload = builder.build();
+        return submitMaintainPayload(builder.resourceType(), payload);
+    }
 
+    // Future TO DO: add overload submitMaintainRequest(MaintainOrganizationBuilder builder)
+    private String submitMaintainPayload(PlrFhirResourceType type, JSONObject payload) {
         LOG.info(payload.toString());
-
-        try
-        {
+        try{
             String id = actions_.submitMaintainRequest(payload);
-            LOG.info("Maintain submitted. Returned id {}.", id);
+            LOG.info("Maintain submitted (type={}). Returned id {}.", type, id);
             return id;
         }
         catch (InterruptedException e)
@@ -217,11 +160,13 @@ public class FHIRExecutor implements AutoCloseable
      * @return JSON object representing the FHIR search response or resource bundle
      * @throws IllegalStateException if the thread is interrupted or an I/O error occurs during the request
      */
-    public JSONObject queryByIdentifier(ResourceType resourceType, String identifier) {
+    public JSONObject queryByIdentifier(PlrFhirResourceType resourceType, String identifier) {
 
         try
         {
-            return actions_.queryByIdentifier(resourceType, identifier);
+            JSONObject response = actions_.queryByIdentifier(resourceType, identifier);
+            LOG.info("Query submitted (type={}). id {}.", resourceType, identifier);
+            return response;
         }
         catch (InterruptedException e)
         {
@@ -244,7 +189,7 @@ public class FHIRExecutor implements AutoCloseable
      * @return JSON search response (bundle or single resource representation depending on server behavior)
      * @throws IllegalStateException if the thread is interrupted or an I/O error occurs during the request
      */
-    public JSONObject queryByIdentifier(ResourceType resourceType, IdentifierType identifierType, String identifierValue) {
+    public JSONObject queryByIdentifier(PlrFhirResourceType resourceType, IdentifierType identifierType, String identifierValue) {
         try
         {
             return actions_.queryByIdentifier(resourceType, identifierType, identifierValue);

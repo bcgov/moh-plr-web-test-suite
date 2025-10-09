@@ -12,11 +12,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 
 /**
  * TODO (AZ) - doc
  */
-public class MaintainFacilityBuilder
+public class MaintainFacilityBuilder implements MaintainRequestBuilder
 {
     private String                    identifier_      = null;
     private Map<String,String>        address_         = new HashMap<>();
@@ -146,6 +147,11 @@ public class MaintainFacilityBuilder
         return json;
     }
 
+    @Override
+    public PlrFhirResourceType resourceType() {
+        return PlrFhirResourceType.FACILITY;
+    }
+
     /**
      * Sets the facility identifier.
      *
@@ -172,13 +178,62 @@ public class MaintainFacilityBuilder
 
     private void verifyParameters()
     {
-        //requireNonNull(identifier_, "Missing facility identifier.");
-        
+        requireNonNull(name_, "Missing facility name.");
+        requireNonNull(identifier_, "Missing facility identifier.");
         if (address_.isEmpty())
         {
             requireNonNull(null, "Missing facility address.");
-            
         }
 
+    }
+
+    // --- Getters (added for external inspection / assertions) ---
+
+    /**
+     * Returns the identifier currently set on this builder (may be null if not yet assigned).
+     */
+    public String getIdentifier()
+    {
+        return identifier_;
+    }
+
+    /**
+     * Returns the facility name currently configured (may be null until provided).
+     */
+    public String getName()
+    {
+        return name_;
+    }
+
+    /**
+     * Returns the optional description / alias (null if none provided).
+     */
+    public String getDescription()
+    {
+        return description_;
+    }
+
+    /**
+     * Returns a defensive copy of the single address map (empty if not set).
+     */
+    public Map<String,String> getAddress()
+    {
+        return new HashMap<>(address_);
+    }
+
+    /**
+     * Returns an immutable snapshot of telecom entries added so far.
+     */
+    public List<Map<String,String>> getTelecomList()
+    {
+        return List.copyOf(telecomList_);
+    }
+
+    /**
+     * Returns an immutable snapshot of note entries added so far.
+     */
+    public List<Map<String,String>> getNoteList()
+    {
+        return List.copyOf(noteList_);
     }
 }

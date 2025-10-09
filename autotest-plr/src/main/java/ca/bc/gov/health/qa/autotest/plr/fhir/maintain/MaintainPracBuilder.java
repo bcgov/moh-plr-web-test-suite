@@ -13,11 +13,12 @@ import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 
 /**
  * TODO (AZ) - doc
  */
-public class MaintainPracBuilder
+public class MaintainPracBuilder implements MaintainRequestBuilder
 {
     private List<Map<String,String>> addressList_            = new ArrayList<>();
     private String                   birthDate_              = null;
@@ -511,5 +512,10 @@ public class MaintainPracBuilder
         requireNonNull(gender_,          "Missing gender.");
         requireNonNull(identifierType_,  "Missing identifier type.");
         requireNonNull(identifierValue_, "Missing identifier value.");
+    }
+
+    @Override
+    public PlrFhirResourceType resourceType() {
+        return PlrFhirResourceType.PRACTITIONER;
     }
 }

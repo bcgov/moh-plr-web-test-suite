@@ -15,7 +15,7 @@ import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpRequestBuilder;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpResponse;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainAccessor;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.ResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.keycloak.actions.KeycloakActions;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
@@ -152,7 +152,7 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    public JSONObject queryByIdentifier(ResourceType resourceType, String identifier)
+    public JSONObject queryByIdentifier(PlrFhirResourceType resourceType, String identifier)
     throws InterruptedException,
            IOException
     {
@@ -181,7 +181,7 @@ implements AutoCloseable
      *         if an I/O error occurs
      */
     public JSONObject queryByIdentifier(
-            ResourceType resourceType, IdentifierType identifierType, String identifierValue)
+            PlrFhirResourceType resourceType, IdentifierType identifierType, String identifierValue)
     throws InterruptedException,
            IOException
     {
