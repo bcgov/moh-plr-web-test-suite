@@ -131,7 +131,7 @@ public class FHIRSession implements AutoCloseable
         return submitMaintainPayload(builder.resourceType(), payload);
     }
 
-    // Future TO DO: add overload submitMaintainRequest(MaintainOrganizationBuilder builder)
+    // Future TODO: add overload submitMaintainRequest(MaintainOrganizationBuilder builder)
     private String submitMaintainPayload(PlrFhirResourceType type, JSONObject payload) {
         LOG.info(payload.toString());
         try{

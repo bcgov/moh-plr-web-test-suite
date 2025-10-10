@@ -83,7 +83,8 @@ public final class FacilityDataGenerator {
 	 *  - name (randomized)
 	 *  - address (single physical FC address)
 	 *  - description (fixed: "Selenium FHIR")
-	 * The caller may further enrich (identifier, telecom, notes, etc.) before submit.
+     *  - identifier (random 12-digit numeric string)
+	 * The caller may further enrich (telecom, notes, etc.) before submit.
 	 * @return configured MaintainFacilityBuilder
 	 */
 	public MaintainFacilityBuilder generateFacilityBuilder() {

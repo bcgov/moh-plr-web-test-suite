@@ -10,7 +10,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
 /**
  * High-level facade for creating and querying FHIR resources used in tests.
- * Abstracts away generator + executor wiring so tests can stay concise.
+ * Abstracts away data generator + fhir session wiring so tests can stay concise.
  */
 public class FHIRController implements AutoCloseable {
 
@@ -37,8 +37,8 @@ public class FHIRController implements AutoCloseable {
     }
 
     /**
-     * Generates facility data (name, address, description), allows optional identifier
-     * injection, submits a maintain request and returns the created facility id.
+     * Generates facility data (name, address, description) 
+     * and submits a maintain request.
      *
      * @return created facility values as a MaintainFacilityBuilder
      */
