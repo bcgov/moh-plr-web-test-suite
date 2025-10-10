@@ -52,7 +52,7 @@ public class PlrData
      *
      * @return ???
      */
-    public static Map<String,String> getCreadentials(String credentialType, UserType userType)
+    public static Map<String,String> getCredentials(String credentialType, UserType userType)
     {
         Path filePath = SECURITY_DIR.resolve("credentials-" + ENV_NAME + ".properties");
         Map<String,String> credentialsMap;

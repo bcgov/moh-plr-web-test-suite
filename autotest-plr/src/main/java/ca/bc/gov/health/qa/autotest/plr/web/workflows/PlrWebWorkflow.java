@@ -163,7 +163,7 @@ implements AutoCloseable
      */
     public PlrWebAccessActions login()
     {
-        Map<String,String> credentialsMap = PlrData.getCreadentials("plr.web", userType_);
+        Map<String,String> credentialsMap = PlrData.getCredentials("plr.web", userType_);
         PlrWebAccessActions actions = getPlrWebAccessActions();
         actions.login(credentialsMap.get("username"), credentialsMap.get("password"));
         loggedIn_ = true;
