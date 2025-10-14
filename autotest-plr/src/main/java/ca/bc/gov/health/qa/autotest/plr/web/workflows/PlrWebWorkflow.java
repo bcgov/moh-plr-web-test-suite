@@ -54,7 +54,7 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Closes the selenium session / page
      */
     @Override
     public void close()
@@ -82,9 +82,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Creates and gets an actions object for PLR Web Access
      *
-     * @return ???
+     * @return a PlrWebAccessActions object
      */
     public PlrWebAccessActions getPlrWebAccessActions()
     {
@@ -132,9 +132,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the user type selenium is accessing PLR with
      *
-     * @return ???
+     * @return a UserType object with the user type used
      */
     public UserType getUserType() { return userType_; }
 
