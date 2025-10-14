@@ -112,4 +112,14 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
         row.findElement(By.cssSelector("td > a")).click();
         waitForAbsent();
     }
+
+    /**
+     * Gets the full search results as text, including the form message of result count and time taken
+     *
+     * @return  a string of the full search results as text
+     */
+    public String getFormResults()
+    {
+        return selenium_.findElementByCss("form#searchResultsForm").getText();
+    }
 }
