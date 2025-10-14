@@ -6,10 +6,10 @@ import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchFacilityActions;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.FacilitySection;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchFacilityResultsFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;

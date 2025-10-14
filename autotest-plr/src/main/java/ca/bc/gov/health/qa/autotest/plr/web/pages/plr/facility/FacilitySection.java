@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 public enum FacilitySection {
     /**

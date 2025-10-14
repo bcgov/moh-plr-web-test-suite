@@ -1,6 +1,7 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;

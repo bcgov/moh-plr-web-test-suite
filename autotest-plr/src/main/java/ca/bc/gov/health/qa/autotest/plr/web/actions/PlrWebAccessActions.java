@@ -2,7 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions;
 
 import java.net.URI;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.HomePage;
@@ -10,7 +10,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.common.KeycloakLoginPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.LoginPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment.Item;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
