@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import java.util.List;
 import java.util.ArrayList;
