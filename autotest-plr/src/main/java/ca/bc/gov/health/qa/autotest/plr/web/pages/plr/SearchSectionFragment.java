@@ -19,7 +19,7 @@ extends BasicWebPageFragment
      *        The current SeleniumSession
      *
      * @param mainLocator
-     *        ???
+     *        The main locator to check for visibility/invisibility/absence
      *
      * @throws NullPointerException
      *         if either {@code driver} or {@code mainLocator} is {@code null}

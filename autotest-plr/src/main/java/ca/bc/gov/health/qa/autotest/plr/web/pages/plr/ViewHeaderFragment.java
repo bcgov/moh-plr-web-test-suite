@@ -99,9 +99,9 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the title of the View page
      *
-     * @return ???
+     * @return a String of the title of the View page (provider/facility)
      */
     public String grabViewTitle()
     {

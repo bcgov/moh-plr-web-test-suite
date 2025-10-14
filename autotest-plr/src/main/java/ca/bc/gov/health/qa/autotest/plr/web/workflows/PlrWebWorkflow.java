@@ -21,7 +21,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 /**
- * TODO (AZ) - doc
+ * PLR Workflow class to handle creating a selenium session with the correct environment and credentials.
  */
 public class PlrWebWorkflow
 implements AutoCloseable
@@ -35,16 +35,16 @@ implements AutoCloseable
     private boolean loggedIn_ = false;
 
     /**
-     * TODO (AZ) - doc
+     * Initializes a PLR Workflow instance
      *
      * @param selenium
-     *        ???
+     *        the current SeleniumSession
      *
      * @param uri
-     *        ???
+     *        the base URI/URL for the instance
      *
      * @param userType
-     *        ???
+     *        the user type used to log in to PLR with
      */
     private PlrWebWorkflow(SeleniumSession selenium, URI uri, UserType userType)
     {
@@ -64,16 +64,17 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Creates a PLR Workflow instance and an associated selenium session.
      *
      * @param userType
-     *        ???
+     *        the user type to draw credentials from during login
      *
-     * @return ???
+     * @return A PlrWebWorkflow object setup with a selenium session and URI/URL
      */
     public static PlrWebWorkflow create(UserType userType)
     {
         Config config = ConfigProvider.get().getConfig();
+        /* This original code is likely related to PlrWebWorkflowManager/multiple selenium instances */
         // Config config = LocalContext.get().getConfig();
         URI uri = URI.create(config.get("web.url"));
         LOG.info("URL ({}).", uri);
