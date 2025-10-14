@@ -83,9 +83,9 @@ public class PlrWebAccessActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Opens the Search Provider page
      *
-     * @return ???
+     * @return  a SearchProviderPage object for the search provider page
      */
     public SearchProviderPage openSearchProvider()
     {
@@ -93,6 +93,11 @@ public class PlrWebAccessActions
         return waitForSearchProviderPage();
     }
 
+    /**
+     * Opens the Search Facility page
+     *
+     * @return  a SearchFacilityPage object for the search facility page
+     */
     public SearchFacilityPage openSearchFacility()
     {
         waitForPlrNavigationMenuFragment().openItem(Item.SEARCH_FACILITY);

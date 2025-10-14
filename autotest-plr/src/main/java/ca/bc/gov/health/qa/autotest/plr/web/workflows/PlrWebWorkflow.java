@@ -92,24 +92,29 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Creates and gets an actions object for the Search Provider page
      *
-     * @return ???
+     * @return a SearchProviderActions object
      */
     public SearchProviderActions getSearchProviderActions()
     {
         return new SearchProviderActions(selenium_);
     }
 
+    /**
+     * Creates and gets an actions object for the Search Facility page
+     *
+     * @return  a SearchFacilityActions object
+     */
     public SearchFacilityActions getSearchFacilityActions()
     {
         return new SearchFacilityActions(selenium_);
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the current SeleniumSession
      *
-     * @return ???
+     * @return  a reference to the current SeleniumSession
      */
     public SeleniumSession getSeleniumSession()
     {
@@ -117,9 +122,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the URI/URL
      *
-     * @return ???
+     * @return A URI object with the base URL of the workflow
      */
     public URI getURUri()
     {
@@ -131,15 +136,12 @@ implements AutoCloseable
      *
      * @return ???
      */
-    public UserType getUserType()
-    {
-        return userType_;
-    }
+    public UserType getUserType() { return userType_; }
 
     /**
-     * TODO (AZ) - doc
+     * Creates and gets an actions object for the View Provider page
      *
-     * @return ???
+     * @return  a ViewProviderActions object
      */
     public ViewProviderActions getViewProviderActions()
     {
@@ -147,9 +149,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the session is logged in
      *
-     * @return ???
+     * @return whether the session is logged in (true) or not (false)
      */
     public boolean isLoggedIn()
     {
@@ -157,9 +159,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Logs into the PLR site using given credentials
      *
-     * @return ???
+     * @return a PlrWebAccessActions object with access to the PLR site (provided the credentials are valid)
      */
     public PlrWebAccessActions login()
     {
@@ -171,7 +173,7 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Logs out of the PLR site
      */
     public void logout()
     {

@@ -27,12 +27,14 @@ public class SearchFacilityTests implements SimpleTest {
 
     public SearchFacilityTests() {}
 
+    /*
     @AfterClass
     public void teardown()
     {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
+     */
 
     @BeforeMethod
     public void before(Object[] parameters)
