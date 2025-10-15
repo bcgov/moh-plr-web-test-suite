@@ -234,4 +234,24 @@ public class SearchFacilityTests implements SimpleTest {
         assertTrue(warningMessageList.contains(expectedMessage), "Warning message for maximum search results not returned.");
         assertTrue(searchResults.getFormResults().contains("20 results"), "Form result does not match expected maximum search results.");
     }
+
+    @Test
+    // Search Facility: Alphabetical Sorting
+    public void testAlphabeticalSort()
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria("", "", "", "Victoria", "Select One", "", false);
+
+        List<String> facNameList = searchResults.getFacilityNamesList();
+        // No name facility edge-case handling - not covered by test case
+        while (facNameList.contains("Link to View Facility")) facNameList.remove("Link to View Facility");
+
+        List<String> sortedNameList = new ArrayList<>(facNameList);
+        Collections.sort(sortedNameList);
+        assertEquals(facNameList, sortedNameList, "Returned search results and sorted search results do not match.");
+
+        // need to check edge-cases for same name different upper/lowercase, nonalphabetical characters
+        // investigation / confirmation of expected behavior needed
+    }
 }

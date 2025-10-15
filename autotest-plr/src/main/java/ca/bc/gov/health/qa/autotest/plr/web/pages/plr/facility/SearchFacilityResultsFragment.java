@@ -122,4 +122,22 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
     {
         return selenium_.findElementByCss("form#searchResultsForm").getText();
     }
+
+    /**
+     * Gets the facility names of each record in the search results
+     * The facility description is discarded in the results
+     *
+     * @return  a list of strings with each facility name in the search results
+     */
+    public List<String> getFacilityNamesList()
+    {
+        List<String> facNameList = new ArrayList<>();
+        for (int facilityCount = 0; facilityCount < grabResultsRowCount(); facilityCount++)
+        {
+            String facName = getResultsRow(facilityCount).getFirst();
+            if (facName.contains(",")) facName = facName.substring(0, facName.indexOf(','));
+            facNameList.add(facName);
+        }
+        return facNameList;
+    }
 }
