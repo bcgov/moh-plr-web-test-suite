@@ -64,9 +64,12 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
     /**
      * Finds a row in the table of search results when searching by facility
      *
-     * @param index     the index of row to search for in the search results
-     * @return  a WebElement reference of the row at the requested index
-     * @throws  IllegalStateException   if no row at the requested index is found, or another error has occurred with finding a unique row at the specified index
+     * @param index                     the index of row to search for in the search results
+     *
+     * @return                          a WebElement reference of the row at the requested index
+     *
+     * @throws  IllegalStateException   if no row at the requested index is found,
+     *                                  or another error has occurred with finding a unique row at the specified index
      */
     public WebElement findResultsRow(int index)
     {
