@@ -27,11 +27,13 @@ public class SearchFacilityTests implements SimpleTest {
 
     public SearchFacilityTests() {}
 
+    /*
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
+     */
 
     @BeforeMethod
     public void before(Object[] parameters)
@@ -41,6 +43,15 @@ public class SearchFacilityTests implements SimpleTest {
         {
             workflow.login().openPlr();
         }
+    }
+
+    @Test
+    // Search Facility: Facility Search
+    public void testFacilitySearch()
+    {
+        testIdentifierSearch();
+
+        testCriteriaSearch();
     }
 
     @Test
@@ -91,7 +102,9 @@ public class SearchFacilityTests implements SimpleTest {
         final String expectedMessage = "Invalid or Incomplete form data provided, please see instructions on the right side.";
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        searchFacility.searchByCriteria("", "", "", "", "Select One", "", true);
+        searchFacility.searchByCriteria(
+                "", "", "", "", null,
+                "Select One", "", null, true);
         List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
 
         assertTrue(warningMessageList.contains(expectedMessage), "Missing minimum requirements message warning not displayed.");
@@ -117,8 +130,8 @@ public class SearchFacilityTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
         SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                "ABC.123", "1234 Fake St", "5678 Unknown Rd", "Town",
-                "BUILDING", "Greater Victoria (LHA)", false
+                "ABC.123", "1234 Fake St", "5678 Unknown Rd", "Town", null,
+                "BUILDING", "Greater Victoria (LHA)", null, false
         );
         assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage, "Empty results message not returned when searching for nonexistent facility with criteria.");
     }
@@ -149,7 +162,9 @@ public class SearchFacilityTests implements SimpleTest {
         final String expectedName3 = "AZ F003 &&, fytfy & (";
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria("", "1175 DOUGLAS ST", "1175 DOUGLAS ST", "Victoria", "BUILDING", "South Vancouver Island (HSDA)", false);
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
+                "", "1175 DOUGLAS ST", "1175 DOUGLAS ST", "Victoria", null,
+                "BUILDING", "South Vancouver Island (HSDA)", null, false);
         SearchFacilityActions facilityActions = workflow.getSearchFacilityActions();
 
         assertTrue(searchResults.grabResultsRowCount() > 2, "Searching for facility with criteria results in some expected facilities not being returned.");
@@ -200,7 +215,9 @@ public class SearchFacilityTests implements SimpleTest {
         final String facilityNameField = expectedFacilityName.replace(expectedFacilityName.substring(expectedFacilityName.length() - 1), "*");
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(facilityNameField, "", "", "", "Select One", "", false);
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
+                facilityNameField, "", "", "", null,
+                "Select One", "", null, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0, "Searching for facility with wildcard to match 1 ending character results in no facilities being returned.");
         assertTrue(searchResults.getResultsRow(0).getFirst().startsWith(expectedFacilityName), "Returned facility doesn't have the expected facility name used in search.");
@@ -214,7 +231,9 @@ public class SearchFacilityTests implements SimpleTest {
         final String facilityNameField = expectedFacilityName.charAt(0) + "*";
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(facilityNameField, "", "", "", "Select One", "", false);
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
+                facilityNameField, "", "", "", null,
+                "Select One", "", null,false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0, "Searching for facility with wildcard to match all but starting character results in no facilities being returned.");
         assertTrue(searchResults.getResultsRow(0).getFirst().startsWith(expectedFacilityName), "Returned facility doesn't have the expected facility name used in search.");

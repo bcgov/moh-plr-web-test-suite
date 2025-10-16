@@ -1,5 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -17,10 +18,6 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
     private static final String CIVIC_ADDRESS_FIELD_CSS = "input#accordian\\:searchByCriteriaForm\\:line1";
 
     private static final String OTHER_ADDRESS_FIELD_CSS = "input#accordian\\:searchByCriteriaForm\\:oline1";
-
-    private static final String CITY_FIELD_CSS = "input#accordian\\:searchByCriteriaForm\\:city_input";
-
-    private static final String SERVICE_DELIVERY_AREA_FIELD_CSS = "input#accordian\\:searchByCriteriaForm\\:sda_input";
 
     private static final String SEARCH_BUTTON_CSS = "button#accordian\\:searchByCriteriaForm\\:searchButton";
 
@@ -67,13 +64,32 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
     }
 
     /**
-     * Fills the City field
+     * Constructs an AutocompleteMenu component for the City field
      *
-     * @param city  the string to fill the City field with
+     * @return  an AutocompleteMenu component for the City field
      */
-    public void fillCity(String city)
+    public AutocompleteMenu getCityMenu()
     {
-        selenium_.fillFieldByCss(CITY_FIELD_CSS, city);
+        return new AutocompleteMenu(
+                selenium_,
+                By.cssSelector("input#accordian\\:searchByCriteriaForm\\:city_input"),
+                By.cssSelector("span#accordian\\:searchByCriteriaForm\\:city_panel")
+        );
+    }
+
+    /**
+     * Fills the city field, either directly or using the autocomplete feature.
+     * If cityPrefix is set to null, the field will be directly filled with cityField.
+     * Otherwise, the field will be filled using cityField to setup autocomplete and
+     * cityPrefix to select an autocomplete option.
+     *
+     * @param cityField     the initial characters to fill the city field with
+     * @param cityPrefix    the first few characters to match when selecting an autocomplete option
+     * @return              the selected autocomplete option / filled city field
+     */
+    public String fillCity(String cityField, String cityPrefix)
+    {
+        return getCityMenu().fillItem(cityField, cityPrefix);
     }
 
     /**
@@ -102,13 +118,32 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
     }
 
     /**
-     * Fills the Service Delivery Area field
+     * Constructs an AutocompleteMenu component for the Service Delivery Area field
      *
-     * @param serviceDeliveryArea   the string to fill the Service Delivery Area field
+     * @return  an AutocompleteMenu component for the Service Delivery Area field
      */
-    public void fillServiceDeliveryArea(String serviceDeliveryArea)
+    public AutocompleteMenu getServiceDeliveryAreaMenu()
     {
-        selenium_.fillFieldByCss(SERVICE_DELIVERY_AREA_FIELD_CSS, serviceDeliveryArea);
+        return new AutocompleteMenu(
+                selenium_,
+                By.cssSelector("input#accordian\\:searchByCriteriaForm\\:sda_input"),
+                By.cssSelector("span#accordian\\:searchByCriteriaForm\\:sda_panel")
+        );
+    }
+
+    /**
+     * Fills the service delivery area field, either directly or using the autocomplete feature.
+     * If serviceDeliveryAreaPrefix is set to null, the field will be directly filled with serviceDeliveryAreaField.
+     * Otherwise, the field will be filled using serviceDeliveryAreaField to setup autocomplete and
+     * serviceDeliveryAreaPrefix to select an autocomplete option.
+     *
+     * @param serviceDeliveryAreaField     the initial characters to fill the service delivery area field with
+     * @param serviceDeliveryAreaPrefix    the first few characters to match when selecting an autocomplete option
+     * @return                              the selected autocomplete option / filled service delivery area field
+     */
+    public String fillServiceDeliveryArea(String serviceDeliveryAreaField, String serviceDeliveryAreaPrefix)
+    {
+        return getServiceDeliveryAreaMenu().fillItem(serviceDeliveryAreaField, serviceDeliveryAreaPrefix);
     }
 
     /**

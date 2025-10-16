@@ -187,27 +187,38 @@ public class SearchFacilityPage extends BasicWebPage
      * Submits a query in the Search by Criteria section after filling out each field
      *
      *
-     * @param facilityName  the string to fill the Facility Name field with
-     * @param civicAddress  the string to fill the Civic Address Line 1 field with
-     * @param otherAddress  the string to fill the Other Address Line 1 field with
-     * @param city  the string to fill the City field with
-     * @param facilityTypePrefix    the first few characters to match when selecting a Facility Type menu option
-     * @param serviceDeliveryArea   the string to fill the Service Delivery Area field with
-     * @param expectedError     whether the expected output of the query is an error (true) or not (false)
-     * @return  the search results fragment for the associated search results (if they exist)
+     * @param facilityName                  the string to fill the Facility Name field with
+     * @param civicAddress                  the string to fill the Civic Address Line 1 field with
+     * @param otherAddress                  the string to fill the Other Address Line 1 field with
+     * @param cityField                     the string to fill the City field with (with autocomplete)
+     * @param cityPrefix                    the first few characters to match when selecting an autocompleted City option.
+     *                                      leave null to fill the City field directly through cityField.
+     * @param facilityTypePrefix            the first few characters to match when selecting a Facility Type menu option
+     * @param serviceDeliveryAreaField      the string to fill the Service Delivery Area field with directly
+     * @param serviceDeliveryAreaPrefix     the first few characters to match when selecting an autocompleted Service Delivery Area option.
+     *                                      leave null to fill the Service Delivery Area field directly through serviceDeliveryAreaField.
+     * @param expectedError                 whether the expected output of the query is an error (true) or not (false)
+     * @return                              the search results fragment for the associated search results (if they exist)
      */
     public SearchFacilityResultsFragment searchByCriteria(
-            String facilityName, String civicAddress, String otherAddress, String city, String facilityTypePrefix, String serviceDeliveryArea, boolean expectedError
-    )
+            String facilityName,
+            String civicAddress,
+            String otherAddress,
+            String cityField,
+            String cityPrefix,
+            String facilityTypePrefix,
+            String serviceDeliveryAreaField,
+            String serviceDeliveryAreaPrefix,
+            boolean expectedError)
     {
         SearchFacilityCriteriaFragment search = expandSearchCriteria(true);
 
         if (facilityName != null) search.fillFacilityName(facilityName);
         if (civicAddress != null) search.fillCivicAddress(civicAddress);
         if (otherAddress != null) search.fillOtherAddress(otherAddress);
-        if (city != null) search.fillCity(city);
+        if (cityField != null) search.fillCity(cityField, cityPrefix);
         if (facilityTypePrefix != null) search.selectFacilityType(facilityTypePrefix);
-        if (serviceDeliveryArea != null) search.fillServiceDeliveryArea(serviceDeliveryArea);
+        if (serviceDeliveryAreaField != null) search.fillServiceDeliveryArea(serviceDeliveryAreaField, serviceDeliveryAreaPrefix);
         search.clickSearchButton();
         if (expectedError)
         {
