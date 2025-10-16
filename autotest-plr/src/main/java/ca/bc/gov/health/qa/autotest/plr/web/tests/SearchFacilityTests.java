@@ -235,7 +235,9 @@ public class SearchFacilityTests implements SimpleTest {
         final String expectedMessage = "Maximum search results returned. Please refine your search criteria.";
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria("A*", "", "", "", "Select One", "", false);
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
+                "A*", "", "", "", null,
+                "Select One", "", null, false);
         List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
 
         assertEquals(searchResults.grabResultsRowCount(), expectedResults, "Returned search result row count does not match the expected number of search results.");
@@ -249,7 +251,9 @@ public class SearchFacilityTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria("", "", "", "Victoria", "Select One", "", false);
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
+                "", "", "", "Victoria", null,
+                "Select One", "", null, false);
 
         List<String> facNameList = searchResults.getFacilityNamesList();
         // No name facility edge-case handling - not covered by test case
