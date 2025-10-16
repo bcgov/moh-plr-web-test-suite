@@ -45,17 +45,6 @@ public class SearchFacilityPage extends BasicWebPage
     }
 
     /**
-     * Determines whether the identifier section is expanded or not
-     *
-     * @return  boolean of if Search by Identifier is expanded (true) or not (false)
-     */
-    public boolean grabIdentifierSectionExpanded()
-    {
-        return SeleniumUtils.grabElementClassSet(selenium_.findElement(By.xpath(IDENTIFIER_XPATH)))
-                .contains(ACTIVE_UI_STATE_CLASS_NAME);
-    }
-
-    /**
      * Determines whether a search section is expanded or not
      *
      * @param xpath xpath to follow to find the section (identifier/criteria)
@@ -76,13 +65,11 @@ public class SearchFacilityPage extends BasicWebPage
     {
         if (expanded)
         {
-            selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithClass(
-                    locator, ACTIVE_UI_STATE_CLASS_NAME));
+            selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithClass(locator, ACTIVE_UI_STATE_CLASS_NAME));
         }
         else
         {
-            selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithoutClass(
-                    locator, ACTIVE_UI_STATE_CLASS_NAME));
+            selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithoutClass(locator, ACTIVE_UI_STATE_CLASS_NAME));
         }
     }
 
@@ -154,10 +141,7 @@ public class SearchFacilityPage extends BasicWebPage
      * @param expectedError     whether the expected output of the query is an error (true) or not (false)
      * @return  the search results fragment for the associated search results (if they exist)
      */
-    public SearchFacilityResultsFragment searchByIdentifier(
-            String identifierTypePrefix,
-            String facilityID,
-            boolean expectedError)
+    public SearchFacilityResultsFragment searchByIdentifier(String identifierTypePrefix, String facilityID, boolean expectedError)
     {
         SearchFacilityIdFragment search = expandSearchIdentifier(true);
         search.selectIdentifierType(identifierTypePrefix);
@@ -203,18 +187,18 @@ public class SearchFacilityPage extends BasicWebPage
      * Submits a query in the Search by Criteria section after filling out each field
      *
      *
-     * @param facilityName          the string to fill the Facility Name field with
-     * @param civicAddress          the string to fill the Civic Address Line 1 field with
-     * @param otherAddress          the string to fill the Other Address Line 1 field with
-     * @param cityField             the string to fill the City field with (with autocomplete)
-     * @param cityPrefix            the first few characters to match when selecting an autocompleted City option.
-     *                              leave null to fill the City field directly through cityField.
-     * @param facilityTypePrefix    the first few characters to match when selecting a Facility Type menu option
-     * @param sdaField              the string to fill the Service Delivery Area field with directly
-     * @param sdaPrefix             the first few characters to match when selecting an autocompleted SDA option.
-     *                              leave null to fill the Service Delivery Area field directly through sdaField.
-     * @param expectedError         whether the expected output of the query is an error (true) or not (false)
-     * @return                      the search results fragment for the associated search results (if they exist)
+     * @param facilityName                  the string to fill the Facility Name field with
+     * @param civicAddress                  the string to fill the Civic Address Line 1 field with
+     * @param otherAddress                  the string to fill the Other Address Line 1 field with
+     * @param cityField                     the string to fill the City field with (with autocomplete)
+     * @param cityPrefix                    the first few characters to match when selecting an autocompleted City option.
+     *                                      leave null to fill the City field directly through cityField.
+     * @param facilityTypePrefix            the first few characters to match when selecting a Facility Type menu option
+     * @param serviceDeliveryAreaField      the string to fill the Service Delivery Area field with directly
+     * @param serviceDeliveryAreaPrefix     the first few characters to match when selecting an autocompleted Service Delivery Area option.
+     *                                      leave null to fill the Service Delivery Area field directly through serviceDeliveryAreaField.
+     * @param expectedError                 whether the expected output of the query is an error (true) or not (false)
+     * @return                              the search results fragment for the associated search results (if they exist)
      */
     public SearchFacilityResultsFragment searchByCriteria(
             String facilityName,
@@ -223,8 +207,8 @@ public class SearchFacilityPage extends BasicWebPage
             String cityField,
             String cityPrefix,
             String facilityTypePrefix,
-            String sdaField,
-            String sdaPrefix,
+            String serviceDeliveryAreaField,
+            String serviceDeliveryAreaPrefix,
             boolean expectedError)
     {
         SearchFacilityCriteriaFragment search = expandSearchCriteria(true);
@@ -234,7 +218,7 @@ public class SearchFacilityPage extends BasicWebPage
         if (otherAddress != null) search.fillOtherAddress(otherAddress);
         if (cityField != null) search.fillCity(cityField, cityPrefix);
         if (facilityTypePrefix != null) search.selectFacilityType(facilityTypePrefix);
-        if (sdaField != null) search.fillServiceDeliveryArea(sdaField, sdaPrefix);
+        if (serviceDeliveryAreaField != null) search.fillServiceDeliveryArea(serviceDeliveryAreaField, serviceDeliveryAreaPrefix);
         search.clickSearchButton();
         if (expectedError)
         {
