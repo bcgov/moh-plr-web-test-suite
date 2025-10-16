@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.MaintainFacilityFields;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 
 /**
@@ -176,15 +177,82 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         return this;
     }
 
+    /**
+     * Programmatically validates all required fields based on the MaintainFacilityFields enum.
+     * This method automatically adapts when fields are marked as required/optional in the enum,
+     * ensuring validation stays in sync with business rules.
+     * 
+     * @throws NullPointerException if any required field is missing or invalid
+     */
     private void verifyParameters()
     {
-        requireNonNull(name_, "Missing facility name.");
-        requireNonNull(identifier_, "Missing facility identifier.");
-        if (address_.isEmpty())
-        {
-            requireNonNull(null, "Missing facility address.");
+        // Programmatically validate all required fields based on MaintainFacilityFields enum
+        for (MaintainFacilityFields field : MaintainFacilityFields.values()) {
+            if (field.isRequired()) {
+                validateRequiredField(field);
+            }
         }
-
+    }
+    
+    /**
+     * Validates that a specific required field has been properly set in the builder.
+     * 
+     * @param field the required field to validate
+     * @throws NullPointerException if the required field is missing or invalid
+     */
+    private void validateRequiredField(MaintainFacilityFields field) {
+        switch (field) {
+            case NAME:
+                requireNonNull(name_, "Missing facility name.");
+                break;
+            case IDENTIFIER:
+                requireNonNull(identifier_, "Missing facility identifier.");
+                break;
+            case ADDRESS:
+                if (address_.isEmpty()) {
+                    requireNonNull(null, "Missing facility address.");
+                }
+                break;
+            case DESCRIPTION:
+                requireNonNull(description_, "Missing facility description.");
+                break;
+            case PHONE:
+                validateRequiredTelecomType("phone");
+                break;
+            case EMAIL:
+                validateRequiredTelecomType("email");
+                break;
+            case FAX:
+                validateRequiredTelecomType("fax");
+                break;
+            case WEBSITE:
+                validateRequiredTelecomType("url");
+                break;
+            case NOTES:
+                if (noteList_.isEmpty()) {
+                    requireNonNull(null, "Missing facility notes.");
+                }
+                break;
+            default:
+                // New fields added to enum will cause compilation error here,
+                // IF new fields are needed, validation needs to be added
+                throw new UnsupportedOperationException("Validation not implemented for field: " + field);
+        }
+    }
+    
+    /**
+     * Validates that at least one telecom entry of the specified type exists.
+     * 
+     * @param type the telecom type to validate (e.g., "phone", "email", "fax", "url")
+     * @throws NullPointerException if no telecom of the specified type is found
+     */
+    private void validateRequiredTelecomType(String type) {
+        boolean found = telecomList_.stream()
+            .anyMatch(telecom -> type.equals(telecom.get("type")));
+        
+        if (!found) {
+            requireNonNull(null, "Missing required telecom type: " + type);
+        }
     }
 
     // --- Getters (added for external inspection / assertions) ---

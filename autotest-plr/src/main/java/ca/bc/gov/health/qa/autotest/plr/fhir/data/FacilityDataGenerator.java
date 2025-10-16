@@ -1,7 +1,10 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 
 /**
@@ -26,11 +29,23 @@ public final class FacilityDataGenerator {
 	);
 
 	// Address fixed except for street number.
-	private static final String FIXED_STREET = "Griffiths Wy"; // Spelling per specification
-	private static final String FIXED_CITY = "Vancouver";
-    private static final String FIXED_POSTAL = "V6B 6G1";
-    private static final int FIXED_LOWER_STREET_NUMBER = 800;
-    private static final int FIXED_UPPER_STREET_NUMBER = 850;
+	private static final String FIXED_STREET = "Richter St"; // Spelling per specification
+	private static final String FIXED_CITY = "Kelowna";
+    private static final String FIXED_POSTAL = "V1Y 2J6";
+    private static final int FIXED_LOWER_STREET_NUMBER = 700;
+    private static final int FIXED_UPPER_STREET_NUMBER = 3000;
+
+	// Optional field data pools
+	private static final List<String> PHONE_AREA_CODES = List.of("604", "778", "236", "250");
+	private static final List<String> EMAIL_DOMAINS = List.of("healthbc.ca", "vch.ca", "fraserhealth.ca", "islandhealth.ca");
+	private static final List<String> WEBSITE_PREFIXES = List.of("www.", "portal.", "services.");
+	private static final List<String> NOTE_TEMPLATES = List.of(
+		"24/7 emergency services available",
+		"Wheelchair accessible facility", 
+		"Parking available on-site",
+		"Public transit accessible",
+		"Multilingual staff available"
+	);
 
 	private FacilityDataGenerator() {
 		// Private constructor to enforce singleton
@@ -88,15 +103,60 @@ public final class FacilityDataGenerator {
 	 * @return configured MaintainFacilityBuilder
 	 */
 	public MaintainFacilityBuilder generateFacilityBuilder() {
-		String name = generateFacilityName();
-		String[] addressParts = generateFacilityAddress();
-        String identifier = generateNumericId();
-        
-		return new MaintainFacilityBuilder()
-				.name(name)
-				.description("Selenium FHIR")
-				.identifier(identifier)
-				.addAddress(addressParts[0], addressParts[1], addressParts[2]);
+		return generateFacilityBuilder(EnumSet.noneOf(MaintainFacilityFields.class));
+	}
+
+	/**
+	 * Builds and returns a {@code MaintainFacilityBuilder} with basic required fields
+	 * plus the specified optional fields populated with generated data.
+	 * 
+	 * @param optionalFields set of optional fields to include
+	 * @return configured MaintainFacilityBuilder
+	 */
+	public MaintainFacilityBuilder generateFacilityBuilder(Set<MaintainFacilityFields> optionalFields) {
+
+		MaintainFacilityBuilder builder = new MaintainFacilityBuilder();
+
+		// Add fields based on configuration
+		if (optionalFields.contains(MaintainFacilityFields.IDENTIFIER) || MaintainFacilityFields.IDENTIFIER.isRequired()) {
+			builder.identifier(generateNumericId());
+		}
+		if (optionalFields.contains(MaintainFacilityFields.NAME) || MaintainFacilityFields.NAME.isRequired()) {
+			builder.name(generateFacilityName());
+		}
+		if (optionalFields.contains(MaintainFacilityFields.ADDRESS) || MaintainFacilityFields.ADDRESS.isRequired()) {
+			String[] addressParts = generateFacilityAddress();
+			builder.addAddress(addressParts[0], addressParts[1], addressParts[2]);
+		}
+		if (optionalFields.contains(MaintainFacilityFields.PHONE) || MaintainFacilityFields.PHONE.isRequired()) {
+			builder.addTelecom("phone", generatePhoneNumber());
+		}
+		if (optionalFields.contains(MaintainFacilityFields.EMAIL) || MaintainFacilityFields.EMAIL.isRequired()) {
+			builder.addTelecom("email", generateEmailAddress());
+		}
+		if (optionalFields.contains(MaintainFacilityFields.FAX) || MaintainFacilityFields.FAX.isRequired()) {
+			builder.addTelecom("fax", generatePhoneNumber());
+		}
+		if (optionalFields.contains(MaintainFacilityFields.WEBSITE) || MaintainFacilityFields.WEBSITE.isRequired()) {
+			builder.addTelecom("url", generateWebsiteUrl());
+		}
+		if (optionalFields.contains(MaintainFacilityFields.NOTES) || MaintainFacilityFields.NOTES.isRequired()) {
+			builder.addNote(generateNote());
+		}
+		if (optionalFields.contains(MaintainFacilityFields.DESCRIPTION) || MaintainFacilityFields.DESCRIPTION.isRequired()) {
+			builder.description(generateDescription());
+		}
+
+		return builder;
+	}
+
+	/**
+	 * Convenience method to generate facility with specific optional fields.
+	 * @param fields variable arguments of optional fields to include
+	 * @return configured MaintainFacilityBuilder
+	 */
+	public MaintainFacilityBuilder generateFacilityBuilder(MaintainFacilityFields... fields) {
+		return generateFacilityBuilder(EnumSet.copyOf(Arrays.asList(fields)));
 	}
 
 	/**
@@ -108,6 +168,56 @@ public final class FacilityDataGenerator {
 	public String generateNumericId() {
 		long value = Math.abs(RNG.nextLong()) % 1_000_000_000_000L; // 0 .. 999,999,999,999
 		return String.format("%012d", value);
+	}
+
+	/**
+	 * Generate a random phone number in BC format.
+	 * @return phone number string (e.g. "604-555-1234")
+	 */
+	public String generatePhoneNumber() {
+		String areaCode = pick(PHONE_AREA_CODES);
+		int exchange = 555; // Using 555 for test data
+		int number = 1000 + RNG.nextInt(9000); // 1000-9999
+		return String.format("%s-%d-%d", areaCode, exchange, number);
+	}
+
+	/**
+	 * Generate a random email address for the facility.
+	 * @return email address string
+	 */
+	public String generateEmailAddress() {
+		String domain = pick(EMAIL_DOMAINS);
+		String[] prefixes = {"info", "contact", "admin", "reception", "services"};
+		String prefix = pick(List.of(prefixes));
+		return prefix + "@" + domain;
+	}
+
+	/**
+	 * Generate a random website URL for the facility.
+	 * @return website URL string (e.g. "https://www.healthbc.ca")
+	 */
+	public String generateWebsiteUrl() {
+		String prefix = pick(WEBSITE_PREFIXES);
+		String domain = pick(EMAIL_DOMAINS);
+		return "https://" + prefix + domain;
+	}
+
+	/**
+	 * Generate a random operational note for the facility.
+	 * @return note text string
+	 */
+	public String generateNote() {
+		return pick(NOTE_TEMPLATES);
+	}
+
+	/**
+	 * Generate an additional description beyond the standard "Selenium FHIR".
+	 * @return additional description string
+	 */
+	public String generateDescription() {
+		String[] descriptors = {"Advanced", "Comprehensive", "Specialized", "Community-focused", "Modern"};
+		String descriptor = pick(List.of(descriptors));
+		return descriptor + " Healthcare Facility";
 	}
 
 	private <T> T pick(List<T> list) { return list.get(RNG.nextInt(list.size())); }

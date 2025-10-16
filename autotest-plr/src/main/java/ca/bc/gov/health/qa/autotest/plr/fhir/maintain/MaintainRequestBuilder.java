@@ -18,4 +18,9 @@ public interface MaintainRequestBuilder {
      * TODO (AZ) - doc
      */
     PlrFhirResourceType resourceType();
+
+    /*
+     * TODO (AZ) - doc
+     */
+    //void verifyParameters();
 }

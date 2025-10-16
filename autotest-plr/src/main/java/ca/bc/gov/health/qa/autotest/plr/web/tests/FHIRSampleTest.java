@@ -6,11 +6,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.actions.FHIRSession;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.MaintainFacilityFields;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainPracBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -47,46 +44,27 @@ implements SimpleTest
     @Test
     public void test0()
     {
-
-        /*FHIRSession executor = new FHIRSession(UserType.ADMIN);
-
-        MaintainPracBuilder prac = new MaintainPracBuilder();
-        prac.identifier(IdentifierType.IPC, "243111184341")
-            .firstName("Jhon")
-            .familyName("Smith")
-            .gender("male")
-            .roleType("RN")
-            .birthDate("1900-04-01")
-            .addAddress("postal", "BC", "1755 Douglas St", "Victoria", "V6D 1B9")
-            .addStatus("LIC", "ACTIVE", "GS");
-
-        
-        String prac_id = executor.submitMaintain(prac);
-
-        MaintainFacilityBuilder facility = new MaintainFacilityBuilder();
-        facility.identifier("842134232128")
-            .name("Test Facility")
-            .description("This is a test facility")
-            .addAddress("814 Griffiths Wy", "Vancouver", "V6B 6G1");
-
-        String facility_id = executor.submitMaintain(facility);
-
-
-        LOG.info("Created practitioner id {}, facility id {}.", prac_id, facility_id);
-
-        String pracQueryResponse = executor.queryByIdentifier(PlrFhirResourceType.PRACTITIONER, IdentifierType.IPC, prac_id).toString();
-        String facQueryResponse = executor.queryByIdentifier(PlrFhirResourceType.FACILITY, IdentifierType.IFC, facility_id).toString();
-
-        LOG.info("Practitioner query response: {}", pracQueryResponse);
-        LOG.info("Facility query response: {}", facQueryResponse);
-        
-        executor.close();*/
-
         FHIRController fhirController = new FHIRController(UserType.ADMIN);
 
         MaintainFacilityBuilder facility = fhirController.createFacility();
 
         LOG.info("Created facility id {}, name {}, address {}.", facility.getIdentifier(), facility.getName(), facility.getAddress().toString());
+
+
+        MaintainFacilityBuilder facility2 = fhirController.createFacility(
+            MaintainFacilityFields.WEBSITE,
+            MaintainFacilityFields.PHONE,
+            MaintainFacilityFields.EMAIL,
+            MaintainFacilityFields.DESCRIPTION,
+            MaintainFacilityFields.FAX,
+            MaintainFacilityFields.NOTES,
+            MaintainFacilityFields.NAME,
+            MaintainFacilityFields.ADDRESS,
+            MaintainFacilityFields.IDENTIFIER
+        );
+
+        LOG.info("Created facility id {}, name {}, address {}.", facility2.getIdentifier(), facility2.getName(), facility2.getAddress().toString());
+
 
         fhirController.close();
 
