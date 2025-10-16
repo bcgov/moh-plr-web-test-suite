@@ -27,13 +27,11 @@ public class SearchFacilityTests implements SimpleTest {
 
     public SearchFacilityTests() {}
 
-    /*
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
-     */
 
     @BeforeMethod
     public void before(Object[] parameters)
@@ -43,15 +41,6 @@ public class SearchFacilityTests implements SimpleTest {
         {
             workflow.login().openPlr();
         }
-    }
-
-    @Test
-    // Search Facility: Facility Search
-    public void testFacilitySearch()
-    {
-        testIdentifierSearch();
-
-        testCriteriaSearch();
     }
 
     @Test
