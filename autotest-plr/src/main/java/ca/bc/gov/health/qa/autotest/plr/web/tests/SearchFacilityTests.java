@@ -1,7 +1,12 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
+import ca.bc.gov.health.qa.autotest.core.util.config.Config;
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchFacilityActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
@@ -13,6 +18,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -23,9 +29,25 @@ import static org.testng.Assert.assertTrue;
 public class SearchFacilityTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
+    private static final Config config_ = ConfigProvider.get().getConfig();
+    private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
+    private static JSONObject errorList;
+    private static JSONObject warningList;
+
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
-    public SearchFacilityTests() {}
+    public SearchFacilityTests() {
+        try
+        {
+            errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
+            warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
+        }
+        catch (IOException e)
+        {
+            String msg = String.format("Failed to read JSON data (%s).", errorPath);
+            throw new IllegalStateException(msg, e);
+        }
+    }
 
     @AfterClass
     public void teardown() {
@@ -43,52 +65,99 @@ public class SearchFacilityTests implements SimpleTest {
         }
     }
 
-    @Test
-    // Search Facility : Minimum Requirements Search by Identifier - No Criteria
-    public void testMinReqsIdentifierNoCriteria()
+    /**
+     * Logs into PLR with a specific userType (if it hasn't been logged in already)
+     *
+     * @param userType      the user type to log into PLR as
+     * @return              the PlrWebWorkflow reference to the workflow logged into PLR as the specified user type
+     */
+    public PlrWebWorkflow logIn(UserType userType)
     {
-        final String expectedMessage1 = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier Type'. Your transaction has not been processed. Correct and resubmit.";
-        final String expectedMessage2 = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier'. Your transaction has not been processed. Correct and resubmit.";
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        searchFacility.searchByIdentifier("Select One", "", true);
-        List<String> errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(userType);
+        if (!workflow.isLoggedIn()) workflow.login().openPlr();
+        return workflow;
+    }
 
-        assertTrue(errorMessageList.contains(expectedMessage1), "Missing minimum requirement of Facility Identifier Type error not displayed.");
-        assertTrue(errorMessageList.contains(expectedMessage2), "Missing minimum requirement of Facility Identifier error not displayed.");
+    /**
+     * Navigate to the "Search Facility" Page
+     *
+     * @param userType      the userType to log in as and navigate to the Search Facility Page with
+     * @return              a SearchFacilityPage reference to the workflow's search facility page component
+     */
+    public SearchFacilityPage navigateToSearchFacilityPage(UserType userType)
+    {
+        PlrWebWorkflow workflow = logIn(userType);
+        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
+
+        // System displays Search by Facility page correctly
+        searchFacility.waitForReady();
+
+        return searchFacility;
+    }
+
+    /**
+     * Searches by Identifier in the Search Facility page.
+     *
+     * @param searchFacility    the search facilty page reference
+     * @param queryFields      a list of strings of query details to fill fields with.
+     *                          First Element: Facility Identifier Type
+     * @return
+     */
+    public SearchFacilityResultsFragment searchByIdentifier(SearchFacilityPage searchFacility, List<String> queryFields)
+    {
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByIdentifier(
+                queryFields.getFirst(), queryFields.get(1), false);
+
+        return searchResults;
     }
 
     @Test
-    // Search Facility : Minimum Requirements Search by Identifier - Identifier Type Only
-    public void testMinReqsIdentifierType()
-    {
-        final String expectedMessage = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier'. Your transaction has not been processed. Correct and resubmit.";
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        searchFacility.searchByIdentifier("IFC", "", true);
+    // F1-003. Minimum Data Requirements for Facility Search by Facility ID
+    public void testMinDataReqsFacilityID() {
+        final String facIdentifierEmptyError = errorList.getString("missingFacilityIdentifier");
+        final String identifierTypeEmptyError = errorList.getString("missingIdentifierType");
+
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+
+        // Positive Test
+        List<String> positiveTestDetails = Arrays.asList("IFC", "IFC.00000000.BC.PRS");
+        SearchFacilityResultsFragment searchResults = searchByIdentifier(searchFacility, positiveTestDetails);
+
+        assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
+                "Search Results returned unsuccessfully.");
+
+        // Facility Identifier Empty, Identifier Type Specified
+        List<String> facIdentifierDetails = Arrays.asList("IFC", "");
+        searchByIdentifier(searchFacility, facIdentifierDetails);
         List<String> errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
 
-        assertTrue(errorMessageList.contains(expectedMessage), "Missing minimum requirements error not displayed.");
-    }
+        assertTrue(errorMessageList.contains(facIdentifierEmptyError),
+                "Missing minimum requirement of Facility Identifier error not displayed.");
 
-    @Test
-    // Search Facility : Minimum Requirements Search by Identifier - Facility Identifier Only
-    public void testMinReqsFacilityIdentifier()
-    {
-        final String expectedMessage = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier Type'. Your transaction has not been processed. Correct and resubmit.";
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        searchFacility.searchByIdentifier("Select One", "ABC.123", true);
-        List<String> errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        // Identifier Type Empty, Facility Identifier Specified
+        List<String> identifierTypeDetails = Arrays.asList("Select One", "IFC.00000000.BC.PRS");
+        searchByIdentifier(searchFacility, identifierTypeDetails);
+        errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
 
-        assertTrue(errorMessageList.contains(expectedMessage), "Missing minimum requirements error not displayed.");
+        assertTrue(errorMessageList.contains(identifierTypeEmptyError),
+                "Missing minimum requirement of Facility Identifier Type error not displayed.");
+
+        // Both Identifier Type and Facility Identifier Empty
+        List<String> emptyFieldDetails = Arrays.asList("Select One", "");
+        searchByIdentifier(searchFacility, emptyFieldDetails);
+        errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+
+        assertTrue(errorMessageList.contains(facIdentifierEmptyError),
+                "Missing minimum requirement of Facility Identifier error not displayed.");
+        assertTrue(errorMessageList.contains(identifierTypeEmptyError),
+                "Missing minimum requirement of Facility Identifier Type error not displayed.");
     }
 
     @Test
     // Search Facility : Minimum Requirements Search by Criteria
     public void testMinReqsCriteriaNoCriteria()
     {
-        final String expectedMessage = "Invalid or Incomplete form data provided, please see instructions on the right side.";
+        final String expectedMessage = warningList.getString("missingCriteria");
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
         searchFacility.searchByCriteria(

@@ -45,6 +45,17 @@ public class SearchFacilityPage extends BasicWebPage
     }
 
     /**
+     * Determines whether the identifier section is expanded or not
+     *
+     * @return  boolean of if Search by Identifier is expanded (true) or not (false)
+     */
+    public boolean grabIdentifierSectionExpanded()
+    {
+        return SeleniumUtils.grabElementClassSet(selenium_.findElement(By.xpath(IDENTIFIER_XPATH)))
+                .contains(ACTIVE_UI_STATE_CLASS_NAME);
+    }
+
+    /**
      * Determines whether a search section is expanded or not
      *
      * @param xpath xpath to follow to find the section (identifier/criteria)
