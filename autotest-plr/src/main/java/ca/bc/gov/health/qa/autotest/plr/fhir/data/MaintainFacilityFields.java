@@ -17,15 +17,27 @@ public enum MaintainFacilityFields {
     /** Phone number telecom entry */
     PHONE(false),
     
+    /** Mobile telecom entry */
+    MOBILE(false),
+
+    /** Pager telecom entry */
+    PAGER(false),
+
+    /** Modem telecom entry */
+    MODEM(false),
+
+    /** Fax telecom entry */
+    FAX(false),
+
     /** Email telecom entry */
     EMAIL(false),
     
-    /** Fax telecom entry */
-    FAX(false),
-    
     /** Website URL telecom entry */
     WEBSITE(false),
-    
+
+    /** FTP telecom entry */
+    FTP(false),
+
     /** Notes */
     NOTES(false),
     

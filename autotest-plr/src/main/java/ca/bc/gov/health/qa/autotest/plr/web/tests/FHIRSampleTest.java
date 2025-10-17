@@ -53,6 +53,11 @@ implements SimpleTest
 
         MaintainFacilityBuilder facility2 = fhirController.createFacility(
             MaintainFacilityFields.WEBSITE,
+            MaintainFacilityFields.FTP,
+            MaintainFacilityFields.MODEM,
+            MaintainFacilityFields.MOBILE,
+            MaintainFacilityFields.PAGER,
+            MaintainFacilityFields.MODEM,
             MaintainFacilityFields.PHONE,
             MaintainFacilityFields.EMAIL,
             MaintainFacilityFields.DESCRIPTION,

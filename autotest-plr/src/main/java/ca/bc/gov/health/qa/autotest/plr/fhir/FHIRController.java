@@ -4,6 +4,7 @@ import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.actions.FHIRSession;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityDataGenerator;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.MaintainFacilityFields;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
@@ -19,6 +20,7 @@ public class FHIRController implements AutoCloseable {
 
     private FHIRSession executor;
     private final FacilityDataGenerator facilityGen = FacilityDataGenerator.getInstance();
+    private final FacilityBuilderFactory facilityFactory = new FacilityBuilderFactory(facilityGen);
 
     /**
      * Constructs a controller bound to a specific user role (credential profile).
@@ -43,7 +45,7 @@ public class FHIRController implements AutoCloseable {
      * @return created facility values as a MaintainFacilityBuilder
      */
     public MaintainFacilityBuilder createFacility() {
-        MaintainFacilityBuilder builder = facilityGen.generateFacilityBuilder();
+        MaintainFacilityBuilder builder = facilityFactory.build();
 
         String id = executor.submitMaintain(builder);
         LOG.info("Created facility (id={})", id);
@@ -61,7 +63,7 @@ public class FHIRController implements AutoCloseable {
      * @return created facility values as a MaintainFacilityBuilder
      */
     public MaintainFacilityBuilder createFacility(MaintainFacilityFields... optionalFields) {
-        MaintainFacilityBuilder builder = facilityGen.generateFacilityBuilder(optionalFields);
+        MaintainFacilityBuilder builder = facilityFactory.build(optionalFields);
 
         String id = executor.submitMaintain(builder);
         LOG.info("Created facility (id={})", id);

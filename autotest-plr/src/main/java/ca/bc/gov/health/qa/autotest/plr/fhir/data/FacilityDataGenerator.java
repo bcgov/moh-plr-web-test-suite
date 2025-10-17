@@ -1,11 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data;
 
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 
 /**
  * Singleton utility to generate random-ish facility data (name and address) for tests.
@@ -37,8 +33,9 @@ public final class FacilityDataGenerator {
 
 	// Optional field data pools
 	private static final List<String> PHONE_AREA_CODES = List.of("604", "778", "236", "250");
-	private static final List<String> EMAIL_DOMAINS = List.of("healthbc.ca", "vch.ca", "fraserhealth.ca", "islandhealth.ca");
-	private static final List<String> WEBSITE_PREFIXES = List.of("www.", "portal.", "services.");
+	private static final List<String> EMAIL_DOMAINS = List.of("health.ca", "moh.ca");
+	private static final List<String> WEBSITE_PREFIXES = List.of("www.", "portal.", "services.");	// FTP host name components
+	private static final List<String> FTP_HOSTS = List.of("ftp.health.ca", "ftp.services.ca", "files.hospital.ca");
 	private static final List<String> NOTE_TEMPLATES = List.of(
 		"24/7 emergency services available",
 		"Wheelchair accessible facility", 
@@ -93,71 +90,6 @@ public final class FacilityDataGenerator {
 		};
 	}
 
-	/**
-	 * Builds and returns a {@code MaintainFacilityBuilder} pre-populated with:
-	 *  - name (randomized)
-	 *  - address (single physical FC address)
-	 *  - description (fixed: "Selenium FHIR")
-     *  - identifier (random 12-digit numeric string)
-	 * The caller may further enrich (telecom, notes, etc.) before submit.
-	 * @return configured MaintainFacilityBuilder
-	 */
-	public MaintainFacilityBuilder generateFacilityBuilder() {
-		return generateFacilityBuilder(EnumSet.noneOf(MaintainFacilityFields.class));
-	}
-
-	/**
-	 * Builds and returns a {@code MaintainFacilityBuilder} with basic required fields
-	 * plus the specified optional fields populated with generated data.
-	 * 
-	 * @param optionalFields set of optional fields to include
-	 * @return configured MaintainFacilityBuilder
-	 */
-	public MaintainFacilityBuilder generateFacilityBuilder(Set<MaintainFacilityFields> optionalFields) {
-
-		MaintainFacilityBuilder builder = new MaintainFacilityBuilder();
-
-		// Add fields based on configuration
-		if (optionalFields.contains(MaintainFacilityFields.IDENTIFIER) || MaintainFacilityFields.IDENTIFIER.isRequired()) {
-			builder.identifier(generateNumericId());
-		}
-		if (optionalFields.contains(MaintainFacilityFields.NAME) || MaintainFacilityFields.NAME.isRequired()) {
-			builder.name(generateFacilityName());
-		}
-		if (optionalFields.contains(MaintainFacilityFields.ADDRESS) || MaintainFacilityFields.ADDRESS.isRequired()) {
-			String[] addressParts = generateFacilityAddress();
-			builder.addAddress(addressParts[0], addressParts[1], addressParts[2]);
-		}
-		if (optionalFields.contains(MaintainFacilityFields.PHONE) || MaintainFacilityFields.PHONE.isRequired()) {
-			builder.addTelecom("phone", generatePhoneNumber());
-		}
-		if (optionalFields.contains(MaintainFacilityFields.EMAIL) || MaintainFacilityFields.EMAIL.isRequired()) {
-			builder.addTelecom("email", generateEmailAddress());
-		}
-		if (optionalFields.contains(MaintainFacilityFields.FAX) || MaintainFacilityFields.FAX.isRequired()) {
-			builder.addTelecom("fax", generatePhoneNumber());
-		}
-		if (optionalFields.contains(MaintainFacilityFields.WEBSITE) || MaintainFacilityFields.WEBSITE.isRequired()) {
-			builder.addTelecom("url", generateWebsiteUrl());
-		}
-		if (optionalFields.contains(MaintainFacilityFields.NOTES) || MaintainFacilityFields.NOTES.isRequired()) {
-			builder.addNote(generateNote());
-		}
-		if (optionalFields.contains(MaintainFacilityFields.DESCRIPTION) || MaintainFacilityFields.DESCRIPTION.isRequired()) {
-			builder.description(generateDescription());
-		}
-
-		return builder;
-	}
-
-	/**
-	 * Convenience method to generate facility with specific optional fields.
-	 * @param fields variable arguments of optional fields to include
-	 * @return configured MaintainFacilityBuilder
-	 */
-	public MaintainFacilityBuilder generateFacilityBuilder(MaintainFacilityFields... fields) {
-		return generateFacilityBuilder(EnumSet.copyOf(Arrays.asList(fields)));
-	}
 
 	/**
 	 * Generate a pseudo-random numeric identifier as a fixed-length string.
@@ -179,6 +111,16 @@ public final class FacilityDataGenerator {
 		int exchange = 555; // Using 555 for test data
 		int number = 1000 + RNG.nextInt(9000); // 1000-9999
 		return String.format("%s-%d-%d", areaCode, exchange, number);
+	}
+
+	/**
+	 * Generate a pseudo FTP URL.
+	 * @return ftp url string (e.g. "ftp://ftp.healthbc.ca/incoming")
+	 */
+	public String generateFtpUrl() {
+		String host = pick(FTP_HOSTS);
+		String dir = pick(List.of("incoming", "secure", "pub", "outbound"));
+		return "ftp://" + host + "/" + dir;
 	}
 
 	/**
@@ -222,5 +164,5 @@ public final class FacilityDataGenerator {
 
 	private <T> T pick(List<T> list) { return list.get(RNG.nextInt(list.size())); }
 
-    //TODO add missing facility parameters (telecom, etc) as needed.
+	//TODO refine / validate specific telecom formatting rules as upstream constraints evolve.
 }

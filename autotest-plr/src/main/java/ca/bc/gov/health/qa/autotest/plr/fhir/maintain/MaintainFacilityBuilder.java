@@ -219,6 +219,15 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
             case PHONE:
                 validateRequiredTelecomType("phone");
                 break;
+            case MOBILE:
+                validateRequiredTelecomType("mobile");
+                break;
+            case PAGER:
+                validateRequiredTelecomType("pager");
+                break;
+            case MODEM:
+                validateRequiredTelecomType("modem");
+                break;
             case EMAIL:
                 validateRequiredTelecomType("email");
                 break;
@@ -228,15 +237,17 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
             case WEBSITE:
                 validateRequiredTelecomType("url");
                 break;
+            case FTP:
+                validateRequiredTelecomType("ftp");
+                break;
             case NOTES:
                 if (noteList_.isEmpty()) {
                     requireNonNull(null, "Missing facility notes.");
                 }
                 break;
             default:
-                // New fields added to enum will cause compilation error here,
-                // IF new fields are needed, validation needs to be added
-                throw new UnsupportedOperationException("Validation not implemented for field: " + field);
+                // Field is optional and has no required validation rules.
+                break;
         }
     }
     
