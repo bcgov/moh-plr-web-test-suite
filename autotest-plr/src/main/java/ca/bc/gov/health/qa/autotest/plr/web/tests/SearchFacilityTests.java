@@ -99,16 +99,18 @@ public class SearchFacilityTests implements SimpleTest {
      * Searches by Identifier in the Search Facility page.
      *
      * @param searchFacility    the search facilty page reference
-     * @param queryFields      a list of strings of query details to fill fields with.
+     * @param queryFields       a list of strings of query details to fill fields with.
      *                          First Element: Facility Identifier Type
-     * @return
+     *                          Second Element: Facility Identifier
+     * @param expectedError     whether an error is anticipated when executing the query
+     * @return                  a SearchFacilityResultsFragment reference to the search results of the identifier query
      */
-    public SearchFacilityResultsFragment searchByIdentifier(SearchFacilityPage searchFacility, List<String> queryFields)
+    public SearchFacilityResultsFragment searchByIdentifier(
+            SearchFacilityPage searchFacility, List<String> queryFields, boolean expectedError)
     {
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByIdentifier(
-                queryFields.getFirst(), queryFields.get(1), false);
-
-        return searchResults;
+        return searchFacility.searchByIdentifier(
+                queryFields.getFirst(), queryFields.get(1),
+                expectedError);
     }
 
     @Test
@@ -119,16 +121,18 @@ public class SearchFacilityTests implements SimpleTest {
 
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
 
+        assertTrue(searchFacility.grabIdentifierSectionExpanded(), "Search by Identifier not opened by default");
+
         // Positive Test
         List<String> positiveTestDetails = Arrays.asList("IFC", "IFC.00000000.BC.PRS");
-        SearchFacilityResultsFragment searchResults = searchByIdentifier(searchFacility, positiveTestDetails);
+        SearchFacilityResultsFragment searchResults = searchByIdentifier(searchFacility, positiveTestDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
                 "Search Results returned unsuccessfully.");
 
         // Facility Identifier Empty, Identifier Type Specified
         List<String> facIdentifierDetails = Arrays.asList("IFC", "");
-        searchByIdentifier(searchFacility, facIdentifierDetails);
+        searchByIdentifier(searchFacility, facIdentifierDetails, true);
         List<String> errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
 
         assertTrue(errorMessageList.contains(facIdentifierEmptyError),
@@ -136,7 +140,7 @@ public class SearchFacilityTests implements SimpleTest {
 
         // Identifier Type Empty, Facility Identifier Specified
         List<String> identifierTypeDetails = Arrays.asList("Select One", "IFC.00000000.BC.PRS");
-        searchByIdentifier(searchFacility, identifierTypeDetails);
+        searchByIdentifier(searchFacility, identifierTypeDetails, true);
         errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
 
         assertTrue(errorMessageList.contains(identifierTypeEmptyError),
@@ -144,7 +148,7 @@ public class SearchFacilityTests implements SimpleTest {
 
         // Both Identifier Type and Facility Identifier Empty
         List<String> emptyFieldDetails = Arrays.asList("Select One", "");
-        searchByIdentifier(searchFacility, emptyFieldDetails);
+        searchByIdentifier(searchFacility, emptyFieldDetails, true);
         errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
 
         assertTrue(errorMessageList.contains(facIdentifierEmptyError),
