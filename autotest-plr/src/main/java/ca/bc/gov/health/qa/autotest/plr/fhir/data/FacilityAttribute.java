@@ -1,10 +1,10 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data;
 
 /**
- * Enumeration of facility fields that can be included during facility generation.
+ * Enumeration of facility fields facility generation.
  * Optional fields are only included when explicitly requested.
  */
-public enum MaintainFacilityFields {
+public enum FacilityAttribute {
     /** Facility name (REQUIRED - always generated) */
     NAME(true),
     
@@ -38,18 +38,23 @@ public enum MaintainFacilityFields {
     /** FTP telecom entry */
     FTP(false),
 
-    /** Notes */
-    NOTES(false),
-    
     /** Description/alias beyond the standard */
-    DESCRIPTION(false);
+    DESCRIPTION(false),
+
+    /** Note/annotation about the facility */
+    NOTE(false),
+
+    /** Organization relationship */
+    ORG_RELATIONSHIP(false);
+
+    
     
     private final boolean required;
     
     /**
      * @param required true if this field is always required and cannot be disabled
      */
-    MaintainFacilityFields(boolean required) {
+    FacilityAttribute(boolean required) {
         this.required = required;
     }
     

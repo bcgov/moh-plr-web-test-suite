@@ -1,23 +1,12 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data;
 
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Set;
-
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 
 /**
  * Factory responsible for creating and configuring {@link MaintainFacilityBuilder}
  * instances using generated test data from {@link FacilityDataGenerator}.
- * <p>
- * This class encapsulates the logic that was previously embedded in
- * {@code FacilityDataGenerator.generateFacilityBuilder(..)}, improving
- * adherence to the Single Responsibility Principle by separating data generation
- * from builder assembly.
- * <p>
- * NOTE: The existing methods in {@link FacilityDataGenerator} can remain for
- * backward compatibility and delegate to this factory in a later step. For now
- * the factory is introduced without altering existing call sites.
+ * based on configurations sent from {@link FacilityMaintainConfig}
+ * 
  */
 public class FacilityBuilderFactory {
 
@@ -32,86 +21,67 @@ public class FacilityBuilderFactory {
     }
 
     /**
-     * Builds a facility builder with only required fields populated.
+     * Builds a facility builder with a freshly created {@link FacilityMaintainConfig}.
      * @return configured builder
      */
     public MaintainFacilityBuilder build() {
-        return build(EnumSet.noneOf(MaintainFacilityFields.class));
+        return build(new FacilityMaintainConfig());
     }
 
     /**
-     * Builds a facility builder with required + specified optional fields populated.
-     * @param optionals set of optional fields to include
-     * @return configured builder
+     * Build a {@link MaintainFacilityBuilder} using the provided configuration.
+     * Optional attributes are added based on enabled flags; notes and organization
+     * relationships are generated according to their counts.
+     *
+     * @param config configuration describing which attributes and counts to include
+     * @return populated MaintainFacilityBuilder ready for submission
      */
-    public MaintainFacilityBuilder build(Set<MaintainFacilityFields> optionals) {
+    public MaintainFacilityBuilder build(FacilityMaintainConfig config) {
         MaintainFacilityBuilder builder = new MaintainFacilityBuilder();
 
-        // Identifier
-        if (include(MaintainFacilityFields.IDENTIFIER, optionals)) {
+        if(config.isIdentifierEnabled()){
             builder.identifier(dataGen.generateNumericId());
         }
-        // Name
-        if (include(MaintainFacilityFields.NAME, optionals)) {
+        if (config.isNameEnabled()) {
             builder.name(dataGen.generateFacilityName());
         }
-        // Address
-        if (include(MaintainFacilityFields.ADDRESS, optionals)) {
+        if (config.isAddressEnabled()) {
             String[] addr = dataGen.generateFacilityAddress();
             builder.addAddress(addr[0], addr[1], addr[2]);
         }
-        // Telecoms / Notes / Description (optional)
-        if (include(MaintainFacilityFields.PHONE, optionals)) {
+        if (config.isPhoneEnabled()) {
             builder.addTelecom("phone", dataGen.generatePhoneNumber());
         }
-        if (include(MaintainFacilityFields.MOBILE, optionals)) {
+        if (config.isMobileEnabled()) {
             builder.addTelecom("sms", dataGen.generatePhoneNumber());
         }
-        if (include(MaintainFacilityFields.PAGER, optionals)) {
+        if (config.isPagerEnabled()) {
             builder.addTelecom("pager", dataGen.generatePhoneNumber());
         }
-        if (include(MaintainFacilityFields.MODEM, optionals)) {
+        if (config.isModemEnabled()) {
             builder.addTelecom("other", dataGen.generatePhoneNumber());
         }
-        if (include(MaintainFacilityFields.EMAIL, optionals)) {
+        if (config.isEmailEnabled()) {
             builder.addTelecom("email", dataGen.generateEmailAddress());
         }
-        if (include(MaintainFacilityFields.FAX, optionals)) {
+        if (config.isFaxEnabled()) {
             builder.addTelecom("fax", dataGen.generatePhoneNumber());
         }
-        if (include(MaintainFacilityFields.WEBSITE, optionals)) {
+        if (config.isWebsiteEnabled()) {
             builder.addTelecom("url", dataGen.generateWebsiteUrl());
         }
-        if (include(MaintainFacilityFields.FTP, optionals)) {
+        if (config.isFtpEnabled()) {
             builder.addTelecom("url", dataGen.generateFtpUrl());
         }
-        if (include(MaintainFacilityFields.NOTES, optionals)) {
-            builder.addNote(dataGen.generateNote());
-        }
-        if (include(MaintainFacilityFields.DESCRIPTION, optionals)) {
+        if (config.isDescriptionEnabled()) {
             builder.description(dataGen.generateDescription());
         }
 
-    return builder;
-    }
-
-    /**
-     * Varargs convenience overload.
-     * @param optionals optional fields
-     * @return configured builder
-     */
-    public MaintainFacilityBuilder build(MaintainFacilityFields... optionals) {
-    MaintainFacilityBuilder builder = build(optionals == null || optionals.length == 0
-        ? EnumSet.noneOf(MaintainFacilityFields.class)
-        : EnumSet.copyOf(Arrays.asList(optionals)));
-    // Already validated in underlying build(Set..) path
-    return builder;
-    }
-
-    /**
-     * Determines whether a field should be included (true if required or explicitly requested).
-     */
-    private boolean include(MaintainFacilityFields field, Set<MaintainFacilityFields> requested) {
-        return field.isRequired() || requested.contains(field);
+        int noteCount = config.getNoteCount();
+        for (int i = 0; i < noteCount; i++) {
+            builder.addNote(dataGen.generateNote());
+        }
+        // relationships pending future implementation using config.getRelationshipCount()
+        return builder;
     }
 }

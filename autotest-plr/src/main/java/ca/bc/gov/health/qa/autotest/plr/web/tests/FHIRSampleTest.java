@@ -6,7 +6,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.MaintainFacilityFields;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -51,22 +51,22 @@ implements SimpleTest
         LOG.info("Created facility id {}, name {}, address {}.", facility.getIdentifier(), facility.getName(), facility.getAddress().toString());
 
 
-        MaintainFacilityBuilder facility2 = fhirController.createFacility(
-            MaintainFacilityFields.WEBSITE,
-            MaintainFacilityFields.FTP,
-            MaintainFacilityFields.MODEM,
-            MaintainFacilityFields.MOBILE,
-            MaintainFacilityFields.PAGER,
-            MaintainFacilityFields.MODEM,
-            MaintainFacilityFields.PHONE,
-            MaintainFacilityFields.EMAIL,
-            MaintainFacilityFields.DESCRIPTION,
-            MaintainFacilityFields.FAX,
-            MaintainFacilityFields.NOTES,
-            MaintainFacilityFields.NAME,
-            MaintainFacilityFields.ADDRESS,
-            MaintainFacilityFields.IDENTIFIER
-        );
+        FacilityMaintainConfig cfg = new FacilityMaintainConfig()
+            .withPhone()
+            .withEmail()
+            .withFax()
+            .withFtp()
+            //.withAddress()       added by default as is a required attribute
+            //.withIdentifier()    added by default as is a required attribute
+            //.withName()          added by default as is a required attribute
+            .withMobile()
+            .withModem()
+            .withPager()
+            .withWebsite()
+            .withNotes(3);
+
+
+        MaintainFacilityBuilder facility2 = fhirController.createFacility(cfg);
 
         LOG.info("Created facility id {}, name {}, address {}.", facility2.getIdentifier(), facility2.getName(), facility2.getAddress().toString());
 

@@ -71,7 +71,7 @@ public final class FacilityDataGenerator {
 	 * Example: "Fraser Regional Hospital".
 	 * @return generated facility name
 	 */
-	public String generateFacilityName() {
+	protected String generateFacilityName() {
 		String name = pick(NAME_PREFIXES) + " " + pick(NAME_SUFFIXES);
 		return name;
 	}
@@ -81,7 +81,7 @@ public final class FacilityDataGenerator {
 	 * Return Format Example: "number Griffiths Wy, Vancouver, BC".
 	 * @return string array with address components: [0]=line1, [1]=city, [2]=postalcode
 	 */
-	public String[] generateFacilityAddress() {
+	protected String[] generateFacilityAddress() {
 		int number = FIXED_LOWER_STREET_NUMBER + RNG.nextInt(FIXED_UPPER_STREET_NUMBER - FIXED_LOWER_STREET_NUMBER + 1);
 		return new String[] {
 			number + " " + FIXED_STREET,
@@ -97,7 +97,7 @@ public final class FacilityDataGenerator {
 	 * Length: 12 digits (leading zeros preserved).
 	 * @return 12-digit numeric id string (e.g. "004928374655")
 	 */
-	public String generateNumericId() {
+	protected String generateNumericId() {
 		long value = Math.abs(RNG.nextLong()) % 1_000_000_000_000L; // 0 .. 999,999,999,999
 		return String.format("%012d", value);
 	}
@@ -106,7 +106,7 @@ public final class FacilityDataGenerator {
 	 * Generate a random phone number in BC format.
 	 * @return phone number string (e.g. "604-555-1234")
 	 */
-	public String generatePhoneNumber() {
+	protected String generatePhoneNumber() {
 		String areaCode = pick(PHONE_AREA_CODES);
 		int exchange = 555; // Using 555 for test data
 		int number = 1000 + RNG.nextInt(9000); // 1000-9999
@@ -117,7 +117,7 @@ public final class FacilityDataGenerator {
 	 * Generate a pseudo FTP URL.
 	 * @return ftp url string (e.g. "ftp://ftp.healthbc.ca/incoming")
 	 */
-	public String generateFtpUrl() {
+	protected String generateFtpUrl() {
 		String host = pick(FTP_HOSTS);
 		String dir = pick(List.of("incoming", "secure", "pub", "outbound"));
 		return "ftp://" + host + "/" + dir;
@@ -127,7 +127,7 @@ public final class FacilityDataGenerator {
 	 * Generate a random email address for the facility.
 	 * @return email address string
 	 */
-	public String generateEmailAddress() {
+	protected String generateEmailAddress() {
 		String domain = pick(EMAIL_DOMAINS);
 		String[] prefixes = {"info", "contact", "admin", "reception", "services"};
 		String prefix = pick(List.of(prefixes));
@@ -138,7 +138,7 @@ public final class FacilityDataGenerator {
 	 * Generate a random website URL for the facility.
 	 * @return website URL string (e.g. "https://www.healthbc.ca")
 	 */
-	public String generateWebsiteUrl() {
+	protected String generateWebsiteUrl() {
 		String prefix = pick(WEBSITE_PREFIXES);
 		String domain = pick(EMAIL_DOMAINS);
 		return "https://" + prefix + domain;
@@ -148,15 +148,16 @@ public final class FacilityDataGenerator {
 	 * Generate a random operational note for the facility.
 	 * @return note text string
 	 */
-	public String generateNote() {
-		return pick(NOTE_TEMPLATES);
+	protected String generateNote() {
+		int number = 1000 + RNG.nextInt(9000);
+		return pick(NOTE_TEMPLATES) + " " + number;
 	}
 
 	/**
 	 * Generate an additional description beyond the standard "Selenium FHIR".
 	 * @return additional description string
 	 */
-	public String generateDescription() {
+	protected String generateDescription() {
 		String[] descriptors = {"Advanced", "Comprehensive", "Specialized", "Community-focused", "Modern"};
 		String descriptor = pick(List.of(descriptors));
 		return descriptor + " Healthcare Facility";
@@ -164,5 +165,4 @@ public final class FacilityDataGenerator {
 
 	private <T> T pick(List<T> list) { return list.get(RNG.nextInt(list.size())); }
 
-	//TODO refine / validate specific telecom formatting rules as upstream constraints evolve.
 }

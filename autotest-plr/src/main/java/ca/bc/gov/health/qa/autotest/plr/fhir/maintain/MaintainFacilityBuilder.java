@@ -12,7 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.MaintainFacilityFields;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityAttribute;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 
 /**
@@ -187,7 +187,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     private void verifyParameters()
     {
         // Programmatically validate all required fields based on MaintainFacilityFields enum
-        for (MaintainFacilityFields field : MaintainFacilityFields.values()) {
+        for (FacilityAttribute field : FacilityAttribute.values()) {
             if (field.isRequired()) {
                 validateRequiredField(field);
             }
@@ -200,7 +200,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
      * @param field the required field to validate
      * @throws NullPointerException if the required field is missing or invalid
      */
-    private void validateRequiredField(MaintainFacilityFields field) {
+    private void validateRequiredField(FacilityAttribute field) {
         switch (field) {
             case NAME:
                 requireNonNull(name_, "Missing facility name.");
@@ -239,11 +239,6 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
                 break;
             case FTP:
                 validateRequiredTelecomType("ftp");
-                break;
-            case NOTES:
-                if (noteList_.isEmpty()) {
-                    requireNonNull(null, "Missing facility notes.");
-                }
                 break;
             default:
                 // Field is optional and has no required validation rules.

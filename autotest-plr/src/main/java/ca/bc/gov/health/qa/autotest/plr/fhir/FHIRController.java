@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import ca.bc.gov.health.qa.autotest.plr.fhir.actions.FHIRSession;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityBuilderFactory;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.MaintainFacilityFields;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -55,20 +55,21 @@ public class FHIRController implements AutoCloseable {
         return builder;
     }
 
+
     /**
-     * Generates facility data with specified optional fields and submits a maintain request.
-     * Convenience method for variable arguments.
+     * Creates a facility using a configuration object that can specify counts (e.g. notes, relationships)
+     * in addition to optional scalar fields.
      *
-     * @param optionalFields variable arguments of optional fields to include
+     * @param config configuration describing optional fields and counts
      * @return created facility values as a MaintainFacilityBuilder
      */
-    public MaintainFacilityBuilder createFacility(MaintainFacilityFields... optionalFields) {
-        MaintainFacilityBuilder builder = facilityFactory.build(optionalFields);
-
+    public MaintainFacilityBuilder createFacility(FacilityMaintainConfig config) {
+        if (config == null) {
+            return createFacility();
+        }
+        MaintainFacilityBuilder builder = facilityFactory.build(config);
         String id = executor.submitMaintain(builder);
-        LOG.info("Created facility (id={})", id);
-
-        //Set the actual id created by the service
+        LOG.info("Created facility (id={}) using config", id);
         builder.identifier(id);
         return builder;
     }
