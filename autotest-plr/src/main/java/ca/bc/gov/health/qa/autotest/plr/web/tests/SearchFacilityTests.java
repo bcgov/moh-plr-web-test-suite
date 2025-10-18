@@ -275,29 +275,29 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
-    // Search Facility : No Results - Identifier
-    public void testNoResultsIdentifier()
+    // F1-014. Zero Results
+    public void testZeroResults()
     {
         final String expectedMessage = "No records found.";
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByIdentifier("IFC", "ABC.123", false);
 
-        assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage, "Empty results message not returned when searching for nonexistent facility through identifier.");
-    }
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityResultsFragment searchResults;
 
-    @Test
-    // Search Facility : No Results - Criteria
-    public void testNoResultsCriteria()
-    {
-        final String expectedMessage = "No records found.";
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                "ABC.123", "1234 Fake St", "5678 Unknown Rd", "Town", null,
-                "BUILDING", "Greater Victoria (LHA)", null, false
-        );
-        assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage, "Empty results message not returned when searching for nonexistent facility with criteria.");
+        List<String> fakeFields;
+
+        // Search by Identifier - Zero Results
+        fakeFields = Arrays.asList("IFC", "ABC.123");
+        searchResults = searchByIdentifier(searchFacility, fakeFields, false);
+
+        assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage,
+                "Empty results message not returned when searching nonexistent facility through identifier.");
+
+        // Search by Criteria - Zero Results
+        fakeFields = Arrays.asList("ABC.123", "1234 Fake St", "5678 Unknown Rd", "City", "", "BUILDING", "SDA", "");
+        searchResults = searchByCriteria(searchFacility, fakeFields, false);
+
+        assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage,
+                "Empty results message not returned when searching nonexistent facility through criteria.");
     }
 
     @Test
