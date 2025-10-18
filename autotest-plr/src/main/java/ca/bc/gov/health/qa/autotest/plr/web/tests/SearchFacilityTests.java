@@ -259,14 +259,19 @@ public class SearchFacilityTests implements SimpleTest {
                 "Search Results returned unsuccessfully when only specifying Service Delivery Area.");
         queryDetails.set(6, "");
 
+        int searchResultsCount = searchResults.grabResultsRowCount();
+
         // All Criteria Empty
         final String expectedMessage = warningList.getString("missingCriteria");
 
-        searchByCriteria(searchFacility, queryDetails, true);
+        searchResults = searchByCriteria(searchFacility, queryDetails, true);
         List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
 
         assertTrue(warningMessageList.contains(expectedMessage),
                 "Missing minimum requirements message warning not displayed.");
+
+        assertEquals(searchResults.grabResultsRowCount(), searchResultsCount,
+                "Error query changed query results unexpectedly.");
     }
 
     @Test
