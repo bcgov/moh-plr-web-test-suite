@@ -7,6 +7,9 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Fragment class for the Search by Identifier section when searching by facility
  */
@@ -53,7 +56,7 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
      * Selects the identifier type in the Facility Identifier Type dropdown based on a prefix
      *
      * @param identifierTypePrefix  the first few characters to match when selecting the menu option
-     * @return  a string of the full matched identifier type
+     * @return                      a string of the full matched identifier type
      */
     public String selectIdentifierType(String identifierTypePrefix)
     {
@@ -68,5 +71,14 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
     public void fillFacilityId(String facilityId)
     {
         selenium_.fillFieldByCss(FACILITY_ID_FIELD_CSS, facilityId);
+    }
+
+    public List<String> getHighlightedFields()
+    {
+        List<String> highlightedFields = new ArrayList<>();
+        By highlightedSelector = By.cssSelector("label.ui-outputlabel.ui-widget.ui-state-error");
+        List<WebElement> webElementList = selenium_.findElement(mainLocator_).findElements(highlightedSelector);
+        for (WebElement fieldElement : webElementList) { highlightedFields.add(fieldElement.getText()); }
+        return highlightedFields;
     }
 }

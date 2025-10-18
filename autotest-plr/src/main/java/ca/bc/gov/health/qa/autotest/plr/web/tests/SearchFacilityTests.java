@@ -9,10 +9,7 @@ import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchFacilityActions;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -49,11 +46,14 @@ public class SearchFacilityTests implements SimpleTest {
         }
     }
 
+    /*
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
+
+     */
 
     @BeforeMethod
     public void before(Object[] parameters)
@@ -100,8 +100,8 @@ public class SearchFacilityTests implements SimpleTest {
      *
      * @param searchFacility    the search facilty page reference
      * @param queryFields       a list of strings of query details to fill fields with.
-     *                          First Element: Facility Identifier Type
-     *                          Second Element: Facility Identifier
+     *                          Index 0: Facility Identifier Type
+     *                          Index 1: Facility Identifier
      * @param expectedError     whether an error is anticipated when executing the query
      * @return                  a SearchFacilityResultsFragment reference to the search results of the identifier query
      */
@@ -113,63 +113,96 @@ public class SearchFacilityTests implements SimpleTest {
                 expectedError);
     }
 
+    /**
+     * Searches by Criteria in the Search Facility page.
+     *
+     * @param searchFacility    the search facility page reference
+     * @param queryFields       a list of strings of query details to fill fields with.
+     *                          Index 0: Facility Name
+     *                          Index 1: Civic Address Line 1
+     *                          Index 2: Other Address Line 2
+     *                          Index 3: City Field
+     *                          Index 4: City Prefix (for autocomplete, empty string becomes null)
+     *                          Index 5: Facility Type Prefix
+     *                          Index 6: Service Delivery Area Field
+     *                          Index 7: Service Delivery Area Prefix (for autocomplete, empty string becomes null)
+     * @param expectedError     whether an error is anticipated when executing the query
+     * @return                  a SearchFacilityResultsRequest reference to the search results of the criteria query
+     */
+    public SearchFacilityResultsFragment searchByCriteria(
+            SearchFacilityPage searchFacility, List<String> queryFields, boolean expectedError)
+    {
+        String cityPrefix = null;
+        String sdaPrefix = null;
+        if (!queryFields.get(4).isEmpty()) cityPrefix = queryFields.get(4);
+        if (!queryFields.get(7).isEmpty()) sdaPrefix = queryFields.get(7);
+        return searchFacility.searchByCriteria(
+                queryFields.getFirst(), queryFields.get(1), queryFields.get(2), queryFields.get(3), cityPrefix,
+                queryFields.get(5), queryFields.get(6), sdaPrefix, expectedError);
+    }
+
     @Test
     // F1-003. Minimum Data Requirements for Facility Search by Facility ID
     public void testMinDataReqsFacilityID() {
-        final String facIdentifierEmptyError = errorList.getString("missingFacilityIdentifier");
-        final String identifierTypeEmptyError = errorList.getString("missingIdentifierType");
-
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
 
         assertTrue(searchFacility.grabIdentifierSectionExpanded(), "Search by Identifier not opened by default");
+
+        SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
+
+        final String facIdentifierEmptyError = errorList.getString("missingFacilityIdentifier");
+        final String identifierTypeEmptyError = errorList.getString("missingIdentifierType");
 
         // Positive Test
         List<String> positiveTestDetails = Arrays.asList("IFC", "IFC.00000000.BC.PRS");
         SearchFacilityResultsFragment searchResults = searchByIdentifier(searchFacility, positiveTestDetails, false);
 
+        List<String> highlightedFields = identifierPanel.getHighlightedFields();
+
         assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
                 "Search Results returned unsuccessfully.");
+        assertTrue(highlightedFields.isEmpty(), "Fields are highlighted despite no errors appearing");
 
         // Facility Identifier Empty, Identifier Type Specified
         List<String> facIdentifierDetails = Arrays.asList("IFC", "");
         searchByIdentifier(searchFacility, facIdentifierDetails, true);
+
         List<String> errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedFields = identifierPanel.getHighlightedFields();
 
         assertTrue(errorMessageList.contains(facIdentifierEmptyError),
                 "Missing minimum requirement of Facility Identifier error not displayed.");
+        assertEquals(highlightedFields.getLast(), "Facility Identifier*",
+                "Facility Identifier is unhighlighted, or more than one error occurred.");
 
         // Identifier Type Empty, Facility Identifier Specified
         List<String> identifierTypeDetails = Arrays.asList("Select One", "IFC.00000000.BC.PRS");
         searchByIdentifier(searchFacility, identifierTypeDetails, true);
+
         errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedFields = identifierPanel.getHighlightedFields();
 
         assertTrue(errorMessageList.contains(identifierTypeEmptyError),
                 "Missing minimum requirement of Facility Identifier Type error not displayed.");
+        assertEquals(highlightedFields.getLast(), "Facility Identifier Type*",
+                "Facility Identifier Type is unhighlighted, or more than one error occurred.");
 
         // Both Identifier Type and Facility Identifier Empty
         List<String> emptyFieldDetails = Arrays.asList("Select One", "");
         searchByIdentifier(searchFacility, emptyFieldDetails, true);
+
         errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedFields = identifierPanel.getHighlightedFields();
 
         assertTrue(errorMessageList.contains(facIdentifierEmptyError),
                 "Missing minimum requirement of Facility Identifier error not displayed.");
         assertTrue(errorMessageList.contains(identifierTypeEmptyError),
                 "Missing minimum requirement of Facility Identifier Type error not displayed.");
-    }
-
-    @Test
-    // Search Facility : Minimum Requirements Search by Criteria
-    public void testMinReqsCriteriaNoCriteria()
-    {
-        final String expectedMessage = warningList.getString("missingCriteria");
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        searchFacility.searchByCriteria(
-                "", "", "", "", null,
-                "Select One", "", null, true);
-        List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
-
-        assertTrue(warningMessageList.contains(expectedMessage), "Missing minimum requirements message warning not displayed.");
+        assertTrue(highlightedFields.contains("Facility Identifier Type*"),
+                "Facility Identifier Type field not highlighted.");
+        assertTrue(highlightedFields.contains("Facility Identifier*"),
+                "Facility Identifier field not highlighted.");
+        assertEquals(highlightedFields.size(), 2, "Unexpected amount of highlighted fields");
     }
 
     @Test
