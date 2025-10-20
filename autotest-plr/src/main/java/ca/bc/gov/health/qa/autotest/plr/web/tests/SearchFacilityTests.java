@@ -436,4 +436,43 @@ public class SearchFacilityTests implements SimpleTest {
         assertTrue(searchResults.grabResultsRowCount() > 0, "Searching for facility with wildcard to match all but starting character results in no facilities being returned.");
         assertTrue(searchResults.getResultsRow(0).getFirst().startsWith(expectedFacilityName), "Returned facility doesn't have the expected facility name used in search.");
     }
+
+    @Test
+    // Search Facility: Maximum Results
+    public void testMaximumResults()
+    {   final int expectedResults = 20;
+        final String expectedMessage = "Maximum search results returned. Please refine your search criteria.";
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
+                "A*", "", "", "", null,
+                "Select One", "", null, false);
+        List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+
+        assertEquals(searchResults.grabResultsRowCount(), expectedResults, "Returned search result row count does not match the expected number of search results.");
+        assertTrue(warningMessageList.contains(expectedMessage), "Warning message for maximum search results not returned.");
+        assertTrue(searchResults.getFormResults().contains("20 results"), "Form result does not match expected maximum search results.");
+    }
+
+    @Test
+    // Search Facility: Alphabetical Sorting
+    public void testAlphabeticalSort()
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
+                "", "", "", "Victoria", null,
+                "Select One", "", null, false);
+
+        List<String> facNameList = searchResults.getFacilityNamesList();
+        // No name facility edge-case handling - not covered by test case
+        while (facNameList.contains("Link to View Facility")) facNameList.remove("Link to View Facility");
+
+        List<String> sortedNameList = new ArrayList<>(facNameList);
+        Collections.sort(sortedNameList);
+        assertEquals(facNameList, sortedNameList, "Returned search results and sorted search results do not match.");
+
+        // need to check edge-cases for same name different upper/lowercase, nonalphabetical characters
+        // investigation / confirmation of expected behavior needed
+    }
 }
