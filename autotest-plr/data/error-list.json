@@ -4,6 +4,7 @@
     "missingFacilityIdentifier" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier'. Your transaction has not been processed. Correct and resubmit."
   },
   "warnings" : {
-    "missingCriteria" : "Invalid or Incomplete form data provided, please see instructions on the right side."
+    "missingCriteria" : "Invalid or Incomplete form data provided, please see instructions on the right side.",
+    "maximumResults" : "Maximum search results returned. Please refine your search criteria.",
   }
 }
