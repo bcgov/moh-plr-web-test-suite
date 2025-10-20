@@ -139,6 +139,47 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-002. Facility Search by ID
+    public void testFacilitySearchID()
+    {
+        final List<String> expectedData = Arrays.asList("AZ F00123 & & (", "IFC.00000001.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
+
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+
+        assertTrue(searchFacility.grabIdentifierSectionExpanded(), "Search by Identifier not opened by default");
+
+        SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
+        List<String> identifierAttributes = identifierPanel.verifyIdentifierTab();
+
+        assertTrue(identifierAttributes.getFirst().contains("(*)"),
+                "Instruction for mandatory fields not present");
+        assertTrue(identifierAttributes.get(1).contains("Facility Identifier Type*"),
+                "Facility Identifier Type attribute not present");
+        assertTrue(identifierAttributes.get(2).contains("Facility Identifier*"),
+                "Facility Identifier attribute not present");
+        assertTrue(identifierAttributes.getLast().contains("Search"),
+                "Search Button not present");
+
+        SearchFacilityResultsFragment searchResults =  searchFacility.searchByIdentifier(
+                "IFC", "IFC.00000001.BC.PRS", false);
+        assertTrue(searchResults.grabResultsRowCount() > 0,
+                "Search Results returned unsuccessfully.");
+
+        assertTrue(searchResults.getResultsRow(0).get(1).contains(expectedData.get(1)),
+                "Returned facility doesn't have the expected identifier used in search.");
+        assertTrue(searchResults.getResultsRow(0).get(0).startsWith(expectedData.get(0)),
+                "Returned facility doesn't have the expected facility name.");
+        assertEquals(searchResults.getResultsRow(0).get(2), expectedData.get(2),
+                "Returned facility doesn't have the expected civic address.");
+
+        ViewFacilityPage searchDetails = workflow.getSearchFacilityActions().openSearchResults(0);
+        String viewTitle = searchDetails.getViewHeader().grabViewTitle();
+        assertTrue(viewTitle.contains(expectedData.get(1)),
+                "View page header does not match expected identifier");
+    }
+
+    @Test
     // F1-003. Minimum Data Requirements for Facility Search by Facility ID
     public void testMinDataReqsFacilityID() {
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
@@ -298,22 +339,6 @@ public class SearchFacilityTests implements SimpleTest {
 
         assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage,
                 "Empty results message not returned when searching nonexistent facility through criteria.");
-    }
-
-    @Test
-    // Search Facility : Identifier Search
-    public void testIdentifierSearch()
-    {
-        final List<String> expectedData = Arrays.asList("ABCDEF", "IFC.00000081.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
-        final String expectedIdentifier = expectedData.get(1).concat(" (IFC)");
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByIdentifier("IFC", expectedData.get(1), false);
-
-        assertTrue(searchResults.grabResultsRowCount() > 0, "Searching for facility with identifier results in no facilities being returned.");
-        assertEquals(searchResults.getResultsRow(0).get(1), expectedIdentifier, "Returned facility doesn't have the expected identifier used in search.");
-        assertTrue(searchResults.getResultsRow(0).get(0).startsWith(expectedData.get(0)), "Returned facility doesn't have the expected facility name.");
-        assertEquals(searchResults.getResultsRow(0).get(2), expectedData.get(2), "Returned facility doesn't have the expected civic address.");
     }
 
     @Test
