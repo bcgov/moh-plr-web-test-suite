@@ -77,8 +77,27 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
     {
         List<String> highlightedFields = new ArrayList<>();
         By highlightedSelector = By.cssSelector("label.ui-outputlabel.ui-widget.ui-state-error");
-        List<WebElement> webElementList = selenium_.findElement(mainLocator_).findElements(highlightedSelector);
+        List<WebElement> webElementList = selenium_.findElements(highlightedSelector);
         for (WebElement fieldElement : webElementList) { highlightedFields.add(fieldElement.getText()); }
         return highlightedFields;
+    }
+
+    public List<String> verifyIdentifierTab()
+    {
+        List<String> tabDetails = new ArrayList<>();
+
+        String mandatoryInstruction = selenium_.findElementByCss(
+                "form#accordian\\:searchByIdForm > table > tbody > tr > td[colspan]").getText();
+        tabDetails.add(mandatoryInstruction);
+
+        List<WebElement> fieldList = selenium_.findElementsByCss(
+                "form#accordian\\:searchByIdForm label.ui-outputlabel.ui-widget");
+        for (WebElement fieldElement : fieldList) { tabDetails.add(fieldElement.getText()); }
+
+        String searchButton = selenium_.findElement(mainLocator_)
+                .findElement(By.cssSelector("button[type='submit']")).getText();
+        tabDetails.add(searchButton);
+
+        return tabDetails;
     }
 }
