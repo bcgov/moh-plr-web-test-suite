@@ -8,6 +8,10 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Fragment class for the Search by Criteria section when searching by facility
  */
@@ -18,6 +22,12 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
     private static final String CIVIC_ADDRESS_FIELD_CSS = "input#accordian\\:searchByCriteriaForm\\:line1";
 
     private static final String OTHER_ADDRESS_FIELD_CSS = "input#accordian\\:searchByCriteriaForm\\:oline1";
+
+    private static final String CITY_FIELD_CSS = "input#accordian\\:searchByCriteriaForm\\:city_input";
+
+    private static final String FACTYPE_FIELD_CSS = "label#accordian\\:searchByCriteriaForm\\:facilityType_label";
+
+    private static final String SDA_FIELD_CSS = "input#accordian\\:searchByCriteriaForm\\:sda_input";
 
     private static final String SEARCH_BUTTON_CSS = "button#accordian\\:searchByCriteriaForm\\:searchButton";
 
@@ -72,7 +82,7 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
     {
         return new AutocompleteMenu(
                 selenium_,
-                By.cssSelector("input#accordian\\:searchByCriteriaForm\\:city_input"),
+                By.cssSelector(CITY_FIELD_CSS),
                 By.cssSelector("span#accordian\\:searchByCriteriaForm\\:city_panel")
         );
     }
@@ -101,7 +111,7 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
     {
         return new DropDownMenu(
                 selenium_,
-                By.cssSelector("label#accordian\\:searchByCriteriaForm\\:facilityType_label"),
+                By.cssSelector(FACTYPE_FIELD_CSS),
                 By.cssSelector("div#accordian\\:searchByCriteriaForm\\:facilityType_panel")
         );
     }
@@ -126,7 +136,7 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
     {
         return new AutocompleteMenu(
                 selenium_,
-                By.cssSelector("input#accordian\\:searchByCriteriaForm\\:sda_input"),
+                By.cssSelector(SDA_FIELD_CSS),
                 By.cssSelector("span#accordian\\:searchByCriteriaForm\\:sda_panel")
         );
     }
@@ -164,5 +174,52 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
         WebElement button = selenium_.findElement(By.cssSelector(SEARCH_BUTTON_CSS));
         button.click();
         selenium_.waitUntil(ExpectedConditions.stalenessOf(button));
+    }
+
+    /**
+     * Ensures some details of the criteria tab exist (instruction about filled fields,
+     * labels for each possible field/attribute, the clear button, and the search button)
+     *
+     * @return  a list of string text from each detail of the criteria tab
+     *          [instruction, (fields), clear button, search button]
+     */
+    public List<String> verifyCriteriaTab()
+    {
+        List<String> tabDetails = new ArrayList<>();
+
+        String mandatoryInstruction = selenium_.findElementByCss(
+                "div.ui-panel-content.ui-widget-content").getText();
+        tabDetails.add(mandatoryInstruction);
+
+        List<WebElement> fieldList = selenium_.findElementsByCss(
+                "form#accordian\\:searchByCriteriaForm label.ui-outputlabel.ui-widget");
+        for (WebElement fieldElement : fieldList) { tabDetails.add(fieldElement.getText()); }
+
+        String clearButton = selenium_.findElement(mainLocator_)
+                .findElement(By.cssSelector("button#accordian\\:searchByCriteriaForm\\:clearButton")).getText();
+        tabDetails.add(clearButton);
+
+        String searchButton = selenium_.findElement(mainLocator_)
+                .findElement(By.cssSelector("button#accordian\\:searchByCriteriaForm\\:searchButton")).getText();
+        tabDetails.add(searchButton);
+
+        return tabDetails;
+    }
+
+    public List<String> getCurrentFieldValues()
+    {
+        List<String> fieldValues = new ArrayList<>();
+        List<String> selectorList = Arrays.asList(FACILITY_NAME_FIELD_CSS, CIVIC_ADDRESS_FIELD_CSS,
+                OTHER_ADDRESS_FIELD_CSS, CITY_FIELD_CSS, SDA_FIELD_CSS);
+
+        for (String selector : selectorList)
+        {
+            fieldValues.add("" + selenium_.findElementByCss(selector).getAttribute("value"));
+        }
+
+        fieldValues.add(fieldValues.size()-1,
+                "" + selenium_.findElementByCss(FACTYPE_FIELD_CSS).getText());
+
+        return fieldValues;
     }
 }

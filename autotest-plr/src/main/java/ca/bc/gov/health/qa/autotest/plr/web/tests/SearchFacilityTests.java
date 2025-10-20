@@ -46,11 +46,13 @@ public class SearchFacilityTests implements SimpleTest {
         }
     }
 
+
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
+
 
     @BeforeMethod
     public void before(Object[] parameters)
@@ -244,6 +246,69 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-006. Facility Search by Criteria
+    public void testFacilitySearchCriteria()
+    {
+        final List<String> expectedAttributes = Arrays.asList(
+                "Facility Name", "Civic Address Line 1", "Other Address Line 1",
+                "City", "Facility Type", "Service Delivery Area");
+        final List<String> expectedFacilities = Arrays.asList("ABCDEF", "AZ F00123 & & (", "AZ F003 && fytfy & (");
+        final List<String> expectedFields = Arrays.asList("1175 DOUGLAS ST", "1175 DOUGLAS ST", "VICTORIA", "South Vancouver Island");
+
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+
+        SearchFacilityCriteriaFragment criteriaPanel = searchFacility.expandSearchCriteria(true);
+        assertTrue(searchFacility.grabCriteriaSectionExpanded(),"Search by Criteria not opened by default");
+
+        List<String> criteriaAttributes = criteriaPanel.verifyCriteriaTab();
+        assertEquals(criteriaAttributes.getFirst(), "At least 1 search criteria must be entered.",
+                "Instruction to fill at least 1 field does not match expected result.");
+        List<String> criteriaFields = criteriaAttributes.subList(1, criteriaAttributes.size()-2);
+        assertEquals(criteriaFields, expectedAttributes, "Unexpected mismatch of criteria fields");
+        assertTrue(criteriaAttributes.get(criteriaAttributes.size()-2).contains("Clear"),
+                "Clear Button not present");
+        assertTrue(criteriaAttributes.getLast().contains("Search"),
+                "Search button not present");
+
+        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
+                "A*", "1175 DOUGLAS ST", "1175 DOUGLAS ST",
+                "Vic", "Victoria", "BUILDING",
+                "South", "South Vancouver", false);
+        assertTrue(searchResults.grabResultsRowCount() > 2,
+                "Searching for facility with criteria results in expected facilities not being returned.");
+
+        for (int resultsIndex = 0; resultsIndex < 3; resultsIndex++)
+        {
+            ViewFacilityPage searchDetails = workflow.getSearchFacilityActions().openSearchResults(resultsIndex);
+
+            assertTrue(searchDetails.getViewHeader().grabViewTitle().contains(expectedFacilities.get(resultsIndex)),
+                    "Viewing facility leads to unexpected page");
+            LinkedHashMap<String,String> civicMap = searchDetails.grabCivicAddressBlockContent(0);
+            LinkedHashMap<String,String> otherMap = searchDetails.grabDataBlockContent(
+                    FacilitySection.OTHER_ADDRESS, 0);
+            assertEquals(civicMap.get("Address Line 1"), expectedFields.get(0),
+                    "Viewing facility has unexpected civic address.");
+            assertEquals(otherMap.get("Address Line 1"), expectedFields.get(1),
+                    "Viewing facility has unexpected other address.");
+            assertEquals(civicMap.get("City"), expectedFields.get(2),
+                    "Viewing facility has unexpected city.");
+            assertEquals(civicMap.get("Health Service Delivery Area"), expectedFields.get(3),
+                    "Viewing facility has unexpected service delivery area.");
+
+            workflow.getPlrWebAccessActions().openSearchFacility();
+        }
+
+        criteriaPanel = searchFacility.expandSearchCriteria(true);
+        criteriaPanel.clickClearButton();
+        for (String fieldValue : criteriaPanel.getCurrentFieldValues())
+        {
+            assertTrue(fieldValue.isEmpty() || fieldValue.equals("Select One"),
+                    "Clear button failed to reset field values");
+        }
+    }
+
+    @Test
     // F1-007. Minimum Data Requirements for Facility Search with Criteria
     public void testMinDataReqsCriteria()
     {
@@ -339,61 +404,6 @@ public class SearchFacilityTests implements SimpleTest {
 
         assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage,
                 "Empty results message not returned when searching nonexistent facility through criteria.");
-    }
-
-    @Test
-    // Search Facility : Facility Search by Criteria
-    public void testCriteriaSearch()
-    {
-        final List<String> expectedFields = Arrays.asList("1175 DOUGLAS ST", "1175 DOUGLAS ST", "VICTORIA", "South Vancouver Island");
-        final String expectedName1 = "ABCDEF";
-        final String expectedName2 = "AZ F00123 & & (";
-        final String expectedName3 = "AZ F003 &&, fytfy & (";
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                "", "1175 DOUGLAS ST", "1175 DOUGLAS ST", "Victoria", null,
-                "BUILDING", "South Vancouver Island (HSDA)", null, false);
-        SearchFacilityActions facilityActions = workflow.getSearchFacilityActions();
-
-        assertTrue(searchResults.grabResultsRowCount() > 2, "Searching for facility with criteria results in some expected facilities not being returned.");
-
-        final List<String> testData1 = searchResults.getResultsRow(0);
-        assertTrue(testData1.getFirst().startsWith(expectedName1), "First returned facility doesn't have the expected facility name.");
-        assertTrue(testData1.get(2).startsWith(expectedFields.getFirst()), "First returned facility doesn't have the expected civic address.");
-        ViewFacilityPage viewFacility1 = facilityActions.openSearchResults(0);
-
-        LinkedHashMap<String,String> civicMap = viewFacility1.grabCivicAddressBlockContent(0);
-        LinkedHashMap<String,String> otherMap = viewFacility1.grabDataBlockContent(FacilitySection.OTHER_ADDRESS, 0);
-        assertEquals(otherMap.get("Address Line 1"), expectedFields.get(1), "First returned facility doesn't have the expected other address.");
-        assertEquals(civicMap.get("City"), expectedFields.get(2), "First returned facility doesn't have the expected city.");
-        assertEquals(civicMap.get("Health Service Delivery Area"), expectedFields.get(3), "First returned facility missing the expected service delivery area.");
-
-        workflow.getPlrWebAccessActions().openSearchFacility();
-
-        final List<String> testData2 = searchResults.getResultsRow(1);
-        assertTrue(testData2.getFirst().startsWith(expectedName2), "Second returned facility doesn't have the expected facility name.");
-        assertTrue(testData2.get(2).startsWith(expectedFields.getFirst()), "Second returned facility doesn't have the expected civic address.");
-        ViewFacilityPage viewFacility2 = facilityActions.openSearchResults(1);
-
-        civicMap = viewFacility2.grabCivicAddressBlockContent(0);
-        otherMap = viewFacility2.grabDataBlockContent(FacilitySection.OTHER_ADDRESS, 0);
-        assertEquals(otherMap.get("Address Line 1"), expectedFields.get(1), "Second returned facility doesn't have the expected other address.");
-        assertEquals(civicMap.get("City"), expectedFields.get(2), "Second returned facility doesn't have the expected city.");
-        assertEquals(civicMap.get("Health Service Delivery Area"), expectedFields.get(3), "Second returned facility missing the expected service delivery area.");
-
-        workflow.getPlrWebAccessActions().openSearchFacility();
-
-        final List<String> testData3 = searchResults.getResultsRow(2);
-        assertTrue(testData3.getFirst().startsWith(expectedName3), "Third returned facility doesn't have the expected facility name.");
-        assertTrue(testData3.get(2).startsWith(expectedFields.getFirst()), "Third returned facility doesn't have the expected civic address.");
-        ViewFacilityPage viewFacility3 = facilityActions.openSearchResults(2);
-
-        civicMap = viewFacility3.grabCivicAddressBlockContent(0);
-        otherMap = viewFacility3.grabDataBlockContent(FacilitySection.OTHER_ADDRESS, 0);
-        assertEquals(otherMap.get("Address Line 1"), expectedFields.get(1), "Third returned facility doesn't have the expected other address.");
-        assertEquals(civicMap.get("City"), expectedFields.get(2), "Third returned facility doesn't have the expected city.");
-        assertEquals(civicMap.get("Health Service Delivery Area"), expectedFields.get(3), "Third returned facility missing the expected service delivery area.");
     }
 
     @Test
