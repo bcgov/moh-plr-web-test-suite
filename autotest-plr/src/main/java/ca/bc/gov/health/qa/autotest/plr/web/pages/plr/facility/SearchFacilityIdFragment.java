@@ -82,6 +82,12 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
         return highlightedFields;
     }
 
+    /**
+     * Ensures certain details of the identifier tab exist (instructions about mandatory field,
+     * labels for each possible field/attribute, and search button)
+     *
+     * @return  a list of string text from each detail of the identifier tab [instruction, (fields), search button]
+     */
     public List<String> verifyIdentifierTab()
     {
         List<String> tabDetails = new ArrayList<>();
