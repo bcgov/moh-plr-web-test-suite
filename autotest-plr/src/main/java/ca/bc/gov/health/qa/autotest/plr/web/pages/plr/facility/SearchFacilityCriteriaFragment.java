@@ -206,6 +206,12 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
         return tabDetails;
     }
 
+    /**
+     * Gets the values currently input into each field (pre-search).
+     *
+     * @return  a list of strings of each field's current value, ordered
+     *          [facility name, civic address, other address, city, facility type, service delivery area]
+     */
     public List<String> getCurrentFieldValues()
     {
         List<String> fieldValues = new ArrayList<>();
