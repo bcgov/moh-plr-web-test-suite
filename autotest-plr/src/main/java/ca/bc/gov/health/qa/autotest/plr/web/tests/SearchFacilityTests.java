@@ -19,8 +19,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class SearchFacilityTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -45,13 +44,13 @@ public class SearchFacilityTests implements SimpleTest {
         }
     }
 
-
+    /*
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
-
+     */
 
     @BeforeMethod
     public void before(Object[] parameters)
@@ -137,6 +136,106 @@ public class SearchFacilityTests implements SimpleTest {
         return searchFacility.searchByCriteria(
                 queryFields.getFirst(), queryFields.get(1), queryFields.get(2), queryFields.get(3), cityPrefix,
                 queryFields.get(5), queryFields.get(6), sdaPrefix, expectedError);
+    }
+
+    /**
+     * creates a map of wildcard queries - helper function for wildcard test case
+     *
+     * @param criteriaField     the string to be creating wildcard queries for
+     * @return                  a map of wildcard queries to be used in a criteria field
+     */
+    private LinkedHashMap<String,String> setupWildcards(String criteriaField)
+    {
+        LinkedHashMap<String,String> wildcardMap = new LinkedHashMap<>();
+        wildcardMap.put("trailingWildcard", criteriaField.charAt(0) + "*");
+        wildcardMap.put("precedingWildcard", "*" + criteriaField.substring(1).replace("\n", " "));
+        wildcardMap.put("middleWildcard", criteriaField.charAt(0) + "*" + criteriaField.charAt(criteriaField.length()-1));
+        wildcardMap.put("multipleWildcard", "*" + criteriaField.substring(1,4).replace("\n", " ") + "*");
+        wildcardMap.put("firstExpectedChar", String.valueOf(criteriaField.toLowerCase().charAt(0)));
+        wildcardMap.put("lastExpectedChar", String.valueOf(criteriaField.toLowerCase().charAt(criteriaField.length()-1)));
+        wildcardMap.put("middleExpectedChars", criteriaField.substring(1,4).toLowerCase());
+
+        return wildcardMap;
+    }
+
+    private void wildcardCases(String wildcardField, String wildcardType, LinkedHashMap<String,String> wildcardQueries)
+    {
+        switch (wildcardType)
+        {
+            case "trailingWildcard":
+                assertTrue(wildcardField.toLowerCase().startsWith(wildcardQueries.get("firstExpectedChar")),
+                        "Wildcard field doesn't match the trailing wildcard case's starting characters");
+                break;
+            case "precedingWildcard":
+                assertTrue(wildcardField.toLowerCase().endsWith(wildcardQueries.get("lastExpectedChar")),
+                        "Wildcard field does not match the preceding wildcard case's ending characters");
+                break;
+            case "middleWildcard":
+                assertTrue(wildcardField.toLowerCase().startsWith(wildcardQueries.get("firstExpectedChar")),
+                        "A facility name does not match the middle wildcard case's starting characters");
+                assertTrue(wildcardField.toLowerCase().endsWith(wildcardQueries.get("lastExpectedChar")),
+                        "A facility name does not match the middle wildcard case's ending characters");
+                break;
+            case "multipleWildcard":
+                assertTrue(wildcardField.toLowerCase().contains(wildcardQueries.get("middleExpectedChars")),
+                        "A facility name does not match the multiple wildcard case's middle characters");
+                break;
+        }
+    }
+
+    /**
+     * Helper function for handling facility name wildcard queries and assertions
+     *
+     * @param searchFacility    the search facility page reference
+     * @param wildcardType      which wildcard type to test against (key for wildcardQueries)
+     * @param queryDetails      list of default query details
+     * @param wildcardQueries   map of wildcard queries to test against (based on wildcard type)
+     */
+    private void wildcardNameCheck(SearchFacilityPage searchFacility, String wildcardType,
+                                   List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
+    {
+        queryDetails.set(0, wildcardQueries.get(wildcardType));
+        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
+        List<String> facilityNameList = searchResults.getFacilityNamesList();
+        while (facilityNameList.contains("Link to View Facility")) facilityNameList.remove("Link to View Facility");
+
+        assertFalse(facilityNameList.isEmpty(),
+                "Searching facility name with " + wildcardType + " unexpectedly returns no testable results");
+        for (String facilityName : facilityNameList)
+        {
+            wildcardCases(facilityName, wildcardType, wildcardQueries);
+        }
+    }
+
+    private void wildcardCivicCheck(SearchFacilityPage searchFacility, String wildcardType,
+                                    List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
+    {
+        queryDetails.set(1, wildcardQueries.get(wildcardType));
+        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
+        assertTrue(searchResults.grabResultsRowCount() > 0,
+                "Searching civic address with " + wildcardType + " unexpectedly returns no testable results");
+
+        for (String civicAddress : searchResults.getCivicAddressList())
+        {
+            if (!wildcardType.equals("middleWildcard")) wildcardCases(civicAddress, wildcardType, wildcardQueries);
+            else {
+                assertTrue(civicAddress.toLowerCase().startsWith(wildcardQueries.get("firstExpectedChar")),
+                        "A civic address does not match the middle wildcard case's starting characters");
+                // Implicit wildcard exists at end of civic address so only check containment after first character
+                assertTrue(civicAddress.substring(1).toLowerCase()
+                                .contains(wildcardQueries.get("lastExpectedChar")),
+                        "A civic address does not match the middle wildcard case's ending characters");
+            }
+        }
+    }
+
+    private void wildcardOtherCheck(SearchFacilityPage searchFacility, String wildcardType,
+                                    List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
+    {
+        queryDetails.set(2, wildcardQueries.get(wildcardType));
+        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
+        assertTrue(searchResults.grabResultsRowCount() > 0,
+                "Searching civic address with " + wildcardType + " unexpectedly returns no testable results");
     }
 
     @Test
@@ -380,6 +479,61 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-010. Facility Search Rules
+    public void testFacilitySearchRules()
+    {
+        final String expectedName = "ABCDEF";
+        final String expectedCivicAddress = "1175 DOUGLAS ST,\nVICTORIA";
+        final String expectedOtherAddress = "1175 DOUGLAS ST";
+        final String expectedWarningMessage = warningList.getString("missingCriteria");
+        final List<String> wildcardTypes = Arrays.asList(
+                "trailingWildcard", "precedingWildcard", "middleWildcard", "multipleWildcard");
+
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+
+        // Facility Name Steps
+        LinkedHashMap<String,String> wildcardQueries = setupWildcards(expectedName);
+        List<String> queryDetails = Arrays.asList(expectedName, "", "", "", "", "Select One", "", "");
+
+        for (String wildcardType : wildcardTypes) wildcardNameCheck(
+                searchFacility, wildcardType, queryDetails, wildcardQueries);
+
+        // Civic Address Steps
+        wildcardQueries = setupWildcards(expectedCivicAddress);
+        queryDetails = Arrays.asList("", expectedCivicAddress, "", "", "", "Select One", "", "");
+
+        for (String wildcardType : wildcardTypes) wildcardCivicCheck(
+                searchFacility, wildcardType, queryDetails, wildcardQueries);
+
+        // Other Address Steps
+        wildcardQueries = setupWildcards(expectedOtherAddress);
+        queryDetails = Arrays.asList("", "", expectedOtherAddress, "", "", "Select One", "", "");
+
+        for (String wildcardType : wildcardTypes)
+        {
+            wildcardOtherCheck(searchFacility, wildcardType, queryDetails, wildcardQueries);
+            ViewFacilityPage searchDetails = workflow.getSearchFacilityActions().openSearchResults(0);
+            LinkedHashMap<String,String> otherMap = searchDetails.grabDataBlockContent(
+                    FacilitySection.OTHER_ADDRESS,0);
+            wildcardCases(otherMap.get("Address Line 1"), wildcardType, wildcardQueries);
+            workflow.getPlrWebAccessActions().openSearchFacility();
+        }
+
+        // Warning Steps
+        queryDetails = Arrays.asList("", "", "", "", "", "Select One", "", "");
+        for (int fieldIndex = 0; fieldIndex < 3; fieldIndex++)
+        {
+            queryDetails.set(fieldIndex, "*");
+            searchByCriteria(searchFacility, queryDetails, false);
+            List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+            assertTrue(warningMessageList.contains(expectedWarningMessage),
+                    "Warning not displayed for only wildcard case");
+            queryDetails.set(fieldIndex, "");
+        }
+    }
+
+    @Test
     // F1-014. Zero Results
     public void testZeroResults()
     {
@@ -424,38 +578,6 @@ public class SearchFacilityTests implements SimpleTest {
                 "Maximum search results warning not displayed.");
         assertTrue(searchResults.getFormResults().contains(String.format("%d results", expectedResults)),
                 "Form result does not match expected maximum search results.");
-    }
-
-    @Test
-    // Search Facility: Facility Search with Wildcard - Match Ending Character
-    public void testCriteriaSearchWildcardMatchEnding()
-    {
-        final String expectedFacilityName = "ABCDEF";
-        final String facilityNameField = expectedFacilityName.replace(expectedFacilityName.substring(expectedFacilityName.length() - 1), "*");
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                facilityNameField, "", "", "", null,
-                "Select One", "", null, false);
-
-        assertTrue(searchResults.grabResultsRowCount() > 0, "Searching for facility with wildcard to match 1 ending character results in no facilities being returned.");
-        assertTrue(searchResults.getResultsRow(0).getFirst().startsWith(expectedFacilityName), "Returned facility doesn't have the expected facility name used in search.");
-    }
-
-    @Test
-    // Search Facility: Facility Search with Wildcard - Match All but First Character
-    public void testCriteriaSearchWildcardMatchMany()
-    {
-        final String expectedFacilityName = "yates 580 postal cd";
-        final String facilityNameField = expectedFacilityName.charAt(0) + "*";
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                facilityNameField, "", "", "", null,
-                "Select One", "", null,false);
-
-        assertTrue(searchResults.grabResultsRowCount() > 0, "Searching for facility with wildcard to match all but starting character results in no facilities being returned.");
-        assertTrue(searchResults.getResultsRow(0).getFirst().startsWith(expectedFacilityName), "Returned facility doesn't have the expected facility name used in search.");
     }
 
     @Test

@@ -143,4 +143,27 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
         }
         return facNameList;
     }
+
+
+    /**
+     * Gets the civic addresses for each record in the search results
+     * The country is discarded in the results, see comments for explanation
+     *
+     * @return  a list of strings with each civic address in the search results
+     */
+    public List<String> getCivicAddressList()
+    {
+        List<String> civicAddressList = new ArrayList<>();
+        for (int facilityCount = 0; facilityCount < grabResultsRowCount(); facilityCount++)
+        {
+            String civicAddress = getResultsRow(facilityCount).get(2);
+            /* Slight inaccuracy in testing - the country in the Civic Address is searchable, but the output in search
+               results does not match what is required in the search query.
+               e.g. To search for British Columbia facilities, a reference to "BC" is required in the search. The
+                    search results after this will display the civic address as "British Columbia", not "BC".
+                    Attempting to search for "British Columbia" will result in no results being returned. */
+            civicAddressList.add(civicAddress.substring(0, civicAddress.lastIndexOf(',')));
+        }
+        return civicAddressList;
+    }
 }
