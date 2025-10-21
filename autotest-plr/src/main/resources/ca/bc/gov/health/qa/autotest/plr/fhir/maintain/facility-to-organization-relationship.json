@@ -1,0 +1,44 @@
+{
+    "fullUrl": "urn:uuid:e06c8673-ddf5-4190-ba1e-dd43923a66c5",
+    "resource": {
+        "resourceType": "OrganizationAffiliation",
+        "meta": {
+            "profile": [
+                "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-affiliation"
+            ]
+        },
+        "period": {
+            "start": "2023-07-01"
+        },
+        "organization": {
+            "identifier": {
+                "system": "",
+                "value": "",
+                "period": {
+                    "start": "2023-01-01"
+                }
+            }
+        },
+        "code": [
+            {
+                "coding": [
+                    {
+                        "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-location-relationship-type-code-system",
+                        "code": "LOCATED"
+                    }
+                ]
+            }
+        ],
+        "location": [
+            {
+                "identifier": {
+                    "system": "https://health.gov.bc.ca/fhir/NamingSystem/ca-bc-plr-ifc",
+                    "value": "",
+                    "period": {
+                        "start": "2023-01-01"
+                    }
+                }
+            }
+        ]
+    }
+}

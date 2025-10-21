@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityAttribute;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 
 /**
@@ -26,7 +27,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     private String                    description_     = null;
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
     private  List<Map<String,String>> noteList_        = new ArrayList<>();
-    //private List<Map<String,String>>  facilityRelationships  = new ArrayList<>();
+    private List<Map<String,String>>  orgRelationshipList_  = new ArrayList<>();
     private final String              PURPOSE           = "FC";
     private final String              ADDRESS_TYPE_PHYS = "physical";
     /**
@@ -145,6 +146,14 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
            extensionJson.put(MaintainUtils.createNote(info));
         }
 
+
+        // For each organization relationship create a distinct OrganizationAffiliation bundle entry
+        JSONArray bundleEntryArray = accessor.getEntryArrayJson();
+        for (Map<String,String> info : orgRelationshipList_)
+        {
+            bundleEntryArray.put(MaintainUtils.createFacilityOrgAffiliation(info, identifier_));
+        }
+
         return json;
     }
 
@@ -174,6 +183,23 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     public MaintainFacilityBuilder name(String name)
     {
         name_ = name;
+        return this;
+    }
+
+    /**
+     * Adds an organization relationship to the facility.
+     * @param identifierType type of identifier used to reference the organization
+     * @param identifier identifier value of the organization
+     * @return this builder for fluent chaining
+     */
+    public MaintainFacilityBuilder addOrganizationRelationship(
+            IdentifierType identifierType,
+            String identifier)
+    {
+        Map<String,String> orgRelationship = new HashMap<>();
+        orgRelationship.put("type",       identifierType.toString());
+        orgRelationship.put("identifier", identifier);
+        this.orgRelationshipList_.add(orgRelationship);
         return this;
     }
 
@@ -211,6 +237,16 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
             case ADDRESS:
                 if (address_.isEmpty()) {
                     requireNonNull(null, "Missing facility address.");
+                }
+                break;
+            case NOTE:
+                if (noteList_.isEmpty()) {
+                    requireNonNull(null, "At least one facility note is required.");
+                }
+                break;
+            case ORG_RELATIONSHIP:
+                if (orgRelationshipList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization relationship is required.");
                 }
                 break;
             case DESCRIPTION:
@@ -309,5 +345,13 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     public List<Map<String,String>> getNoteList()
     {
         return List.copyOf(noteList_);
+    }
+
+    /**
+     * Returns an immutable snapshot of organization relationship entries added so far.
+     */
+    public List<Map<String,String>> getOrgRelationshipList()
+    {
+        return List.copyOf(orgRelationshipList_);
     }
 }

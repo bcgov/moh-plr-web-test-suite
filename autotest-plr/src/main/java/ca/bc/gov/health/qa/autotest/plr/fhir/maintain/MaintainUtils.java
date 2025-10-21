@@ -364,4 +364,33 @@ public class MaintainUtils
         return new JSONObject(ResourceUtils.readResource(
                 MethodHandles.lookup().lookupClass(), templateName));
     }
+
+        /**
+         * Creates a Bundle.entry JSON object containing an OrganizationAffiliation resource
+         * that links the maintained facility (Location) to an organization via its identifier.
+         * Template file: facility-to-organization-relationship.json
+         *
+         * Expected map keys:
+         *  - identifier: organization identifier value
+         *  - system: organization identifier system (URL)
+         *
+         * @param info relationship mapping data
+         * @param facilityIdentifier the identifier value of the facility (Location) being maintained
+         * @return populated OrganizationAffiliation bundle entry
+         */
+        public static JSONObject createFacilityOrgAffiliation(Map<String,String> info, String facilityIdentifier)
+        {
+                JSONObject entry = readJsonTemplate("facility-to-organization-relationship.json");
+                JSONObject resource = entry.getJSONObject("resource");
+                // Organization identifier
+                JSONObject orgIdentifier = resource.getJSONObject("organization").getJSONObject("identifier");
+                orgIdentifier.put("system", info.get("type"));
+                
+                orgIdentifier.put("value", info.get("identifier"));
+                // Location identifier (facility IFC)
+                JSONObject locationIdentifier = resource.getJSONArray("location").getJSONObject(0).getJSONObject("identifier");
+                locationIdentifier.put("value", facilityIdentifier);
+
+                return entry;
+        }
 }

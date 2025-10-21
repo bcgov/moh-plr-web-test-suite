@@ -163,11 +163,7 @@ public class MaintainAccessor
      */
     public JSONObject getResourceJson(int resourceIndex, String resourceType)
     {
-        JSONObject maintainJson =
-                MaintainUtils.findEntry(json_.getJSONArray("parameter"), "name", "maintain");
-        JSONObject json = maintainJson
-                .getJSONObject("resource")
-                .getJSONArray("entry")
+        JSONObject json = getEntryArrayJson()
                 .getJSONObject(resourceIndex)
                 .getJSONObject("resource");
         if (resourceType != null)
@@ -176,6 +172,29 @@ public class MaintainAccessor
         }
         return json;
     }
+
+    /**
+     * TODO (AZ) - doc
+     *
+     * @param resourceIndex
+     *        ???
+     *
+     * @param resourceType
+     *        ??? (can be {@code null})
+     *
+     * @return ???
+     */
+    public JSONArray getEntryArrayJson()
+    {
+        JSONObject maintainJson =
+                MaintainUtils.findEntry(json_.getJSONArray("parameter"), "name", "maintain");
+        JSONArray json = maintainJson
+                .getJSONObject("resource")
+                .getJSONArray("entry");
+
+        return json;
+    }
+
 
     /**
      * TODO (AZ) - doc
