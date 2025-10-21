@@ -43,10 +43,10 @@ public class FacilityBuilderFactory {
             builder.identifier(dataGen.generateNumericId());
         }
         if (config.isNameEnabled()) {
-            builder.name(dataGen.generateFacilityName());
+            builder.name(dataGen.generateName());
         }
         if (config.isAddressEnabled()) {
-            String[] addr = dataGen.generateFacilityAddress();
+            String[] addr = dataGen.generateAddress();
             builder.addAddress(addr[0], addr[1], addr[2]);
         }
         if (config.isPhoneEnabled()) {

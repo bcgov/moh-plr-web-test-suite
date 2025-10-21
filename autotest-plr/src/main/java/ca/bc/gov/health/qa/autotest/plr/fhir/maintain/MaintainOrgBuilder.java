@@ -12,6 +12,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationAttribute;
 
 /**
  * TODO (AZ) - doc
@@ -24,7 +26,7 @@ public class MaintainOrgBuilder
     private String                    identifier_      = null;
     private String                    name_            = null;
     private  List<Map<String,String>> noteList_        = new ArrayList<>();
-    private String                    roleType_        = "ORG";
+    private String                    roleType_        = OrgRoleType.HDS.getRoleType(); //DEFAULT VALUE
     private List<Map<String,String>>  statusList_      = new ArrayList<>();
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
 
@@ -280,9 +282,112 @@ public class MaintainOrgBuilder
         return this;
     }
 
-    private void verifyParameters()
-    {
-        requireNonNull(identifier_, "Missing organization identifier.");
-        requireNonNull(name_,       "Missing organization name.");
+    /**
+     * Validates all required organization attributes based on {@link OrganizationAttribute} enum flags.
+     * This automatically adapts if attribute requiredness changes in the enum.
+     * @throws NullPointerException if any required attribute is absent
+     */
+    private void verifyParameters() {
+        for (OrganizationAttribute attr : OrganizationAttribute.values()) {
+            if (attr.isRequired()) {
+                validateRequiredField(attr);
+            }
+        }
     }
+
+    /**
+     * Performs attribute-specific required validation.
+     * @param attr required attribute to check
+     */
+    private void validateRequiredField(OrganizationAttribute attr) {
+        switch (attr) {
+            case IDENTIFIER:
+                requireNonNull(identifier_, "Missing organization identifier.");
+                break;
+            case NAME:
+                requireNonNull(name_, "Missing organization name.");
+                break;
+            case ADDRESS:
+                if (addressList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization address is required.");
+                }
+                break;
+            case TELECOM:
+                if (telecomList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization telecom is required.");
+                }
+                break;
+            case STATUS:
+                if (statusList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization status is required.");
+                }
+                break;
+            case NOTE:
+                if (noteList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization note is required.");
+                }
+                break;
+            case ALIAS:
+                requireNonNull(alias_, "Missing organization alias.");
+                break;
+            case CONFIDENTIALITY:
+                requireNonNull(confidentiality_, "Missing organization confidentiality flag.");
+                break;
+            case ROLE_TYPE:
+                requireNonNull(roleType_, "Missing organization role type.");
+                break;
+            default:
+                // no-op for unsupported entries
+                break;
+        }
+    }
+
+    // --- Getters for external inspection / assertions ---
+    /**
+     * @return organization identifier value (may be null until set)
+     */
+    public String getIdentifier() { return identifier_; }
+
+    /**
+     * @return organization name (may be null until set)
+     */
+    public String getName() { return name_; }
+
+    /**
+     * @return organization role type code (never null after construction unless explicitly cleared)
+     */
+    public String getRoleType() { return roleType_; }
+
+    /**
+     * @return alias string (null if not provided)
+     */
+    public String getAlias() { return alias_; }
+
+    /**
+     * @return confidentiality flag (null if not specified)
+     */
+    public Boolean getConfidentiality() { return confidentiality_; }
+
+    /**
+     * Returns an immutable snapshot of addresses added.
+     * @return unmodifiable list of address maps
+     */
+    public List<Map<String,String>> getAddressList() { return List.copyOf(addressList_); }
+
+    /**
+     * @return unmodifiable list of telecom maps
+     */
+    public List<Map<String,String>> getTelecomList() { return List.copyOf(telecomList_); }
+
+    /**
+     * @return unmodifiable list of status maps
+     */
+    public List<Map<String,String>> getStatusList() { return List.copyOf(statusList_); }
+
+    /**
+     * @return unmodifiable list of note maps
+     */
+    public List<Map<String,String>> getNoteList() { return List.copyOf(noteList_); }
+
+    
 }
