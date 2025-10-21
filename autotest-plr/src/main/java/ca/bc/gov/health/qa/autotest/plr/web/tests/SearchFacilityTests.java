@@ -44,13 +44,11 @@ public class SearchFacilityTests implements SimpleTest {
         }
     }
 
-    /*
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
-     */
 
     @BeforeMethod
     public void before(Object[] parameters)
@@ -68,7 +66,7 @@ public class SearchFacilityTests implements SimpleTest {
      * @param userType      the user type to log into PLR as
      * @return              the PlrWebWorkflow reference to the workflow logged into PLR as the specified user type
      */
-    public PlrWebWorkflow logIn(UserType userType)
+    private PlrWebWorkflow logIn(UserType userType)
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(userType);
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
@@ -81,7 +79,7 @@ public class SearchFacilityTests implements SimpleTest {
      * @param userType      the userType to log in as and navigate to the Search Facility Page with
      * @return              a SearchFacilityPage reference to the workflow's search facility page component
      */
-    public SearchFacilityPage navigateToSearchFacilityPage(UserType userType)
+    private SearchFacilityPage navigateToSearchFacilityPage(UserType userType)
     {
         PlrWebWorkflow workflow = logIn(userType);
         SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
@@ -102,7 +100,7 @@ public class SearchFacilityTests implements SimpleTest {
      * @param expectedError     whether an error is anticipated when executing the query
      * @return                  a SearchFacilityResultsFragment reference to the search results of the identifier query
      */
-    public SearchFacilityResultsFragment searchByIdentifier(
+    private SearchFacilityResultsFragment searchByIdentifier(
             SearchFacilityPage searchFacility, List<String> queryFields, boolean expectedError)
     {
         return searchFacility.searchByIdentifier(
@@ -126,7 +124,7 @@ public class SearchFacilityTests implements SimpleTest {
      * @param expectedError     whether an error is anticipated when executing the query
      * @return                  a SearchFacilityResultsRequest reference to the search results of the criteria query
      */
-    public SearchFacilityResultsFragment searchByCriteria(
+    private SearchFacilityResultsFragment searchByCriteria(
             SearchFacilityPage searchFacility, List<String> queryFields, boolean expectedError)
     {
         String cityPrefix = null;
@@ -158,6 +156,13 @@ public class SearchFacilityTests implements SimpleTest {
         return wildcardMap;
     }
 
+    /**
+     * Helper function to assign correct test assertion(s) to run depending on wildcard query used.
+     *
+     * @param wildcardField     Field to verify the wildcard query returns a matching field
+     * @param wildcardType      Type of wildcard query being executed (key for wildcardQueries)
+     * @param wildcardQueries   Map of wildcard queries to test against (based on wildcardType)
+     */
     private void wildcardCases(String wildcardField, String wildcardType, LinkedHashMap<String,String> wildcardQueries)
     {
         switch (wildcardType)
@@ -186,10 +191,10 @@ public class SearchFacilityTests implements SimpleTest {
     /**
      * Helper function for handling facility name wildcard queries and assertions
      *
-     * @param searchFacility    the search facility page reference
-     * @param wildcardType      which wildcard type to test against (key for wildcardQueries)
-     * @param queryDetails      list of default query details
-     * @param wildcardQueries   map of wildcard queries to test against (based on wildcard type)
+     * @param searchFacility    The search facility page reference
+     * @param wildcardType      Which wildcard type to test against (key for wildcardQueries)
+     * @param queryDetails      List of default query details
+     * @param wildcardQueries   Map of wildcard queries to test against (based on wildcardType)
      */
     private void wildcardNameCheck(SearchFacilityPage searchFacility, String wildcardType,
                                    List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
@@ -207,6 +212,14 @@ public class SearchFacilityTests implements SimpleTest {
         }
     }
 
+    /**
+     * Helper function for handling civic address wildcard queries and assertions
+     *
+     * @param searchFacility    The search facility page reference
+     * @param wildcardType      Which wildcard type to test against (key for wildcardQueries)
+     * @param queryDetails      List of default query details
+     * @param wildcardQueries   Map of wildcard queries to test against (based on wildcardType)
+     */
     private void wildcardCivicCheck(SearchFacilityPage searchFacility, String wildcardType,
                                     List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
     {
@@ -229,6 +242,14 @@ public class SearchFacilityTests implements SimpleTest {
         }
     }
 
+    /**
+     * Helper function for partially handling other address wildcard query and assertion
+     *
+     * @param searchFacility    The search facility page reference
+     * @param wildcardType      Which wildcard type to test against (key for wildcardQueries)
+     * @param queryDetails      List of default query details
+     * @param wildcardQueries   Map of wildcard queries to test against (based on wildcardType)
+     */
     private void wildcardOtherCheck(SearchFacilityPage searchFacility, String wildcardType,
                                     List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
     {
@@ -534,6 +555,24 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-012. Alphabetical Sorting of Facility Search Results
+    public void testAlphabeticalSorting()
+    {
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+
+        List<String> queryDetails = Arrays.asList("", "", "", "Victo", "Victoria", "Select One", "", null);
+        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
+
+        List<String> facilityNameList = searchResults.getFacilityNamesList();
+        // Facilities with no name not covered by test cases - manual removal from consideration for sorting
+        while (facilityNameList.contains("Link to View Facility")) facilityNameList.remove("Link to View Facility");
+
+        List<String> sortedNameList = new ArrayList<>(facilityNameList);
+        Collections.sort(sortedNameList);
+        assertEquals(facilityNameList, sortedNameList, "Returned search results and sorted search results do not match.");
+    }
+
+    @Test
     // F1-014. Zero Results
     public void testZeroResults()
     {
@@ -578,27 +617,5 @@ public class SearchFacilityTests implements SimpleTest {
                 "Maximum search results warning not displayed.");
         assertTrue(searchResults.getFormResults().contains(String.format("%d results", expectedResults)),
                 "Form result does not match expected maximum search results.");
-    }
-
-    @Test
-    // Search Facility: Alphabetical Sorting
-    public void testAlphabeticalSort()
-    {
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                "", "", "", "Victoria", null,
-                "Select One", "", null, false);
-
-        List<String> facNameList = searchResults.getFacilityNamesList();
-        // No name facility edge-case handling - not covered by test case
-        while (facNameList.contains("Link to View Facility")) facNameList.remove("Link to View Facility");
-
-        List<String> sortedNameList = new ArrayList<>(facNameList);
-        Collections.sort(sortedNameList);
-        assertEquals(facNameList, sortedNameList, "Returned search results and sorted search results do not match.");
-
-        // need to check edge-cases for same name different upper/lowercase, nonalphabetical characters
-        // investigation / confirmation of expected behavior needed
     }
 }
