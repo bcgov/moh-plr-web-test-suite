@@ -162,8 +162,9 @@ public class SearchFacilityTests implements SimpleTest {
         assertTrue(identifierAttributes.getLast().contains("Search"),
                 "Search Button not present");
 
-        SearchFacilityResultsFragment searchResults =  searchFacility.searchByIdentifier(
-                "IFC", "IFC.00000001.BC.PRS", false);
+        List<String> queryDetails = Arrays.asList("IFC", expectedData.get(1));
+        SearchFacilityResultsFragment searchResults = searchByIdentifier(searchFacility, queryDetails, false);
+
         assertTrue(searchResults.grabResultsRowCount() > 0,
                 "Search Results returned unsuccessfully.");
 
@@ -270,10 +271,9 @@ public class SearchFacilityTests implements SimpleTest {
         assertTrue(criteriaAttributes.getLast().contains("Search"),
                 "Search button not present");
 
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                "A*", "1175 DOUGLAS ST", "1175 DOUGLAS ST",
-                "Vic", "Victoria", "BUILDING",
-                "South", "South Vancouver", false);
+        List<String> queryDetails = Arrays.asList("A*", expectedFields.get(0), expectedFields.get(1), "Vic", "Victoria",
+                "BUILDING", "South", "South Vancouver");
+        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
         assertTrue(searchResults.grabResultsRowCount() > 2,
                 "Searching for facility with criteria results in expected facilities not being returned.");
 
