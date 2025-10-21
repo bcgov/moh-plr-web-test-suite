@@ -559,17 +559,28 @@ public class SearchFacilityTests implements SimpleTest {
     public void testAlphabeticalSorting()
     {
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityResultsFragment searchResults;
 
-        List<String> queryDetails = Arrays.asList("", "", "", "Victo", "Victoria", "Select One", "", null);
-        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
+        List<String> queryDetails = Arrays.asList("", "", "", "Victo", "Victoria", "Select One", "", "");
 
-        List<String> facilityNameList = searchResults.getFacilityNamesList();
-        // Facilities with no name not covered by test cases - manual removal from consideration for sorting
-        while (facilityNameList.contains("Link to View Facility")) facilityNameList.remove("Link to View Facility");
+        /* Address numbers known to include important generic cases/edge-cases
+                (alphanumeric characters, case sensitivity, etc.) */
+        List<String> addressSpotCheck = Arrays.asList("1175", "1549", "119");
+        for (String queryAddress : addressSpotCheck)
+        {
+            queryDetails.set(1, queryAddress);
+            searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
-        List<String> sortedNameList = new ArrayList<>(facilityNameList);
-        Collections.sort(sortedNameList);
-        assertEquals(facilityNameList, sortedNameList, "Returned search results and sorted search results do not match.");
+            List<String> facilityNameList = searchResults.getFacilityNamesList();
+            // Facilities with no name not covered by test cases - manual removal from consideration for sorting
+            while (facilityNameList.contains("Link to View Facility"))
+                facilityNameList.remove("Link to View Facility");
+
+            List<String> sortedNameList = new ArrayList<>(facilityNameList);
+            Collections.sort(sortedNameList);
+            assertEquals(facilityNameList, sortedNameList,
+                    "Returned search results and sorted search results do not match.");
+        }
     }
 
     @Test
