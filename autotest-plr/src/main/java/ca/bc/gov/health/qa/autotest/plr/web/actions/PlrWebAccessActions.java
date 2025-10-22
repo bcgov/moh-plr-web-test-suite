@@ -69,9 +69,9 @@ public class PlrWebAccessActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Opens the PLR application (defaults to Search Provider Page)
      *
-     * @return ???
+     * @return a SearchProviderPage object for the search provider page it ends up at
      */
     public SearchProviderPage openPlr()
     {
@@ -104,7 +104,7 @@ public class PlrWebAccessActions
         return waitForSearchFacilityPage();
     }
 
-    private PlrNavigationMenuFragment waitForPlrNavigationMenuFragment()
+    public PlrNavigationMenuFragment waitForPlrNavigationMenuFragment()
     {
         PlrNavigationMenuFragment fragment = new PlrNavigationMenuFragment(selenium_);
         fragment.waitForReady();

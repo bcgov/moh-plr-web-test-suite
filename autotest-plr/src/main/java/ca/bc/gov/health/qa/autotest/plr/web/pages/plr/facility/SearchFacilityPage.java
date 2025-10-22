@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -250,5 +251,12 @@ public class SearchFacilityPage extends BasicWebPage
         {
             return waitForSearchFacilityResultsFragment();
         }
+    }
+
+    public PlrNavigationMenuFragment getNavigationMenuFragment()
+    {
+        PlrNavigationMenuFragment fragment = new PlrNavigationMenuFragment(selenium_);
+        fragment.waitForReady();
+        return fragment;
     }
 }

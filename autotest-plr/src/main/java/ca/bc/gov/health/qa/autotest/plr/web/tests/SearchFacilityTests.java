@@ -8,6 +8,7 @@ import java.util.*;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -628,5 +629,41 @@ public class SearchFacilityTests implements SimpleTest {
                 "Maximum search results warning not displayed.");
         assertTrue(searchResults.getFormResults().contains(String.format("%d results", expectedResults)),
                 "Form result does not match expected maximum search results.");
+    }
+
+    @Test
+    // F1-016. Search Results Limited By Data Permissions
+    public void testDataPermissions()
+    {
+        for (UserType userType : UserType.values())
+        {
+            if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
+
+            PlrWebWorkflow workflow = logIn(userType);
+            PlrNavigationMenuFragment menu = workflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
+            assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.SEARCH_FACILITY),
+                    "Search Facility not visible as a menu option for User Type" + userType);
+
+            if (userType.equals(UserType.ADMIN))
+            {
+                assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
+                        "Add Facility not visible as a menu option for Reg Admin User");
+            } else
+            {
+                assertFalse(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
+                        "Add Facility unexpectedly visible as a menu option for " + userType);
+            }
+
+            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(userType);
+            SearchFacilityResultsFragment searchResults;
+            List<String> queryFields = Arrays.asList("IFC", "IFC.00000001.BC.PRS");
+            searchResults = searchByIdentifier(searchFacility, queryFields, false);
+
+            assertTrue(searchResults.grabResultsRowCount() > 0,
+                    "Search results did not return for User Type " + userType.toString());
+
+            workflow.logout();
+            workflow.close();
+        }
     }
 }
