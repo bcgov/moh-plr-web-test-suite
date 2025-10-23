@@ -58,62 +58,115 @@ public class FacilityMaintainConfig {
     }
 
     // Accessors for factory usage
-    /** @return true if PHONE telecom will be generated */
+
+
+    /** Verifies if PHONE will be included. 
+     * @return true if PHONE telecom will be generated */
     public boolean isPhoneEnabled() { return phone; }
-    /** @return true if MOBILE telecom will be generated */
+    
+    /** Verifies if MOBILE will be included. 
+     * @return true if MOBILE telecom will be generated */
     public boolean isMobileEnabled() { return mobile; }
-    /** @return true if PAGER telecom will be generated */
+    
+    /** Verifies if PAGER will be included. 
+     * @return true if PAGER telecom will be generated */
     public boolean isPagerEnabled() { return pager; }
-    /** @return true if MODEM telecom will be generated */
+    
+    /** Verifies if MODEM will be included. 
+     * @return true if MODEM telecom will be generated */
     public boolean isModemEnabled() { return modem; }
-    /** @return true if FAX telecom will be generated */
+    
+    /** Verifies if FAX will be included. 
+     * @return true if FAX telecom will be generated */
     public boolean isFaxEnabled() { return fax; }
-    /** @return true if EMAIL telecom will be generated */
+    
+    /** Verifies if EMAIL will be included. 
+     * @return true if EMAIL telecom will be generated */
     public boolean isEmailEnabled() { return email; }
-    /** @return true if WEBSITE telecom will be generated */
+    
+    /** Verifies if WEBSITE will be included. 
+     * @return true if WEBSITE telecom will be generated */
     public boolean isWebsiteEnabled() { return website; }
-    /** @return true if FTP telecom will be generated */
+    
+    /** Verifies if FTP will be included. 
+     * @return true if FTP telecom will be generated */
     public boolean isFtpEnabled() { return ftp; }
-    /** @return true if DESCRIPTION will be included */
+    
+    /** Verifies if DESCRIPTION will be included. 
+     * @return true if DESCRIPTION will be generated */
     public boolean isDescriptionEnabled() { return description; }
-    /** @return true if NAME will be included */
+    
+    /** Verifies if NAME will be included. 
+     * @return true if NAME will be generated */
     public boolean isNameEnabled() { return name; }
-    /** @return true if ADDRESS will be included */
+    
+    /** Verifies if ADDRESS will be included. 
+     * @return true if ADDRESS will be generated */
     public boolean isAddressEnabled() { return address; }
-    /** @return true if IDENTIFIER will be included */
+
+    /** Verifies if IDENTIFIER will be included. 
+     * @return true if IDENTIFIER will be generated */
     public boolean isIdentifierEnabled() { return identifier; }
 
+    /**
+     * Number of note entries that will be generated.
+     * @return note count (0 if notes disabled)
+     */
     public int getNoteCount() { return noteCount; }
+
+    /**
+     * Number of organization affiliation relationships that will be generated.
+     * @return relationship count (0 if none requested)
+     */
     public int getRelationshipCount() { return relationshipCount; }
 
-    /** Returns true if at least one note will be generated (either by count > 0 or required flag enforcing count >=1). */
+    /**
+     * Indicates whether at least one note will be generated.
+     * @return true if noteCount > 0
+     */
     public boolean hasNotes() { return noteCount > 0; }
-    /** Returns true if at least one organization relationship will be generated. */
+
+    /**
+     * Indicates whether at least one organization relationship will be generated.
+     * @return true if relationshipCount > 0
+     */
     public boolean hasOrgRelationships() { return relationshipCount > 0; }
 
-    /** Enable PHONE attribute. */
+    /** Enable PHONE attribute.
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withPhone() { this.phone = true; return this; }
-    /** Enable MOBILE attribute. */
+    /** Enable MOBILE attribute.
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withMobile() { this.mobile = true; return this; }
-    /** Enable PAGER attribute. */
+    /** Enable PAGER attribute.
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withPager() { this.pager = true; return this; }
-    /** Enable MODEM attribute. */
+    /** Enable MODEM attribute.
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withModem() { this.modem = true; return this; }
-    /** Enable FAX attribute. */
+    /** Enable FAX attribute.
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withFax() { this.fax = true; return this; }
-    /** Enable EMAIL attribute. */
+    /** Enable EMAIL attribute.
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withEmail() { this.email = true; return this; }
-    /** Enable WEBSITE attribute. */
+    /** Enable WEBSITE attribute.
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withWebsite() { this.website = true; return this; }
-    /** Enable FTP attribute. */
+    /** Enable FTP attribute.
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withFtp() { this.ftp = true; return this; }
-    /** Enable DESCRIPTION attribute. */
+    /** Enable DESCRIPTION attribute.
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withDescription() { this.description = true; return this; }
-    /** Explicitly (re)enable NAME (required by default). */
+    /** Explicitly (re)enable NAME (required by default).
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withName() { this.name = true; return this; }
-    /** Explicitly (re)enable ADDRESS (required by default). */
+    /** Explicitly (re)enable ADDRESS (required by default).
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withAddress() { this.address = true; return this; }
-    /** Explicitly (re)enable IDENTIFIER (required by default). */
+    /** Explicitly (re)enable IDENTIFIER (required by default).
+     * @return this config for fluent chaining */
     public FacilityMaintainConfig withIdentifier() { this.identifier = true; return this; }
 
     /**

@@ -26,7 +26,15 @@ public enum OrganizationAttribute {
 
     private final boolean required;
 
+    /*
+     * Constructor
+     * @param required indicates if the attribute is required
+     */
     OrganizationAttribute(boolean required) { this.required = required; }
 
+    /**
+     * Indicates whether the attribute is required for a minimally valid Organization maintain payload.
+     * @return true if required, false if optional
+     */
     public boolean isRequired() { return required; }
 }

@@ -26,7 +26,9 @@ public final class FacilityDataGenerator extends AbstractDataGenerator {
 
     private FacilityDataGenerator() { /* enforce singleton */ }
 
-    /** Returns the singleton instance (lazy initialized, thread-safe). */
+    /** Returns the singleton instance (lazy initialized, thread-safe). 
+     * @return FacilityDataGenerator instance
+    */
     public static FacilityDataGenerator getInstance() {
         FacilityDataGenerator result = instance;
         if (result == null) {
@@ -41,13 +43,17 @@ public final class FacilityDataGenerator extends AbstractDataGenerator {
         return result;
     }
 
-    /** Generate a facility name using random prefix + suffix. */
+    /** Generate a facility name using random prefix + suffix. 
+     * @return generated name string
+    */
     @Override
     public String generateName() {
         return pick(NAME_PREFIXES) + " " + pick(NAME_SUFFIXES);
     }
 
-    /** Generate facility address components. */
+    /** Generate facility address components. 
+     * @return generated address array
+    */
     @Override
     public String[] generateAddress() {
         int number = FIXED_LOWER_STREET_NUMBER + RNG.nextInt(FIXED_UPPER_STREET_NUMBER - FIXED_LOWER_STREET_NUMBER + 1);

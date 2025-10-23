@@ -9,13 +9,16 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
  */
 public interface MaintainRequestBuilder {
 
-    /*
-     * TODO (AZ) - doc
+    /**
+     * Builds the maintain Bundle JSON payload representing the configured resource state.
+     * Implementations typically perform required-field validation prior to returning.
+     * @return immutable JSON object ready for submission
      */
     JSONObject build();
 
-    /*
-     * TODO (AZ) - doc
+    /**
+     * Returns the PLR FHIR resource type represented by this builder.
+     * @return resource type enum
      */
     PlrFhirResourceType resourceType();
 

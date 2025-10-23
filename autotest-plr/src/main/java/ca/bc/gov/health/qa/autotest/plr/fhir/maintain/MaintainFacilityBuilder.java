@@ -17,7 +17,10 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 
 /**
- * TODO (AZ) - doc
+ * Builder for Facility  maintain requests.
+ * Provides fluent methods for setting single-value fields and accumulating multi-value
+ * collections (telecoms, notes, organization relationships). The {@link #build()} method
+ * materializes a JSON payload using a template resource and the configured state.
  */
 public class MaintainFacilityBuilder implements MaintainRequestBuilder
 {
@@ -31,7 +34,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     private final String              PURPOSE           = "FC";
     private final String              ADDRESS_TYPE_PHYS = "physical";
     /**
-     * TODO (AZ) - doc
+     * Creates an empty Facility builder. Required field validation occurs during {@link #build()}.
      */
     public MaintainFacilityBuilder()
     {}
@@ -204,10 +207,8 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     }
 
     /**
-     * Programmatically validates all required fields based on the MaintainFacilityFields enum.
-     * This method automatically adapts when fields are marked as required/optional in the enum,
-     * ensuring validation stays in sync with business rules.
-     * 
+     * Validates all fields marked required in {@link FacilityAttribute}. Throws an NPE with
+     * an explanatory message if a required value is absent.
      * @throws NullPointerException if any required field is missing or invalid
      */
     private void verifyParameters()
@@ -221,10 +222,9 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     }
     
     /**
-     * Validates that a specific required field has been properly set in the builder.
-     * 
-     * @param field the required field to validate
-     * @throws NullPointerException if the required field is missing or invalid
+     * Field-specific required validation logic invoked for each required enum constant.
+     * @param field required field to validate
+     * @throws NullPointerException if validation fails
      */
     private void validateRequiredField(FacilityAttribute field) {
         switch (field) {
@@ -283,10 +283,9 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     }
     
     /**
-     * Validates that at least one telecom entry of the specified type exists.
-     * 
-     * @param type the telecom type to validate (e.g., "phone", "email", "fax", "url")
-     * @throws NullPointerException if no telecom of the specified type is found
+     * Ensures at least one telecom entry of the provided type exists when that type is required.
+     * @param type telecom type string (e.g. phone, email, fax, url)
+     * @throws NullPointerException if not found
      */
     private void validateRequiredTelecomType(String type) {
         boolean found = telecomList_.stream()
@@ -300,7 +299,8 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     // --- Getters (added for external inspection / assertions) ---
 
     /**
-     * Returns the identifier currently set on this builder (may be null if not yet assigned).
+     * Identifier currently set on this builder.
+     * @return identifier value or null if not assigned yet
      */
     public String getIdentifier()
     {
@@ -308,7 +308,8 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     }
 
     /**
-     * Returns the facility name currently configured (may be null until provided).
+     * Facility name currently configured.
+     * @return name value or null if not provided
      */
     public String getName()
     {
@@ -316,7 +317,8 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     }
 
     /**
-     * Returns the optional description / alias (null if none provided).
+     * Returns the description / alias (null if none provided).
+     * @return description value or null if not provided
      */
     public String getDescription()
     {
@@ -325,6 +327,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
 
     /**
      * Returns a defensive copy of the single address map (empty if not set).
+     * @return defensive copy of address (empty map if unset)
      */
     public Map<String,String> getAddress()
     {
@@ -333,6 +336,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
 
     /**
      * Returns an immutable snapshot of telecom entries added so far.
+     * @return immutable list of telecom maps
      */
     public List<Map<String,String>> getTelecomList()
     {
@@ -341,6 +345,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
 
     /**
      * Returns an immutable snapshot of note entries added so far.
+     * @return immutable list of note maps
      */
     public List<Map<String,String>> getNoteList()
     {
@@ -349,6 +354,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
 
     /**
      * Returns an immutable snapshot of organization relationship entries added so far.
+     * @return immutable list of organization relationship maps
      */
     public List<Map<String,String>> getOrgRelationshipList()
     {

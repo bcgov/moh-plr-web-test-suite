@@ -176,11 +176,6 @@ public class MaintainAccessor
     /**
      * TODO (AZ) - doc
      *
-     * @param resourceIndex
-     *        ???
-     *
-     * @param resourceType
-     *        ??? (can be {@code null})
      *
      * @return ???
      */
