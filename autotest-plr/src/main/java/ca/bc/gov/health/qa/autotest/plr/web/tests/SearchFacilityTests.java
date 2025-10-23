@@ -599,6 +599,28 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-009: F1-009. Service Delivery Area Recognition
+    public void testServiceDeliveryArea()
+    {
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityCriteriaFragment criteriaPanel = searchFacility.expandSearchCriteria(true);
+
+        assertTrue(searchFacility.grabCriteriaSectionExpanded(),
+                "Search by Criteria failed to expand");
+
+        criteriaPanel.getServiceDeliveryAreaMenu().displayAutocomplete("South V", true);
+
+        assertTrue(criteriaPanel.getServiceDeliveryAreaMenu().grabAutocompletePanelActive(),
+                "Service Delivery Area autocomplete failed to appear");
+
+        criteriaPanel.getServiceDeliveryAreaMenu().selectItemFromPanel("South Van");
+
+        assertEquals(criteriaPanel.getServiceDeliveryAreaMenu().grabCompletedItem(),
+                "South Vancouver Island (HSDA)",
+                "Service Delivery Area field did not populate with the expected result");
+    }
+
+    @Test
     // F1-010. Facility Search Rules
     public void testFacilitySearchRules()
     {
