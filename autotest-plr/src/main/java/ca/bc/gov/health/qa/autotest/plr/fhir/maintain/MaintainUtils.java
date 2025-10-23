@@ -366,6 +366,27 @@ public class MaintainUtils
     }
 
         /**
+         * Creates the specialized _type extension block used only for organizations whose role type is HDS.
+         * The provided hdsType value is written into the nested coding[0].code element of the hdsType extension.
+         * Template file: hds-type.json
+         *
+         * @param hdsType the HDS type classification code
+         * @return populated _type extension JSON object ready to attach to Organization JSON
+         */
+        public static JSONObject createHdsType(String hdsType) {
+                JSONObject json = readJsonTemplate("hds-type.json");
+                JSONArray outerExtension = json.getJSONArray("extension");
+                JSONObject healthDeliverySiteExt = outerExtension.getJSONObject(0); // bc-health-delivery-site-type-extension
+                JSONArray innerExtArray = healthDeliverySiteExt.getJSONArray("extension");
+                JSONObject hdsTypeExt = findEntry(innerExtArray, "url", "hdsType");
+                hdsTypeExt.getJSONObject("valueCodeableConcept")
+                                  .getJSONArray("coding")
+                                  .getJSONObject(0)
+                                  .put("code", hdsType);
+                return json;
+        }
+
+        /**
          * Creates a Bundle.entry JSON object containing an OrganizationAffiliation resource
          * that links the maintained facility (Location) to an organization via its identifier.
          * Template file: facility-to-organization-relationship.json
