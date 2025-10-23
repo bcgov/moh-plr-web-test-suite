@@ -144,7 +144,6 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
         return facNameList;
     }
 
-
     /**
      * Gets the civic addresses for each record in the search results
      * The country is discarded in the results, see comments for explanation
@@ -165,5 +164,19 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
             civicAddressList.add(civicAddress.substring(0, civicAddress.lastIndexOf(',')));
         }
         return civicAddressList;
+    }
+
+    /**
+     * Gets the header values for each column in the table of search results
+     *
+     * @return  a list of strings for the name of each column in the table of search results
+     */
+    public List<String> getTableColumns()
+    {
+        List<String> headerList = new ArrayList<>();
+        List<WebElement> webElementList = selenium_.findElementsByCss(
+                "thead#searchResultsForm\\:tbl_head > tr > th");
+        for (WebElement headerElement : webElementList) headerList.add(headerElement.getText());
+        return headerList;
     }
 }

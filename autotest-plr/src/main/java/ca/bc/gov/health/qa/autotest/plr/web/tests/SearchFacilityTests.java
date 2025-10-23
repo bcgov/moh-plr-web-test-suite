@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -261,15 +263,92 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-001. Facility Search
+    public void testFacilitySearch()
+    {
+        final Pattern SEARCH_RESULTS_TIME_PATTERN = Pattern.compile("([0-9]+\\.[0-9]{3})");
+
+        for (UserType userType : UserType.values())
+        {
+            if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
+
+            PlrWebWorkflow workflow = logIn(userType);
+            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(userType);
+            SearchFacilityResultsFragment searchResults;
+
+            assertTrue(searchFacility.verifyTitle(), "Title of page does not match 'Search Facility'");
+            assertTrue(searchFacility.verifyHistory(), "History checkbox not found");
+
+            assertTrue(searchFacility.grabIdentifierSectionExpanded(),
+                    "Search by Identifier not opened by default");
+            assertFalse(searchFacility.grabCriteriaSectionExpanded(),
+                    "Search by Criteria unexpectedly open by default");
+
+            // Identifier Query
+            List<String> expectedData = Arrays.asList(
+                    "AZ F00123 & & (", "IFC.00000001.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
+            List<String> queryDetails = Arrays.asList("IFC", expectedData.get(1));
+            searchResults = searchByIdentifier(searchFacility, queryDetails, false);
+            String formResults = searchResults.getFormResults();
+            Matcher resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
+            resultMatcher.find();
+
+            assertTrue(searchFacility.checkOrdering(),
+                    "Table of search results is out of position (identifier/criteria search not above table)");
+            assertTrue(formResults.contains(String.format("%d result", 1)),
+                    "Form result does not contain number of results in table summary");
+            assertTrue(formResults.contains(String.format("(%s seconds)", resultMatcher.group())),
+                    "Form result does not contain time taken to retrieve results.");
+
+            assertTrue(searchResults.getTableColumns().getFirst().contains("Facility Name"),
+                    "Table's first column is not Facility Name");
+            assertTrue(searchResults.getTableColumns().get(1).contains("Identifier"),
+                    "Table's second column is not Facility Identifiers");
+            assertTrue(searchResults.getTableColumns().get(2).contains("Civic Address"),
+                    "Table's third column is not Civic Address");
+
+            searchFacility.expandSearchCriteria(true);
+            assertTrue(searchFacility.grabCriteriaSectionExpanded(),
+                    "Search by Criteria failed to open");
+            assertFalse(searchFacility.grabIdentifierSectionExpanded(),
+                    "Search by Identifier unexpectedly remained open");
+
+            queryDetails = Arrays.asList("AZ F00123 & & (", "1175 DOUGLAS ST", "", "Vic", "Victoria", "Select One", "", "");
+            searchResults = searchByCriteria(searchFacility, queryDetails, false);
+            formResults = searchResults.getFormResults();
+            resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
+            resultMatcher.find();
+
+            assertTrue(searchFacility.checkOrdering(),
+                    "Table of search results is out of position (identifier/criteria search not above table)");
+            assertTrue(formResults.contains(String.format("%d result", 1)),
+                    "Form result does not contain number of results in table summary");
+            assertTrue(formResults.contains(String.format("(%s seconds)", resultMatcher.group())),
+                    "Form result does not contain time taken to retrieve results.");
+
+            assertTrue(searchResults.getTableColumns().getFirst().contains("Facility Name"),
+                    "Table's first column is not Facility Name");
+            assertTrue(searchResults.getTableColumns().get(1).contains("Identifier"),
+                    "Table's second column is not Facility Identifiers");
+            assertTrue(searchResults.getTableColumns().get(2).contains("Civic Address"),
+                    "Table's third column is not Civic Address");
+
+            workflow.logout();
+        }
+    }
+
+    @Test
     // F1-002. Facility Search by ID
     public void testFacilitySearchID()
     {
-        final List<String> expectedData = Arrays.asList("AZ F00123 & & (", "IFC.00000001.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
+        final List<String> expectedData = Arrays.asList(
+                "AZ F00123 & & (", "IFC.00000001.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
 
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
 
-        assertTrue(searchFacility.grabIdentifierSectionExpanded(), "Search by Identifier not opened by default");
+        assertTrue(searchFacility.grabIdentifierSectionExpanded(),
+                "Search by Identifier not opened by default");
 
         SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
         List<String> identifierAttributes = identifierPanel.verifyIdentifierTab();
@@ -284,7 +363,8 @@ public class SearchFacilityTests implements SimpleTest {
                 "Search Button not present");
 
         List<String> queryDetails = Arrays.asList("IFC", expectedData.get(1));
-        SearchFacilityResultsFragment searchResults = searchByIdentifier(searchFacility, queryDetails, false);
+        SearchFacilityResultsFragment searchResults;
+        searchResults = searchByIdentifier(searchFacility, queryDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0,
                 "Search Results returned unsuccessfully.");
@@ -618,9 +698,9 @@ public class SearchFacilityTests implements SimpleTest {
         final String maxResultsWarning = warningList.getString("maximumResults");
 
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                "A*", "", "", "", null,
-                "Select One", "", null, false);
+        List<String> queryDetails = Arrays.asList("A*", "", "", "", "", "Select One", "", "");
+        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
+
         List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
 
         assertEquals(searchResults.grabResultsRowCount(), expectedResults,
@@ -660,7 +740,7 @@ public class SearchFacilityTests implements SimpleTest {
             searchResults = searchByIdentifier(searchFacility, queryFields, false);
 
             assertTrue(searchResults.grabResultsRowCount() > 0,
-                    "Search results did not return for User Type " + userType.toString());
+                    "Search results did not return for User Type " + userType);
 
             workflow.logout();
             workflow.close();

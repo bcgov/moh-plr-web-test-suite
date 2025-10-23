@@ -8,9 +8,6 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumUtils;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * TODO (AZ) - doc
  */
