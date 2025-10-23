@@ -384,7 +384,8 @@ public class SearchFacilityTests implements SimpleTest {
 
     @Test
     // F1-003. Minimum Data Requirements for Facility Search by Facility ID
-    public void testMinDataReqsFacilityID() {
+    public void testMinDataReqsFacilityID()
+    {
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
 
         assertTrue(searchFacility.grabIdentifierSectionExpanded(), "Search by Identifier not opened by default");
@@ -444,6 +445,23 @@ public class SearchFacilityTests implements SimpleTest {
         assertTrue(highlightedFields.contains("Facility Identifier*"),
                 "Facility Identifier field not highlighted.");
         assertEquals(highlightedFields.size(), 2, "Unexpected amount of highlighted fields");
+    }
+
+    @Test
+    // F1-005. Filtering Identifier Type for Query
+    public void testIdentifierTypes()
+    {
+        List<String> expectedIdentifierTypes = Arrays.asList("Select One", "IFC - Internal Facility Code");
+
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
+        identifierPanel.getIdentifierTypeMenu().expandItemPanel(true);
+
+        for (String expectedType : expectedIdentifierTypes)
+        {
+            assertTrue(identifierPanel.getIdentifierTypeMenu().grabItemList().contains(expectedType),
+                    "Type " + expectedIdentifierTypes + "is unavailable in the identifier type menu");
+        }
     }
 
     @Test
