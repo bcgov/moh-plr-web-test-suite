@@ -26,11 +26,21 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
         new String[]{"Broadway Ave", "Williams Lake", "V2G 2X8"},
         new String[]{"Granville St", "Prince George", "V2L 2Z1"}
     );
+
+    //HDS possible types
+    private static final List<String> HDS_TYPES = List.of(
+            "CLINIC", "PHARMACY", "HOSPITAL", "EMERGENCY", "LAB", "GENERAL_CARE", "INPATIENT", "HOUSING", "OUTPATIENT"
+        );
+
     private static final int FIXED_LOWER_STREET_NUMBER = 2000;
     private static final int FIXED_UPPER_STREET_NUMBER = 10000;
 
     private OrganizationDataGenerator() { /* singleton */ }
 
+    /**
+     * Returns the singleton instance (lazy initialized, thread-safe).
+     * @return OrganizationDataGenerator instance
+     */
     public static OrganizationDataGenerator getInstance() {
         OrganizationDataGenerator result = instance;
         if (result == null) {
@@ -45,12 +55,27 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
         return result;
     }
 
+    /**
+     * Returns a randomly selected HDS classification value from the predefined list.
+     * @return random HDS type string
+     */
+    public String randomHdsType() {
+        return pick(HDS_TYPES);
+    }
+
+
+    /** Generate a random organization name using distinct root + suffix. 
+     * @return generated name string
+    */
     @Override
     public String generateName() {
         return pick(NAME_ROOTS) + " " + pick(NAME_SUFFIXES);
     }
 
 
+    /** Generate organization address components. 
+     * @return generated address array
+    */
     @Override
     public String[] generateAddress() {
         String[] base = pick(ADDRESS_POOLS);

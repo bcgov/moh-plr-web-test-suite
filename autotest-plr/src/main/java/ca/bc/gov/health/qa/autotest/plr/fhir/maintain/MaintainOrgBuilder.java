@@ -13,12 +13,16 @@ import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationAttribute;
 
 /**
- * TODO (AZ) - doc
+ * Builder for Organization maintain requests. Supports configuration of multi-valued
+ * addresses, telecoms, statuses and notes along with scalar attributes (identifier,
+ * name, alias, role type, confidentiality). The {@link #build()} method materializes
+ * a maintain Bundle JSON using a template resource.
  */
-public class MaintainOrgBuilder
+public class MaintainOrgBuilder implements MaintainRequestBuilder
 {
     private List<Map<String,String>>  addressList_     = new ArrayList<>();
     private String                    alias_           = null;
@@ -29,34 +33,24 @@ public class MaintainOrgBuilder
     private String                    roleType_        = OrgRoleType.HDS.getRoleType(); //DEFAULT VALUE
     private List<Map<String,String>>  statusList_      = new ArrayList<>();
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
+    private String hdsType_                            = null;
+    //TODO: ORG PROPERTIES
+
 
     /**
-     * TODO (AZ) - doc
+     * Constructs an empty Organization builder. Required field validation occurs during {@link #build()}.
      */
     public MaintainOrgBuilder()
     {}
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param type
-     *        ???
-     *        physical, postal
-     *
-     * @param purpose
-     *        ???
-     *        BC, CC, DC, EC, FC, HC, MC, OC
-     *
-     * @param line1
-     *        ???
-     *
-     * @param city
-     *        ???
-     *
-     * @param postalCode
-     *        ???
-     *
-     * @return ???
+     * Adds an address to the organization.
+     * @param type address type (e.g. physical, postal)
+     * @param purpose usage purpose code (BC, CC, DC, EC, FC, HC, MC, OC)
+     * @param line1 first address line
+     * @param city city name
+     * @param postalCode postal code
+     * @return this builder for fluent chaining
      */
     public MaintainOrgBuilder addAddress(
             String type,
@@ -76,12 +70,9 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param text
-     *        ???
-     *
-     * @return ???
+     * Adds a free-form note for the organization.
+     * @param text note text
+     * @return this builder
      */
     public MaintainOrgBuilder addNote(String text)
     {
@@ -92,19 +83,11 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param statusClass
-     *        ???
-     *        AE, LIC
-     *
-     * @param status
-     *        ???
-     *
-     * @param statusReason
-     *        ???
-     *
-     * @return ???
+     * Adds a status entry for the organization.
+     * @param statusClass status classification (e.g. AE, LIC)
+     * @param status status value (e.g. ACTIVE)
+     * @param statusReason status reason code (e.g. GS)
+     * @return this builder
      */
     public MaintainOrgBuilder addStatus(String statusClass, String status, String statusReason)
     {
@@ -117,26 +100,11 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param type
-     *        ???
-     *        email (Email)
-     *        fax   (Fax)
-     *        other (Modem)
-     *        pager (Pager)
-     *        phone (Telephone)
-     *        sms   (Mobile)
-     *        url   (HTTP)
-     *
-     * @param purpose
-     *        ???
-     *        BC, CC, DC, FC, HC, MC, OC
-     *
-     * @param value
-     *        ???
-     *
-     * @return ???
+     * Adds a telecom contact channel for the organization.
+     * @param type channel type (email, fax, other, pager, phone, sms, url)
+     * @param purpose usage purpose code (BC, CC, DC, FC, HC, MC, OC)
+     * @param value channel value (number, address, URL, etc.)
+     * @return this builder
      */
     public MaintainOrgBuilder addTelecom(String type, String purpose, String value)
     {
@@ -148,12 +116,9 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param alias
-     *        ???
-     *
-     * @return ???
+     * Sets the organization alias.
+     * @param alias alternative display name
+     * @return this builder
      */
     public MaintainOrgBuilder alias(String alias)
     {
@@ -162,9 +127,10 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @return ???
+     * Builds the maintain JSON Bundle reflecting configured organization attributes.
+     * Applies defaults for certain required elements when not explicitly set (e.g. ACTIVE status).
+     * When the role type resolves to HDS, an additional _type block is injected
+     * @return immutable JSON representation ready for submission
      */
     public JSONObject build()
     {
@@ -179,6 +145,10 @@ public class MaintainOrgBuilder
                .getJSONArray("coding")
                .getJSONObject(0)
                .put("code", roleType_);
+        // Include specialized _type block for HDS role type.
+        if (OrgRoleType.HDS.toString().equals(roleType_)) {
+            orgJson.put("_type", MaintainUtils.createHdsType(hdsType_));
+        }
         accessor.getOrgIdentifierJson(0).put("value", identifier_);
         orgJson.put("name", name_);
         if (alias_ != null)
@@ -225,13 +195,15 @@ public class MaintainOrgBuilder
         return json;
     }
 
+    @Override
+    public PlrFhirResourceType resourceType() {
+        return PlrFhirResourceType.ORGANIZATION;
+    }
+
     /**
-     * TODO (AZ) - doc
-     *
-     * @param confidentiality
-     *        ???
-     *
-     * @return ???
+     * Sets the confidentiality flag extension value.
+     * @param confidentiality confidentiality boolean
+     * @return this builder
      */
     public MaintainOrgBuilder confidentiality(boolean confidentiality)
     {
@@ -240,12 +212,9 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param identifier
-     *        ???
-     *
-     * @return ???
+     * Sets the organization identifier value.
+     * @param identifier identifier string
+     * @return this builder
      */
     public MaintainOrgBuilder identifier(String identifier)
     {
@@ -254,12 +223,9 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param name
-     *        ???
-     *
-     * @return ???
+     * Sets the organization name.
+     * @param name display name
+     * @return this builder
      */
     public MaintainOrgBuilder name(String name)
     {
@@ -268,17 +234,24 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param roleType
-     *        ???
-     *        BUSINESS, CLINIC, ORG
-     *
-     * @return ???
+     * Sets the role type code for the organization.
+     * @param roleType role type enum (BUSINESS, CLINIC, ORG, HDS)
+     * @return this builder
      */
-    public MaintainOrgBuilder roleType(String roleType)
+    public MaintainOrgBuilder roleType(OrgRoleType roleType)
     {
-        roleType_ = roleType;
+        roleType_ = roleType.toString();
+        return this;
+    }
+
+    /**
+     * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
+     * Accepted values: CLINIC, PHARMACY, HOSPITAL, EMERGENCY, LAB, GENERAL_CARE, INPATIENT, HOUSING, OUTPATIENT.
+     * @param hdsType classification string
+     * @return this builder
+     */
+    public MaintainOrgBuilder hdsType(String hdsType) {
+        hdsType_ = hdsType;
         return this;
     }
 
@@ -292,6 +265,10 @@ public class MaintainOrgBuilder
             if (attr.isRequired()) {
                 validateRequiredField(attr);
             }
+        }
+
+        if(OrgRoleType.HDS.toString().equals(roleType_)) {
+            requireNonNull(hdsType_, "Missing HDS type classification for organization with HDS role type.");
         }
     }
 
@@ -342,29 +319,33 @@ public class MaintainOrgBuilder
         }
     }
 
-    // --- Getters for external inspection / assertions ---
     /**
+     * Organization identifier configured.
      * @return organization identifier value (may be null until set)
      */
     public String getIdentifier() { return identifier_; }
 
     /**
-     * @return organization name (may be null until set)
+     * Organization name configured.
+     * @return name value or null if not provided
      */
     public String getName() { return name_; }
 
     /**
-     * @return organization role type code (never null after construction unless explicitly cleared)
+     * Role type code (defaults to HDS if not explicitly set).
+     * @return role type code string
      */
     public String getRoleType() { return roleType_; }
 
     /**
-     * @return alias string (null if not provided)
+     * Alias string.
+     * @return alias value or null if not set
      */
     public String getAlias() { return alias_; }
 
     /**
-     * @return confidentiality flag (null if not specified)
+     * Confidentiality flag extension value.
+     * @return confidentiality Boolean or null if not set
      */
     public Boolean getConfidentiality() { return confidentiality_; }
 
@@ -375,19 +356,28 @@ public class MaintainOrgBuilder
     public List<Map<String,String>> getAddressList() { return List.copyOf(addressList_); }
 
     /**
-     * @return unmodifiable list of telecom maps
+     * Telecom entries accumulated.
+     * @return immutable list of telecom maps
      */
     public List<Map<String,String>> getTelecomList() { return List.copyOf(telecomList_); }
 
     /**
-     * @return unmodifiable list of status maps
+     * Status entries accumulated.
+     * @return immutable list of status maps
      */
     public List<Map<String,String>> getStatusList() { return List.copyOf(statusList_); }
 
     /**
-     * @return unmodifiable list of note maps
+     * Note entries accumulated.
+     * @return immutable list of note maps
      */
     public List<Map<String,String>> getNoteList() { return List.copyOf(noteList_); }
+
+    /**
+     * Returns the configured HDS type classification (may be null if not set or role type not HDS).
+     * @return hds type string or null
+     */
+    public String getHdsType() { return hdsType_; }
 
     
 }
