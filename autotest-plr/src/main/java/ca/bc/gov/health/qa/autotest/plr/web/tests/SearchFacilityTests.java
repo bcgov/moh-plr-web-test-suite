@@ -332,8 +332,6 @@ public class SearchFacilityTests implements SimpleTest {
                     "Table's second column is not Facility Identifiers");
             assertTrue(searchResults.getTableColumns().get(2).contains("Civic Address"),
                     "Table's third column is not Civic Address");
-
-            workflow.logout();
         }
     }
 
