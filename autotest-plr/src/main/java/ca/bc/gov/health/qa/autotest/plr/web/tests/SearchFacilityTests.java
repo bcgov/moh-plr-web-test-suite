@@ -837,9 +837,6 @@ public class SearchFacilityTests implements SimpleTest {
 
             assertTrue(searchResults.grabResultsRowCount() > 0,
                     "Search results did not return for User Type " + userType);
-
-            workflow.logout();
-            workflow.close();
         }
     }
 
