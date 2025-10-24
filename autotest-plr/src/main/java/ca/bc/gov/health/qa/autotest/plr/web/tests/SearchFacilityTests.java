@@ -599,6 +599,46 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-008. Facility Attribute Search Rules - Logical
+    public void testFacilitySearchRulesLogical()
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+
+        // Search 1 (Facility Name, Other Address, Facility Type)
+        List<String> queryDetails = Arrays.asList("AZ F00123 & & (", "", "1175 DOUGLAS ST", "", "", "BUILDING", "", "");
+        searchByCriteria(searchFacility, queryDetails, false);
+
+        ViewFacilityPage viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);
+        assertTrue(viewDetails.getViewHeader().grabViewTitle().contains(queryDetails.getFirst()),
+                "Facility is missing expected Facility Name");
+        LinkedHashMap<String,String> identifierMap = viewDetails.grabDataBlockContent(
+                FacilitySection.IDENTIFIERS, 0);
+        LinkedHashMap<String,String> otherMap = viewDetails.grabDataBlockContent(
+                FacilitySection.OTHER_ADDRESS, 0);
+        assertEquals(otherMap.get("Address Line 1"), queryDetails.get(2),
+                "Facility is missing expected Other Address Line 1");
+        assertEquals(identifierMap.get("Facility Type"), queryDetails.get(5),
+                "Facility is missing expected Facility Type");
+
+        workflow.getPlrWebAccessActions().openSearchFacility();
+
+        // Search 2 (Civic Address, City, Service Delivery Area)
+        queryDetails = Arrays.asList(
+                "", "1175 DOUGLAS ST", "", "Vic", "Victoria", "Select One", "South V", "South Vancouver Island");
+        searchByCriteria(searchFacility, queryDetails, false);
+
+        viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);
+        LinkedHashMap<String,String> civicMap = viewDetails.grabCivicAddressBlockContent(0);
+        assertEquals(civicMap.get("Address Line 1"), queryDetails.get(1),
+                "Facility is missing expected Civic Address Line 1");
+        assertEquals(civicMap.get("City"), queryDetails.get(4).toUpperCase(),
+                "Facility is missing expected City");
+        assertEquals(civicMap.get("Health Service Delivery Area"), queryDetails.getLast(),
+                "Facility is missing expected Service Delivery Area");
+    }
+
+    @Test
     // F1-009: F1-009. Service Delivery Area Recognition
     public void testServiceDeliveryArea()
     {
