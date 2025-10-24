@@ -786,4 +786,54 @@ public class SearchFacilityTests implements SimpleTest {
             workflow.close();
         }
     }
+
+    @Test
+    // F1-017. Previous Facility Search Results Session
+    public void testPreviousResultsSession()
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityResultsFragment searchResults;
+
+        // Identifier Query
+        SearchFacilityIdFragment identifierPanel = new SearchFacilityIdFragment(workflow.getSeleniumSession());
+
+        List<String> queryDetails = Arrays.asList("IFC", "IFC.00000001.BC.PRS");
+        searchResults = searchByIdentifier(searchFacility, queryDetails, false);
+
+        List<String> previousValues = identifierPanel.getCurrentFieldValues();
+        List<String> previousResults = searchResults.getResultsRow(0);
+
+        workflow.getSearchFacilityActions().openSearchResults(0);
+        workflow.getPlrWebAccessActions().openSearchFacility();
+
+        identifierPanel = new SearchFacilityIdFragment(workflow.getSeleniumSession());
+        searchResults = new SearchFacilityResultsFragment(workflow.getSeleniumSession());
+
+        assertEquals(searchResults.getResultsRow(0), previousResults,
+                "Results from previous session do not match / do not appear");
+        assertEquals(identifierPanel.getCurrentFieldValues(), previousValues,
+                "Field values from previous session do not appear");
+
+        // Criteria Query
+        SearchFacilityCriteriaFragment criteriaPanel = new SearchFacilityCriteriaFragment(workflow.getSeleniumSession());
+
+        queryDetails = Arrays.asList("AZ F00123 & & (", "1175 DOUGLAS ST", "", "", "", "Select One", "", "");
+        searchResults = searchByCriteria(searchFacility, queryDetails, false);
+
+        previousValues = criteriaPanel.getCurrentFieldValues();
+        previousResults = searchResults.getResultsRow(0);
+
+        workflow.getSearchFacilityActions().openSearchResults(0);
+        searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
+        searchFacility.expandSearchCriteria(true);
+
+        criteriaPanel = new SearchFacilityCriteriaFragment(workflow.getSeleniumSession());
+        searchResults = new SearchFacilityResultsFragment(workflow.getSeleniumSession());
+
+        assertEquals(searchResults.getResultsRow(0), previousResults,
+                "Results from previous session do not match / do not appear");
+        assertEquals(criteriaPanel.getCurrentFieldValues(), previousValues,
+                "Field values from previous session do not appear");
+    }
 }

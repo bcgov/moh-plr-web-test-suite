@@ -8,6 +8,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -17,6 +18,7 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
 {
 
     private static final String FACILITY_ID_FIELD_CSS = "input#accordian\\:searchByIdForm\\:identifier";
+    private static final String ID_TYPE_FIELD_CSS = "label#accordian\\:searchByIdForm\\:identifierType_label";
 
     /**
      * Initializes fragment and changes selenium's main locator to the search by identifier tab container
@@ -48,7 +50,7 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
     {
         return new DropDownMenu(
                 selenium_,
-                By.cssSelector("label#accordian\\:searchByIdForm\\:identifierType_label"),
+                By.cssSelector(ID_TYPE_FIELD_CSS),
                 By.cssSelector("div#accordian\\:searchByIdForm\\:identifierType_panel"));
     }
 
@@ -105,5 +107,17 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
         tabDetails.add(searchButton);
 
         return tabDetails;
+    }
+
+    /**
+     * Gets the values currently input into each field (pre-search).
+     *
+     * @return  a list of strings of each field's current value, ordered [facility identifier type, facility identifier]
+     */
+    public List<String> getCurrentFieldValues()
+    {
+        String identifierField = "" + selenium_.findElementByCss(FACILITY_ID_FIELD_CSS).getAttribute("value");
+        String identifierTypeField = "" + selenium_.findElementByCss(ID_TYPE_FIELD_CSS).getText();
+        return Arrays.asList(identifierTypeField, identifierField);
     }
 }
