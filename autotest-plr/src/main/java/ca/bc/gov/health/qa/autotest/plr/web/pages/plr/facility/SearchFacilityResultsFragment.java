@@ -179,4 +179,21 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
         for (WebElement headerElement : webElementList) headerList.add(headerElement.getText());
         return headerList;
     }
+
+    /**
+     * Determines whether a row of the table of search results contains the CSS styles necessary to word wrap
+     * (so all text content is visible on the page)
+     *
+     * @return  whether the row of table of search results has
+     *          white-space set to "normal" and word-break set to "break-all".
+     */
+    public boolean verifyWordWrapStyle(int rowIndex)
+    {
+        WebElement test = findResultsRow(rowIndex);
+        boolean expectedWhiteSpace = test.findElement(By.cssSelector("td")).getAttribute("style")
+                .contains("white-space: normal");
+        boolean expectedWordBreak = test.findElement(By.cssSelector("td")).getAttribute("style")
+                .contains("word-break: break-all");
+        return expectedWhiteSpace && expectedWordBreak;
+    }
 }

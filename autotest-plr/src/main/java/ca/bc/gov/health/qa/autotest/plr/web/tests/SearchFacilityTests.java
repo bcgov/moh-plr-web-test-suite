@@ -705,6 +705,22 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-013. Word Wrap Search Results
+    public void testWordWrapResults()
+    {
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityResultsFragment searchResults;
+
+        List<String> queryDetails = Arrays.asList("a*", "", "", "", "", "Select One", "", "");
+        searchResults = searchByCriteria(searchFacility, queryDetails, false);
+
+        for (int rowIndex = 0; rowIndex < searchResults.grabResultsRowCount(); rowIndex++)
+        {
+            assertTrue(searchResults.verifyWordWrapStyle(rowIndex));
+        }
+    }
+
+    @Test
     // F1-014. Zero Results
     public void testZeroResults()
     {
