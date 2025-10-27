@@ -6,7 +6,13 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.actions.FHIRSession;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationDataGenerator;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
@@ -19,21 +25,29 @@ public class FHIRController implements AutoCloseable {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private FHIRSession executor;
-    private final FacilityDataGenerator facilityGen = FacilityDataGenerator.getInstance();
-    private final FacilityBuilderFactory facilityFactory = new FacilityBuilderFactory(facilityGen);
+    private final FacilityBuilderFactory facilityFactory;    
+    private final OrganizationBuilderFactory organizationFactory;
 
     /**
      * Constructs a controller bound to a specific user role (credential profile).
+     * Sets up factories with data generators.
      * @param userType role whose credentials will be used for FHIR calls
      */
     public FHIRController(UserType userType) {
+
+        facilityFactory = new FacilityBuilderFactory(FacilityDataGenerator.getInstance());
+        organizationFactory = new OrganizationBuilderFactory(OrganizationDataGenerator.getInstance());
+
         changeFHIRSession(userType);
     }
 
-    /*
-     * Convenience method to renew the FHIR Session or change the user role 
-     * (credential profile) used for subsequent FHIR calls.
-     * @param userType new role whose credentials will be used for FHIR calls
+    /**
+     * Convenience method to (re)initialize the underlying {@link FHIRSession} using the
+     * credentials associated with the supplied {@link UserType}. Existing session (if any)
+     * is discarded and a new one created; subsequent maintain / query operations will use
+     * this security context.
+     *
+     * @param userType user / role whose credentials should back the FHIR session
      */
     public void changeFHIRSession(UserType userType) {
         this.executor = new FHIRSession(userType);
@@ -68,15 +82,42 @@ public class FHIRController implements AutoCloseable {
             return createFacility();
         }
         MaintainFacilityBuilder builder = facilityFactory.build(config);
+
+        int relCount = config.getRelationshipCount();
+
+        // If relationshipCount > 0 create that many organizations first and attach relationships
+        for (int i = 0; i < relCount; i++) {
+            //Create an organization and save the identifier
+            String orgIPCId = createOrganization(OrgRoleType.HDS).getIdentifier();
+            builder.addOrganizationRelationship(IdentifierType.IPC, orgIPCId);
+            //LOG.info("Created organization {} for facility relationship (id={})", i + 1, orgIPCId);
+        }
+
         String id = executor.submitMaintain(builder);
-        LOG.info("Created facility (id={}) using config", id);
+        LOG.info("Created facility (id={}) using config{}", id, relCount > 0 ? " with " + relCount + " org relationship(s)" : "");
+        builder.identifier(id); // overwrite with server returned id (Should be an IFC identifier)
+        return builder;
+    }
+
+    /**
+     * Generates organization data with only required fields and submits a maintain request.
+     *  @param roleType role type to assign to the organization
+     * @return created organization values as a MaintainOrgBuilder
+     */
+    public MaintainOrgBuilder createOrganization(OrgRoleType roleType) {
+        MaintainOrgBuilder builder = organizationFactory.build(new OrganizationMaintainConfig(roleType));
+
+        String id = executor.submitMaintain(builder);
+        LOG.info("Created organization (id={})", id);
+
+        //Set the actual id created by the service (should be an IPC identifier)
         builder.identifier(id);
         return builder;
     }
 
-    //TODO: createOrganization()
-
     //TODO: createPractitioner()
+
+    //TODO: createOrganization(OrganizationMaintainConfig config)
 
     //TODO: ceaseFacility(MaintainFacilityBuilder facility)
 

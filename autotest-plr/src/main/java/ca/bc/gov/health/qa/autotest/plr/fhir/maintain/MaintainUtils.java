@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
 
 /**
  * TODO (AZ) - doc
@@ -373,7 +374,7 @@ public class MaintainUtils
          * @param hdsType the HDS type classification code
          * @return populated _type extension JSON object ready to attach to Organization JSON
          */
-        public static JSONObject createHdsType(String hdsType) {
+        public static JSONObject createHdsType(HdsType hdsType) {
                 JSONObject json = readJsonTemplate("hds-type.json");
                 JSONArray outerExtension = json.getJSONArray("extension");
                 JSONObject healthDeliverySiteExt = outerExtension.getJSONObject(0); // bc-health-delivery-site-type-extension
@@ -382,7 +383,7 @@ public class MaintainUtils
                 hdsTypeExt.getJSONObject("valueCodeableConcept")
                                   .getJSONArray("coding")
                                   .getJSONObject(0)
-                                  .put("code", hdsType);
+                                  .put("code", hdsType.name());
                 return json;
         }
 
@@ -393,7 +394,7 @@ public class MaintainUtils
          *
          * Expected map keys:
          *  - identifier: organization identifier value
-         *  - system: organization identifier system (URL)
+         *  - type: organization identifier system (URL)
          *
          * @param info relationship mapping data
          * @param facilityIdentifier the identifier value of the facility (Location) being maintained
@@ -402,11 +403,14 @@ public class MaintainUtils
         public static JSONObject createFacilityOrgAffiliation(Map<String,String> info, String facilityIdentifier)
         {
                 JSONObject entry = readJsonTemplate("facility-to-organization-relationship.json");
+                // Generate unique fullUrl (urn:uuid)
+                String uuid = java.util.UUID.randomUUID().toString();
+                entry.put("fullUrl", "urn:uuid:" + uuid);
+
                 JSONObject resource = entry.getJSONObject("resource");
                 // Organization identifier
                 JSONObject orgIdentifier = resource.getJSONObject("organization").getJSONObject("identifier");
                 orgIdentifier.put("system", info.get("type"));
-                
                 orgIdentifier.put("value", info.get("identifier"));
                 // Location identifier (facility IFC)
                 JSONObject locationIdentifier = resource.getJSONArray("location").getJSONObject(0).getJSONObject("identifier");

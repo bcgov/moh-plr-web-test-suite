@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationAttribute;
 
 /**
@@ -30,10 +31,10 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private String                    identifier_      = null;
     private String                    name_            = null;
     private  List<Map<String,String>> noteList_        = new ArrayList<>();
-    private String                    roleType_        = OrgRoleType.HDS.getRoleType(); //DEFAULT VALUE
+    private OrgRoleType               roleType_        = null; // must be explicitly set
     private List<Map<String,String>>  statusList_      = new ArrayList<>();
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
-    private String hdsType_                            = null;
+    private HdsType                   hdsType_         = null;
     //TODO: ORG PROPERTIES
 
 
@@ -141,12 +142,15 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
 
         MaintainAccessor accessor = new MaintainAccessor(json);
         JSONObject orgJson = accessor.getOrgJson();
-        orgJson.getJSONObject("type")
-               .getJSONArray("coding")
-               .getJSONObject(0)
-               .put("code", roleType_);
+     
+       if(roleType_ != null ){ orgJson.getJSONObject("type")
+            .getJSONArray("coding")
+            .getJSONObject(0)
+            .put("code", roleType_.toString());
+        }
         // Include specialized _type block for HDS role type.
-        if (OrgRoleType.HDS.toString().equals(roleType_)) {
+        if (roleType_ == OrgRoleType.HDS) {
+            requireNonNull(hdsType_, "HDS type required when roleType is HDS");
             orgJson.put("_type", MaintainUtils.createHdsType(hdsType_));
         }
         accessor.getOrgIdentifierJson(0).put("value", identifier_);
@@ -234,24 +238,36 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     }
 
     /**
-     * Sets the role type code for the organization.
-     * @param roleType role type enum (BUSINESS, CLINIC, ORG, HDS)
+     * Sets the organization role type. If changed away from HDS any previously assigned HDS subtype
+     * is cleared. For HDS role types an explicit {@link #hdsType(HdsType)} must be provided before build.
+     * @param roleType role type enum (never null)
      * @return this builder
      */
     public MaintainOrgBuilder roleType(OrgRoleType roleType)
     {
-        roleType_ = roleType.toString();
+        roleType_ = requireNonNull(roleType);
+        if (roleType != OrgRoleType.HDS) {
+            hdsType_ = null;
+        }
         return this;
     }
 
     /**
      * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
-     * Accepted values: CLINIC, PHARMACY, HOSPITAL, EMERGENCY, LAB, GENERAL_CARE, INPATIENT, HOUSING, OUTPATIENT.
      * @param hdsType classification string
      * @return this builder
      */
-    public MaintainOrgBuilder hdsType(String hdsType) {
-        hdsType_ = hdsType;
+    /**
+     * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
+     * @param hdsType HDS subtype enum (never null)
+     * @return this builder
+     * @throws IllegalStateException if role type is not HDS
+     */
+    public MaintainOrgBuilder hdsType(HdsType hdsType) {
+        if (roleType_ != OrgRoleType.HDS) {
+            throw new IllegalStateException("Cannot set HDS subtype when roleType != HDS");
+        }
+        hdsType_ = requireNonNull(hdsType);
         return this;
     }
 
@@ -267,7 +283,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
             }
         }
 
-        if(OrgRoleType.HDS.toString().equals(roleType_)) {
+        if(roleType_ == OrgRoleType.HDS) {
             requireNonNull(hdsType_, "Missing HDS type classification for organization with HDS role type.");
         }
     }
@@ -335,7 +351,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      * Role type code (defaults to HDS if not explicitly set).
      * @return role type code string
      */
-    public String getRoleType() { return roleType_; }
+    public OrgRoleType getRoleType() { return roleType_; }
 
     /**
      * Alias string.
@@ -377,7 +393,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      * Returns the configured HDS type classification (may be null if not set or role type not HDS).
      * @return hds type string or null
      */
-    public String getHdsType() { return hdsType_; }
+    public HdsType getHdsType() { return hdsType_; }
 
     
 }

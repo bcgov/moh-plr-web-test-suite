@@ -135,8 +135,7 @@ public class FHIRSession implements AutoCloseable
     private String submitMaintainPayload(PlrFhirResourceType type, JSONObject payload) {
         LOG.info(payload.toString());
         try{
-            String id = actions_.submitMaintainRequest(payload);
-            LOG.info("Maintain submitted (type={}). Returned id {}.", type, id);
+            String id = actions_.submitMaintainRequest(type, payload);
             return id;
         }
         catch (InterruptedException e)

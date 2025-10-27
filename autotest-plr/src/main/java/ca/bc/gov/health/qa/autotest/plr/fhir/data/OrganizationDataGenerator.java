@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data;
 
 import java.util.List;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
 
 /**
  * Organization-specific data generator providing distinct name and address pools
@@ -28,8 +29,16 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
     );
 
     //HDS possible types
-    private static final List<String> HDS_TYPES = List.of(
-            "CLINIC", "PHARMACY", "HOSPITAL", "EMERGENCY", "LAB", "GENERAL_CARE", "INPATIENT", "HOUSING", "OUTPATIENT"
+    private static final List<HdsType> HDS_TYPES = List.of(
+            HdsType.CLINIC,
+            HdsType.PHARMACY,
+            HdsType.HOSPITAL,
+            HdsType.EMERGENCY,
+            HdsType.LAB,
+            HdsType.GENERAL_CARE,
+            HdsType.INPATIENT,
+            HdsType.HOUSING,
+            HdsType.OUTPATIENT
         );
 
     private static final int FIXED_LOWER_STREET_NUMBER = 2000;
@@ -59,7 +68,7 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
      * Returns a randomly selected HDS classification value from the predefined list.
      * @return random HDS type string
      */
-    public String randomHdsType() {
+    public HdsType randomHdsType() {
         return pick(HDS_TYPES);
     }
 

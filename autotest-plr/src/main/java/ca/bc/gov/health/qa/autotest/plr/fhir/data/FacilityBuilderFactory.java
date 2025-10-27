@@ -81,7 +81,7 @@ public class FacilityBuilderFactory {
         for (int i = 0; i < noteCount; i++) {
             builder.addNote(dataGen.generateNote());
         }
-        // relationships pending future implementation using config.getRelationshipCount()
+        
         return builder;
     }
 }

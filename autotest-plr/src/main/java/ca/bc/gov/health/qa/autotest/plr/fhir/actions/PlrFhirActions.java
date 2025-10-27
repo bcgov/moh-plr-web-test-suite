@@ -112,27 +112,36 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Processes a maintain response and extracts the id of the primary resource type requested.
+     * The server may return additional related resources (e.g. OrganizationAffiliation) before
+     * the primary one; therefore we iterate all bundle entries until we find the target FHIR
+     * resource type matching {@code targetType.wire()}.
      *
-     * @param response
-     *        ???
-     *
-     * @return ???
+     * @param response   HTTP response returned by the maintain submission (expected 200)
+     * @param targetType resource type whose id should be returned (e.g. FACILITY -> Location)
+     * @return id of the created/updated primary resource
+     * @throws IllegalStateException if the status code is not 200 or the target resource is missing
      */
-    public String processMaintainResponse(SimpleHttpResponse response)
+    public String processMaintainResponse(SimpleHttpResponse response, PlrFhirResourceType targetType)
     {
-        String id;
-        if (response.getStatusCode() == 200)
-        {
-            JSONObject json = new JSONObject(response.getTextResponseBody());
-            MaintainAccessor accessor = new MaintainAccessor(json);
-            id = accessor.getResourceJson(0, null).getString("id");
-        }
-        else
-        {
+        if (response.getStatusCode() != 200) {
             throw new IllegalStateException("FHIR maintain request failed. " + response.getTextResponseBody());
         }
-        return id;
+        JSONObject json = new JSONObject(response.getTextResponseBody());
+        MaintainAccessor accessor = new MaintainAccessor(json);
+        String desiredWireType = targetType.wire();
+        String resourceId = null;
+        for (int i = 0; i < accessor.getEntryArrayJson().length(); i++) {
+            JSONObject resource = accessor.getResourceJson(i, null);
+            if (desiredWireType.equals(resource.optString("resourceType"))) {
+                resourceId = resource.optString("id", null);
+                break;
+            }
+        }
+        if (resourceId == null) {
+            throw new IllegalStateException("Maintain response did not contain a " + desiredWireType + " resource id.");
+        }
+        return resourceId;
     }
 
     /**
@@ -252,11 +261,22 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    public String submitMaintainRequest(JSONObject requestJson)
+    /**
+     * Submits a maintain request payload and returns the id of the primary resource represented
+     * by {@code targetType}. Use this overload instead of the legacy one to support multiple
+     * maintain request kinds (facility/location, practitioner, organization, etc.).
+     *
+     * @param targetType  primary resource type contained in the maintain bundle
+     * @param requestJson maintain bundle JSON payload
+     * @return created/updated resource id
+     * @throws InterruptedException if the thread is interrupted while sending the request
+     * @throws IOException          if an I/O error occurs while sending the request
+     */
+    public String submitMaintainRequest(PlrFhirResourceType targetType, JSONObject requestJson)
     throws InterruptedException,
            IOException
     {
-        return processMaintainResponse(sendMaintainRequest(requestJson));
+        return processMaintainResponse(sendMaintainRequest(requestJson), targetType);
     }
 
     /**

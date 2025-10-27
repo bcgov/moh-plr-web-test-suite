@@ -37,14 +37,26 @@ public class OrganizationMaintainConfig {
 
     /**
      * Initializes required attributes by inspecting {@link OrganizationAttribute} enum.
+     * Use HDS as default organization role type.
      */
     public OrganizationMaintainConfig() {
+        //Call construcotr using HDS as default roletype
+        this(OrgRoleType.HDS);
+    }
+
+    /**
+     * Initializes required attributes by inspecting {@link OrganizationAttribute} enum.
+     * @param roleType organization role type to set as required value
+     */
+    public OrganizationMaintainConfig(OrgRoleType roleType) {
         for (OrganizationAttribute attr : OrganizationAttribute.values()) {
             if (!attr.isRequired()) continue;
             switch (attr) {
                 case IDENTIFIER: this.identifier = true; break;
                 case NAME:       this.name = true; break;
-                case ROLE_TYPE:  this.roleType = OrgRoleType.HDS; break;
+                case ROLE_TYPE:  
+                    this.roleType = roleType;
+                    break;
                 case ADDRESS:    this.address = true; break;
                 case ALIAS:      this.alias = true; break;
                 case CONFIDENTIALITY: this.confidentiality = true; break;
