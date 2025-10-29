@@ -18,12 +18,12 @@ import java.util.regex.Pattern;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
 
-public class ViewFacilityTests implements SimpleTest {
+public class ViewFacilityComplexTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
-    public ViewFacilityTests() {}
+    public ViewFacilityComplexTests() {}
 
     @BeforeMethod
     public void before(Object[] parameters)
