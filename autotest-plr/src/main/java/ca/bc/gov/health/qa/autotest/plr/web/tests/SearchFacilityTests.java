@@ -425,7 +425,7 @@ public class SearchFacilityTests implements SimpleTest {
 
             assertTrue(searchDetails.getViewHeader().grabViewTitle().contains(expectedFacilities.get(resultsIndex)),
                     "Viewing facility leads to unexpected page");
-            LinkedHashMap<String,String> civicMap = searchDetails.grabCivicAddressBlockContent(0);
+            LinkedHashMap<String,String> civicMap = searchDetails.grabCivicAddressBlockContent();
             LinkedHashMap<String,String> otherMap = searchDetails.grabDataBlockContent(
                     FacilitySection.OTHER_ADDRESS, 0);
             assertEquals(civicMap.get("Address Line 1"), expectedFields.get(0),
@@ -552,7 +552,7 @@ public class SearchFacilityTests implements SimpleTest {
         searchByCriteria(searchFacility, queryDetails, false);
 
         viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);
-        LinkedHashMap<String,String> civicMap = viewDetails.grabCivicAddressBlockContent(0);
+        LinkedHashMap<String,String> civicMap = viewDetails.grabCivicAddressBlockContent();
         assertEquals(civicMap.get("Address Line 1"), queryDetails.get(1),
                 "Facility is missing expected Civic Address Line 1");
         assertEquals(civicMap.get("City"), queryDetails.get(4).toUpperCase(),

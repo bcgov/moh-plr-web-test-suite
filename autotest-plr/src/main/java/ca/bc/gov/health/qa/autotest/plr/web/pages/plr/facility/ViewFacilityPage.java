@@ -1,8 +1,10 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -16,8 +18,11 @@ import java.util.regex.Pattern;
  * A page object class for the View Facility page.
  */
 public class ViewFacilityPage extends BasicWebPage {
+
+    private static final Logger LOG = ExecutionLogManager.getLogger();
     private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
     private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile(" \\(.*\\)");
+    private static final Pattern DATA_KEY_STAR_PATTERN = Pattern.compile("\\*$");
     private static final String TABLE_ROWS_SELECTOR = " > table > tbody > tr";
 
     private final ViewHeaderFragment viewHeader_;
@@ -196,8 +201,9 @@ public class ViewFacilityPage extends BasicWebPage {
      */
     private static String formatDataKey(String key)
     {
-        String formattedKey = DATA_KEY_SUFFIX_PATTERN.matcher(key).replaceAll("");
+        String formattedKey = DATA_KEY_STAR_PATTERN.matcher(key).replaceAll("");
         formattedKey = DATA_KEY_PARENS_PATTERN.matcher(formattedKey).replaceAll("");
+        formattedKey = DATA_KEY_SUFFIX_PATTERN.matcher(formattedKey).replaceAll("");
         return formattedKey;
     }
 
@@ -260,42 +266,49 @@ public class ViewFacilityPage extends BasicWebPage {
      * All other facility sections are structured differently,
      * so grabDataBlockContent must be used instead for any other facility section.
      *
-     * @param index     the index of data block to get content from
      * @return  a hash map mapping civic address data fields (String) to their associated values (String)
      */
-    public LinkedHashMap<String,String> grabCivicAddressBlockContent(int index)
+    public LinkedHashMap<String,String> grabCivicAddressBlockContent()
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
-        expandDataBlock(FacilitySection.CIVIC_ADDRESSES, index, true);
+        expandDataBlock(FacilitySection.CIVIC_ADDRESSES, 0, true);
         List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(
-                getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, index)
+                getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, 0)
                 + " > div.ui-outputpanel" + TABLE_ROWS_SELECTOR));
+        By tableSelect = By.cssSelector("td" + TABLE_ROWS_SELECTOR);
+
         if (!dataRowElementList.isEmpty())
         {
             selenium_.scrollIntoView(dataRowElementList.getFirst());
         }
         for (WebElement dataRow : dataRowElementList)
         {
-            List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR));
+            List<WebElement> dataEntryList = dataRow.findElements(tableSelect);
             int dataColumnCount = dataEntryList.size();
-            if (dataColumnCount == 2)
-            {
-                addFieldDataMap(dataMap, dataEntryList, 0);
-            }
-            else if (dataColumnCount == 4 || dataColumnCount == 5 || dataColumnCount == 6)
-            {
-                addFieldDataMap(dataMap, dataEntryList.get(0).findElements(
-                        By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 0);
-                if (dataColumnCount == 5) {
-                    addFieldDataMap(dataMap, dataEntryList.get(0).findElements(
-                            By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 2);
-                }
-            }
+            if (dataColumnCount == 2) addFieldDataMap(dataMap, dataEntryList, 0);
             else
             {
-                String msg = String.format("Invalid data row (%d: %s).", dataColumnCount, dataRow.getText());
-                throw new IllegalStateException(msg);
+                List<WebElement> extraFields = dataEntryList.get(0).findElements(tableSelect);
+                switch (dataColumnCount)
+                {
+                    case 4:
+                        dataMap.put(formatDataKey(extraFields.get(0).findElement(
+                                By.cssSelector("div.frmDialogLbl > label")).getText()),
+                                extraFields.get(0).findElement(
+                                        By.cssSelector("div[role] > label")).getText());
+                        addFieldDataMap(dataMap, extraFields, 1);
+                        break;
+                    case 5:
+                        addFieldDataMap(dataMap, extraFields, 2);
+                    case 6:
+                        addFieldDataMap(dataMap, extraFields, 0);
+                        break;
+                    default:
+                        String msg = String.format("Invalid data row (%d: %s).", dataColumnCount, dataRow.getText());
+                        throw new IllegalStateException(msg);
+                }
             }
+
         }
         return dataMap;
     }

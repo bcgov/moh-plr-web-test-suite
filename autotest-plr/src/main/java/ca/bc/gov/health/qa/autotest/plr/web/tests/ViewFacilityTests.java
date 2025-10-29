@@ -93,7 +93,41 @@ public class ViewFacilityTests implements SimpleTest {
 
         assertEquals(viewFacility.grabDataBlockCount(FacilitySection.CIVIC_ADDRESSES), 1,
                 "Facility unexpectedly has more than 1 civic address data block");
+
+        assertEquals(viewFacility.grabCivicAddressBlockContent().get("Province / State"),
+                "BC - British Columbia", "Civic Address is not located in British Columbia");
+
         assertEquals(viewFacility.grabDataBlockCount(FacilitySection.OTHER_ADDRESS), 1,
                 "Facility unexpectedly has more than 1 other address data block");
+    }
+
+    @Test
+    // F2-007. Limiting Number of Records For View Facility Details Screen
+    public void testLimitNumberRecords()
+    {
+        ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
+                "IFC.00000001.BC.PRS", UserType.ADMIN);
+
+        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) < 50,
+                "Facility unexpectedly has 50 or more notes");
+
+        viewFacility = viewFacilityByIdentifier(workflowManager_,
+                "IFC.00006365.BC.PRS", UserType.ADMIN);
+
+        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) >= 50,
+                "Facility unexpectedly has less than 50 organization relationships");
+    }
+
+    @Test
+    // F2-008. View Facility Details Screen - Organization Relationships Block
+    public void testOrgRelationshipBlock()
+    {
+        ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
+                "IFC.00000061.BC.PRS", UserType.ADMIN);
+
+        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) > 1,
+                "Facility unexpectedly has only one or no organization relationships");
+
+
     }
 }
