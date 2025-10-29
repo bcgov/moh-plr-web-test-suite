@@ -1,7 +1,5 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
-import ca.bc.gov.health.qa.autotest.core.util.config.Config;
-import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
@@ -23,8 +21,6 @@ import static org.testng.Assert.assertTrue;
 
 public class ViewFacilityTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
-
-    private static final Config config_ = ConfigProvider.get().getConfig();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 

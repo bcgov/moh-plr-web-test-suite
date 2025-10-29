@@ -95,7 +95,7 @@ public final class TestHelper {
      * @param workflowManager   the workflow manager from the test class
      * @param identifier        the facility identifier of the facility to view
      * @param userType          the user type to login to PLR as
-     * @return
+     * @return                  a ViewFacilityPage reference to the facility page
      */
     public static ViewFacilityPage viewFacilityByIdentifier(
             PlrWebWorkflowManager workflowManager, String identifier, UserType userType)
