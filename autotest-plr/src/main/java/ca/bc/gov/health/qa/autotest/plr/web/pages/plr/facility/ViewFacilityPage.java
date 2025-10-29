@@ -299,4 +299,17 @@ public class ViewFacilityPage extends BasicWebPage {
         }
         return dataMap;
     }
+
+    /**
+     * Determines the number of data blocks in a specific facility section.
+     *
+     * @param section   the facility section to find the number of records for.
+     * @return          an integer of the number of records for a particular facility section.
+     */
+    public int grabDataBlockCount(FacilitySection section)
+    {
+        List<WebElement> dataBlockList = selenium_.findElements(By.cssSelector(
+                getDataBlocksSelector(section)));
+        return dataBlockList.size();
+    }
 }

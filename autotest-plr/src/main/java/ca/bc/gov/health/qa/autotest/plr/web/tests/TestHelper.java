@@ -13,8 +13,9 @@ public final class TestHelper {
     /**
      * Logs into PLR with a specific userType (if it hasn't been logged in already)
      *
-     * @param userType      the user type to log into PLR as
-     * @return              the PlrWebWorkflow reference to the workflow logged into PLR as the specified user type
+     * @param workflowManager   the workflow manager from the test class
+     * @param userType          the user type to log into PLR as
+     * @return                  the PlrWebWorkflow reference to the workflow logged into PLR as the specified user type
      */
     public static PlrWebWorkflow logIn(PlrWebWorkflowManager workflowManager, UserType userType)
     {
@@ -26,8 +27,9 @@ public final class TestHelper {
     /**
      * Navigate to the "Search Facility" Page
      *
-     * @param userType      the userType to log in as and navigate to the Search Facility Page with
-     * @return              a SearchFacilityPage reference to the workflow's search facility page component
+     * @param workflowManager   the workflow manager from the test class
+     * @param userType          the userType to log in as and navigate to the Search Facility Page with
+     * @return                  a SearchFacilityPage reference to the workflow's search facility page component
      */
     public static SearchFacilityPage navigateToSearchFacilityPage(
             PlrWebWorkflowManager workflowManager, UserType userType)
@@ -44,7 +46,7 @@ public final class TestHelper {
     /**
      * Searches by Identifier in the Search Facility page.
      *
-     * @param searchFacility    the search facilty page reference
+     * @param searchFacility    the search facility page reference
      * @param queryFields       a list of strings of query details to fill fields with.
      *                          Index 0: Facility Identifier Type
      *                          Index 1: Facility Identifier
@@ -87,6 +89,14 @@ public final class TestHelper {
                 queryFields.get(5), queryFields.get(6), sdaPrefix, expectedError);
     }
 
+    /**
+     * Navigates to a facility page by its identifier.
+     *
+     * @param workflowManager   the workflow manager from the test class
+     * @param identifier        the facility identifier of the facility to view
+     * @param userType          the user type to login to PLR as
+     * @return
+     */
     public static ViewFacilityPage viewFacilityByIdentifier(
             PlrWebWorkflowManager workflowManager, String identifier, UserType userType)
     {
