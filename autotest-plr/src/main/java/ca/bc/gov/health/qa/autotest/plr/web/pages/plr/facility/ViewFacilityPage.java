@@ -221,8 +221,10 @@ public class ViewFacilityPage extends BasicWebPage {
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
         expandDataBlock(section, index, true);
-        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(
-                getDataBlockContentSelector(section, index) + TABLE_ROWS_SELECTOR));
+        String dataBlockContentSelector = getDataBlockContentSelector(section, index);
+        if (section == FacilitySection.ORGANIZATION_RELATIONSHIPS) dataBlockContentSelector += " > form";
+        dataBlockContentSelector += TABLE_ROWS_SELECTOR;
+        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(dataBlockContentSelector));
 
         if (!dataRowElementList.isEmpty())
         {

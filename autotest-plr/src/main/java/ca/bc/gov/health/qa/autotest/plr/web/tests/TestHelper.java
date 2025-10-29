@@ -9,6 +9,9 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 
 import java.util.List;
 
+/**
+ * Helper class with commonly-used flows to more easily orchestrate tests across the PLR site
+ */
 public final class TestHelper {
     /**
      * Logs into PLR with a specific userType (if it hasn't been logged in already)

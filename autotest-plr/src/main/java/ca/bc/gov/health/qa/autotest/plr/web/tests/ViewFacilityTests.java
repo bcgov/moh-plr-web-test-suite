@@ -16,8 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class ViewFacilityTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -111,11 +110,35 @@ public class ViewFacilityTests implements SimpleTest {
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) < 50,
                 "Facility unexpectedly has 50 or more notes");
 
+        for (int index = 0; index < viewFacility.grabDataBlockCount(FacilitySection.NOTES); index++)
+        {
+            String noteIdentifier = viewFacility.grabDataBlockContent(
+                    FacilitySection.NOTES, index).get("Note Identifier");
+            assertFalse(noteIdentifier.isEmpty(), "Note block " + index + " is missing identifier");
+        }
+
         viewFacility = viewFacilityByIdentifier(workflowManager_,
                 "IFC.00006365.BC.PRS", UserType.ADMIN);
 
+        for (int index = 0; index < viewFacility.grabDataBlockCount(FacilitySection.NOTES); index++)
+        {
+            String noteIdentifier = viewFacility.grabDataBlockContent(
+                    FacilitySection.NOTES, index).get("Note Identifier");
+            assertFalse(noteIdentifier.isEmpty(),
+                    "Note block " + index + " is missing identifier");
+        }
+
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) >= 50,
                 "Facility unexpectedly has less than 50 organization relationships");
+
+        for (int index = 0; index < viewFacility.grabDataBlockCount(
+                FacilitySection.ORGANIZATION_RELATIONSHIPS); index++)
+        {
+            String relationshipIdentifier = viewFacility.grabDataBlockContent(
+                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Relationship Identifier");
+            assertFalse(relationshipIdentifier.isEmpty(),
+                    "Organization Relationship block " + index + " is missing identifier");
+        }
     }
 
     @Test
@@ -128,6 +151,13 @@ public class ViewFacilityTests implements SimpleTest {
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) > 1,
                 "Facility unexpectedly has only one or no organization relationships");
 
-
+        for (int index = 0; index < viewFacility.grabDataBlockCount(
+                FacilitySection.ORGANIZATION_RELATIONSHIPS); index++)
+        {
+            String relationshipIdentifier = viewFacility.grabDataBlockContent(
+                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Relationship Identifier");
+            assertFalse(relationshipIdentifier.isEmpty(),
+                    "Organization Relationship block " + index + " is missing identifier");
+        }
     }
 }
