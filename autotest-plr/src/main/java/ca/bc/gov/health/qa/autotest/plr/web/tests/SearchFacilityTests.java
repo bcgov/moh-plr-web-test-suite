@@ -22,6 +22,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
 
 public class SearchFacilityTests implements SimpleTest {
@@ -61,82 +62,6 @@ public class SearchFacilityTests implements SimpleTest {
         {
             workflow.login().openPlr();
         }
-    }
-
-    /**
-     * Logs into PLR with a specific userType (if it hasn't been logged in already)
-     *
-     * @param userType      the user type to log into PLR as
-     * @return              the PlrWebWorkflow reference to the workflow logged into PLR as the specified user type
-     */
-    private PlrWebWorkflow logIn(UserType userType)
-    {
-        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(userType);
-        if (!workflow.isLoggedIn()) workflow.login().openPlr();
-        return workflow;
-    }
-
-    /**
-     * Navigate to the "Search Facility" Page
-     *
-     * @param userType      the userType to log in as and navigate to the Search Facility Page with
-     * @return              a SearchFacilityPage reference to the workflow's search facility page component
-     */
-    private SearchFacilityPage navigateToSearchFacilityPage(UserType userType)
-    {
-        PlrWebWorkflow workflow = logIn(userType);
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-
-        // System displays Search by Facility page correctly
-        searchFacility.waitForReady();
-
-        return searchFacility;
-    }
-
-    /**
-     * Searches by Identifier in the Search Facility page.
-     *
-     * @param searchFacility    the search facilty page reference
-     * @param queryFields       a list of strings of query details to fill fields with.
-     *                          Index 0: Facility Identifier Type
-     *                          Index 1: Facility Identifier
-     * @param expectedError     whether an error is anticipated when executing the query
-     * @return                  a SearchFacilityResultsFragment reference to the search results of the identifier query
-     */
-    private SearchFacilityResultsFragment searchByIdentifier(
-            SearchFacilityPage searchFacility, List<String> queryFields, boolean expectedError)
-    {
-        return searchFacility.searchByIdentifier(
-                queryFields.getFirst(), queryFields.get(1),
-                expectedError);
-    }
-
-    /**
-     * Searches by Criteria in the Search Facility page.
-     *
-     * @param searchFacility    the search facility page reference
-     * @param queryFields       a list of strings of query details to fill fields with.
-     *                          Index 0: Facility Name
-     *                          Index 1: Civic Address Line 1
-     *                          Index 2: Other Address Line 2
-     *                          Index 3: City Field
-     *                          Index 4: City Prefix (for autocomplete, empty string becomes null)
-     *                          Index 5: Facility Type Prefix
-     *                          Index 6: Service Delivery Area Field
-     *                          Index 7: Service Delivery Area Prefix (for autocomplete, empty string becomes null)
-     * @param expectedError     whether an error is anticipated when executing the query
-     * @return                  a SearchFacilityResultsRequest reference to the search results of the criteria query
-     */
-    private SearchFacilityResultsFragment searchByCriteria(
-            SearchFacilityPage searchFacility, List<String> queryFields, boolean expectedError)
-    {
-        String cityPrefix = null;
-        String sdaPrefix = null;
-        if (!queryFields.get(4).isEmpty()) cityPrefix = queryFields.get(4);
-        if (!queryFields.get(7).isEmpty()) sdaPrefix = queryFields.get(7);
-        return searchFacility.searchByCriteria(
-                queryFields.getFirst(), queryFields.get(1), queryFields.get(2), queryFields.get(3), cityPrefix,
-                queryFields.get(5), queryFields.get(6), sdaPrefix, expectedError);
     }
 
     /**
@@ -272,8 +197,8 @@ public class SearchFacilityTests implements SimpleTest {
         {
             if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
 
-            PlrWebWorkflow workflow = logIn(userType);
-            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(userType);
+            logIn(workflowManager_, userType);
+            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
             SearchFacilityResultsFragment searchResults;
 
             assertTrue(searchFacility.verifyTitle(), "Title of page does not match 'Search Facility'");
@@ -343,7 +268,7 @@ public class SearchFacilityTests implements SimpleTest {
                 "AZ F00123 & & (", "IFC.00000001.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
 
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
         assertTrue(searchFacility.grabIdentifierSectionExpanded(),
                 "Search by Identifier not opened by default");
@@ -384,7 +309,7 @@ public class SearchFacilityTests implements SimpleTest {
     // F1-003. Minimum Data Requirements for Facility Search by Facility ID
     public void testMinDataReqsFacilityID()
     {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
         assertTrue(searchFacility.grabIdentifierSectionExpanded(), "Search by Identifier not opened by default");
 
@@ -451,7 +376,7 @@ public class SearchFacilityTests implements SimpleTest {
     {
         List<String> expectedIdentifierTypes = Arrays.asList("Select One", "IFC - Internal Facility Code");
 
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
         identifierPanel.getIdentifierTypeMenu().expandItemPanel(true);
 
@@ -473,7 +398,7 @@ public class SearchFacilityTests implements SimpleTest {
         final List<String> expectedFields = Arrays.asList("1175 DOUGLAS ST", "1175 DOUGLAS ST", "VICTORIA", "South Vancouver Island");
 
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
         SearchFacilityCriteriaFragment criteriaPanel = searchFacility.expandSearchCriteria(true);
         assertTrue(searchFacility.grabCriteriaSectionExpanded(),"Search by Criteria not opened by default");
@@ -528,7 +453,7 @@ public class SearchFacilityTests implements SimpleTest {
     // F1-007. Minimum Data Requirements for Facility Search with Criteria
     public void testMinDataReqsCriteria()
     {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityResultsFragment searchResults;
 
         List<String> queryDetails = Arrays.asList("", "", "", "", "", "Select One", "", "");
@@ -601,7 +526,7 @@ public class SearchFacilityTests implements SimpleTest {
     public void testFacilitySearchRulesLogical()
     {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
         // Search 1 (Facility Name, Other Address, Facility Type)
         List<String> queryDetails = Arrays.asList("AZ F00123 & & (", "", "1175 DOUGLAS ST", "", "", "BUILDING", "", "");
@@ -640,7 +565,7 @@ public class SearchFacilityTests implements SimpleTest {
     // F1-009: F1-009. Service Delivery Area Recognition
     public void testServiceDeliveryArea()
     {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityCriteriaFragment criteriaPanel = searchFacility.expandSearchCriteria(true);
 
         assertTrue(searchFacility.grabCriteriaSectionExpanded(),
@@ -669,7 +594,7 @@ public class SearchFacilityTests implements SimpleTest {
         final List<String> wildcardTypes = Arrays.asList(
                 "trailingWildcard", "precedingWildcard", "middleWildcard", "multipleWildcard");
 
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 
         // Facility Name Steps
@@ -717,7 +642,7 @@ public class SearchFacilityTests implements SimpleTest {
     // F1-012. Alphabetical Sorting of Facility Search Results
     public void testAlphabeticalSorting()
     {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityResultsFragment searchResults;
 
         List<String> queryDetails = Arrays.asList("", "", "", "Victo", "Victoria", "Select One", "", "");
@@ -746,7 +671,7 @@ public class SearchFacilityTests implements SimpleTest {
     // F1-013. Word Wrap Search Results
     public void testWordWrapResults()
     {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityResultsFragment searchResults;
 
         List<String> queryDetails = Arrays.asList("a*", "", "", "", "", "Select One", "", "");
@@ -764,7 +689,7 @@ public class SearchFacilityTests implements SimpleTest {
     {
         final String expectedMessage = "No records found.";
 
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityResultsFragment searchResults;
 
         List<String> fakeFields;
@@ -791,7 +716,7 @@ public class SearchFacilityTests implements SimpleTest {
         final int expectedResults = 20;
         final String maxResultsWarning = warningList.getString("maximumResults");
 
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         List<String> queryDetails = Arrays.asList("A*", "", "", "", "", "Select One", "", "");
         SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
@@ -813,7 +738,7 @@ public class SearchFacilityTests implements SimpleTest {
         {
             if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
 
-            PlrWebWorkflow workflow = logIn(userType);
+            PlrWebWorkflow workflow = logIn(workflowManager_, userType);
             PlrNavigationMenuFragment menu = workflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
             assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.SEARCH_FACILITY),
                     "Search Facility not visible as a menu option for User Type" + userType);
@@ -828,7 +753,7 @@ public class SearchFacilityTests implements SimpleTest {
                         "Add Facility unexpectedly visible as a menu option for " + userType);
             }
 
-            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(userType);
+            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
             SearchFacilityResultsFragment searchResults;
             List<String> queryFields = Arrays.asList("IFC", "IFC.00000001.BC.PRS");
             searchResults = searchByIdentifier(searchFacility, queryFields, false);
@@ -843,7 +768,7 @@ public class SearchFacilityTests implements SimpleTest {
     public void testPreviousResultsSession()
     {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityResultsFragment searchResults;
 
         // Identifier Query
