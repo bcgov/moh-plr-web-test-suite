@@ -3,6 +3,8 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -158,6 +160,46 @@ public class ViewFacilityComplexTests implements SimpleTest {
                     FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Relationship Identifier");
             assertFalse(relationshipIdentifier.isEmpty(),
                     "Organization Relationship block " + index + " is missing identifier");
+        }
+    }
+
+    @Test
+    // F2-010. UI Display Providers Related To Facility
+    public void testUIDisplayProviders()
+    {
+        String facIdentifier = "IFC.0000061.BC.PRS";
+        ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
+                facIdentifier, UserType.ADMIN);
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+
+        int orgRelationshipCount = viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+
+        for (int index = 0; index < orgRelationshipCount; index++)
+        {
+            viewFacility = viewFacilityByIdentifier(workflowManager_,
+                    facIdentifier, UserType.ADMIN);
+            LinkedHashMap<String,String> orgRelMap = viewFacility.grabDataBlockContent(
+                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index);
+
+            ViewProviderPage orgPage = workflow.getViewFacilityActions().transferToOrg(viewFacility, index);
+
+            LinkedHashMap<String,String> facRelMap = null;
+            for (int facRelIndex = 0; facRelIndex < orgPage.grabDataBlockCount(
+                    ProviderSection.FACILITY_RELATIONSHIPS); facRelIndex++)
+            {
+                facRelMap = orgPage.grabDataBlockContent(ProviderSection.FACILITY_RELATIONSHIPS, facRelIndex);
+                if (facRelMap.get("Related Facility Identifier").equals(facIdentifier)) break;
+            }
+            assertEquals(facRelMap.get("Related Facility Identifier"), facIdentifier,
+                    "Examined relationship has facility identifiers that do not match");
+
+            // TODO unsure if this is right is it possible for a provider to not have an IPC / common party number
+            String orgIdentifier = orgPage.grabDataBlockContent(ProviderSection.IDENTIFIERS, 1).get("Identifier");
+
+            assertEquals(orgRelMap.get("Relationship Identifier"), facRelMap.get("Relationship Identifier"),
+                    "Relationship Identifiers do not match between Organization/Facility");
+            assertEquals(orgRelMap.get("Related Organization Identifier"), orgIdentifier,
+                    "Examined relationship has organization identifiers that do not match");
         }
     }
 }

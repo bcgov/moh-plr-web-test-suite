@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
@@ -326,5 +327,14 @@ public class ViewFacilityPage extends BasicWebPage {
         List<WebElement> dataBlockList = selenium_.findElements(By.cssSelector(
                 getDataBlocksSelector(section)));
         return dataBlockList.size();
+    }
+
+    public void openOrg(int dataBlockIndex)
+    {
+        String linkSelector = getDataBlockContentSelector(FacilitySection.ORGANIZATION_RELATIONSHIPS, dataBlockIndex);
+        linkSelector += " > form" + TABLE_ROWS_SELECTOR + " > td > a";
+
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector(linkSelector)));
+        selenium_.findElement(By.cssSelector(linkSelector)).click();
     }
 }
