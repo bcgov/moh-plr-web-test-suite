@@ -44,12 +44,52 @@
                       "valuePeriod": {
                         "start": "2022-10-25T10:44:59-07:00"
                       }
+                    },
+                    {
+                      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+                      "valueIdentifier": {
+                        "assigner": {
+                          "display": "MOH"
+                        }
+                      }
+                    },
+                    {
+                      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+                            "code": "CHG"
+                          }
+                        ]
+                      }
                     }
                   ]
                 }
               ],
               "identifier": [
                 {
+                  "extension": [
+                    {
+                      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+                      "valueIdentifier": {
+                        "assigner": {
+                          "display": "MOH"
+                        }
+                      }
+                    },
+                    {
+                      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+                            "code": "CHG"
+                          }
+                        ]
+                      }
+                    }
+                  ],
                   "system": "https://health.gov.bc.ca/fhir/NamingSystem/ca-bc-plr-ifc",
                   "value": "",
                   "period": {
@@ -68,6 +108,25 @@
               "name": "",
               "_name": {
                 "extension": [
+                  {
+                    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+                    "valueIdentifier": {
+                      "assigner": {
+                        "display": "MOH"
+                      }
+                    }
+                  },
+                  {
+                    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+                          "code": "CHG"
+                        }
+                      ]
+                    }
+                  },
                   {
                     "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
                     "valuePeriod": {

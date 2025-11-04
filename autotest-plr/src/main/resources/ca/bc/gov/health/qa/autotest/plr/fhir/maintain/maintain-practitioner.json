@@ -82,10 +82,50 @@
                     "state": "AB",
                     "country": "CA"
                   }
+                },
+                {
+                  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+                  "valueIdentifier": {
+                    "assigner": {
+                      "display": "MOH"
+                    }
+                  }
+                },
+                {
+                  "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+                        "code": "CHG"
+                      }
+                    ]
+                  }
                 }
               ],
               "identifier": [
                 {
+                  "extension": [
+                    {
+                      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+                      "valueIdentifier": {
+                        "assigner": {
+                          "display": "MOH"
+                        }
+                      }
+                    },
+                    {
+                      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+                            "code": "CHG"
+                          }
+                        ]
+                      }
+                    }
+                  ],
                   "system": "",
                   "value": "",
                   "period": {
@@ -95,6 +135,27 @@
               ],
               "name": [
                 {
+                  "extension": [
+                    {
+                      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+                      "valueIdentifier": {
+                        "assigner": {
+                          "display": "MOH"
+                        }
+                      }
+                    },
+                    {
+                      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+                            "code": "CHG"
+                          }
+                        ]
+                      }
+                    }
+                  ],
                   "use": "official",
                   "family": "",
                   "given": [],
@@ -111,6 +172,25 @@
                   {
                     "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-birthtime-extension",
                     "valueDateTime": ""
+                  },
+                  {
+                    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+                    "valueIdentifier": {
+                      "assigner": {
+                        "display": "MOH"
+                      }
+                    }
+                  },
+                  {
+                    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+                    "valueCodeableConcept": {
+                      "coding": [
+                        {
+                          "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+                          "code": "CHG"
+                        }
+                      ]
+                    }
                   }
                 ]
               },
