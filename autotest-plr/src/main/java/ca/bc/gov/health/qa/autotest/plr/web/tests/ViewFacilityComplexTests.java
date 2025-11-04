@@ -147,27 +147,28 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-008. View Facility Details Screen - Organization Relationships Block
     public void testOrgRelationshipBlock()
     {
-        // TODO: Clarify - are organizations meant to be sorted by name? They currently are not
         ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
                 "IFC.00000061.BC.PRS", UserType.ADMIN);
 
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) > 1,
                 "Facility unexpectedly has only one or no organization relationships");
 
-        List<String> relationshipIdentifiers = new ArrayList<>();
+        List<String> orgIdentifiers = new ArrayList<>();
 
         for (int index = 0; index < viewFacility.grabDataBlockCount(
                 FacilitySection.ORGANIZATION_RELATIONSHIPS); index++)
         {
-            String relationshipIdentifier = viewFacility.grabDataBlockContent(
-                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Relationship Identifier");
-            assertFalse(relationshipIdentifier.isEmpty(),
-                    "Organization Relationship block " + index + " is missing identifier");
-            relationshipIdentifiers.add(relationshipIdentifier);
+            String orgIdentifier = viewFacility.grabDataBlockContent(
+                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Related Organization Identifier");
+            assertFalse(orgIdentifier.isEmpty(),
+                    "Organization Relationship block " + index + " is missing Organization Identifier");
+            orgIdentifiers.add(orgIdentifier);
         }
+        List<String> sortedOrgIdentifiers = new ArrayList<>(orgIdentifiers);
+        Collections.sort(sortedOrgIdentifiers);
 
-        Collections.sort(relationshipIdentifiers);
-        LOG.info(relationshipIdentifiers);
+        assertEquals(orgIdentifiers, sortedOrgIdentifiers,
+                "Organization Relationships are not sorted by Related Organization Identifier");
     }
 
     @Test
