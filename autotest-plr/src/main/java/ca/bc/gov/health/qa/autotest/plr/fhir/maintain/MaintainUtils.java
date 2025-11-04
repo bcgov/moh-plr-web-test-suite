@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.EndReasonCode;
 
 /**
  * TODO (AZ) - doc
@@ -388,34 +389,50 @@ public class MaintainUtils
         }
 
         /**
-         * Creates a Bundle.entry JSON object containing an OrganizationAffiliation resource
-         * that links the maintained facility (Location) to an organization via its identifier.
-         * Template file: facility-to-organization-relationship.json
-         *
-         * Expected map keys:
-         *  - identifier: organization identifier value
-         *  - type: organization identifier system (URL)
-         *
-         * @param info relationship mapping data
-         * @param facilityIdentifier the identifier value of the facility (Location) being maintained
-         * @return populated OrganizationAffiliation bundle entry
+         * Creates a Bundle.entry JSON object containing an OrganizationAffiliation resource linking a facility to
+         * an organization. The end reason extension code is left as the template default (CHG) indicating a change.
+         * @param info organization relationship mapping data (identifier + type/system)
+         * @param facilityIdentifier IFC identifier value of the facility
+         * @return populated affiliation entry
          */
-        public static JSONObject createFacilityOrgAffiliation(Map<String,String> info, String facilityIdentifier)
-        {
+        public static JSONObject createFacilityOrgAffiliation(Map<String,String> info, String facilityIdentifier) {
+                return createFacilityOrgAffiliation(info, facilityIdentifier, (EndReasonCode) null);
+        }
+
+        /**
+         * Overload supporting an explicit end-reason code override (e.g. CEASE) that replaces the template default.
+         * @param info organization relationship mapping data (identifier + type/system)
+         * @param facilityIdentifier IFC identifier value of the facility
+         * @param endReasonCode optional end reason code (if null template value retained). Use {@link EndReasonCode#CHANGE}
+         *                      only if you want to be explicit; the template default is already CHG.
+         * @return populated affiliation entry JSON
+         */
+        public static JSONObject createFacilityOrgAffiliation(Map<String,String> info, String facilityIdentifier, EndReasonCode endReasonCode) {
                 JSONObject entry = readJsonTemplate("facility-to-organization-relationship.json");
                 // Generate unique fullUrl (urn:uuid)
                 String uuid = java.util.UUID.randomUUID().toString();
                 entry.put("fullUrl", "urn:uuid:" + uuid);
-
                 JSONObject resource = entry.getJSONObject("resource");
+
                 // Organization identifier
                 JSONObject orgIdentifier = resource.getJSONObject("organization").getJSONObject("identifier");
                 orgIdentifier.put("system", info.get("type"));
                 orgIdentifier.put("value", info.get("identifier"));
+
                 // Location identifier (facility IFC)
                 JSONObject locationIdentifier = resource.getJSONArray("location").getJSONObject(0).getJSONObject("identifier");
                 locationIdentifier.put("value", facilityIdentifier);
 
+                // Optional end reason code override
+                if (endReasonCode != null) {
+                        JSONArray extensions = resource.getJSONArray("extension");
+                        JSONObject endReasonExt = findEntry(extensions, "url", "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension");
+                        endReasonExt
+                                .getJSONObject("valueCodeableConcept")
+                                .getJSONArray("coding")
+                                .getJSONObject(0)
+                                .put("code", endReasonCode.wire());
+                }
                 return entry;
         }
 }

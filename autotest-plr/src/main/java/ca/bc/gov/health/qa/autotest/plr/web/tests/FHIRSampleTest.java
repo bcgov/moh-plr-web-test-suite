@@ -68,7 +68,11 @@ implements SimpleTest
 
         LOG.info("Created facility id {}, name {}, address {}.", facility2.getIdentifier(), facility2.getName(), facility2.getAddress().toString());
         
-
+        MaintainFacilityBuilder facility2noRelationships = fhirController.ceaseFacilityRelationships(facility2);
+        
+        LOG.info("updated facility to not have relationships id {}, name {}, address {}.", facility2noRelationships.getIdentifier(), facility2noRelationships.getName(), facility2noRelationships.getAddress().toString());
+        
+        
         //MaintainOrgBuilder orgBuilder = fhirController.createOrganization(OrgRoleType.HDS);
         //LOG.info("Created organization id {}, name {}.", orgBuilder.getIdentifier(), orgBuilder.getName());
 

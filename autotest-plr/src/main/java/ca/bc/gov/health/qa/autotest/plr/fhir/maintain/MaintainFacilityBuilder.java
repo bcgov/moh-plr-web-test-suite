@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.EndReasonCode;
+
 import static java.util.Objects.requireNonNull;
 
 import java.lang.invoke.MethodHandles;
@@ -33,6 +35,10 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     private List<Map<String,String>>  orgRelationshipList_  = new ArrayList<>();
     private final String              PURPOSE           = "FC";
     private final String              ADDRESS_TYPE_PHYS = "physical";
+
+    // Modifier that will be used on build to determine the end reason code CEASE instead of template default CHG.
+    private boolean                   ceaseRelationships_   = false;
+
     /**
      * Creates an empty Facility builder. Required field validation occurs during {@link #build()}.
      */
@@ -152,9 +158,13 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
 
         // For each organization relationship create a distinct OrganizationAffiliation bundle entry
         JSONArray bundleEntryArray = accessor.getEntryArrayJson();
-        for (Map<String,String> info : orgRelationshipList_)
+        for (Map<String,String> info : orgRelationshipList_) 
         {
-            bundleEntryArray.put(MaintainUtils.createFacilityOrgAffiliation(info, identifier_));
+            if (ceaseRelationships_) {
+                bundleEntryArray.put(MaintainUtils.createFacilityOrgAffiliation(info, identifier_, EndReasonCode.CEASE));
+            } else {
+                bundleEntryArray.put(MaintainUtils.createFacilityOrgAffiliation(info, identifier_));
+            }
         }
 
         return json;
@@ -203,6 +213,16 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         orgRelationship.put("type",       identifierType.getSourceSystem());
         orgRelationship.put("identifier", identifier);
         this.orgRelationshipList_.add(orgRelationship);
+        return this;
+    }
+
+    /**
+     * Marks all organization relationships to be ceased during maintain submission by overriding the
+     * end reason extension code from CHG to CEASE.
+     * @return this builder for fluent chaining
+     */
+    public MaintainFacilityBuilder ceaseOrganizationRelationships() {
+        this.ceaseRelationships_ = true;
         return this;
     }
 
@@ -359,5 +379,32 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     public List<Map<String,String>> getOrgRelationshipList()
     {
         return List.copyOf(orgRelationshipList_);
+    }
+
+    /**
+     * Creates a copy of this builder containing all attributes
+     * but EXCLUDING any organization relationships. The returned builder
+     * has the cease flag cleared regardless of the current builder state so future builds will not implicitly cease
+     * relationships unless explicitly requested again.
+     *
+     * @return new builder instance without organization relationships
+     */
+    public MaintainFacilityBuilder copyWithoutOrgRelationships() {
+        MaintainFacilityBuilder copy = new MaintainFacilityBuilder();
+        copy.identifier_ = this.identifier_;
+        copy.name_ = this.name_;
+        copy.description_ = this.description_;
+        copy.address_ = new HashMap<>(this.address_);
+        // Deep copy telecom list
+        for (Map<String,String> telecom : this.telecomList_) {
+            copy.telecomList_.add(new HashMap<>(telecom));
+        }
+        // Deep copy notes
+        for (Map<String,String> note : this.noteList_) {
+            copy.noteList_.add(new HashMap<>(note));
+        }
+        // orgRelationshipList_ intentionally left empty
+        copy.ceaseRelationships_ = false; // explicit
+        return copy;
     }
 }

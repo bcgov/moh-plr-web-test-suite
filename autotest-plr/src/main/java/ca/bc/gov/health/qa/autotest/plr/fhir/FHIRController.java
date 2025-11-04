@@ -121,6 +121,23 @@ public class FHIRController implements AutoCloseable {
 
     //TODO: ceaseFacility(MaintainFacilityBuilder facility)
 
+    /**
+     * Ceases all organization relationships currently configured on the provided facility builder.
+     * The builder is submitted and its identifier updated with the returned IFC id.
+     * @param facility existing facility builder whose relationships should be ceased
+     * @return same builder instance (for fluent chaining)
+     */
+    public MaintainFacilityBuilder ceaseFacilityRelationships(MaintainFacilityBuilder facility) {
+        facility.ceaseOrganizationRelationships();
+        String id = executor.submitMaintain(facility);
+        LOG.info("Ceased facility relationships (facilityId={}).", id);
+        facility.identifier(id);
+        // Return a copy without organization relationships to reflect post‑cease state.
+        // TODO: When more cease/correction operations emerge, introduce a FacilityMutatorConfig parameter
+        //       to make this method delegate to a generic maintain+mutate pipeline
+        return facility.copyWithoutOrgRelationships();
+    }
+
     //TODO: ceaseFacility(IdentifierType identifier)
 
     //TODO: ceaseOrganization(MaintainOrgBuilder org)
