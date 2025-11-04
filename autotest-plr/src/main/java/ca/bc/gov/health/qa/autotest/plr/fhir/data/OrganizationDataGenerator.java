@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data;
 
 import java.util.List;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
 
 /**
@@ -70,6 +71,14 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
      */
     public HdsType randomHdsType() {
         return pick(HDS_TYPES);
+    }
+
+    /**
+     * Returns a randomly selected {@link OrgRoleType} value.
+     * @return randomly chosen OrgRoleType
+     */
+    public OrgRoleType randomOrgRoleType() {
+        return pick(List.of(OrgRoleType.values()));
     }
 
 

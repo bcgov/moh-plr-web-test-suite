@@ -88,7 +88,8 @@ public class FHIRController implements AutoCloseable {
         // If relationshipCount > 0 create that many organizations first and attach relationships
         for (int i = 0; i < relCount; i++) {
             //Create an organization and save the identifier
-            String orgIPCId = createOrganization(OrgRoleType.HDS).getIdentifier();
+            OrgRoleType roleType = OrganizationDataGenerator.getInstance().randomOrgRoleType();
+            String orgIPCId = createOrganization(roleType).getIdentifier();
             builder.addOrganizationRelationship(IdentifierType.IPC, orgIPCId);
             //LOG.info("Created organization {} for facility relationship (id={})", i + 1, orgIPCId);
         }
