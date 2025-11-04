@@ -4,9 +4,6 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
-import org.openqa.selenium.By;
-
-import javax.swing.text.View;
 
 /**
  * Actions class for the View Facility page/functions

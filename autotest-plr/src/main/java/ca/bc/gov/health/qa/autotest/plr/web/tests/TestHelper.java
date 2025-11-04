@@ -4,6 +4,9 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 
@@ -44,6 +47,25 @@ public final class TestHelper {
         searchFacility.waitForReady();
 
         return searchFacility;
+    }
+
+    /**
+     * Navigate to the "Search Provider" page
+     *
+     * @param workflowManager   the workflow manager from the test class
+     * @param userType          the UserType to log in as and navigate to the Search Provider Page with
+     * @return                  a SearchProviderPage reference to the workflow's search provider page component
+     */
+    public static SearchProviderPage navigateToSearchProviderPage(
+            PlrWebWorkflowManager workflowManager, UserType userType)
+    {
+        PlrWebWorkflow workflow = logIn(workflowManager, userType);
+        SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
+
+        // System displays Search by Facility page correctly
+        searchProvider.waitForReady();
+
+        return searchProvider;
     }
 
     /**
@@ -108,5 +130,38 @@ public final class TestHelper {
         searchByIdentifier(searchFacility, List.of("IFC", identifier), false);
 
         return workflow.getSearchFacilityActions().openSearchResults(0);
+    }
+
+    /**
+     * Searches by Identifier in the Search Provider page.
+     *
+     * @param searchProvider    the search provider page reference
+     * @param queryFields       a list of strings of query details to fill fields with.
+     *                          Index 0: Identifier Type
+     *                          Index 1: Provider ID
+     * @return                  a SearchProviderResultsFragment reference to the search results of the identifier query
+     */
+    public static SearchProviderResultsFragment searchProviderByIdentifier(
+            SearchProviderPage searchProvider, List<String> queryFields)
+    {
+        return searchProvider.searchByIdentifier(queryFields.getFirst(), queryFields.get(1));
+    }
+
+    /**
+     * Navigates to a provider page by its identifier.
+     *
+     * @param workflowManager   the workflow manager from the test class
+     * @param queryFields       the identifier fields (identifier type, then provider ID) to input into search
+     * @param userType          the user type to login to PLR as
+     * @return                  a ViewProviderPage reference to the provider page
+     */
+    public static ViewProviderPage viewProviderByIdentifier(
+            PlrWebWorkflowManager workflowManager, List<String> queryFields, UserType userType)
+    {
+        PlrWebWorkflow workflow = workflowManager.selectWorkflow(userType);
+        SearchProviderPage searchProvider = navigateToSearchProviderPage(workflowManager, userType);
+        searchProviderByIdentifier(searchProvider, queryFields);
+
+        return workflow.getSearchProviderActions().openSearchResults(0);
     }
 }

@@ -147,11 +147,14 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-008. View Facility Details Screen - Organization Relationships Block
     public void testOrgRelationshipBlock()
     {
+        // TODO: Clarify - are organizations meant to be sorted by name? They currently are not
         ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
                 "IFC.00000061.BC.PRS", UserType.ADMIN);
 
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) > 1,
                 "Facility unexpectedly has only one or no organization relationships");
+
+        List<String> relationshipIdentifiers = new ArrayList<>();
 
         for (int index = 0; index < viewFacility.grabDataBlockCount(
                 FacilitySection.ORGANIZATION_RELATIONSHIPS); index++)
@@ -160,14 +163,25 @@ public class ViewFacilityComplexTests implements SimpleTest {
                     FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Relationship Identifier");
             assertFalse(relationshipIdentifier.isEmpty(),
                     "Organization Relationship block " + index + " is missing identifier");
+            relationshipIdentifiers.add(relationshipIdentifier);
         }
+
+        Collections.sort(relationshipIdentifiers);
+        LOG.info(relationshipIdentifiers);
     }
 
     @Test
     // F2-010. UI Display Providers Related To Facility
     public void testUIDisplayProviders()
     {
-        String facIdentifier = "IFC.0000061.BC.PRS";
+        // TODO: modify for both organization and provider
+        /*
+        Source Provider Org Name       (provider org name / provider name)
+        Source Relationship Type                                        (that it is a facility relationship for source (provider))
+        Target Relationship Type                                        (that it is a organization relationship for target (facility)
+        Source Provider Relationship Locations??                        (the locations for provider)
+         */
+        String facIdentifier = "IFC.00000061.BC.PRS";
         ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
                 facIdentifier, UserType.ADMIN);
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
@@ -180,6 +194,9 @@ public class ViewFacilityComplexTests implements SimpleTest {
                     facIdentifier, UserType.ADMIN);
             LinkedHashMap<String,String> orgRelMap = viewFacility.grabDataBlockContent(
                     FacilitySection.ORGANIZATION_RELATIONSHIPS, index);
+            String relIdentifier = viewFacility.grabDataBlockContent(
+                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Relationship Identifier");
+
 
             ViewProviderPage orgPage = workflow.getViewFacilityActions().transferToOrg(viewFacility, index);
 
@@ -188,18 +205,91 @@ public class ViewFacilityComplexTests implements SimpleTest {
                     ProviderSection.FACILITY_RELATIONSHIPS); facRelIndex++)
             {
                 facRelMap = orgPage.grabDataBlockContent(ProviderSection.FACILITY_RELATIONSHIPS, facRelIndex);
-                if (facRelMap.get("Related Facility Identifier").equals(facIdentifier)) break;
+                if (facRelMap.get("Relationship Identifier").equals(relIdentifier)) break;
             }
-            assertEquals(facRelMap.get("Related Facility Identifier"), facIdentifier,
-                    "Examined relationship has facility identifiers that do not match");
-
-            // TODO unsure if this is right is it possible for a provider to not have an IPC / common party number
-            String orgIdentifier = orgPage.grabDataBlockContent(ProviderSection.IDENTIFIERS, 1).get("Identifier");
-
             assertEquals(orgRelMap.get("Relationship Identifier"), facRelMap.get("Relationship Identifier"),
                     "Relationship Identifiers do not match between Organization/Facility");
+
+            int identifierIndex = 0;
+            String orgIdentifier;
+            do
+            {
+                orgIdentifier = orgPage.grabDataBlockContent(
+                        ProviderSection.IDENTIFIERS, identifierIndex).get("Identifier");
+                identifierIndex++;
+            } while (!orgIdentifier.contains("IPC"));
+
+            assertEquals(facRelMap.get("Related Facility Identifier"), facIdentifier,
+                    "Examined relationship has facility identifiers that do not match");
             assertEquals(orgRelMap.get("Related Organization Identifier"), orgIdentifier,
                     "Examined relationship has organization identifiers that do not match");
         }
+    }
+
+    @Test
+    // F2-012. Facility Relationship Summary Line
+    public void testFacilityRelationshipSummary()
+    {
+        // TODO: Clarify - is the facility name limit 255 characters? It seems to be 100 at the moment
+        // TODO: Current behavior will check 100 characters as normal (if possible)
+        List<String> providerDetails = Arrays.asList("IPC", "IPC.00083115.BC.PRS");
+        List<String> expectedFacInfo = Arrays.asList("Building", "AZ F009", "Location of (LOCATION)", "CPS");
+        ViewProviderPage viewProvider = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
+
+        LinkedHashMap<String,String> facRelMap = viewProvider.grabDataBlockContent(
+                ProviderSection.FACILITY_RELATIONSHIPS, 0);
+
+        assertEquals(facRelMap.get("Facility Type"), expectedFacInfo.get(0),
+                "Unexpected Facility Type for facility with name <100 characters.");
+        assertEquals(facRelMap.get("Related Facility Name"), expectedFacInfo.get(1),
+                "Unexpected Facility Name for facility with name <100 characters.");
+
+        assertTrue(facRelMap.get("Related Facility Name").length() < 100,
+                "Facility Name is the maximum length of 100 characters unexpectedly");
+
+        assertEquals(facRelMap.get("Relationship Type"), expectedFacInfo.get(2),
+                "Unexpected Relationship Type for facility with name <100 characters.");
+        assertEquals(facRelMap.get("Data Owner Code"), expectedFacInfo.get(3),
+                "Unexpected Facility Type for facility with name <100 characters.");
+
+        // TODO find facility with maximum length and relationships
+    }
+
+    @Test
+    // F2-013. Viewing a Related Provider
+    public void testViewRelatedProvider()
+    {
+        // TODO: Clarify - why is the name for related facility not updated / wrong?
+        List<String> orgRelDetails = Arrays.asList("RELN.74951.PRS", "AZ R0010", "IPC.00082972.BC.PRS", "CPS");
+        List<String> facRelDetails = Arrays.asList("IFC.00000081.BC.PRS", "ABCDEF");
+        ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
+                facRelDetails.getFirst(), UserType.ADMIN);
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+
+        LinkedHashMap<String,String> orgRelMap = viewFacility.grabDataBlockContent(
+                FacilitySection.ORGANIZATION_RELATIONSHIPS, 0);
+
+        assertEquals(orgRelMap.get("Relationship Identifier"), orgRelDetails.get(0),
+                "Relationship Identifier does not match expected result");
+        assertEquals(orgRelMap.get("Related Organization Name"), orgRelDetails.get(1),
+                "Organization Name does not match expected result");
+        assertEquals(orgRelMap.get("Related Organization Identifier"), orgRelDetails.get(2),
+                "Organization Identifier does not match expected result");
+        assertEquals(orgRelMap.get("Data Owner Code"), orgRelDetails.get(3),
+                "Data Owner Code does not match expected result");
+
+        ViewProviderPage orgPage = workflow.getViewFacilityActions().transferToOrg(viewFacility, 0);
+
+        LinkedHashMap<String,String> facRelMap = orgPage.grabDataBlockContent(
+                ProviderSection.FACILITY_RELATIONSHIPS, 0);
+
+        assertEquals(facRelMap.get("Relationship Identifier"), orgRelDetails.get(0),
+                "Relationship Identifier does not match result in facility page");
+        assertEquals(facRelMap.get("Related Facility Name"), facRelDetails.get(1),
+                "Facility Name does not match expected result");
+        assertEquals(facRelMap.get("Related Facility Identifier"), facRelDetails.get(0),
+                "Facility Identifier does not match expected result");
+        assertEquals(facRelMap.get("Data Owner Code"), orgRelDetails.get(3),
+                "Data Owner Code does not match expected result in facility page");
     }
 }

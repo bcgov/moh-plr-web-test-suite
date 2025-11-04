@@ -1,7 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
@@ -20,7 +19,6 @@ import java.util.regex.Pattern;
  */
 public class ViewFacilityPage extends BasicWebPage {
 
-    private static final Logger LOG = ExecutionLogManager.getLogger();
     private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
     private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile(" \\(.*\\)");
     private static final Pattern DATA_KEY_STAR_PATTERN = Pattern.compile("\\*$");
