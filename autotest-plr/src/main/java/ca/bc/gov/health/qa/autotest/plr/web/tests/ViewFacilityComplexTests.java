@@ -231,8 +231,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-012. Facility Relationship Summary Line
     public void testFacilityRelationshipSummary()
     {
-        // TODO: Clarify - is the facility name limit 255 characters? It seems to be 100 at the moment
-        // TODO: Current behavior will check 100 characters as normal (if possible)
+        // Non-Maximum Length Case
         List<String> providerDetails = Arrays.asList("IPC", "IPC.00083115.BC.PRS");
         List<String> expectedFacInfo = Arrays.asList("Building", "AZ F009", "Location of (LOCATION)", "CPS");
         ViewProviderPage viewProvider = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
@@ -253,7 +252,29 @@ public class ViewFacilityComplexTests implements SimpleTest {
         assertEquals(facRelMap.get("Data Owner Code"), expectedFacInfo.get(3),
                 "Unexpected Facility Type for facility with name <100 characters.");
 
-        // TODO find facility with maximum length and relationships
+        // Maximum Length case
+        providerDetails = Arrays.asList("IPC", "IPC.00082689A.BC.PRS");
+        expectedFacInfo = Arrays.asList("Building",
+                "maximumlengthaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "Located at (LOCATED)", "RNA");
+
+        viewProvider = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
+
+        facRelMap = viewProvider.grabDataBlockContent(
+                ProviderSection.FACILITY_RELATIONSHIPS, 0);
+
+        assertEquals(facRelMap.get("Facility Type"), expectedFacInfo.get(0),
+                "Unexpected Facility Type for facility with name 100 characters.");
+        assertEquals(facRelMap.get("Related Facility Name"), expectedFacInfo.get(1),
+                "Unexpected Facility Name for facility with name 100 characters.");
+
+        assertEquals(facRelMap.get("Related Facility Name").length(), 100,
+                "Length of Facility Name is not the maximum of 100 characters.");
+
+        assertEquals(facRelMap.get("Relationship Type"), expectedFacInfo.get(2),
+                "Unexpected Relationship Type for facility with name <100 characters");
+        assertEquals(facRelMap.get("Data Owner Code"), expectedFacInfo.get(3),
+                "Unexpected Facility Type for facility with name <100 characters");
     }
 
     @Test
