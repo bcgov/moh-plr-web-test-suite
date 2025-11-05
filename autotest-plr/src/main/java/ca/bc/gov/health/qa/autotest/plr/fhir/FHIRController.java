@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir;
 
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.actions.FHIRSession;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityDataGenerator;
@@ -11,6 +12,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
@@ -148,6 +150,19 @@ public class FHIRController implements AutoCloseable {
     //TODO: ceasePractitioner(MaintainPracBuilder prac)
 
     //TODO: ceasePractitioner(IdentifierType identifier)
+
+    public void queryFacilityByIdentifier(IdentifierType idType, String idValue) {
+
+        JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.FACILITY, idType, idValue);
+        LOG.info("Facility query result={}", response);
+
+    }
+
+    public void queryOrganizationByIdentifier(IdentifierType idType, String idValue) {
+
+        JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.ORGANIZATION, idType, idValue);
+        LOG.info("Organization query result={}", response);
+    }
 
     @Override
     public void close() {
