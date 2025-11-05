@@ -13,6 +13,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.FacilityQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
@@ -151,11 +152,12 @@ public class FHIRController implements AutoCloseable {
 
     //TODO: ceasePractitioner(IdentifierType identifier)
 
-    public void queryFacilityByIdentifier(IdentifierType idType, String idValue) {
+    public MaintainFacilityBuilder queryFacilityByIdentifier(IdentifierType idType, String idValue) {
 
         JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.FACILITY, idType, idValue);
         LOG.info("Facility query result={}", response);
 
+        return FacilityQueryResponseMapper.fromQueryBundle(response);
     }
 
     public void queryOrganizationByIdentifier(IdentifierType idType, String idValue) {
