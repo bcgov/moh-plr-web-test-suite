@@ -10,6 +10,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.logging.log4j.Logger;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -26,6 +27,12 @@ public class ViewFacilityComplexTests implements SimpleTest {
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
     public ViewFacilityComplexTests() {}
+
+    @AfterClass
+    public void teardown() {
+        workflowManager_.logoutAllAndClose();
+        LOG.info("Done.");
+    }
 
     @BeforeMethod
     public void before(Object[] parameters)
