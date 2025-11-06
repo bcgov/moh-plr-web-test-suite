@@ -279,6 +279,9 @@ public class ViewFacilityComplexTests implements SimpleTest {
                 "maximumlengthaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 "Located at (LOCATED)", "RNA");
 
+        final List<String> facRelFields = Arrays.asList("Facility Type", "Related Facility Name",
+                "Relationship Type", "Data Owner Code");
+
         // Non-Maximum Length Case
         List<String> providerDetails = nonMaxProviderDetails;
         List<String> expectedFacInfo = nonMaxProviderInfo;
@@ -287,16 +290,16 @@ public class ViewFacilityComplexTests implements SimpleTest {
         LinkedHashMap<String,String> facRelMap = viewProvider.grabDataBlockContent(
                 ProviderSection.FACILITY_RELATIONSHIPS, 0);
 
-        assertEquals(facRelMap.get("Facility Type"), expectedFacInfo.get(0),
-                "Unexpected Facility Type for facility with name <100 characters.");
-        assertEquals(facRelMap.get("Related Facility Name"), expectedFacInfo.get(1),
-                "Unexpected Facility Name for facility with name <100 characters.");
         assertTrue(facRelMap.get("Related Facility Name").length() < 100,
                 "Facility Name is the maximum length of 100 characters unexpectedly");
-        assertEquals(facRelMap.get("Relationship Type"), expectedFacInfo.get(2),
-                "Unexpected Relationship Type for facility with name <100 characters.");
-        assertEquals(facRelMap.get("Data Owner Code"), expectedFacInfo.get(3),
-                "Unexpected Facility Type for facility with name <100 characters.");
+
+        int facFieldIndex = 0;
+        for (String facField : facRelFields)
+        {
+            assertEquals(facRelMap.get(facField), expectedFacInfo.get(facFieldIndex),
+                    "Unexpected " + facField + " for facility with name <100 characters.");
+            facFieldIndex++;
+        }
 
         // Maximum Length case
         providerDetails = maxProviderDetails;
@@ -307,15 +310,15 @@ public class ViewFacilityComplexTests implements SimpleTest {
         facRelMap = viewProvider.grabDataBlockContent(
                 ProviderSection.FACILITY_RELATIONSHIPS, 0);
 
-        assertEquals(facRelMap.get("Facility Type"), expectedFacInfo.get(0),
-                "Unexpected Facility Type for facility with name 100 characters.");
-        assertEquals(facRelMap.get("Related Facility Name"), expectedFacInfo.get(1),
-                "Unexpected Facility Name for facility with name 100 characters.");
         assertEquals(facRelMap.get("Related Facility Name").length(), 100,
                 "Length of Facility Name is not the maximum of 100 characters.");
-        assertEquals(facRelMap.get("Relationship Type"), expectedFacInfo.get(2),
-                "Unexpected Relationship Type for facility with name <100 characters");
-        assertEquals(facRelMap.get("Data Owner Code"), expectedFacInfo.get(3),
-                "Unexpected Facility Type for facility with name <100 characters");
+
+        facFieldIndex = 0;
+        for (String facField : facRelFields)
+        {
+            assertEquals(facRelMap.get(facField), expectedFacInfo.get(facFieldIndex),
+                    "Unexpected " + facField + " for facility with name 100 characters.");
+            facFieldIndex++;
+        }
     }
 }
