@@ -1,10 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -289,13 +287,13 @@ public class ViewFacilityPage extends BasicWebPage {
             if (dataColumnCount == 2) addFieldDataMap(dataMap, dataEntryList, 0);
             else
             {
-                List<WebElement> extraFields = dataEntryList.get(0).findElements(tableSelect);
+                List<WebElement> extraFields = dataEntryList.getFirst().findElements(tableSelect);
                 switch (dataColumnCount)
                 {
                     case 4:
-                        dataMap.put(formatDataKey(extraFields.get(0).findElement(
+                        dataMap.put(formatDataKey(extraFields.getFirst().findElement(
                                 By.cssSelector("div.frmDialogLbl > label")).getText()),
-                                extraFields.get(0).findElement(
+                                extraFields.getFirst().findElement(
                                         By.cssSelector("div[role] > label")).getText());
                         addFieldDataMap(dataMap, extraFields, 1);
                         break;
