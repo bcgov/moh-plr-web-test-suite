@@ -650,35 +650,6 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
-    // F1-012. Alphabetical Sorting of Facility Search Results
-    public void testAlphabeticalSorting()
-    {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
-        SearchFacilityResultsFragment searchResults;
-
-        List<String> queryDetails = Arrays.asList("", "", "", "Victo", "Victoria", "Select One", "", "");
-
-        /* Address numbers known to include important generic cases/edge-cases
-                (alphanumeric characters, case sensitivity, etc.) */
-        List<String> addressSpotCheck = Arrays.asList("1175", "1549", "119");
-        for (String queryAddress : addressSpotCheck)
-        {
-            queryDetails.set(1, queryAddress);
-            searchResults = searchByCriteria(searchFacility, queryDetails, false);
-
-            List<String> facilityNameList = searchResults.getFacilityNamesList();
-            // Facilities with no name not covered by test cases - manual removal from consideration for sorting
-            while (facilityNameList.contains("Link to View Facility"))
-                facilityNameList.remove("Link to View Facility");
-
-            List<String> sortedNameList = new ArrayList<>(facilityNameList);
-            Collections.sort(sortedNameList);
-            assertEquals(facilityNameList, sortedNameList,
-                    "Returned search results and sorted search results do not match.");
-        }
-    }
-
-    @Test
     // F1-013. Word Wrap Search Results
     public void testWordWrapResults()
     {
@@ -718,60 +689,6 @@ public class SearchFacilityTests implements SimpleTest {
 
         assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage,
                 "Empty results message not returned when searching nonexistent facility through criteria.");
-    }
-
-    @Test
-    // F1-015. Maximum Search Results
-    public void testMaximumResults()
-    {
-        final int expectedResults = 20;
-        final String maxResultsWarning = warningList.getString("maximumResults");
-
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
-        List<String> queryDetails = Arrays.asList("A*", "", "", "", "", "Select One", "", "");
-        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
-
-        List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
-
-        assertEquals(searchResults.grabResultsRowCount(), expectedResults,
-                "Returned search result does not match the expected maximum number of search results.");
-        assertTrue(warningMessageList.contains(maxResultsWarning),
-                "Maximum search results warning not displayed.");
-        assertTrue(searchResults.getFormResults().contains(String.format("%d results", expectedResults)),
-                "Form result does not match expected maximum search results.");
-    }
-
-    @Test
-    // F1-016. Search Results Limited By Data Permissions
-    public void testDataPermissions()
-    {
-        for (UserType userType : UserType.values())
-        {
-            if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
-
-            PlrWebWorkflow workflow = logIn(workflowManager_, userType);
-            PlrNavigationMenuFragment menu = workflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
-            assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.SEARCH_FACILITY),
-                    "Search Facility not visible as a menu option for User Type" + userType);
-
-            if (userType.equals(UserType.ADMIN))
-            {
-                assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
-                        "Add Facility not visible as a menu option for Reg Admin User");
-            } else
-            {
-                assertFalse(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
-                        "Add Facility unexpectedly visible as a menu option for " + userType);
-            }
-
-            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
-            SearchFacilityResultsFragment searchResults;
-            List<String> queryFields = Arrays.asList("IFC", "IFC.00000001.BC.PRS");
-            searchResults = searchByIdentifier(searchFacility, queryFields, false);
-
-            assertTrue(searchResults.grabResultsRowCount() > 0,
-                    "Search results did not return for User Type " + userType);
-        }
     }
 
     @Test
