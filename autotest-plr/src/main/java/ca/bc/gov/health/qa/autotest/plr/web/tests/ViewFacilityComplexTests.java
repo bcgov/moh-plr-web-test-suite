@@ -55,8 +55,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
                     dataBlocksSection, index);
             String telecomType = infoMap.get("Type");
             Matcher resultMatcher = BLOCK_TYPE_PATTERN.matcher(telecomType);
-            resultMatcher.find();
-            expectedTypes.add(resultMatcher.group(1));
+            if (resultMatcher.find()) expectedTypes.add(resultMatcher.group(1));
         }
         Collections.sort(dataBlockTypes);
         return dataBlockTypes;
@@ -234,6 +233,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
                 if (facRelMap.get("Relationship Identifier").equals(relIdentifier)) break;
             }
 
+            assertNotNull(facRelMap);
             assertEquals(orgRelMap.get("Relationship Identifier"), facRelMap.get("Relationship Identifier"),
                     "Relationship Identifiers do not match between Organization/Facility");
             assertEquals(orgRelMap.get("Relationship Type"), locationMap.get(facRelMap.get("Relationship Type")),
