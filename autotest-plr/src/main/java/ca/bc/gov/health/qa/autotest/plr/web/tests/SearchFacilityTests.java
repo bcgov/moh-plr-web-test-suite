@@ -65,6 +65,22 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     /**
+     * Checks the Column Names of the table of search results
+     *
+     * @param searchResults     the SearchFacilityResultsFragment reference
+     */
+    private void checkColumns(SearchFacilityResultsFragment searchResults)
+    {
+        int index = 0;
+        for (String tableColumn : List.of("Facility Name", "Identifier", "Civic Address"))
+        {
+            assertTrue(searchResults.getTableColumns().get(index).contains(tableColumn),
+                    String.format("Table column %d is not %s", index, tableColumn));
+            index++;
+        }
+    }
+
+    /**
      * creates a map of wildcard queries - helper function for wildcard test case
      *
      * @param criteriaField     the string to be creating wildcard queries for
@@ -193,6 +209,10 @@ public class SearchFacilityTests implements SimpleTest {
     {
         final Pattern SEARCH_RESULTS_TIME_PATTERN = Pattern.compile("([0-9]+\\.[0-9]{3})");
 
+        final String identifierToCheck = "IFC.00000001.BC.PRS";
+        final List<String> criteriaToCheck = Arrays.asList(
+                "AZ F00123 & & (", "1175 DOUGLAS ST", "", "Vic", "Victoria", "Select One", "", "");
+
         for (UserType userType : UserType.values())
         {
             if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
@@ -209,54 +229,45 @@ public class SearchFacilityTests implements SimpleTest {
             assertFalse(searchFacility.grabCriteriaSectionExpanded(),
                     "Search by Criteria unexpectedly open by default");
 
+            String formSeconds = null;
+
             // Identifier Query
-            List<String> expectedData = Arrays.asList(
-                    "AZ F00123 & & (", "IFC.00000001.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
-            List<String> queryDetails = Arrays.asList("IFC", expectedData.get(1));
+            List<String> queryDetails = Arrays.asList("IFC", identifierToCheck);
             searchResults = searchByIdentifier(searchFacility, queryDetails, false);
             String formResults = searchResults.getFormResults();
             Matcher resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
-            resultMatcher.find();
+            if (resultMatcher.find()) formSeconds = resultMatcher.group();
 
             assertTrue(searchFacility.checkOrdering(),
                     "Table of search results is out of position (identifier/criteria search not above table)");
-            assertTrue(formResults.contains(String.format("%d result", 1)),
+            assertTrue(formResults.contains("1 result"),
                     "Form result does not contain number of results in table summary");
-            assertTrue(formResults.contains(String.format("(%s seconds)", resultMatcher.group())),
+            assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
                     "Form result does not contain time taken to retrieve results.");
 
-            assertTrue(searchResults.getTableColumns().getFirst().contains("Facility Name"),
-                    "Table's first column is not Facility Name");
-            assertTrue(searchResults.getTableColumns().get(1).contains("Identifier"),
-                    "Table's second column is not Facility Identifiers");
-            assertTrue(searchResults.getTableColumns().get(2).contains("Civic Address"),
-                    "Table's third column is not Civic Address");
+            checkColumns(searchResults);
 
+            // Criteria Query
             searchFacility.expandSearchCriteria(true);
             assertTrue(searchFacility.grabCriteriaSectionExpanded(),
                     "Search by Criteria failed to open");
             assertFalse(searchFacility.grabIdentifierSectionExpanded(),
                     "Search by Identifier unexpectedly remained open");
 
-            queryDetails = Arrays.asList("AZ F00123 & & (", "1175 DOUGLAS ST", "", "Vic", "Victoria", "Select One", "", "");
+            queryDetails = criteriaToCheck;
             searchResults = searchByCriteria(searchFacility, queryDetails, false);
             formResults = searchResults.getFormResults();
             resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
-            resultMatcher.find();
+            if (resultMatcher.find()) formSeconds = resultMatcher.group();
 
             assertTrue(searchFacility.checkOrdering(),
                     "Table of search results is out of position (identifier/criteria search not above table)");
-            assertTrue(formResults.contains(String.format("%d result", 1)),
+            assertTrue(formResults.contains("1 result"),
                     "Form result does not contain number of results in table summary");
-            assertTrue(formResults.contains(String.format("(%s seconds)", resultMatcher.group())),
+            assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
                     "Form result does not contain time taken to retrieve results.");
 
-            assertTrue(searchResults.getTableColumns().getFirst().contains("Facility Name"),
-                    "Table's first column is not Facility Name");
-            assertTrue(searchResults.getTableColumns().get(1).contains("Identifier"),
-                    "Table's second column is not Facility Identifiers");
-            assertTrue(searchResults.getTableColumns().get(2).contains("Civic Address"),
-                    "Table's third column is not Civic Address");
+            checkColumns(searchResults);
         }
     }
 
