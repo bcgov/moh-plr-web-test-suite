@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -25,7 +24,7 @@ import org.testng.annotations.Test;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
 
-public class SearchFacilityTests implements SimpleTest {
+public class SearchFacilitySimpleTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private static final Config config_ = ConfigProvider.get().getConfig();
@@ -35,7 +34,7 @@ public class SearchFacilityTests implements SimpleTest {
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
-    public SearchFacilityTests() {
+    public SearchFacilitySimpleTests() {
         try
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");

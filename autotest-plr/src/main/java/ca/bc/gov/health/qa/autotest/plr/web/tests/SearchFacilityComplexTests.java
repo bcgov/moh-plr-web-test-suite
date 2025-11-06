@@ -29,7 +29,6 @@ public class SearchFacilityComplexTests implements SimpleTest {
 
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
-    private static JSONObject errorList;
     private static JSONObject warningList;
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
@@ -37,7 +36,6 @@ public class SearchFacilityComplexTests implements SimpleTest {
     public SearchFacilityComplexTests() {
         try
         {
-            errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
             warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
         }
         catch (IOException e)
