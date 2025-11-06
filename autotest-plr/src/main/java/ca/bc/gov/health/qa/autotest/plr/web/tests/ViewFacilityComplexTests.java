@@ -34,11 +34,64 @@ public class ViewFacilityComplexTests implements SimpleTest {
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
     }
 
+    /**
+     * Helper function to get and sort all types of data blocks for telecommunications and electronic address sections
+     *
+     * @param viewFacility          the view facility page reference
+     * @param dataBlocksSection     the facility section to get data blocks from
+     *                              (expects TELECOMMUNICATIONS or ELECTRONIC_ADDRESSES)
+     * @param expectedTypes         a sorted list of expected types of data blocks in the facility section
+     * @return                      a sorted list of the actual types of data blocks in the facility section
+     */
+    private List<String> getDataBlockTypes(ViewFacilityPage viewFacility, FacilitySection dataBlocksSection,
+                                           List<String> expectedTypes)
+    {
+        final Pattern BLOCK_TYPE_PATTERN = Pattern.compile("\\((.*)\\)");
+
+        List<String> dataBlockTypes = new ArrayList<>();
+        for (int index = 0; index < expectedTypes.size(); index++)
+        {
+            LinkedHashMap<String,String> infoMap = viewFacility.grabDataBlockContent(
+                    dataBlocksSection, index);
+            String telecomType = infoMap.get("Type");
+            Matcher resultMatcher = BLOCK_TYPE_PATTERN.matcher(telecomType);
+            resultMatcher.find();
+            expectedTypes.add(resultMatcher.group(1));
+        }
+        Collections.sort(dataBlockTypes);
+        return dataBlockTypes;
+    }
+
+    /**
+     * Helper function to check the existence of identifiers for each data block in a facility section
+     *
+     * @param viewFacility          the view facility page reference
+     * @param dataBlocksSection     the facility section to get data blocks from
+     * @param identifierField       the name of the identifier field within data blocks
+     */
+    private void checkDataBlockIdentifiers(ViewFacilityPage viewFacility, FacilitySection dataBlocksSection,
+                                           String identifierField)
+    {
+        for (int dataBlockIndex = 0;
+             dataBlockIndex < viewFacility.grabDataBlockCount(dataBlocksSection); dataBlockIndex++)
+        {
+            String dataIdentifier = viewFacility.grabDataBlockContent(
+                    dataBlocksSection, dataBlockIndex).get(identifierField);
+
+            assertFalse(dataIdentifier.isEmpty(),
+                    dataBlocksSection.getTitle() + " block " + dataBlockIndex + " is missing identifier");
+        }
+    }
+
     @Test
     // F2-002. Validate Facility Data Block Multiplicity
     public void testValidateBlockMultiplicity()
     {
-        final Pattern BLOCK_TYPE_PATTERN = Pattern.compile("\\((.*)\\)");
+        final List<String> expectedTelecomTypes = Arrays.asList("FAX", "M", "MB", "PG", "T");
+        final List<String> expectedEAddressTypes = Arrays.asList("E", "F", "H");
+
+        Collections.sort(expectedTelecomTypes);
+        Collections.sort(expectedEAddressTypes);
 
         ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
                 "IFC.00006365.BC.PRS", UserType.ADMIN);
@@ -53,48 +106,26 @@ public class ViewFacilityComplexTests implements SimpleTest {
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) > 1,
                 "Facility unexpectedly has less than 2 notes");
 
-        // telecommunication / e-address verification
-        List<String> expectedTelecomTypes = Arrays.asList("FAX", "M", "MB", "PG", "T");
         assertEquals(viewFacility.grabDataBlockCount(FacilitySection.TELECOMMUNICATIONS), expectedTelecomTypes.size(),
                 "Facility has an unexpected amount of telecommunications records");
 
-        List<String> telecomTypes = new ArrayList<>();
-        for (int index = 0; index < 5; index++)
-        {
-            LinkedHashMap<String,String> infoMap = viewFacility.grabDataBlockContent(
-                    FacilitySection.TELECOMMUNICATIONS, index);
-            String telecomType = infoMap.get("Type");
-            Matcher resultMatcher = BLOCK_TYPE_PATTERN.matcher(telecomType);
-            resultMatcher.find();
-            telecomTypes.add(resultMatcher.group(1));
-        }
-        Collections.sort(telecomTypes);
+        List<String> telecomTypes = getDataBlockTypes(viewFacility,
+                FacilitySection.TELECOMMUNICATIONS, expectedTelecomTypes);
 
         assertEquals(telecomTypes, expectedTelecomTypes,
                 "Facility is missing expected telecommunications record types");
 
-        List<String> expectedEAddressTypes = Arrays.asList("E", "F", "H");
         assertEquals(viewFacility.grabDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES), expectedEAddressTypes.size(),
                 "Facility has an unexpected amount of electronic address records");
 
-        List<String> eAddressTypes = new ArrayList<>();
-        for (int index = 0; index < 3; index++)
-        {
-            LinkedHashMap<String,String> infoMap = viewFacility.grabDataBlockContent(
-                    FacilitySection.ELECTRONIC_ADDRESSES, index);
-            String eAddressType = infoMap.get("Type");
-            Matcher resultMatcher = BLOCK_TYPE_PATTERN.matcher(eAddressType);
-            resultMatcher.find();
-            eAddressTypes.add(resultMatcher.group(1));
-        }
-        Collections.sort(eAddressTypes);
+        List<String> eAddressTypes = getDataBlockTypes(viewFacility,
+                FacilitySection.ELECTRONIC_ADDRESSES, expectedEAddressTypes);
 
         assertEquals(eAddressTypes, expectedEAddressTypes,
                 "Facility is missing expected electronic address record types");
 
         assertEquals(viewFacility.grabDataBlockCount(FacilitySection.CIVIC_ADDRESSES), 1,
                 "Facility unexpectedly has more than 1 civic address data block");
-
         assertEquals(viewFacility.grabCivicAddressBlockContent().get("Province / State"),
                 "BC - British Columbia", "Civic Address is not located in British Columbia");
 
@@ -106,62 +137,59 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-007. Limiting Number of Records For View Facility Details Screen
     public void testLimitNumberRecords()
     {
+        final String lowNoteCountIdentifier = "IFC.00000001.BC.PRS";
+        final String highNoteCountIdentifier = "IFC.00006365.BC.PRS";
+        final String highOrgRelCountIdentifier = "IFC.00006365.BC.PRS";
+
         ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
-                "IFC.00000001.BC.PRS", UserType.ADMIN);
+                lowNoteCountIdentifier, UserType.ADMIN);
 
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) < 50,
                 "Facility unexpectedly has 50 or more notes");
 
-        for (int index = 0; index < viewFacility.grabDataBlockCount(FacilitySection.NOTES); index++)
-        {
-            String noteIdentifier = viewFacility.grabDataBlockContent(
-                    FacilitySection.NOTES, index).get("Note Identifier");
-            assertFalse(noteIdentifier.isEmpty(), "Note block " + index + " is missing identifier");
-        }
+        checkDataBlockIdentifiers(viewFacility, FacilitySection.NOTES, "Note Identifier");
 
         viewFacility = viewFacilityByIdentifier(workflowManager_,
-                "IFC.00006365.BC.PRS", UserType.ADMIN);
+                highNoteCountIdentifier, UserType.ADMIN);
 
-        for (int index = 0; index < viewFacility.grabDataBlockCount(FacilitySection.NOTES); index++)
-        {
-            String noteIdentifier = viewFacility.grabDataBlockContent(
-                    FacilitySection.NOTES, index).get("Note Identifier");
-            assertFalse(noteIdentifier.isEmpty(),
-                    "Note block " + index + " is missing identifier");
-        }
+        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) >= 50,
+                "Facility unexpectedly has less than 50 notes");
+
+        checkDataBlockIdentifiers(viewFacility, FacilitySection.NOTES, "Note Identifier");
+
+        viewFacility = viewFacilityByIdentifier(workflowManager_,
+                highOrgRelCountIdentifier, UserType.ADMIN);
 
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) >= 50,
                 "Facility unexpectedly has less than 50 organization relationships");
 
-        for (int index = 0; index < viewFacility.grabDataBlockCount(
-                FacilitySection.ORGANIZATION_RELATIONSHIPS); index++)
-        {
-            String relationshipIdentifier = viewFacility.grabDataBlockContent(
-                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Relationship Identifier");
-            assertFalse(relationshipIdentifier.isEmpty(),
-                    "Organization Relationship block " + index + " is missing identifier");
-        }
+        checkDataBlockIdentifiers(viewFacility,
+                FacilitySection.ORGANIZATION_RELATIONSHIPS, "Relationship Identifier");
     }
 
     @Test
     // F2-008. View Facility Details Screen - Organization Relationships Block
     public void testOrgRelationshipBlock()
     {
+        final String identifierToCheck = "IFC.00000061.BC.PRS";
+
         ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
-                "IFC.00000061.BC.PRS", UserType.ADMIN);
+                identifierToCheck, UserType.ADMIN);
 
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) > 1,
                 "Facility unexpectedly has only one or no organization relationships");
 
         List<String> orgIdentifiers = new ArrayList<>();
 
-        for (int index = 0; index < viewFacility.grabDataBlockCount(
-                FacilitySection.ORGANIZATION_RELATIONSHIPS); index++)
+        for (int dataBlockIndex = 0; dataBlockIndex < viewFacility.grabDataBlockCount(
+                FacilitySection.ORGANIZATION_RELATIONSHIPS); dataBlockIndex++)
         {
             String orgIdentifier = viewFacility.grabDataBlockContent(
-                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Related Organization Identifier");
+                    FacilitySection.ORGANIZATION_RELATIONSHIPS, dataBlockIndex).get("Related Organization Identifier");
+
             assertFalse(orgIdentifier.isEmpty(),
-                    "Organization Relationship block " + index + " is missing Organization Identifier");
+                    "Organization Relationship block " + dataBlockIndex + " is missing Organization Identifier");
+
             orgIdentifiers.add(orgIdentifier);
         }
         List<String> sortedOrgIdentifiers = new ArrayList<>(orgIdentifiers);
@@ -175,13 +203,9 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-010. UI Display Providers Related To Facility
     public void testUIDisplayProviders()
     {
-        // TODO: modify for both organization and provider
-        /*
-        Source Provider Org Name       (provider org name / provider name)
-        Source Relationship Type                                        (that it is a facility relationship for source (provider))
-        Target Relationship Type                                        (that it is a organization relationship for target (facility)
-        Source Provider Relationship Locations??                        (the locations for provider)
-         */
+        Map<String,String> locationMap = Map.of("Located at (LOCATED)", "Location of (LOCATION)",
+                "Location of (LOCATION)", "Located at (LOCATED)");
+
         String facIdentifier = "IFC.00000061.BC.PRS";
         ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
                 facIdentifier, UserType.ADMIN);
@@ -189,27 +213,33 @@ public class ViewFacilityComplexTests implements SimpleTest {
 
         int orgRelationshipCount = viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
-        for (int index = 0; index < orgRelationshipCount; index++)
+        for (int orgRelIndex = 0; orgRelIndex < orgRelationshipCount; orgRelIndex++)
         {
             viewFacility = viewFacilityByIdentifier(workflowManager_,
                     facIdentifier, UserType.ADMIN);
             LinkedHashMap<String,String> orgRelMap = viewFacility.grabDataBlockContent(
-                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index);
-            String relIdentifier = viewFacility.grabDataBlockContent(
-                    FacilitySection.ORGANIZATION_RELATIONSHIPS, index).get("Relationship Identifier");
+                    FacilitySection.ORGANIZATION_RELATIONSHIPS, orgRelIndex);
+            LinkedHashMap<String,String> facNameMap = viewFacility.grabDataBlockContent(FacilitySection.NAMES, 0);
 
-
-            ViewProviderPage orgPage = workflow.getViewFacilityActions().transferToOrg(viewFacility, index);
+            ViewProviderPage orgPage = workflow.getViewFacilityActions().transferToOrg(viewFacility, orgRelIndex);
+            LinkedHashMap<String,String> orgNameMap = null;
+            String relIdentifier = orgRelMap.get("Relationship Identifier");
 
             LinkedHashMap<String,String> facRelMap = null;
             for (int facRelIndex = 0; facRelIndex < orgPage.grabDataBlockCount(
                     ProviderSection.FACILITY_RELATIONSHIPS); facRelIndex++)
             {
                 facRelMap = orgPage.grabDataBlockContent(ProviderSection.FACILITY_RELATIONSHIPS, facRelIndex);
+                orgNameMap = orgPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
                 if (facRelMap.get("Relationship Identifier").equals(relIdentifier)) break;
             }
+
             assertEquals(orgRelMap.get("Relationship Identifier"), facRelMap.get("Relationship Identifier"),
                     "Relationship Identifiers do not match between Organization/Facility");
+            assertEquals(orgRelMap.get("Relationship Type"), locationMap.get(facRelMap.get("Relationship Type")),
+                    "Provider Page Relationship Type is not reversed correctly");
+            assertEquals(facRelMap.get("Relationship Type"), locationMap.get(orgRelMap.get("Relationship Type")),
+                    "Facility Page Relationship Type is not reversed correctly");
 
             int identifierIndex = 0;
             String orgIdentifier;
@@ -224,6 +254,10 @@ public class ViewFacilityComplexTests implements SimpleTest {
                     "Examined relationship has facility identifiers that do not match");
             assertEquals(orgRelMap.get("Related Organization Identifier"), orgIdentifier,
                     "Examined relationship has organization identifiers that do not match");
+            assertEquals(orgRelMap.get("Related Organization Name"), orgNameMap.get("Name"),
+                    "Related Organization Name does not match on Organization Page");
+            assertEquals(facRelMap.get("Related Facility Name"), facNameMap.get("Name"),
+                    "Related Facility Name does not match on Facility Page");
         }
     }
 
@@ -231,9 +265,16 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-012. Facility Relationship Summary Line
     public void testFacilityRelationshipSummary()
     {
+        final List<String> nonMaxProviderDetails = Arrays.asList("IPC", "IPC.00083115.BC.PRS");
+        final List<String> nonMaxProviderInfo = Arrays.asList("Building", "AZ F009", "Location of (LOCATION)", "CPS");
+        final List<String> maxProviderDetails = Arrays.asList("IPC", "IPC.00082689A.BC.PRS");
+        final List<String> maxProviderInfo = Arrays.asList("Building",
+                "maximumlengthaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "Located at (LOCATED)", "RNA");
+
         // Non-Maximum Length Case
-        List<String> providerDetails = Arrays.asList("IPC", "IPC.00083115.BC.PRS");
-        List<String> expectedFacInfo = Arrays.asList("Building", "AZ F009", "Location of (LOCATION)", "CPS");
+        List<String> providerDetails = nonMaxProviderDetails;
+        List<String> expectedFacInfo = nonMaxProviderInfo;
         ViewProviderPage viewProvider = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
 
         LinkedHashMap<String,String> facRelMap = viewProvider.grabDataBlockContent(
@@ -243,20 +284,16 @@ public class ViewFacilityComplexTests implements SimpleTest {
                 "Unexpected Facility Type for facility with name <100 characters.");
         assertEquals(facRelMap.get("Related Facility Name"), expectedFacInfo.get(1),
                 "Unexpected Facility Name for facility with name <100 characters.");
-
         assertTrue(facRelMap.get("Related Facility Name").length() < 100,
                 "Facility Name is the maximum length of 100 characters unexpectedly");
-
         assertEquals(facRelMap.get("Relationship Type"), expectedFacInfo.get(2),
                 "Unexpected Relationship Type for facility with name <100 characters.");
         assertEquals(facRelMap.get("Data Owner Code"), expectedFacInfo.get(3),
                 "Unexpected Facility Type for facility with name <100 characters.");
 
         // Maximum Length case
-        providerDetails = Arrays.asList("IPC", "IPC.00082689A.BC.PRS");
-        expectedFacInfo = Arrays.asList("Building",
-                "maximumlengthaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                "Located at (LOCATED)", "RNA");
+        providerDetails = maxProviderDetails;
+        expectedFacInfo = maxProviderInfo;
 
         viewProvider = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
 
@@ -267,51 +304,11 @@ public class ViewFacilityComplexTests implements SimpleTest {
                 "Unexpected Facility Type for facility with name 100 characters.");
         assertEquals(facRelMap.get("Related Facility Name"), expectedFacInfo.get(1),
                 "Unexpected Facility Name for facility with name 100 characters.");
-
         assertEquals(facRelMap.get("Related Facility Name").length(), 100,
                 "Length of Facility Name is not the maximum of 100 characters.");
-
         assertEquals(facRelMap.get("Relationship Type"), expectedFacInfo.get(2),
                 "Unexpected Relationship Type for facility with name <100 characters");
         assertEquals(facRelMap.get("Data Owner Code"), expectedFacInfo.get(3),
                 "Unexpected Facility Type for facility with name <100 characters");
-    }
-
-    @Test
-    // F2-013. Viewing a Related Provider
-    public void testViewRelatedProvider()
-    {
-        // TODO: Clarify - why is the name for related facility not updated / wrong?
-        List<String> orgRelDetails = Arrays.asList("RELN.74951.PRS", "AZ R0010", "IPC.00082972.BC.PRS", "CPS");
-        List<String> facRelDetails = Arrays.asList("IFC.00000081.BC.PRS", "ABCDEF");
-        ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
-                facRelDetails.getFirst(), UserType.ADMIN);
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-
-        LinkedHashMap<String,String> orgRelMap = viewFacility.grabDataBlockContent(
-                FacilitySection.ORGANIZATION_RELATIONSHIPS, 0);
-
-        assertEquals(orgRelMap.get("Relationship Identifier"), orgRelDetails.get(0),
-                "Relationship Identifier does not match expected result");
-        assertEquals(orgRelMap.get("Related Organization Name"), orgRelDetails.get(1),
-                "Organization Name does not match expected result");
-        assertEquals(orgRelMap.get("Related Organization Identifier"), orgRelDetails.get(2),
-                "Organization Identifier does not match expected result");
-        assertEquals(orgRelMap.get("Data Owner Code"), orgRelDetails.get(3),
-                "Data Owner Code does not match expected result");
-
-        ViewProviderPage orgPage = workflow.getViewFacilityActions().transferToOrg(viewFacility, 0);
-
-        LinkedHashMap<String,String> facRelMap = orgPage.grabDataBlockContent(
-                ProviderSection.FACILITY_RELATIONSHIPS, 0);
-
-        assertEquals(facRelMap.get("Relationship Identifier"), orgRelDetails.get(0),
-                "Relationship Identifier does not match result in facility page");
-        assertEquals(facRelMap.get("Related Facility Name"), facRelDetails.get(1),
-                "Facility Name does not match expected result");
-        assertEquals(facRelMap.get("Related Facility Identifier"), facRelDetails.get(0),
-                "Facility Identifier does not match expected result");
-        assertEquals(facRelMap.get("Data Owner Code"), orgRelDetails.get(3),
-                "Data Owner Code does not match expected result in facility page");
     }
 }
