@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
@@ -66,6 +67,16 @@ public final class TestHelper {
         searchProvider.waitForReady();
 
         return searchProvider;
+    }
+
+    public static AddFacilityPage navigateToAddFacilityPage(PlrWebWorkflowManager workflowManager, UserType userType)
+    {
+        PlrWebWorkflow workflow = logIn(workflowManager, userType);
+        AddFacilityPage addFacility = workflow.getPlrWebAccessActions().openAddFacility();
+
+        addFacility.waitForReady();
+
+        return addFacility;
     }
 
     /**

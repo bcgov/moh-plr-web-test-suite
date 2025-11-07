@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions;
 
 import java.net.URI;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
 import org.apache.logging.log4j.Logger;
 
@@ -104,6 +105,12 @@ public class PlrWebAccessActions
         return waitForSearchFacilityPage();
     }
 
+    public AddFacilityPage openAddFacility()
+    {
+        waitForPlrNavigationMenuFragment().openItem(Item.ADD_FACILITY);
+        return waitForAddFacilityPage();
+    }
+
     public PlrNavigationMenuFragment waitForPlrNavigationMenuFragment()
     {
         PlrNavigationMenuFragment fragment = new PlrNavigationMenuFragment(selenium_);
@@ -123,5 +130,12 @@ public class PlrWebAccessActions
         SearchFacilityPage searchFacility = new SearchFacilityPage(selenium_);
         searchFacility.waitForReady();
         return searchFacility;
+    }
+
+    private AddFacilityPage waitForAddFacilityPage()
+    {
+        AddFacilityPage addFacility = new AddFacilityPage(selenium_);
+        addFacility.waitForReady();
+        return addFacility;
     }
 }
