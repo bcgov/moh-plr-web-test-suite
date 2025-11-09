@@ -15,6 +15,7 @@ import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.PlrWebAccessActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchProviderActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.BannerFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -148,6 +149,13 @@ implements AutoCloseable
     {
         return new ViewProviderActions(selenium_, uri_, userType_);
     }
+    
+    
+    public ViewFacilitySimpleActions getViewFacilitySimpleActions()
+    {
+        return new ViewFacilitySimpleActions(selenium_, uri_, userType_);
+    }
+
 
     /**
      * Determines whether the session is logged in

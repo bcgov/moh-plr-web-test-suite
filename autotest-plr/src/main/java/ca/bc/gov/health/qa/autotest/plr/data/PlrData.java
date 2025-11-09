@@ -113,6 +113,21 @@ public class PlrData
         }
         return provider;
     }
+    
+    public static JSONObject getFacility(String key) {
+    	JSONObject provider;
+        JSONObject providers = readProviderData(ProviderType.FACILITY);
+        if (providers.has(key))
+        {
+            provider = providers.getJSONObject(key);
+        }
+        else
+        {
+            String msg = String.format("Provider data not found (%s:%s).", ProviderType.FACILITY, key);
+            throw new IllegalStateException(msg);
+        }
+        return provider;
+    }
 
     private static String getCredentialValue(Map <String,String>credentialsMap, String key)
     {
@@ -126,6 +141,27 @@ public class PlrData
     }
 
     private static JSONObject readProviderData(ProviderType providerType)
+    {
+        String fileName = providerType.toString().toLowerCase(Locale.ROOT).replace("_", "-")
+                + "s-" + ENV_NAME + ".json";
+        if(ProviderType.FACILITY.equals(providerType))
+        	fileName = fileName.replace("facilitys","facilities");
+        Path filePath = PROVIDERS_DIR.resolve(fileName);
+        String data;
+        try
+        {
+            // TODO (AZ) - cache string data read
+            data  = Files.readString(filePath);
+        }
+        catch (IOException e)
+        {
+            String msg = String.format("Failed to read provider data (%s).", filePath);
+            throw new IllegalStateException(msg, e);
+        }
+
+        return new JSONObject(data);
+    }
+    private static JSONObject readFacilityData(ProviderType providerType)
     {
         String fileName = providerType.toString().toLowerCase(Locale.ROOT).replace("_", "-")
                 + "s-" + ENV_NAME + ".json";
