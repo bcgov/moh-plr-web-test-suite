@@ -219,7 +219,9 @@ public final class OrgQueryResponseMapper {
 					}
 				}
 			}
-			if (line1 != null && city != null && postal != null) {
+
+            // postalCode is not a required attribute and can be null.
+			if (line1 != null && city != null) {
 				b.addAddress(type, purpose, line1, city, postal);
 			}
 		}
