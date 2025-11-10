@@ -32,4 +32,12 @@ public enum OrgRoleType {
         return roleType_;
     }
 
+    public static OrgRoleType resolveRoleType(String code) {
+		if (code == null) return null;
+		for (OrgRoleType r : OrgRoleType.values()) {
+			if (r.getRoleType().equals(code)) return r;
+		}
+		return null;
+	}
+
 }

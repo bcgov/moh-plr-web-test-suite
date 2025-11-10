@@ -42,4 +42,12 @@ public enum HdsType {
      * TODO (AZ) - doc
      */
     OUTPATIENT;
+
+    public static HdsType resolveHdsType(String code) {
+		if (code == null) return null;
+		for (HdsType h : HdsType.values()) {
+			if (h.name().equalsIgnoreCase(code)) return h; // case-insensitive match
+		}
+		return null;
+	}
 }

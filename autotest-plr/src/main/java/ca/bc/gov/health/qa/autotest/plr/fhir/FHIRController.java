@@ -16,6 +16,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.FacilityQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.OrgQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
@@ -160,10 +161,12 @@ public class FHIRController implements AutoCloseable {
         return FacilityQueryResponseMapper.fromQueryBundle(response);
     }
 
-    public void queryOrganizationByIdentifier(IdentifierType idType, String idValue) {
+    public MaintainOrgBuilder queryOrganizationByIdentifier(IdentifierType idType, String idValue) {
 
         JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.ORGANIZATION, idType, idValue);
         LOG.info("Organization query result={}", response);
+
+        return OrgQueryResponseMapper.fromQueryBundle(response);
     }
 
     @Override

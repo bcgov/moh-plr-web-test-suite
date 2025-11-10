@@ -36,6 +36,8 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
     private HdsType                   hdsType_         = null;
     //TODO: ORG PROPERTIES
+    //TODO: O2I relationships
+    //TODO: 02F relationships
 
 
     /**
