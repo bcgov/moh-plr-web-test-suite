@@ -22,37 +22,25 @@ implements SimpleTest
 {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
-    private PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
-
     public FHIRSampleTest()
     {}
-
-    @AfterClass
-    public void teardown()
-    {
-        workflowManager_.logoutAllAndClose();
-        LOG.info("Done.");
-    }
-
-    @BeforeMethod
-    public void before(Object[] parameters)
-    {
-        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
-        if (!workflow.isLoggedIn())
-        {
-            workflow.login().openPlr();
-        }
-    }
 
     @Test
     public void test0()
     {
+
+        //Start Controller - Passed parameter will determine user role for FHIR calls. 
+        //To change user role, call fhirController.changeFHIRSession(UserType.<ROLE>).
         FHIRController fhirController = new FHIRController(UserType.ADMIN);
 
+        //Configuration to determine what data to include when creating a Facility with random values.
+        // Required attributes are included by default.
         FacilityMaintainConfig cfg = new FacilityMaintainConfig()
             //.withAddress()       added by default as is a required attribute
             //.withIdentifier()    added by default as is a required attribute
             //.withName()          added by default as is a required attribute
+            //.withAllTelecom()    convenience method to add all telecom types
+            //.withAllAttributes(int notes, int orgRelationships) convenience method to add all attributes
             .withPhone()
             .withEmail()
             .withFax()
@@ -62,35 +50,40 @@ implements SimpleTest
             .withPager()
             .withWebsite()
             .withDescription()
-            .withNotes(3)
-            .withOrgRelationships(3);
+            .withNotes(2)
+            .withOrgRelationships(2);
 
+        //Create Facility through FHIRController using the configuration above.
+        //Resulting MaintainFacilityBuilder contains the created facility data.
+        MaintainFacilityBuilder facility = fhirController.createFacility(cfg);
 
-        //MaintainFacilityBuilder facility2 = fhirController.createFacility(cfg);
+        LOG.info("Created facility id {}, name {}, address {}, description {}, telecoms {}, notes {}, relationships {}.", facility.getIdentifier(), facility.getName(), facility.getAddress().toString(), facility.getDescription(), facility.getTelecomList(), facility.getNoteList(), facility.getOrgRelationshipList());
 
+        //Query the created facility by its identifier. 
+        //Resulting MaintainFacilityBuilder contains the queried facility data.
+        MaintainFacilityBuilder queriedFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, facility.getIdentifier());
 
-        //LOG.info("Created facility id {}, name {}, address {}, description {}, telecoms {}, notes {}, relationships {}.", facility2.getIdentifier(), facility2.getName(), facility2.getAddress().toString(), facility2.getDescription(), facility2.getTelecomList(), facility2.getNoteList(), facility2.getOrgRelationshipList());
+        LOG.info("Queried facility id {}, name {}, address {}, description {}, telecoms {}, notes {}, relationships {}.", queriedFacility.getIdentifier(), queriedFacility.getName(), queriedFacility.getAddress().toString(), queriedFacility.getDescription(), queriedFacility.getTelecomList(), queriedFacility.getNoteList(), queriedFacility.getOrgRelationshipList());
 
-        //MaintainFacilityBuilder queriedFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, facility2.getIdentifier());
+        //Cease relationships for the facility by sending a FHIR request.
+        //Returns an updated MaintainFacilityBuilder with no organization relationships.
+        facility = fhirController.ceaseFacilityRelationships(facility);
 
-        //LOG.info("Queried facility id {}, name {}, address {}, description {}, telecoms {}, notes {}, relationships {}.", queriedFacility.getIdentifier(), queriedFacility.getName(), queriedFacility.getAddress().toString(), queriedFacility.getDescription(), queriedFacility.getTelecomList(), queriedFacility.getNoteList(), queriedFacility.getOrgRelationshipList());
+        LOG.info("Ceased facility relationships for facility id {}, name {}, address {}, description {}, telecoms {}, notes {}, relationships {}.", facility.getIdentifier(), facility.getName(), facility.getAddress().toString(), facility.getDescription(), facility.getTelecomList(), facility.getNoteList(), facility.getOrgRelationshipList());
 
-        //MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
+        //Create an organization with random data and specified role type.
+        //Note that the saved organization identifier is an IPC identifier.
+        MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
 
-        //fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier());
+        LOG.info("Created organization id {}, name {}.", org.getIdentifier(), org.getName());
 
-        //MaintainFacilityBuilder facility2noRelationships = fhirController.ceaseFacilityRelationships(facility2);
-        
-        //LOG.info("updated facility to not have relationships id {}, name {}, address {}.", facility2noRelationships.getIdentifier(), facility2noRelationships.getName(), facility2noRelationships.getAddress().toString());
-        
-        
-        //MaintainOrgBuilder orgBuilder = fhirController.createOrganization(OrgRoleType.HDS);
-        //LOG.info("Created organization id {}, name {}.", orgBuilder.getIdentifier(), orgBuilder.getName());
+        //Query an organization by its IPC identifier.
+        //Resulting MaintainOrgBuilder contains the queried organization data.
+        MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier());
 
-        
-        MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, "IPC.00123847.BC.PRS");
-        LOG.info("Queried organization id {}, RoleType {}, HDS Type {},  Status {}, Name {}, Alias {}, Address {}, telecoms {}, notes {}.", orgQueried.getIdentifier(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getName(), orgQueried.getAlias(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList());
+        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, address {}, telecoms {}, notes {}.", orgQueried.getIdentifier(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList());
 
+        //Close the FHIR session
         fhirController.close();
            
     }
