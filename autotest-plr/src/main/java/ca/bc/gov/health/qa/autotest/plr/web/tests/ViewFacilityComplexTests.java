@@ -62,7 +62,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
                     dataBlocksSection, index);
             String telecomType = infoMap.get("Type");
             Matcher resultMatcher = BLOCK_TYPE_PATTERN.matcher(telecomType);
-            if (resultMatcher.find()) expectedTypes.add(resultMatcher.group(1));
+            if (resultMatcher.find()) dataBlockTypes.add(resultMatcher.group(1));
         }
         Collections.sort(dataBlockTypes);
         return dataBlockTypes;
