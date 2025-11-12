@@ -16,13 +16,11 @@
 		"ifc": "IFC.00006375.BC.PRS",
 		"Organizations":[
 		{
-		"Related Organization Identifier":"",
-		"Relationship Identifier":"",
-		"Organization Name":""},
+		"Relationship Identifier":"RELN.82095.PRS",
+		"Organization Name":"AZ Test 001"},
 		{
-		"Related Organization Identifier":"",
-		"Relationship Identifier":"",
-		"Organization Name":""}
+		"Relationship Identifier":"RELN.82094.PRS",
+		"Organization Name":"orgnameabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij"}
 		]
 	},
 	"default-test": {
@@ -168,6 +166,7 @@
 				"Related Organization Identifier": "IPC.00123974.BC.PRS",
 				"Effective From": "2025-11-04",
 				"Effective To": "",
+				"End Reason": "",
 				"Data Source": "ebarrios@idir@00002855",
 				"DB Created": "2025-11-04",
 				"DB Expired": "",

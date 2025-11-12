@@ -22,12 +22,12 @@ public class ElectronicAddress {
 	
 	public String getTypeSummary() {
 		if(type==null)return type;
-		return type.split("(")[0].stripTrailing();
+		return type.split("\\(")[0].stripTrailing();
 	}
 
 	public String getPurposeSummary() {
 		if(purpose==null)return purpose;
-		return purpose.split("(")[0].stripTrailing();
+		return purpose.split("\\(")[0].stripTrailing();
 	}
 
 	public String getAddress() {
@@ -62,7 +62,7 @@ public class ElectronicAddress {
 		assertTrue(!jsonData.isNull("Purpose"));
 		this.purpose = jsonData.getString("Purpose");
 		assertTrue(!jsonData.isNull("Address"));
-		this.address = jsonData.getString(" Address");
+		this.address = jsonData.getString("Address");
 
 		if (!jsonData.isNull("Effective From"))
 			this.effectiveFrom = jsonData.getString("Effective From");

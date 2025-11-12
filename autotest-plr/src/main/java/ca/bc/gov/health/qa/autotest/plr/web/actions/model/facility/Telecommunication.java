@@ -25,11 +25,11 @@ public class Telecommunication {
 	
 	public String getTypeSummary() {
 		if(type==null)return type;
-		return type.split("(")[0].stripTrailing();
+		return type.split("\\(")[0].stripTrailing();
 	}
 	public String getPurposeSummary() {
 		if(purpose==null)return purpose;
-		return purpose.split("(")[0].stripTrailing();
+		return purpose.split("\\(")[0].stripTrailing();
 	}
 	public String getAreaCode() {
 		return areaCode;

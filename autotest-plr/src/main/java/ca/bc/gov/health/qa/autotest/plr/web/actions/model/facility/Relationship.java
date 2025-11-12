@@ -22,9 +22,15 @@ public class Relationship {
 	String dataOwnerCode;
 	
 	
+	public String getRelationshipIdentifier() {
+		return relationshipIdentifier;
+	}
+	public String getRelatedOrganizationIdentifier() {
+		return relatedOrganizationIdentifier;
+	}
 	public String getRelationshipTypeSummary() {
 		if(relationshipType==null)return relationshipType;
-		return relationshipType.split("(")[0].stripTrailing();
+		return relationshipType.split("\\(")[0].stripTrailing();
 		
 	}
 	public String getRelatedOrganizationName() {
@@ -85,10 +91,10 @@ public class Relationship {
 		this.relationshipIdentifier = jsonData.getString("Relationship Identifier");
 		assertTrue(!jsonData.isNull("Relationship Type"));
 		this.relationshipType = jsonData.getString("Relationship Type");
-		assertTrue(!jsonData.isNull("RelatedOrganization Name"));
-		this.relatedOrganizationName = jsonData.getString("RelatedOrganization Name");
-		assertTrue(!jsonData.isNull("RelatedOrganization Identifier"));
-		this.relatedOrganizationIdentifier = jsonData.getString("RelatedOrganization Identifier");
+		assertTrue(!jsonData.isNull("Related Organization Name"));
+		this.relatedOrganizationName = jsonData.getString("Related Organization Name");
+		assertTrue(!jsonData.isNull("Related Organization Identifier"));
+		this.relatedOrganizationIdentifier = jsonData.getString("Related Organization Identifier");
 		
 
 
@@ -117,10 +123,10 @@ public class Relationship {
 		this.relationshipIdentifier = map.get("Relationship Identifier");
 		assertNotNull(map.get("Relationship Type"));
 		this.relationshipType = map.get("Relationship Type");
-		assertNotNull(map.get("RelatedOrganization Name"));
-		this.relatedOrganizationName = map.get("RelatedOrganization Name");
-		assertNotNull(map.get("RelatedOrganization Identifier"));
-		this.relatedOrganizationIdentifier = map.get("RelatedOrganization Identifier");
+		assertNotNull(map.get("Related Organization Name"));
+		this.relatedOrganizationName = map.get("Related Organization Name");
+		assertNotNull(map.get("Related Organization Identifier"));
+		this.relatedOrganizationIdentifier = map.get("Related Organization Identifier");
 		
 		this.effectiveFrom = map.get("Effective From") == null ? null : map.get("Effective From");
 		this.effectiveTo = map.get("Effective To") == null ? null : map.get("Effective To");

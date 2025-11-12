@@ -6,9 +6,12 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -19,10 +22,13 @@ import org.json.JSONObject;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewMode;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilityDataFields;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderDataFields;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.core.util.text.TextUtils;
@@ -395,52 +401,103 @@ public class ViewFacilitySimpleActions {
 					&& result.containsKey("Data Source") && result.containsKey("DB Created")
 					&& result.containsKey("DB Expired") && result.containsKey("Data Owner Code"));
 		case FacilitySection.NAMES:
-			return (result.containsKey("Facility Type") && result.containsKey("Identifier")
-					&& result.containsKey("Identifier Type") && result.containsKey("Effective From")
-					&& result.containsKey("Effective To") && result.containsKey("End Reason")
-					&& result.containsKey("Data Source") && result.containsKey("DB Created")
-					&& result.containsKey("DB Expired") && result.containsKey("Data Owner Code"));
-			
+			return (result.containsKey("Name") && result.containsKey("Description")
+					&& result.containsKey("Effective From")	&& result.containsKey("Effective To")
+					&& result.containsKey("End Reason")	&& result.containsKey("Data Source")
+					&& result.containsKey("DB Created")	&& result.containsKey("DB Expired")
+					&& result.containsKey("Data Owner Code"));			
 		case FacilitySection.NOTES:
-			return (result.containsKey("Facility Type") && result.containsKey("Identifier")
-					&& result.containsKey("Identifier Type") && result.containsKey("Effective From")
-					&& result.containsKey("Effective To") && result.containsKey("End Reason")
-					&& result.containsKey("Data Source") && result.containsKey("DB Created")
-					&& result.containsKey("DB Expired") && result.containsKey("Data Owner Code"));
+			return (result.containsKey("Note Identifier") && result.containsKey("Note Text")
+					&& result.containsKey("Effective From")	&& result.containsKey("Effective To")
+					&& result.containsKey("End Reason")	&& result.containsKey("Data Source")
+					&& result.containsKey("DB Created")	&& result.containsKey("DB Expired")
+					&& result.containsKey("Data Owner Code"));
 		case FacilitySection.ELECTRONIC_ADDRESSES:
-			return (result.containsKey("Facility Type") && result.containsKey("Identifier")
-					&& result.containsKey("Identifier Type") && result.containsKey("Effective From")
-					&& result.containsKey("Effective To") && result.containsKey("End Reason")
-					&& result.containsKey("Data Source") && result.containsKey("DB Created")
-					&& result.containsKey("DB Expired") && result.containsKey("Data Owner Code"));
+			return (result.containsKey("Type") && result.containsKey("Purpose")
+					&& result.containsKey("Address")
+					&& result.containsKey("Effective From")	&& result.containsKey("Effective To")
+					&& result.containsKey("End Reason")	&& result.containsKey("Data Source")
+					&& result.containsKey("DB Created")	&& result.containsKey("DB Expired")
+					&& result.containsKey("Data Owner Code"));
 		case FacilitySection.CIVIC_ADDRESSES:
-			return (result.containsKey("Facility Type") && result.containsKey("Identifier")
-					&& result.containsKey("Identifier Type") && result.containsKey("Effective From")
-					&& result.containsKey("Effective To") && result.containsKey("End Reason")
-					&& result.containsKey("Data Source") && result.containsKey("DB Created")
-					&& result.containsKey("DB Expired") && result.containsKey("Data Owner Code"));
+			return (result.containsKey("Latitude") && result.containsKey("Longitude")
+					&& result.containsKey("Address Line 1")	&& result.containsKey("Address Line 2")
+					&& result.containsKey("Address Line 3")	&& result.containsKey("City")
+					&& result.containsKey("Province / State")	&& result.containsKey("Country")
+					&& result.containsKey("Health Authority")&& result.containsKey("Health Service Delivery Area")
+					&& result.containsKey("Local Health Area") && result.containsKey("Primary Care Network")
+					&& result.containsKey("Community Health Service Area"));
 		case FacilitySection.ORGANIZATION_RELATIONSHIPS:
-			return (result.containsKey("Facility Type") && result.containsKey("Identifier")
-					&& result.containsKey("Identifier Type") && result.containsKey("Effective From")
-					&& result.containsKey("Effective To") && result.containsKey("End Reason")
-					&& result.containsKey("Data Source") && result.containsKey("DB Created")
-					&& result.containsKey("DB Expired") && result.containsKey("Data Owner Code"));
+			return (result.containsKey("Relationship Identifier") && result.containsKey("Relationship Type")
+					&& result.containsKey("Related Organization Name")	&& result.containsKey("Related Organization Identifier")
+					&& result.containsKey("Effective From")	&& result.containsKey("Effective To")
+					&& result.containsKey("End Reason")	&& result.containsKey("Data Source")
+					&& result.containsKey("DB Created")	&& result.containsKey("DB Expired")
+					&& result.containsKey("Data Owner Code"));
 		case FacilitySection.OTHER_ADDRESS:
-			return (result.containsKey("Facility Type") && result.containsKey("Identifier")
-					&& result.containsKey("Identifier Type") && result.containsKey("Effective From")
-					&& result.containsKey("Effective To") && result.containsKey("End Reason")
-					&& result.containsKey("Data Source") && result.containsKey("DB Created")
-					&& result.containsKey("DB Expired") && result.containsKey("Data Owner Code"));
+			return (result.containsKey("Validation Status") && result.containsKey("Address Type")
+					&& result.containsKey("Address Purpose") && result.containsKey("Country")
+					&& result.containsKey("Address Line 1")	&& result.containsKey("Address Line 2")
+					&& result.containsKey("Address Line 3")	&& result.containsKey("City")
+					&& result.containsKey("State/Prov") && result.containsKey("Postal/Zip Code")
+					&& result.containsKey("Effective From")	&& result.containsKey("Effective To")
+					&& result.containsKey("End Reason")	&& result.containsKey("Data Source")
+					&& result.containsKey("DB Created")	&& result.containsKey("DB Expired")
+					&& result.containsKey("Data Owner Code"));
 		case FacilitySection.TELECOMMUNICATIONS:
-			return (result.containsKey("Facility Type") && result.containsKey("Identifier")
-					&& result.containsKey("Identifier Type") && result.containsKey("Effective From")
-					&& result.containsKey("Effective To") && result.containsKey("End Reason")
-					&& result.containsKey("Data Source") && result.containsKey("DB Created")
-					&& result.containsKey("DB Expired") && result.containsKey("Data Owner Code"));
+			return (result.containsKey("Type") && result.containsKey("Purpose")
+					&& result.containsKey("Area Code") && result.containsKey("Number")
+					&& result.containsKey("Extension") 
+					&& result.containsKey("Effective From")	&& result.containsKey("Effective To")
+					&& result.containsKey("End Reason")	&& result.containsKey("Data Source")
+					&& result.containsKey("DB Created")	&& result.containsKey("DB Expired")
+					&& result.containsKey("Data Owner Code"));
 		default:
 			return false;
 		}
 	
 	}
+	
+	
+	public void verifyDataBlockSortOrder(FacilitySection section,ViewFacilityPage viewFacilityPage)
+    {
+        List<String> sortKeyList = FacilityDataFields.getSortKey(section);
+        List<String> dateKeyList = new ArrayList<>();
+       
+        dateKeyList.add("Effective From");
+        dateKeyList.add("DB Created");
+        List<String> previousValueList = null;
+        List<String> previousDateList  = null;
+       
+        for (int i = 0; i < viewFacilityPage.grabDataBlockCount(section); i++)
+        {
+            Map<String,String> dataMap = viewFacilityPage.grabDataBlockContent(section, i);
+            if (FacilitySection.ORGANIZATION_RELATIONSHIPS == section) 
+            	dataMap = viewFacilityPage.grabOrgRelationshipsBlockContent(i);
+            List<String> valueList = TestHelper.extractDataValueList(sortKeyList, dataMap);
+            List<String> dateList  = TestHelper.extractDataValueList(dateKeyList, dataMap);
+            
+            if (previousValueList != null)
+            {
+                // Compare values in ascending order.
+                int result = TextUtils.compareStringLists(previousValueList, valueList);
+                if (result == 0)
+                {
+                    // Compare dates in descending order.
+                    result = TextUtils.compareStringLists(dateList, previousDateList);
+                }
+                if (result > 0)
+                {
+                    String msg = String.format("Incorrect data block order (%s:%d).", section, i);
+                    throw new IllegalStateException(msg);
+                }
+            }
+            previousDateList  = dateList;
+            previousValueList = valueList;
+        }
+    }
+	
+	
+	 
 
 }

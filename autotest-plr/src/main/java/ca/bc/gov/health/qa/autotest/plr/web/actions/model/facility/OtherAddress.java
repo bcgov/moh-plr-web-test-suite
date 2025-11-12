@@ -30,12 +30,12 @@ public class OtherAddress {
 	
 	public String getAddressTypeSummary() {
 		if(addressType==null)return addressType;
-		return addressType.split("(")[0].stripTrailing();
+		return addressType.split("\\(")[0].stripTrailing();
 	}
 	
 	public String getAddressPurposeSummary() {
 		if(addressPurpose==null)return addressPurpose;
-		return addressPurpose.split("(")[0].stripTrailing();
+		return addressPurpose.split("\\(")[0].stripTrailing();
 	}
 	
 	public String getAddressLine1() {
@@ -116,7 +116,7 @@ public class OtherAddress {
 		assertTrue(!jsonData.isNull("Address Purpose"));
 		this.addressPurpose = jsonData.getString("Address Purpose");
 		
-		if (!jsonData.isNull("Address Line 1 "))
+		if (!jsonData.isNull("Address Line 1"))
 			this.addressLine1 = jsonData.getString("Address Line 1");
 		if (!jsonData.isNull("Address Line 2"))
 			this.addressLine2 = jsonData.getString("Address Line 2");

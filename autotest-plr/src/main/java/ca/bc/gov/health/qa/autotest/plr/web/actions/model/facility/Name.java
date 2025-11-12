@@ -41,7 +41,7 @@ public class Name {
 		assertNotNull(jsonData);
 
 		assertTrue(!jsonData.isNull("Name"));
-		this.name = jsonData.getString("Facility Type");
+		this.name = jsonData.getString("Name");
 		
 		
 		if (!jsonData.isNull("Description"))

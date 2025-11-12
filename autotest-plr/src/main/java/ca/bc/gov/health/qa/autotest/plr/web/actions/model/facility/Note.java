@@ -91,7 +91,7 @@ public class Note {
 		assertNotNull(map.get("Note Identifier"));
 		this.noteIdentifier = map.get("Note Identifier");
 		assertNotNull(map.get("Note Text"));
-		this.noteText = map.get("Note Textr");
+		this.noteText = map.get("Note Text");
 	
 		this.effectiveFrom = map.get("Effective From") == null ? null : map.get("Effective From");
 		this.effectiveTo = map.get("Effective To") == null ? null : map.get("Effective To");

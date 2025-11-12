@@ -109,7 +109,7 @@ public class CivicAddress {
 			this.longitude = jsonData.getString("Longitude");
 		
 		
-		if (!jsonData.isNull("Address Line 1 "))
+		if (!jsonData.isNull("Address Line 1"))
 			this.addressLine1 = jsonData.getString("Address Line 1");
 		if (!jsonData.isNull("Address Line 2"))
 			this.addressLine2 = jsonData.getString("Address Line 2");

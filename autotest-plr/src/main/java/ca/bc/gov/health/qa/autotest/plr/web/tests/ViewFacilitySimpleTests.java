@@ -1,10 +1,17 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.navigateToSearchFacilityPage;
+import static java.util.Objects.requireNonNull;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -14,12 +21,14 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import ca.bc.gov.health.qa.autotest.core.util.text.TextUtils;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Identifier;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Relationship;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewMode;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
@@ -46,16 +55,18 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 
 	@BeforeMethod
 	public void before(Object[] parameters) {
+
 		/*
 		 * PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters,
 		 * UserType.ADMIN); if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
 		 */
+
 	}
 
 	/*
 	 * Test F2-005 verify the expan-all button of view facility page
 	 */
-	// @Test
+	@Test
 	public void textEXpanAll() {
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
@@ -85,15 +96,15 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	}
 
 	/*
-	 * Test F2-001 verify details of view facility page with ADMIN user type
+	 * Test F2-001 verify details of view facility page with particular user type
 	 */
-	//@Test
-	public void testDefaultFacilityDetailAdmin() {
+	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
+	public void testDefaultFacilityDetailAdmin(UserType userType) {
 
 		JSONObject testFacility = PlrData.getFacility("test001");
 		JSONObject expectedFacility = PlrData.getFacility("default-test");
-			
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, userType);
 		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
 		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
 
@@ -102,124 +113,77 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		// verify the Expand/collapse Button
 		actions.verifyAllFacilityDataBlockExpandButtonDisplayed(viewFacilityPage);
 		// verify active displayed
-		actions.verifyAllFacilityDataBlockActiveMarkDisplayed(viewFacilityPage, UserType.ADMIN);
+		actions.verifyAllFacilityDataBlockActiveMarkDisplayed(viewFacilityPage, userType);
 		// verify update displayed (for user type admin)
-		actions.verifyAllFacilityDataBlockUpdateButtonDisplayed(viewFacilityPage, UserType.ADMIN);
+		actions.verifyAllFacilityDataBlockUpdateButtonDisplayed(viewFacilityPage, userType);
 		// verify all summary and content
-		 actions.verifyAllSectionsDataBlockAndsummary(viewFacilityPage,expectedFacility);
-		 
+		actions.verifyAllSectionsDataBlockAndsummary(viewFacilityPage, expectedFacility);
+
 	}
-	
-	/*
-	 * Test F001 verify details of view facility page with PrimarySrc user type
-	 */
-	//@Test
-	public void testDefaultFacilityDetailPrimary() {
 
-		JSONObject testFacility = PlrData.getFacility("test001");
-		JSONObject expectedFacility = PlrData.getFacility("default-test");
-			
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.PRIMARY);
-		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
-		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
-
-		// verify all facility section blocks displayed ,both name and id are not empty
-		actions.verifyFacilitySectionsDisplayed(viewFacilityPage);
-		// verify the Expand/collapse Button
-		actions.verifyAllFacilityDataBlockExpandButtonDisplayed(viewFacilityPage);
-		// verify active displayed
-		actions.verifyAllFacilityDataBlockActiveMarkDisplayed(viewFacilityPage, UserType.ADMIN);
-		// verify update displayed (for user type admin)
-		actions.verifyAllFacilityDataBlockUpdateButtonDisplayed(viewFacilityPage, UserType.ADMIN);
-		// verify all summary and content
-		 actions.verifyAllSectionsDataBlockAndsummary(viewFacilityPage,expectedFacility);
-		 
-	}
-	
-	/*
-	 * Test F2-001 verify details of view facility page with SecondarySrc user type
-	 */
-	//@Test
-	public void testDefaultFacilityDetailSecondary() {
-
-		JSONObject testFacility = PlrData.getFacility("test001");
-		JSONObject expectedFacility = PlrData.getFacility("default-test");
-			
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.SECONDARY);
-		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
-		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
-
-		// verify all facility section blocks displayed ,both name and id are not empty
-		actions.verifyFacilitySectionsDisplayed(viewFacilityPage);
-		// verify the Expand/collapse Button
-		actions.verifyAllFacilityDataBlockExpandButtonDisplayed(viewFacilityPage);
-		// verify active displayed
-		actions.verifyAllFacilityDataBlockActiveMarkDisplayed(viewFacilityPage, UserType.ADMIN);
-		// verify update displayed (for user type admin)
-		actions.verifyAllFacilityDataBlockUpdateButtonDisplayed(viewFacilityPage, UserType.ADMIN);
-		// verify all summary and content
-		 actions.verifyAllSectionsDataBlockAndsummary(viewFacilityPage,expectedFacility);
-		 
-	}
-	
-	/*
-	 * Test F2-001 verify details of view facility page with consumer user type
-	 */
-	//@Test
-	public void testDefaultFacilityDetailConsumer() {
-
-		JSONObject testFacility = PlrData.getFacility("test001");
-		JSONObject expectedFacility = PlrData.getFacility("default-test");
-			
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.CONSUMER);
-		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
-		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
-
-		// verify all facility section blocks displayed ,both name and id are not empty
-		actions.verifyFacilitySectionsDisplayed(viewFacilityPage);
-		// verify the Expand/collapse Button
-		actions.verifyAllFacilityDataBlockExpandButtonDisplayed(viewFacilityPage);
-		// verify active displayed
-		actions.verifyAllFacilityDataBlockActiveMarkDisplayed(viewFacilityPage, UserType.ADMIN);
-		// verify update displayed (for user type admin)
-		actions.verifyAllFacilityDataBlockUpdateButtonDisplayed(viewFacilityPage, UserType.ADMIN);
-		// verify all summary and content
-		 actions.verifyAllSectionsDataBlockAndsummary(viewFacilityPage,expectedFacility);
-		 
-	}
 	
 	/*
 	 * Test F2-011 verify details of view facility page with SecondarySrc user type
 	 */
-	//@Test
+	@Test
 	public void testRelationshipSummaryLine() {
 
 		JSONObject testFacility = PlrData.getFacility("test011");
-		//JSONObject expectedFacility = PlrData.getFacility("default-test");
-			
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.SECONDARY);
+		
+
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
 		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
 
-		 
+		JSONArray orgArray = testFacility.getJSONArray("Organizations");
+
+		int count = viewFacilityPage.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+
+		for (int i = 0; i < count; i++) {
+			LinkedHashMap<String, String> resultContent = viewFacilityPage.grabOrgRelationshipsBlockContent(i);
+			String resultSummaryLineText = viewFacilityPage
+					.grabDataBlockSummaryLine(FacilitySection.ORGANIZATION_RELATIONSHIPS, i);
+			Relationship reResult = new Relationship(resultContent);
+			for (Object organization : orgArray) {
+				JSONObject organizationJson = (JSONObject) organization;
+				String rlnId = organizationJson.getString("Relationship Identifier");
+				if (reResult.getRelationshipIdentifier().equals(rlnId)) {
+					String orgName = organizationJson.getString("Organization Name");
+
+					if (orgName.length() <= 30)
+						assertTrue(resultSummaryLineText.contains(orgName));
+					else {
+						String orgNameFirst30 = orgName.substring(0, Math.min(orgName.length(), 30));
+						assertTrue(resultSummaryLineText.contains(orgNameFirst30));
+						assertTrue(!resultSummaryLineText.contains(orgName));
+
+					}
+
+					break;
+				}
+			}
+		}
+
 	}
-	
+
 	/*
 	 * Test F2-003 verify details of view facility page with SecondarySrc user type
 	 */
-	//@Test
+	@Test
 	public void testSortOrder() {
 
 		JSONObject testFacility = PlrData.getFacility("test003");
-		//JSONObject expectedFacility = PlrData.getFacility("default-test");
-			
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.SECONDARY);
+		
+
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
 		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
 
-		 
+		actions.verifyDataBlockSortOrder(FacilitySection.ELECTRONIC_ADDRESSES, viewFacilityPage);
+		actions.verifyDataBlockSortOrder(FacilitySection.IDENTIFIERS, viewFacilityPage);
+		actions.verifyDataBlockSortOrder(FacilitySection.TELECOMMUNICATIONS, viewFacilityPage);
+		actions.verifyDataBlockSortOrder(FacilitySection.NOTES, viewFacilityPage);
+		actions.verifyDataBlockSortOrder(FacilitySection.ORGANIZATION_RELATIONSHIPS, viewFacilityPage);
 	}
-	
-	
 
 }
