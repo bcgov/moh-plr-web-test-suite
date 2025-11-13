@@ -57,7 +57,7 @@ public class AddFacilityPage extends BasicWebPage {
      * @param facilityTypePrefix        the first few characters to match when selecting the Facility Type field
      * @param identifierTypePrefix      the first few characters to match when selecting the Identifer Type field
      * @param identifier                string to fill the identifier field with
-     * @param effectiveFrom             the date the facility is effective from, as a list of integers [Y, M, D]
+     * @param effectiveFrom             the date the identifier is effective from, as a list of integers [Y, M, D]
      * @return                          a reference to the identifier fragment on the add facility page
      */
     public AddFacilityIdFragment fillIdentifierSection(
@@ -71,6 +71,46 @@ public class AddFacilityPage extends BasicWebPage {
         identifierFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return identifierFragment;
+    }
+
+    /**
+     * Fills the second Facility Name section of the Add Facility flow.
+     * Requires the state of the add facility page to be in the name stage.
+     *
+     * @param name              string to fill the name field with
+     * @param description       string to fill the description field with
+     * @param effectiveFrom     the date the facility name is effective from, as a list of integers [Y, M, D]
+     * @return                  a reference to the name fragment on the add facility page
+     */
+    public AddFacilityNameFragment fillFacilitySection(String name, String description, List<Integer> effectiveFrom)
+    {
+        AddFacilityNameFragment nameFragment = new AddFacilityNameFragment(selenium_);
+
+        nameFragment.fillName(name);
+        nameFragment.fillDescription(description);
+        nameFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return nameFragment;
+    }
+
+    /**
+     * Fills the second Facility Name section of the Add Facility flow.
+     * Requires the state of the add facility page to be in the name stage.
+     * Overloaded method: Effective From is filled with the current date when not specified.
+     *
+     * @param name              string to fill the name field with
+     * @param description       string to fill the description field with
+     * @return                  a reference to the name fragment on the add facility page
+     */
+    public AddFacilityNameFragment fillFacilitySection(String name, String description)
+    {
+        AddFacilityNameFragment nameFragment = new AddFacilityNameFragment(selenium_);
+
+        nameFragment.fillName(name);
+        nameFragment.fillDescription(description);
+        nameFragment.effectiveFromCurrentDate();
+
+        return nameFragment;
     }
 
     /**

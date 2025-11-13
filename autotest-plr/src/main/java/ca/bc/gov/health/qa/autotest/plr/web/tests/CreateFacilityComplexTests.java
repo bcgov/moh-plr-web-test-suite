@@ -125,4 +125,16 @@ public class CreateFacilityComplexTests implements SimpleTest {
         assertEquals(addFacility.getStep(), "Name",
                 "Current step in flow is unexpected - an error likely occurred.");
     }
+
+    @Test
+    // Test Test - Positive Test Go through Entire Flow
+    public void addFacilityFlow()
+    {
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+        addFacility.fillFacilitySection("Test Facility", "Facility Description");
+        addFacility.clickNext("Facility", false);
+    }
 }

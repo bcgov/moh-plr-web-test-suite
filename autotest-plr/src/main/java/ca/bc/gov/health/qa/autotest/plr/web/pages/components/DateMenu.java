@@ -13,19 +13,22 @@ import static java.util.Objects.requireNonNull;
 
 public class DateMenu extends BasicWebPageFragment {
 
-    private final By datepickerLocator_;
+    private final By datepickerLocator_ = By.cssSelector("div#ui-datepicker-div");
+
+    private final By inputLocator_;
 
     /**
      * Initializes a date menu fragment with locators to the date field and the hidden datepicker menu
      *
      * @param selenium              the current selenium session
      * @param mainLocator           the main locator, which should be set to the span encompassing the field/menu button
-     * @param datepickerLocator     the datepicker locator, which should be set to the calendar picker div
+     * @param stepPrefix            the
      */
-    public DateMenu(SeleniumSession selenium, By mainLocator, By datepickerLocator)
+    public DateMenu(SeleniumSession selenium, By mainLocator, String stepPrefix)
     {
         super(selenium, mainLocator);
-        datepickerLocator_ = requireNonNull(datepickerLocator, "Null date picker div locator.");
+        stepPrefix = requireNonNull(stepPrefix, "Missing step prefix.");
+        inputLocator_ = By.cssSelector(String.format("input#form\\:effectiveFromDate_%s_input", stepPrefix));
     }
 
     /**
@@ -87,8 +90,7 @@ public class DateMenu extends BasicWebPageFragment {
     {
         displayDatepicker(true);
         selenium_.findElement(datepickerLocator_).findElement(By.cssSelector("button.ui-datepicker-current")).click();
-        return selenium_.findElement(mainLocator_).findElement(By.cssSelector(
-                "input#form\\:effectiveFromDate_identifier_input")).getText();
+        return selenium_.findElement(mainLocator_).findElement(inputLocator_).getText();
     }
 
     /**
@@ -123,7 +125,6 @@ public class DateMenu extends BasicWebPageFragment {
         dayElements = selenium_.findElementsByCss("table.ui-datepicker-calendar > tbody > tr > td > a");
         dayElements.get(dateDay-1).click();
 
-        return selenium_.findElement(mainLocator_).findElement(By.cssSelector(
-                "input#form\\:effectiveFromDate_identifier_input")).getText();
+        return selenium_.findElement(mainLocator_).findElement(inputLocator_).getText();
     }
 }

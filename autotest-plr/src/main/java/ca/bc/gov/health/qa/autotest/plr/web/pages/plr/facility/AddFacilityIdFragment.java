@@ -92,7 +92,7 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
      */
     public DateMenu getEffectiveFromDateMenu()
     {
-        return new DateMenu(selenium_, By.cssSelector(DATE_FIELD_CSS), By.cssSelector("div#ui-datepicker-div"));
+        return new DateMenu(selenium_, By.cssSelector(DATE_FIELD_CSS), "identifier");
     }
 
     /**
