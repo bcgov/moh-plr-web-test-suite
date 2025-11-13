@@ -3,7 +3,6 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -70,7 +69,6 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
         assertTrue(errorMessageList.contains(identifierTypeRequired),
                 "Error for identifier included but no identifier type not displayed");
-        // TODO (highlighted identifier type highlighted?)
 
         // Foreign Character in Identifier
         addFacility = navigateToAddFacilityPage(workflowManager_);
