@@ -5,6 +5,10 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AddFacilityIdFragment extends BasicWebPageFragment {
 
@@ -18,7 +22,7 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
 
     public AddFacilityIdFragment(SeleniumSession selenium)
     {
-        super(selenium, By.cssSelector("span.ui-panel-title[contains(text(),'Identifier')]"));
+        super(selenium, By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Identifier')]"));
     }
 
     /**
@@ -112,5 +116,14 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     public String effectiveFromSpecificDate(int effectiveYear, int effectiveMonth, int effectiveDay)
     {
         return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
+    }
+
+    public List<String> getHighlightedFields()
+    {
+        List<String> highlightedFields = new ArrayList<>();
+        By highlightedSelector = By.cssSelector("label.ui-outputlabel.ui-widget.ui-state-error");
+        List<WebElement> webElementList = selenium_.findElements(highlightedSelector);
+        for (WebElement fieldElement : webElementList) { highlightedFields.add(fieldElement.getText()); }
+        return highlightedFields;
     }
 }

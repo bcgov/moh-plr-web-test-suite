@@ -1,10 +1,12 @@
 {
   "errors": {
     "missingIdentifierType" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier Type'. Your transaction has not been processed. Correct and resubmit.",
-    "missingFacilityIdentifier" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier'. Your transaction has not been processed. Correct and resubmit."
+    "missingFacilityIdentifier" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier'. Your transaction has not been processed. Correct and resubmit.",
+    "identifierTypeRequired" : "Identifier Type is required when Identifier is provided",
+    "foreignCharacterIdentifier" : "GRS.SYS.IDE.UNK.1.0.7006: Identifiers can contain only numbers, the English alphabet and periods."
   },
   "warnings" : {
     "missingCriteria" : "Invalid or Incomplete form data provided, please see instructions on the right side.",
-    "maximumResults" : "Maximum search results returned. Please refine your search criteria.",
+    "maximumResults" : "Maximum search results returned. Please refine your search criteria."
   }
 }

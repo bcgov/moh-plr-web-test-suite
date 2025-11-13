@@ -69,9 +69,9 @@ public final class TestHelper {
         return searchProvider;
     }
 
-    public static AddFacilityPage navigateToAddFacilityPage(PlrWebWorkflowManager workflowManager, UserType userType)
+    public static AddFacilityPage navigateToAddFacilityPage(PlrWebWorkflowManager workflowManager)
     {
-        PlrWebWorkflow workflow = logIn(workflowManager, userType);
+        PlrWebWorkflow workflow = logIn(workflowManager, UserType.ADMIN);
         AddFacilityPage addFacility = workflow.getPlrWebAccessActions().openAddFacility();
 
         addFacility.waitForReady();
