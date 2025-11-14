@@ -78,7 +78,7 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     /**
      * Fills the Identifier field
      *
-     * @param identifier  the string to fill the Other Address Line 1 field with
+     * @param identifier  the string to fill the Identifier field with
      */
     public void fillIdentifier(String identifier)
     {

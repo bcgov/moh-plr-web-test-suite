@@ -136,5 +136,8 @@ public class CreateFacilityComplexTests implements SimpleTest {
         addFacility.clickNext("Identifier", false);
         addFacility.fillFacilitySection("Test Facility", "Facility Description");
         addFacility.clickNext("Facility", false);
+        addFacility.fillAddressSection(
+                "1175 DOUGLAS ST", "1175 DOUGLAS ST, PEMBROKE, ON");
+        addFacility.clickNext("Address", false);
     }
 }

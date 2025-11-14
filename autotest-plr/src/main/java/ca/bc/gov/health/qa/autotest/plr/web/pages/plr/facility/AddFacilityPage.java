@@ -114,6 +114,106 @@ public class AddFacilityPage extends BasicWebPage {
     }
 
     /**
+     * Fills the third Address section of the Add Facility flow.
+     * Requires the state of the add facility page to be in the address stage.
+     * Overloaded method: Effective From is filled with the current date when not specified.
+     *
+     * @param addressLines      list of strings to fill the address lines fields with (expects list of 3 strings)
+     * @param cityField         the string to fill the City field with (with autocomplete)
+     * @param cityPrefix        the first few characters to match when selecting an autocompleted City option.
+     * @param postalCode        string to fill the postal code field with
+     * @return                  a reference to the address fragment on the add facility page
+     */
+    public AddFacilityAddressFragment fillAddressSection(
+            List<String> addressLines, String cityField, String cityPrefix, String postalCode)
+    {
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(selenium_);
+
+        addressFragment.fillAddressLine1(addressLines.get(0));
+        addressFragment.fillAddressLine2(addressLines.get(1));
+        addressFragment.fillAddressLine3(addressLines.get(2));
+        addressFragment.fillCity(cityField, cityPrefix);
+        addressFragment.fillPostalCode(postalCode);
+        addressFragment.effectiveFromCurrentDate();
+
+        return addressFragment;
+    }
+
+    /**
+     * Fills the third Address section of the Add Facility flow.
+     * Requires the state of the add facility page to be in the address stage.
+     *
+     * @param addressLines      list of strings to fill the address lines fields with (expects list of 3 strings)
+     * @param cityField         the string to fill the City field with (with autocomplete)
+     * @param cityPrefix        the first few characters to match when selecting an autocompleted City option.
+     * @param postalCode        string to fill the postal code field with
+     * @param effectiveFrom     the date the facility name is effective from, as a list of integers [Y, M, D]
+     * @return                  a reference to the address fragment on the add facility page
+     */
+    public AddFacilityAddressFragment fillAddressSection(
+            List<String> addressLines, String cityField, String cityPrefix,
+            String postalCode, List<Integer> effectiveFrom)
+    {
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(selenium_);
+
+        addressFragment.fillAddressLine1(addressLines.get(0));
+        addressFragment.fillAddressLine2(addressLines.get(1));
+        addressFragment.fillAddressLine3(addressLines.get(2));
+        addressFragment.fillCity(cityField, cityPrefix);
+        addressFragment.fillPostalCode(postalCode);
+
+        addressFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return addressFragment;
+    }
+
+    /**
+     * Fills the third Address section of the Add Facility flow.
+     * Requires the state of the add facility page to be in the address stage.
+     * Overloaded method: This method autocompletes all fields with Address Autocomplete, and picks the current date for
+     *                    Effective From.
+     *
+     * @param addressAutocompleteField      the string to fill the address autocomplete field (with autocomplete)
+     * @param addressAutocompletePrefix     the first few characters to match when selecting an
+     *                                      Address Autocomplete option.
+     * @return                              a reference to the address fragment on the add facility page
+     */
+    public AddFacilityAddressFragment fillAddressSection(
+            String addressAutocompleteField, String addressAutocompletePrefix)
+    {
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(selenium_);
+
+        addressFragment.fillAddressAutocomplete(addressAutocompleteField, addressAutocompletePrefix);
+
+        addressFragment.effectiveFromCurrentDate();
+
+        return addressFragment;
+    }
+
+    /**
+     * Fills the third Address section of the Add Facility flow.
+     * Requires the state of the add facility page to be in the address stage.
+     * Overloaded method: This method autocompletes all fields with Address Autocomplete.
+     *
+     * @param addressAutocompleteField      the string to fill the address autocomplete field (with autocomplete)
+     * @param addressAutocompletePrefix     the first few characters to match when selecting an
+     *                                      Address Autocomplete option.
+     * @param effectiveFrom                 the date the facility name is effective from, as a list of integers [Y, M, D]
+     * @return                              a reference to the address fragment on the add facility page
+     */
+    public AddFacilityAddressFragment fillAddressSection(
+            String addressAutocompleteField, String addressAutocompletePrefix, List<Integer> effectiveFrom)
+    {
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(selenium_);
+
+        addressFragment.fillAddressAutocomplete(addressAutocompleteField, addressAutocompletePrefix);
+
+        addressFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return addressFragment;
+    }
+
+    /**
      * Waits for a step in the Add Facility flow to be available
      *
      * @param step      the title of the step to be locating (header of the div form, e.g. Identifier, Facility, etc.)

@@ -176,8 +176,8 @@ public class AutocompleteMenu extends BasicWebPageFragment {
         selenium_.scrollIntoView(item);
         String itemLabel = item.getText();
         item.click();
-        waitForPanelLoad(false);
         String completedItem = grabCompletedItem();
+        waitForPanelLoad(false);
         if (!completedItem.equals(itemLabel))
         {
             String msg = String.format("Failed to select autocomplete item (actual: \"%s\", expected: \"%s\").", completedItem, itemLabel);
