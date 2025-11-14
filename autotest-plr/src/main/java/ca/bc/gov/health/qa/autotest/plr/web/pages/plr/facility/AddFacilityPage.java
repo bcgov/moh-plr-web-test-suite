@@ -190,6 +190,8 @@ public class AddFacilityPage extends BasicWebPage {
         return addressFragment;
     }
 
+    public AddFacilitySummaryFragment getFacilitySummary() { return new AddFacilitySummaryFragment(selenium_); }
+
     /**
      * Fills the third Address section of the Add Facility flow.
      * Requires the state of the add facility page to be in the address stage.

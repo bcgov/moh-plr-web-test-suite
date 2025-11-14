@@ -5,6 +5,7 @@ import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilitySummaryFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -137,7 +138,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
         addFacility.fillFacilitySection("Test Facility", "Facility Description");
         addFacility.clickNext("Facility", false);
         addFacility.fillAddressSection(
-                "1175 DOUGLAS ST", "1175 DOUGLAS ST, PEMBROKE, ON");
+                "2269 DOUGLAS ST, V", "2269 DOUGLAS ST, V");
         addFacility.clickNext("Address", false);
+        AddFacilitySummaryFragment facilitySummary = addFacility.getFacilitySummary();
+        LOG.info(facilitySummary.getFacilityName());
     }
 }
