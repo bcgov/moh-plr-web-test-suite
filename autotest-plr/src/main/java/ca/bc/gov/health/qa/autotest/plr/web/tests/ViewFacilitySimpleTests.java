@@ -67,7 +67,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	 * Test F2-005 verify the expan-all button of view facility page
 	 */
 	@Test
-	public void textEXpanAll() {
+	public void testExpandAllFacilityDetails() {
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
 		JSONObject facility = PlrData.getFacility("test005");
@@ -99,7 +99,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	 * Test F2-001 verify details of view facility page with particular user type
 	 */
 	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
-	public void testDefaultFacilityDetailAdmin(UserType userType) {
+	public void testViewFacilityDetails(UserType userType) {
 
 		JSONObject testFacility = PlrData.getFacility("test001");
 		JSONObject expectedFacility = PlrData.getFacility("default-test");
@@ -126,7 +126,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	 * Test F2-011 verify details of view facility page with SecondarySrc user type
 	 */
 	@Test
-	public void testRelationshipSummaryLine() {
+	public void testProviderRelationshipSummaryLine() {
 
 		JSONObject testFacility = PlrData.getFacility("test011");
 		
@@ -170,7 +170,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	 * Test F2-003 verify details of view facility page with SecondarySrc user type
 	 */
 	@Test
-	public void testSortOrder() {
+	public void testSortOrderViewFacilityDetailsScreen() {
 
 		JSONObject testFacility = PlrData.getFacility("test003");
 		
