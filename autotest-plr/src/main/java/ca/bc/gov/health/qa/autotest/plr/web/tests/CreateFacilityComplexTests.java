@@ -3,6 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilitySummaryFragment;
@@ -125,6 +126,28 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
         assertEquals(addFacility.getStep(), "Name",
                 "Current step in flow is unexpected - an error likely occurred.");
+    }
+
+    @Test
+    // F3-010. Facility Address Recognition
+    public void facilityAddressRecognition()
+    {
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+        addFacility.fillFacilitySection("Test Facility", "Facility Description");
+        addFacility.clickNext("Facility", false);
+
+        assertEquals(addFacility.getStepTitle(), "Address",
+                "Failed to reach the Address tab in Add Facility flow");
+
+        AddFacilityAddressFragment addressInfo = addFacility.fillAddressSection(
+                "2269 DOUGLAS ST, V", "2269 DOUGLAS ST, V");
+
+        assertFalse(addressInfo.getAddressLine1().isEmpty(), "Address Line 1 field auto-population failed");
+        assertFalse(addressInfo.getCity().isEmpty(), "City field auto-population failed");
+        assertFalse(addressInfo.getPostalCode().isEmpty(), "Postal Code field auto-population failed");
     }
 
     @Test

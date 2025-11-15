@@ -1,14 +1,19 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
 public class AddFacilityPage extends BasicWebPage {
+
+    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     public AddFacilityPage(SeleniumSession selenium)
     {
@@ -262,5 +267,11 @@ public class AddFacilityPage extends BasicWebPage {
     public String getStep()
     {
         return selenium_.findElementByCss("div.ui-wizard.ui-widget > ul > li.ui-state-highlight").getText();
+    }
+
+    public String getStepTitle()
+    {
+        return selenium_.findElementByCss(
+                "div.ui-panel > div > table > tbody > tr > td > div > div > span").getText();
     }
 }

@@ -156,4 +156,26 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
     {
         return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
     }
+
+    public String getAddressLine1()
+    {
+        return selenium_.findElementByCss(ADDRESS_LINE_1_FIELD_CSS).getAttribute("value");
+    }
+
+    public String getAddressLine2()
+    {
+        return selenium_.findElementByCss(ADDRESS_LINE_2_FIELD_CSS).getAttribute("value");
+    }
+
+    public String getAddressLine3()
+    {
+        return selenium_.findElementByCss(ADDRESS_LINE_3_FIELD_CSS).getAttribute("value");
+    }
+
+    public String getCity() { return selenium_.findElementByCss(CITY_FIELD_CSS).getAttribute("value"); }
+
+    public String getPostalCode()
+    {
+        return selenium_.findElementByCss(POSTAL_CODE_FIELD_CSS).getAttribute("value");
+    }
 }
