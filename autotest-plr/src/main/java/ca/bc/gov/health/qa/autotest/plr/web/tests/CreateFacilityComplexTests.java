@@ -211,5 +211,33 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Mailing Address in summary missing country information");
 
         addFacility.clickBack("Facility Summary", false);
+
+        addFacility.fillAddressSection(
+                List.of("3331 DINGLE BINGLE HILL RD", "", ""), "Nanaimo", null, "V9T 3V6");
+        multiPartAddressLine = addressInfo.getAddressLine1();
+        multiPartCity = addressInfo.getCity();
+        multiPartCountry = addressInfo.getCountry().substring(
+                addressInfo.getCountry().indexOf("-")+1).strip();
+
+
+        addFacility.clickNext("Facility", "Civic");
+
+        addressInfo.clickContinueRecommended();
+        addFacility.waitForAddFacilityStep("Address", false);
+        confirmFacility = addFacility.getFacilitySummary();
+
+        matchingCivicAddress = confirmFacility.getCivicAddress().stream().map(String::toLowerCase).toList();
+        matchingMailingAddress = confirmFacility.getMailingAddress().stream().map(String::toLowerCase).toList();
+
+        assertTrue(matchingCivicAddress.contains(multiPartAddressLine.toLowerCase()),
+                "Civic Address in summary missing address line information");
+        assertTrue(matchingMailingAddress.contains(multiPartAddressLine.toLowerCase()),
+                "Mailing Address in summary missing address line information");
+
+        assertTrue(matchingMailingAddress.contains(multiPartCity.toLowerCase()),
+                "Maiing Address in summary missing city information");
+        assertTrue(matchingMailingAddress.contains(multiPartCountry.toLowerCase()),
+                "Mailing Address in summary missing country information");
+
     }
 }
