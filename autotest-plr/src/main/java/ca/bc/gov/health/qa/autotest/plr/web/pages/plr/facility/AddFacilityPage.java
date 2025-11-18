@@ -8,6 +8,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
 
@@ -195,8 +196,6 @@ public class AddFacilityPage extends BasicWebPage {
         return addressFragment;
     }
 
-    public AddFacilitySummaryFragment getFacilitySummary() { return new AddFacilitySummaryFragment(selenium_); }
-
     /**
      * Fills the third Address section of the Add Facility flow.
      * Requires the state of the add facility page to be in the address stage.
@@ -220,6 +219,12 @@ public class AddFacilityPage extends BasicWebPage {
         return addressFragment;
     }
 
+    public AddFacilitySummaryFragment getFacilitySummary()
+    {
+        waitForAddFacilityStep("Facility Summary", true);
+        return new AddFacilitySummaryFragment(selenium_);
+    }
+
     /**
      * Waits for a step in the Add Facility flow to be available
      *
@@ -237,17 +242,29 @@ public class AddFacilityPage extends BasicWebPage {
         else selenium_.waitUntil(SeleniumExpectedConditions.absenceOfElementLocated(stepLocator));
     }
 
+    public void waitForWidgetVisibility(String widget)
+    {
+        By widgetLocator = By.xpath(String.format(
+                "//form//div//div//div//div//span[contains(text(), '%s')]//parent::div//parent::div", widget));
+
+        selenium_.waitUntil(ExpectedConditions.attributeToBe(widgetLocator, "aria-hidden", "false"));
+    }
+
     /**
      * Advances to the next stage of the Add Facility flow with the Next button.
      *
      * @param currentState     the title of the previous form in the Add Facility flow.
-     * @param expectedError    whether clicking next is expected to return an error (true) or not (false)
+     * @param errorWidget      the widget to wait for visibility for in the event of an error
+     *                         (leave null if no error expected)
      */
-    public void clickNext(String currentState, boolean expectedError)
+    public void clickNext(String currentState, String errorWidget)
     {
         selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
 
-        if (!expectedError) waitForAddFacilityStep(currentState, false);
+        if (errorWidget != null) {
+            if (errorWidget.isEmpty()) waitForAddFacilityStep(currentState, false);
+            else waitForWidgetVisibility(errorWidget);
+        }
     }
 
     /**

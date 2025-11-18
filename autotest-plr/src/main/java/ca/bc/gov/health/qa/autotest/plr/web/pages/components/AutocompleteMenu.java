@@ -147,17 +147,20 @@ public class AutocompleteMenu extends BasicWebPageFragment {
             if (item.getText().equals("No results"))
             {
                 String msg = String.format("Autocomplete item not found (%S).", itemPrefix);
+                selenium_.findElementByCss("label[for='form:autoComplete_input']").click();
                 throw new IllegalStateException(msg);
             }
         }
         else if (itemList.isEmpty())
         {
             String msg = String.format("Autocomplete item not found (%s).", itemPrefix);
+            selenium_.findElementByCss("label[for='form:autoComplete_input']").click();
             throw new IllegalStateException(msg);
         }
         else
         {
             String msg = String.format("Too many autocomplete items found (%s) (%s).", itemList.size(), itemPrefix);
+            selenium_.findElementByCss("label[for='form:autoComplete_input']").click();
             throw new IllegalStateException(msg);
         }
         return item;

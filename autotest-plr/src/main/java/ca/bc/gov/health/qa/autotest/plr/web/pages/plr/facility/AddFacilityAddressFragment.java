@@ -5,6 +5,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 public class AddFacilityAddressFragment extends BasicWebPageFragment {
 
@@ -22,10 +23,30 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
 
     private static final String DATE_FIELD_CSS = "span#form\\:effectiveFromDate_address";
 
+    private static final String PROVINCE_STATE_FIELD_CSS = "label#form\\:province_drop_label";
+
+    private static final String COUNTRY_FIELD_CSS = "label#form\\:country_label";
+
+    private static final String WIDGET_TITLE_SPAN_CSS = "div.ui-dialog-titlebar > span.ui-dialog-title";
+
     public AddFacilityAddressFragment(SeleniumSession selenium)
     {
         super(selenium, By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Address')]"));
     }
+
+    public String getAddressLine1() { return selenium_.findElementByCss(ADDRESS_LINE_1_FIELD_CSS).getAttribute("value"); }
+
+    public String getAddressLine2() { return selenium_.findElementByCss(ADDRESS_LINE_2_FIELD_CSS).getAttribute("value"); }
+
+    public String getAddressLine3() { return selenium_.findElementByCss(ADDRESS_LINE_3_FIELD_CSS).getAttribute("value"); }
+
+    public String getCity() { return selenium_.findElementByCss(CITY_FIELD_CSS).getAttribute("value"); }
+
+    public String getPostalCode() {return selenium_.findElementByCss(POSTAL_CODE_FIELD_CSS).getAttribute("value"); }
+
+    public String getProvinceState() { return selenium_.findElementByCss(PROVINCE_STATE_FIELD_CSS).getText(); }
+
+    public String getCountry() { return selenium_.findElementByCss(COUNTRY_FIELD_CSS).getText(); }
 
     /**
      * Fills the Address Line 1 field
@@ -157,25 +178,34 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
         return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
     }
 
-    public String getAddressLine1()
+    public boolean provinceIsDisabled()
     {
-        return selenium_.findElementByCss(ADDRESS_LINE_1_FIELD_CSS).getAttribute("value");
+        return selenium_.findElementByCss("div#form\\:province_drop")
+                .getAttribute("class").contains("ui-state-disabled");
     }
 
-    public String getAddressLine2()
+    public boolean countryIsDisabled()
     {
-        return selenium_.findElementByCss(ADDRESS_LINE_2_FIELD_CSS).getAttribute("value");
+        return selenium_.findElementByCss("div#form\\:country")
+                .getAttribute("class").contains("ui-state-disabled");
     }
 
-    public String getAddressLine3()
+    private WebElement getRecommendedCivicAddressWidget()
     {
-        return selenium_.findElementByCss(ADDRESS_LINE_3_FIELD_CSS).getAttribute("value");
+        for (WebElement elem : selenium_.findElementsByCss("div[role='dialog']")) {
+            if (elem.findElement(By.cssSelector(WIDGET_TITLE_SPAN_CSS))
+                    .getAttribute("innerHTML").contains("Civic")) {
+                return elem;
+            }
+        }
+        throw new IllegalStateException("Civic Address Widget not present.");
     }
 
-    public String getCity() { return selenium_.findElementByCss(CITY_FIELD_CSS).getAttribute("value"); }
-
-    public String getPostalCode()
+    public void clickContinueRecommended()
     {
-        return selenium_.findElementByCss(POSTAL_CODE_FIELD_CSS).getAttribute("value");
+        WebElement civicAddressWidget = getRecommendedCivicAddressWidget();
+        By buttonSelector = By.cssSelector("div.ui-widget-content > table > tbody > tr > td:first-child > button");
+
+        civicAddressWidget.findElement(buttonSelector).click();
     }
 }

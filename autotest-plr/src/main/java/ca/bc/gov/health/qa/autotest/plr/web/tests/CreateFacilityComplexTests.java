@@ -3,10 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityAddressFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilitySummaryFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -19,6 +16,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.SecureRandom;
 import java.util.List;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.navigateToAddFacilityPage;
@@ -28,6 +26,8 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
     private static final Logger LOG = ExecutionLogManager.getLogger();
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
+
+    private static final SecureRandom RNG = new SecureRandom();
 
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
@@ -65,7 +65,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
         addFacility.fillIdentifierSection(
                 "BUILDING", "Select One", "IFC.25252525.BC.PRS");
-        addFacility.clickNext("Identifier", true);
+        addFacility.clickNext("Identifier", null);
 
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
 
@@ -77,7 +77,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
         AddFacilityIdFragment identifierFields = addFacility.fillIdentifierSection(
                 "BUILDING", "Select One", "δ.00000001.PRS");
-        addFacility.clickNext("Identifier", true);
+        addFacility.clickNext("Identifier", "");
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedFields = identifierFields.getHighlightedFields();
@@ -92,7 +92,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
         identifierFields = addFacility.fillIdentifierSection(
                 "BUILDING", "Select One", "IFC@00000001@PRS");
-        addFacility.clickNext("Identifier", true);
+        addFacility.clickNext("Identifier", "");
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedFields = identifierFields.getHighlightedFields();
@@ -108,7 +108,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
         identifierFields = addFacility.fillIdentifierSection(
                 "BUILDING", "Select One",
                 "IFC.9999999999999999999999999999999999999999999.PRS");
-        addFacility.clickNext("Identifier", true);
+        addFacility.clickNext("Identifier", "");
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedFields = identifierFields.getHighlightedFields();
@@ -122,7 +122,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
         addFacility.fillIdentifierSection(
                 "BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         assertEquals(addFacility.getStep(), "Name",
                 "Current step in flow is unexpected - an error likely occurred.");
@@ -135,9 +135,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
         addFacility.fillFacilitySection("Test Facility", "Facility Description");
-        addFacility.clickNext("Facility", false);
+        addFacility.clickNext("Facility", "");
 
         assertEquals(addFacility.getStepTitle(), "Address",
                 "Failed to reach the Address tab in Add Facility flow");
@@ -148,22 +148,68 @@ public class CreateFacilityComplexTests implements SimpleTest {
         assertFalse(addressInfo.getAddressLine1().isEmpty(), "Address Line 1 field auto-population failed");
         assertFalse(addressInfo.getCity().isEmpty(), "City field auto-population failed");
         assertFalse(addressInfo.getPostalCode().isEmpty(), "Postal Code field auto-population failed");
+
+        // check BC and Canada are fixed values in Province/State and Country
+        assertTrue(addressInfo.provinceIsDisabled(), "Province / State field should be disabled");
+        assertTrue(addressInfo.countryIsDisabled(), "Country field should be disabled");
+        assertEquals(addressInfo.getProvinceState(), "BC - British Columbia",
+                "Province/State field is unexpectedly not in BC");
+        assertEquals(addressInfo.getCountry(), "CA - CANADA",
+                "Country field is unexpectedly not in Canada");
     }
 
     @Test
-    // Test Test - Positive Test Go through Entire Flow
-    public void addFacilityFlow()
+    // F3-021. Facility Address with Multi-Part Street Name
+    public void addressMultiPartStreetName()
     {
+        final int TWO_WORD_ADDRESS_LOWER_LIMIT = 800;
+        final int TWO_WORD_ADDRESS_UPPER_LIMIT = 1650;
+
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
-        addFacility.fillFacilitySection("Test Facility", "Facility Description");
-        addFacility.clickNext("Facility", false);
-        addFacility.fillAddressSection(
-                "2269 DOUGLAS ST, V", "2269 DOUGLAS ST, V");
-        addFacility.clickNext("Address", false);
-        AddFacilitySummaryFragment facilitySummary = addFacility.getFacilitySummary();
-        LOG.info(facilitySummary.getFacilityName());
+        addFacility.clickNext("Identifier", "");
+        addFacility.fillFacilitySection("Multi Part Street Facility", "Multi Part Street Description");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressInfo = null;
+        while (addressInfo == null)
+        {
+            try
+            {
+                int TWO_WORD_ADDRESS_NUM = TWO_WORD_ADDRESS_LOWER_LIMIT +
+                        RNG.nextInt(TWO_WORD_ADDRESS_UPPER_LIMIT - TWO_WORD_ADDRESS_LOWER_LIMIT + 1);
+                String TWO_WORD_ADDRESS = "";
+                TWO_WORD_ADDRESS = String.format("%d LYNN VALLEY RD", TWO_WORD_ADDRESS_NUM);
+                addressInfo = addFacility.fillAddressSection(
+                        TWO_WORD_ADDRESS, TWO_WORD_ADDRESS + ", NORTH");
+            } catch (IllegalStateException ignored) {}
+        }
+        String multiPartAddressLine = addressInfo.getAddressLine1();
+        String multiPartCity = addressInfo.getCity();
+        String multiPartCountry = addressInfo.getCountry().substring(
+                addressInfo.getCountry().indexOf("-")+1).strip();
+
+
+        addFacility.clickNext("Facility", "Civic");
+
+        addressInfo.clickContinueRecommended();
+        addFacility.waitForAddFacilityStep("Address", false);
+        AddFacilitySummaryFragment confirmFacility = addFacility.getFacilitySummary();
+
+        List<String> matchingCivicAddress = confirmFacility.getCivicAddress().stream().map(String::toLowerCase).toList();
+        List<String> matchingMailingAddress = confirmFacility.getMailingAddress().stream().map(String::toLowerCase).toList();
+
+        assertTrue(matchingCivicAddress.contains(multiPartAddressLine.toLowerCase()),
+                "Civic Address in summary missing address line information");
+        assertTrue(matchingMailingAddress.contains(multiPartAddressLine.toLowerCase()),
+                "Mailing Address in summary missing address line information");
+
+        assertTrue(matchingMailingAddress.contains(multiPartCity.toLowerCase()),
+                "Maiing Address in summary missing city information");
+        assertTrue(matchingMailingAddress.contains(multiPartCountry.toLowerCase()),
+                "Mailing Address in summary missing country information");
+
+        addFacility.clickBack("Facility Summary", false);
     }
 }
