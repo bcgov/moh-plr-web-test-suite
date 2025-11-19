@@ -7,9 +7,14 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
+import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -17,9 +22,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.navigateToAddFacilityPage;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.viewFacilityByIdentifier;
 import static org.testng.Assert.*;
 
 public class CreateFacilityComplexTests implements SimpleTest {
@@ -156,6 +163,49 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Province/State field is unexpectedly not in BC");
         assertEquals(addressInfo.getCountry(), "CA - CANADA",
                 "Country field is unexpectedly not in Canada");
+    }
+
+    @Test
+    // F3-012. Facility Civic Address Latitude and Longitude
+    public void facilityAddressLatLong()
+    {
+        final double COORD_ERROR = 0.0001;
+        final String GOOGLE_MAPS_CANVAS_CSS = "div.id-scene > div > canvas:first-child";
+
+        // TODO: Submit Facility goes here
+        ViewFacilityPage newFacility = viewFacilityByIdentifier(workflowManager_, "IFC.00000001.BC.PRS", UserType.ADMIN);
+
+        double civicLat = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Latitude"));
+        double civicLong = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Longitude"));
+        String civicAddress = newFacility.grabCivicAddressBlockContent().get("Address Line 1");
+        String civicCity = newFacility.grabCivicAddressBlockContent().get("City");
+
+        SeleniumSession seleniumWorkflow = workflowManager_.getSelectedWorkflow().getSeleniumSession();
+        seleniumWorkflow.getDriver().navigate().to("https://maps.google.com/");
+        seleniumWorkflow.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector("input#searchboxinput")));
+
+        Actions actions = new Actions(seleniumWorkflow.getDriver());
+
+        seleniumWorkflow.fillFieldByCss("input#searchboxinput", civicAddress + " " + civicCity);
+        seleniumWorkflow.findElementByCss("button#searchbox-searchbutton").click();
+        seleniumWorkflow.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div > h1")));
+
+        int mapCanvasWidth = Integer.parseInt(seleniumWorkflow.findElementByCss(GOOGLE_MAPS_CANVAS_CSS)
+                .getAttribute("width"));
+        actions.moveToElement(seleniumWorkflow.findElementByCss(GOOGLE_MAPS_CANVAS_CSS),0,0);
+        actions.moveByOffset((int) (mapCanvasWidth/5.5),0).contextClick().perform();
+        seleniumWorkflow.waitUntil(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector("div.id-app-container > div > div[role='menu']")));
+
+        String mapLatLong = seleniumWorkflow.findElementByCss("div > div[data-index='0']").getText();
+
+        double mapLat = Double.parseDouble(mapLatLong.substring(0, mapLatLong.indexOf(",")));
+        double mapLong = Double.parseDouble(mapLatLong.substring(mapLatLong.indexOf(",") + 1));
+
+        assertTrue(Math.abs(civicLat - mapLat) < COORD_ERROR,
+                "Difference between Google Maps Latitude and PLR Civic Address Latitude is too large");
+        assertTrue(Math.abs(civicLong - mapLong) < COORD_ERROR,
+                "Difference between Google Maps Longitude and PLR Civic Address Longitude is too large");
     }
 
     @Test
