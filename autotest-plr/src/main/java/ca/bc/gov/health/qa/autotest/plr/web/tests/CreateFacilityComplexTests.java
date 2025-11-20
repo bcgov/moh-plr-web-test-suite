@@ -9,20 +9,21 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.navigateToAddFacilityPage;
@@ -167,45 +168,94 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
     @Test
     // F3-012. Facility Civic Address Latitude and Longitude
-    public void facilityAddressLatLong()
-    {
+    public void facilityAddressLatLong() {
         final double COORD_ERROR = 0.0001;
-        final String GOOGLE_MAPS_CANVAS_CSS = "div.id-scene > div > canvas:first-child";
+        final String geocoderBaseURI = "https://geocoder.api.gov.bc.ca/addresses.geojson?addressString=";
 
-        // TODO: Submit Facility goes here
+        // TODO: Submit Facility flow goes here
         ViewFacilityPage newFacility = viewFacilityByIdentifier(workflowManager_, "IFC.00000001.BC.PRS", UserType.ADMIN);
 
-        double civicLat = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Latitude"));
-        double civicLong = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Longitude"));
-        String civicAddress = newFacility.grabCivicAddressBlockContent().get("Address Line 1");
+        Double civicLat = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Latitude"));
+        Double civicLong = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Longitude"));
+
+        String civicAddress = newFacility.grabCivicAddressBlockContent().get("Address Line 1")
+                .replaceAll(" ", "%20");
         String civicCity = newFacility.grabCivicAddressBlockContent().get("City");
+        String civicProvince = newFacility.grabCivicAddressBlockContent().get("Province / State");
+        civicProvince = civicProvince.substring(0, civicProvince.indexOf("-")-1);
+        String fullAddress = String.format("%s%s, %s, %s", geocoderBaseURI, civicAddress, civicCity, civicProvince)
+                .replaceAll(", ", "%2C%20");
 
-        SeleniumSession seleniumWorkflow = workflowManager_.getSelectedWorkflow().getSeleniumSession();
-        seleniumWorkflow.getDriver().navigate().to("https://maps.google.com/");
-        seleniumWorkflow.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector("input#searchboxinput")));
+        JSONObject geocodeJSON = null;
+        try {
+            geocodeJSON = new JSONObject(IOUtils.toString(URI.create(fullAddress), StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        List<Object> dataCoords = geocodeJSON.getJSONArray("features").getJSONObject(0)
+                .getJSONObject("geometry").getJSONArray("coordinates").toList();
+        Double dataLat = Double.parseDouble(dataCoords.getLast().toString());
+        Double dataLong = Double.parseDouble(dataCoords.getFirst().toString());
 
-        Actions actions = new Actions(seleniumWorkflow.getDriver());
+        assertTrue(Math.abs(dataLat - civicLat) < COORD_ERROR,
+                "Difference between Geocode Latitude and PLR Civic Address Latitude is too large");
+        assertTrue(Math.abs(dataLong - civicLong) < COORD_ERROR,
+                "Difference between Geocode Longitude and PLR Civic Address Longitude is too large");
+    }
 
-        seleniumWorkflow.fillFieldByCss("input#searchboxinput", civicAddress + " " + civicCity);
-        seleniumWorkflow.findElementByCss("button#searchbox-searchbutton").click();
-        seleniumWorkflow.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div > h1")));
+    @Test
+    // F3-015. Validate Facility Mailing Address Type
+    public void facilityAddressType()
+    {
+        final int ADDRESS_LOWER_LIMIT = 380;
+        final int ADDRESS_UPPER_LIMIT = 550;
 
-        int mapCanvasWidth = Integer.parseInt(seleniumWorkflow.findElementByCss(GOOGLE_MAPS_CANVAS_CSS)
-                .getAttribute("width"));
-        actions.moveToElement(seleniumWorkflow.findElementByCss(GOOGLE_MAPS_CANVAS_CSS),0,0);
-        actions.moveByOffset((int) (mapCanvasWidth/5.5),0).contextClick().perform();
-        seleniumWorkflow.waitUntil(ExpectedConditions.presenceOfElementLocated(
-                By.cssSelector("div.id-app-container > div > div[role='menu']")));
+        ViewFacilityPage newFacility = viewFacilityByIdentifier(workflowManager_, "IFC.00006506.BC.PRS", UserType.ADMIN);
 
-        String mapLatLong = seleniumWorkflow.findElementByCss("div > div[data-index='0']").getText();
+        assertEquals(newFacility.grabDataBlockContent(FacilitySection.OTHER_ADDRESS,0).get("Address Type"),
+                "Physical location (P)", "New Facility's other address has unexpected address type");
+    }
 
-        double mapLat = Double.parseDouble(mapLatLong.substring(0, mapLatLong.indexOf(",")));
-        double mapLong = Double.parseDouble(mapLatLong.substring(mapLatLong.indexOf(",") + 1));
+    @Test
+    // F3-016. Validate Facility Mailing Address Purpose
+    public void facilityAddressPurpose()
+    {
+        final int ADDRESS_LOWER_LIMIT = 380;
+        final int ADDRESS_UPPER_LIMIT = 550;
 
-        assertTrue(Math.abs(civicLat - mapLat) < COORD_ERROR,
-                "Difference between Google Maps Latitude and PLR Civic Address Latitude is too large");
-        assertTrue(Math.abs(civicLong - mapLong) < COORD_ERROR,
-                "Difference between Google Maps Longitude and PLR Civic Address Longitude is too large");
+        ViewFacilityPage newFacility = viewFacilityByIdentifier(workflowManager_, "IFC.00006506.BC.PRS", UserType.ADMIN);
+
+        assertEquals(newFacility.grabDataBlockContent(FacilitySection.OTHER_ADDRESS,0).get("Address Purpose"),
+                "Facility Contact (FC)", "New Facility's other address has unexpected address purpose");
+    }
+
+    @Test
+    // F3-020. Facility Address Correction With External Tool
+    public void facilityAddressCorrection()
+    {
+        final int ADDRESS_LOWER_LIMIT = 380;
+        final int ADDRESS_UPPER_LIMIT = 550;
+
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.fillFacilitySection("Correction Test Facility", "Correction Test Description");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressInfo = null;
+        while (addressInfo == null)
+        {
+            try
+            {
+                int ADDRESS_NUM = ADDRESS_LOWER_LIMIT + RNG.nextInt(ADDRESS_UPPER_LIMIT - ADDRESS_LOWER_LIMIT + 1);
+                String ADDRESS = String.format("%d DAVIS RD", ADDRESS_NUM);
+                addressInfo = addFacility.fillAddressSection(ADDRESS, ADDRESS + ", LADYSMITH");
+            } catch (IllegalStateException ignored) {}
+        }
+        addFacility.clickNext("Facility", "Civic");
+        addressInfo.clickContinueRecommended();
+        addFacility.waitForAddFacilityStep("Address", false);
     }
 
     @Test
