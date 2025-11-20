@@ -11,6 +11,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 public class AddFacilityPage extends BasicWebPage {
 
@@ -247,7 +248,13 @@ public class AddFacilityPage extends BasicWebPage {
         By widgetLocator = By.xpath(String.format(
                 "//form//div//div//div//div//span[contains(text(), '%s')]//parent::div//parent::div", widget));
 
-        selenium_.waitUntil(ExpectedConditions.attributeToBe(widgetLocator, "aria-hidden", "false"));
+        try
+        {
+            selenium_.waitUntil(ExpectedConditions.attributeToBe(widgetLocator, "aria-hidden", "false"));
+        }
+        catch (org.openqa.selenium.TimeoutException e) { throw new IllegalStateException(e.getMessage()); }
+        catch (org.openqa.selenium.StaleElementReferenceException e) { waitForWidgetVisibility(widget); }
+
     }
 
     /**
@@ -263,7 +270,13 @@ public class AddFacilityPage extends BasicWebPage {
 
         if (errorWidget != null) {
             if (errorWidget.isEmpty()) waitForAddFacilityStep(currentState, false);
-            else waitForWidgetVisibility(errorWidget);
+            else {
+                try {
+                    waitForWidgetVisibility(errorWidget);
+                } catch (IllegalStateException e) {
+                    throw new IllegalStateException("Search for widget" + errorWidget + " timed out");
+                }
+            }
         }
     }
 

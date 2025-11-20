@@ -7,14 +7,10 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
-import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-import org.openqa.selenium.By;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -24,10 +20,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.List;
 
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.navigateToAddFacilityPage;
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.viewFacilityByIdentifier;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
 
 public class CreateFacilityComplexTests implements SimpleTest {
@@ -59,6 +55,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
+        workflow.getSeleniumSession().setWaitTimeout(Duration.ofSeconds(5));
     }
 
     @Test
@@ -169,33 +166,11 @@ public class CreateFacilityComplexTests implements SimpleTest {
     @Test
     // F3-012. Facility Civic Address Latitude and Longitude
     public void facilityAddressLatLong() {
-        final int ADDRESS_LOWER_LIMIT = 130;
-        final int ADDRESS_UPPER_LIMIT = 875;
-        final String CIVIC_ADDRESS = "SEYMOUR ST, KAMLOOPS";
-
         final double COORD_ERROR = 0.0001;
         final String geocoderBaseURI = "https://geocoder.api.gov.bc.ca/addresses.geojson?addressString=";
+        final List<String> addressData = List.of("130", "875", "SEYMOUR ST, KAMLOOPS");
 
-        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
-
-        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", "");
-        addFacility.fillFacilitySection("LatLong Test Facility", "LatLong Test Description");
-        addFacility.clickNext("Facility", "");
-
-        AddFacilityAddressFragment addressInfo = null;
-        while (addressInfo == null)
-        {
-            try
-            {
-                int ADDRESS_NUM = ADDRESS_LOWER_LIMIT + RNG.nextInt(ADDRESS_UPPER_LIMIT - ADDRESS_LOWER_LIMIT + 1);
-                String ADDRESS = String.format("%d %s", ADDRESS_NUM, CIVIC_ADDRESS);
-                addressInfo = addFacility.fillAddressSection(ADDRESS, ADDRESS);
-            } catch (IllegalStateException ignored) {}
-        }
-        addFacility.clickNext("Facility", "");
-        addFacility.waitForAddFacilityStep("Address", false);
-        ViewFacilityPage newFacility = addFacility.getFacilitySummary().clickSubmitButton();
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_, addressData, "LatLong", 5);
 
         Double civicLat = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Latitude"));
         Double civicLong = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Longitude"));
@@ -229,10 +204,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
     // F3-015. Validate Facility Mailing Address Type
     public void facilityAddressType()
     {
-        final int ADDRESS_LOWER_LIMIT = 380;
-        final int ADDRESS_UPPER_LIMIT = 550;
+        final List<String> addressData = List.of("120", "775", "VICTORIA ST, KAMLOOPS");
 
-        ViewFacilityPage newFacility = viewFacilityByIdentifier(workflowManager_, "IFC.00006506.BC.PRS", UserType.ADMIN);
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_, addressData, "Name", 5);
 
         assertEquals(newFacility.grabDataBlockContent(FacilitySection.OTHER_ADDRESS,0).get("Address Type"),
                 "Physical location (P)", "New Facility's other address has unexpected address type");
@@ -242,10 +216,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
     // F3-016. Validate Facility Mailing Address Purpose
     public void facilityAddressPurpose()
     {
-        final int ADDRESS_LOWER_LIMIT = 380;
-        final int ADDRESS_UPPER_LIMIT = 550;
+        final List<String> addressData = List.of("380", "550", "DAVIS RD, LADYSMITH");
 
-        ViewFacilityPage newFacility = viewFacilityByIdentifier(workflowManager_, "IFC.00006506.BC.PRS", UserType.ADMIN);
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_, addressData, "Purpose", 5);
 
         assertEquals(newFacility.grabDataBlockContent(FacilitySection.OTHER_ADDRESS,0).get("Address Purpose"),
                 "Facility Contact (FC)", "New Facility's other address has unexpected address purpose");
@@ -255,29 +228,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
     // F3-020. Facility Address Correction With External Tool
     public void facilityAddressCorrection()
     {
-        final int ADDRESS_LOWER_LIMIT = 380;
-        final int ADDRESS_UPPER_LIMIT = 550;
+        final List<String> addressData = List.of("6000", "6180", "OLD WEST SAANICH RD, SAANICHTON");
 
-        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
-
-        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", "");
-        addFacility.fillFacilitySection("Correction Test Facility", "Correction Test Description");
-        addFacility.clickNext("Facility", "");
-
-        AddFacilityAddressFragment addressInfo = null;
-        while (addressInfo == null)
-        {
-            try
-            {
-                int ADDRESS_NUM = ADDRESS_LOWER_LIMIT + RNG.nextInt(ADDRESS_UPPER_LIMIT - ADDRESS_LOWER_LIMIT + 1);
-                String ADDRESS = String.format("%d DAVIS RD", ADDRESS_NUM);
-                addressInfo = addFacility.fillAddressSection(ADDRESS, ADDRESS + ", LADYSMITH");
-            } catch (IllegalStateException ignored) {}
-        }
-        addFacility.clickNext("Facility", "Civic");
-        addressInfo.clickContinueRecommended();
-        addFacility.waitForAddFacilityStep("Address", false);
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_, addressData, "Correction", 5);
     }
 
     @Test

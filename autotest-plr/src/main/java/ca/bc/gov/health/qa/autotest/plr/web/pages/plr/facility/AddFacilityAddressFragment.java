@@ -6,6 +6,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class AddFacilityAddressFragment extends BasicWebPageFragment {
 
@@ -190,11 +191,11 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
                 .getAttribute("class").contains("ui-state-disabled");
     }
 
-    private WebElement getRecommendedCivicAddressWidget()
+    private WebElement getWidget(String widgetTitlePrefix)
     {
         for (WebElement elem : selenium_.findElementsByCss("div[role='dialog']")) {
             if (elem.findElement(By.cssSelector(WIDGET_TITLE_SPAN_CSS))
-                    .getAttribute("innerHTML").contains("Civic")) {
+                    .getAttribute("innerHTML").contains(widgetTitlePrefix)) {
                 return elem;
             }
         }
@@ -203,9 +204,17 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
 
     public void clickContinueRecommended()
     {
-        WebElement civicAddressWidget = getRecommendedCivicAddressWidget();
+        WebElement civicAddressWidget = getWidget("Civic");
         By buttonSelector = By.cssSelector("div.ui-widget-content > table > tbody > tr > td:first-child > button");
 
         civicAddressWidget.findElement(buttonSelector).click();
+    }
+
+    public void handleDuplicate()
+    {
+        WebElement duplicateWidget = getWidget("Duplicate");
+        By buttonSelector = By.cssSelector("div.ui-widget-content > button");
+
+        duplicateWidget.findElement(buttonSelector).click();
     }
 }
