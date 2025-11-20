@@ -169,11 +169,33 @@ public class CreateFacilityComplexTests implements SimpleTest {
     @Test
     // F3-012. Facility Civic Address Latitude and Longitude
     public void facilityAddressLatLong() {
+        final int ADDRESS_LOWER_LIMIT = 130;
+        final int ADDRESS_UPPER_LIMIT = 875;
+        final String CIVIC_ADDRESS = "SEYMOUR ST, KAMLOOPS";
+
         final double COORD_ERROR = 0.0001;
         final String geocoderBaseURI = "https://geocoder.api.gov.bc.ca/addresses.geojson?addressString=";
 
-        // TODO: Submit Facility flow goes here
-        ViewFacilityPage newFacility = viewFacilityByIdentifier(workflowManager_, "IFC.00000001.BC.PRS", UserType.ADMIN);
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.fillFacilitySection("LatLong Test Facility", "LatLong Test Description");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressInfo = null;
+        while (addressInfo == null)
+        {
+            try
+            {
+                int ADDRESS_NUM = ADDRESS_LOWER_LIMIT + RNG.nextInt(ADDRESS_UPPER_LIMIT - ADDRESS_LOWER_LIMIT + 1);
+                String ADDRESS = String.format("%d %s", ADDRESS_NUM, CIVIC_ADDRESS);
+                addressInfo = addFacility.fillAddressSection(ADDRESS, ADDRESS);
+            } catch (IllegalStateException ignored) {}
+        }
+        addFacility.clickNext("Facility", "");
+        addFacility.waitForAddFacilityStep("Address", false);
+        ViewFacilityPage newFacility = addFacility.getFacilitySummary().clickSubmitButton();
 
         Double civicLat = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Latitude"));
         Double civicLong = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Longitude"));
