@@ -3,6 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -65,9 +66,28 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-002. Restrict Facility Access by User Role
     public void testRestrictFacilityAccessByUserRole()
     {
+        // Test that ADMIN can see Add Facility menu item
+        PlrWebWorkflow adminWorkflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+        PlrNavigationMenuFragment adminMenu = adminWorkflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
+        
+        assertTrue(adminMenu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
+            "Add Facility menu item should be visible for ADMIN user role");
 
-    }
+        // Test that other user types cannot see Add Facility menu item
+        UserType[] userTypesToTest = {UserType.PRIMARY, UserType.SECONDARY, UserType.CONSUMER};
 
+        for (UserType userType : userTypesToTest) {
+
+            PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, userType);
+            PlrNavigationMenuFragment menu = workflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
+
+            assertFalse(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
+                String.format("Add Facility menu item should NOT be visible for %s user role", userType));
+
+        }
+
+    }    
+    
     @Test
     // F3-003. Facility Minimum Data Requirements
     public void testFacilityMinimumDataRequirements()
