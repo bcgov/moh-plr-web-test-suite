@@ -9,6 +9,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -227,14 +228,24 @@ public final class TestHelper {
             try
             {
                 addFacility.clickNext("Address", "Civic");
-                addressInfo.clickContinueRecommended();
+                addressInfo.handleWidgetButton("Civic");
+            } catch (IllegalStateException ignored) {}
+
+            try
+            {
+                addFacility.waitForWidgetVisibility("Unknown");
+                addressInfo.handleWidgetButton("Unknown");
+                addressInfo = null;
+                addressAttempts++;
+                continue;
             } catch (IllegalStateException ignored) {}
 
             try
             {
                 addFacility.waitForWidgetVisibility("Duplicate");
-                addressInfo.handleDuplicate();
+                addressInfo.handleWidgetButton("Duplicate");
                 addressAttempts++;
+                addressInfo = null;
                 continue;
             } catch (IllegalStateException ignored) {}
 
@@ -244,6 +255,7 @@ public final class TestHelper {
         {
             throw new IllegalStateException("No available civic address found after " + maxAttempts + " attempts");
         }
+        workflowManager.getSelectedWorkflow().getSeleniumSession().setWaitTimeout(Duration.ofSeconds(15));
 
         addFacility.waitForAddFacilityStep("Address", false);
         return addFacility.getFacilitySummary().clickSubmitButton();

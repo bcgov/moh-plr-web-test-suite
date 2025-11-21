@@ -202,19 +202,15 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
         throw new IllegalStateException("Civic Address Widget not present.");
     }
 
-    public void clickContinueRecommended()
+    public void handleWidgetButton(String errorWidget)
     {
-        WebElement civicAddressWidget = getWidget("Civic");
-        By buttonSelector = By.cssSelector("div.ui-widget-content > table > tbody > tr > td:first-child > button");
+        String buttonCSS = "div.ui-widget-content > ";
+        if (errorWidget.equals("Civic")) buttonCSS += "table > tbody > tr > td:first-child > ";
+        buttonCSS += "button";
 
-        civicAddressWidget.findElement(buttonSelector).click();
-    }
+        WebElement widget = getWidget(errorWidget);
+        By buttonSelector = By.cssSelector(buttonCSS);
 
-    public void handleDuplicate()
-    {
-        WebElement duplicateWidget = getWidget("Duplicate");
-        By buttonSelector = By.cssSelector("div.ui-widget-content > button");
-
-        duplicateWidget.findElement(buttonSelector).click();
+        widget.findElement(buttonSelector).click();
     }
 }

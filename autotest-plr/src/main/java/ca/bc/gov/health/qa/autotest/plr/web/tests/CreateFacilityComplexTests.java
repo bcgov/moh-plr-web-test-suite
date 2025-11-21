@@ -55,6 +55,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
+
         workflow.getSeleniumSession().setWaitTimeout(Duration.ofSeconds(5));
     }
 
@@ -228,9 +229,13 @@ public class CreateFacilityComplexTests implements SimpleTest {
     // F3-020. Facility Address Correction With External Tool
     public void facilityAddressCorrection()
     {
-        final List<String> addressData = List.of("6000", "6180", "OLD WEST SAANICH RD, SAANICHTON");
+        final List<String> addressData = List.of("250", "300", "LANSDOWNE ST, KAMLOOPS");
 
         ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_, addressData, "Correction", 5);
+
+        assertTrue(newFacility.grabCivicAddressBlockContent().get("Address Line 1").contains(
+                addressData.getLast().substring(0, addressData.getLast().indexOf(","))),
+                "Created facility does not match expected address name");
     }
 
     @Test
@@ -268,7 +273,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
         addFacility.clickNext("Facility", "Civic");
 
-        addressInfo.clickContinueRecommended();
+        addressInfo.handleWidgetButton("Civic");
         addFacility.waitForAddFacilityStep("Address", false);
         AddFacilitySummaryFragment confirmFacility = addFacility.getFacilitySummary();
 
@@ -297,7 +302,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
         addFacility.clickNext("Facility", "Civic");
 
-        addressInfo.clickContinueRecommended();
+        addressInfo.handleWidgetButton("Civic");
         addFacility.waitForAddFacilityStep("Address", false);
         confirmFacility = addFacility.getFacilitySummary();
 
