@@ -166,12 +166,14 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
     @Test
     // F3-012. Facility Civic Address Latitude and Longitude
-    public void facilityAddressLatLong() {
+    public void facilityAddressLatLong()
+    {
         final double COORD_ERROR = 0.0001;
         final String geocoderBaseURI = "https://geocoder.api.gov.bc.ca/addresses.geojson?addressString=";
         final List<String> addressData = List.of("130", "875", "SEYMOUR ST, KAMLOOPS");
 
-        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_, addressData, "LatLong", 5);
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_,
+                addressData, "LatLong", 5);
 
         Double civicLat = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Latitude"));
         Double civicLong = Double.parseDouble(newFacility.grabCivicAddressBlockContent().get("Longitude"));
@@ -207,7 +209,8 @@ public class CreateFacilityComplexTests implements SimpleTest {
     {
         final List<String> addressData = List.of("120", "775", "VICTORIA ST, KAMLOOPS");
 
-        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_, addressData, "Name", 5);
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_,
+                addressData, "Name", 5);
 
         assertEquals(newFacility.grabDataBlockContent(FacilitySection.OTHER_ADDRESS,0).get("Address Type"),
                 "Physical location (P)", "New Facility's other address has unexpected address type");
@@ -219,7 +222,8 @@ public class CreateFacilityComplexTests implements SimpleTest {
     {
         final List<String> addressData = List.of("380", "550", "DAVIS RD, LADYSMITH");
 
-        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_, addressData, "Purpose", 5);
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_,
+                addressData, "Purpose", 5);
 
         assertEquals(newFacility.grabDataBlockContent(FacilitySection.OTHER_ADDRESS,0).get("Address Purpose"),
                 "Facility Contact (FC)", "New Facility's other address has unexpected address purpose");
@@ -231,7 +235,8 @@ public class CreateFacilityComplexTests implements SimpleTest {
     {
         final List<String> addressData = List.of("250", "300", "LANSDOWNE ST, KAMLOOPS");
 
-        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_, addressData, "Correction", 5);
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_,
+                addressData, "Correction", 5);
 
         assertTrue(newFacility.grabCivicAddressBlockContent().get("Address Line 1").contains(
                 addressData.getLast().substring(0, addressData.getLast().indexOf(","))),
@@ -318,6 +323,26 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Maiing Address in summary missing city information");
         assertTrue(matchingMailingAddress.contains(multiPartCountry.toLowerCase()),
                 "Mailing Address in summary missing country information");
+
+    }
+
+    @Test
+    // F3-024. Data Owner Code for Facility
+    public void dataOwnerCodeFacility()
+    {
+        final List<String> addressData = List.of("300", "930", "ST PAUL ST, KAMLOOPS");
+
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_,
+                addressData, "Data Owner Check", 5);
+
+        assertEquals(newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0).get("Data Owner Code"),
+                "MOH", "Data Owner Code for Identifier section is unexpectedly not MOH");
+        assertEquals(newFacility.grabDataBlockContent(FacilitySection.NAMES, 0).get("Data Owner Code"),
+                "MOH", "Data Owner Code for Name section is unexpectedly not MOH");
+        assertNull(newFacility.grabCivicAddressBlockContent().get("Data Owner Code"),
+                "Data Owner Code unexpectedly present for Civic Address section");
+        assertEquals(newFacility.grabDataBlockContent(FacilitySection.OTHER_ADDRESS, 0).get("Data Owner Code"),
+                "MOH", "Data Owner Code for Other Address section is unexpectedly not MOH");
 
     }
 }
