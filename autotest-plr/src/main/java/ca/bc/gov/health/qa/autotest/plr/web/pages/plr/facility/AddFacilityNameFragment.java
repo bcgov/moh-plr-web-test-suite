@@ -5,6 +5,9 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 import org.openqa.selenium.By;
 
+/**
+ * Fragment class for the Facility Name section (second step) when creating a new facility
+ */
 public class AddFacilityNameFragment extends BasicWebPageFragment {
 
     private static final String NAME_FIELD_CSS = "input#form\\:faciName";
@@ -13,6 +16,11 @@ public class AddFacilityNameFragment extends BasicWebPageFragment {
 
     private static final String DATE_FIELD_CSS = "span#form\\:effectiveFromDate_FacilityName";
 
+    /**
+     * Initializes fragment and changes selenium's main locator to header of the Facility Name form
+     *
+     * @param selenium      the current SeleniumSession
+     */
     public AddFacilityNameFragment(SeleniumSession selenium)
     {
         super(selenium, By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Facility')]"));

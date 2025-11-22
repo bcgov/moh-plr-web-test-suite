@@ -10,6 +10,9 @@ import org.openqa.selenium.WebElement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Fragment class for the Identifier section (first step) when creating a new facility
+ */
 public class AddFacilityIdFragment extends BasicWebPageFragment {
 
     private static final String FACTYPE_FIELD_CSS = "label#form\\:facilityType_label";
@@ -118,6 +121,11 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
         return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
     }
 
+    /**
+     * Gets highlighted fields (to be used when an error is expected)
+     *
+     * @return  a list of strings of each of the fields that are highlighted
+     */
     public List<String> getHighlightedFields()
     {
         List<String> highlightedFields = new ArrayList<>();

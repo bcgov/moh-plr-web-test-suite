@@ -11,6 +11,9 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Fragment class for Date/Datepicker Menu components.
+ */
 public class DateMenu extends BasicWebPageFragment {
 
     private final By datepickerLocator_ = By.cssSelector("div#ui-datepicker-div");

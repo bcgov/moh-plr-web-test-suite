@@ -13,10 +13,16 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * A page object class for the Add Facility page.
+ */
 public class AddFacilityPage extends BasicWebPage {
 
-    private static final Logger LOG = ExecutionLogManager.getLogger();
-
+    /**
+     * Initializes page object and changes selenium's main locator to Add Facility heading
+     *
+     * @param selenium  the current SeleniumSession
+     */
     public AddFacilityPage(SeleniumSession selenium)
     {
         super(selenium, By.xpath("//div[@id='content']//h2[contains(text(),'Add Facility')]"),
@@ -220,6 +226,11 @@ public class AddFacilityPage extends BasicWebPage {
         return addressFragment;
     }
 
+    /**
+     * Waits for the summary page to load and returns a reference to its fragment class
+     *
+     * @return  an AddFacilitySummaryFragment reference to the summary page
+     */
     public AddFacilitySummaryFragment getFacilitySummary()
     {
         waitForAddFacilityStep("Facility Summary", true);
@@ -243,6 +254,12 @@ public class AddFacilityPage extends BasicWebPage {
         else selenium_.waitUntil(SeleniumExpectedConditions.absenceOfElementLocated(stepLocator));
     }
 
+    /**
+     * Waits for a widget appearing after attempting to pass an Add Facility Step to be visible and interactable
+     *
+     * @param widget                    a unique portion in the header of the widget to be located
+     * @throws IllegalStateException    when searching for the desired widget times out (most likely not found)
+     */
     public void waitForWidgetVisibility(String widget)
     {
         By widgetLocator = By.xpath(String.format(
@@ -294,11 +311,21 @@ public class AddFacilityPage extends BasicWebPage {
         if (!expectedError) waitForAddFacilityStep(currentState, false);
     }
 
+    /**
+     * Gets the currently highlighted step in the Add Facility flow
+     *
+     * @return  a string of the highlighted step
+     */
     public String getStep()
     {
         return selenium_.findElementByCss("div.ui-wizard.ui-widget > ul > li.ui-state-highlight").getText();
     }
 
+    /**
+     * Gets the title of the form for the current step in the Add Facility flow
+     *
+     * @return  a string of the highlighted step
+     */
     public String getStepTitle()
     {
         return selenium_.findElementByCss(
