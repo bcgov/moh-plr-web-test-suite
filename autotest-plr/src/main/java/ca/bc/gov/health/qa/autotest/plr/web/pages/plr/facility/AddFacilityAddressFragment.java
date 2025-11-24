@@ -8,6 +8,9 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AddFacilityAddressFragment extends BasicWebPageFragment {
 
     private static final String AUTOCOMPLETE_FIELD_CSS = "input#form\\:autoComplete_input";
@@ -212,5 +215,19 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
         By buttonSelector = By.cssSelector(buttonCSS);
 
         widget.findElement(buttonSelector).click();
+    }
+
+    /**
+     * Gets highlighted fields (to be used when an error is expected)
+     *
+     * @return  a list of strings of each of the fields that are highlighted
+     */
+    public List<String> getHighlightedFields()
+    {
+        List<String> highlightedFields = new ArrayList<>();
+        By highlightedSelector = By.cssSelector("label.ui-outputlabel.ui-widget.ui-state-error");
+        List<WebElement> webElementList = selenium_.findElements(highlightedSelector);
+        for (WebElement fieldElement : webElementList) { highlightedFields.add(fieldElement.getText()); }
+        return highlightedFields;
     }
 }

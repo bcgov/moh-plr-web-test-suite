@@ -18,6 +18,8 @@ import java.util.concurrent.TimeoutException;
  */
 public class AddFacilityPage extends BasicWebPage {
 
+    final String FORM_TITLE_XPATH = "//div//table//tbody//tr//td//div//div//span[contains(text(),'%s')]";
+
     /**
      * Initializes page object and changes selenium's main locator to Add Facility heading
      *
@@ -245,11 +247,11 @@ public class AddFacilityPage extends BasicWebPage {
      */
     public void waitForAddFacilityStep(String step, boolean next)
     {
-        By stepLocator = By.xpath(String.format("//table//tbody//tr//td//div//div//span[contains(text(),'%s')]", step));
+        By stepLocator = By.xpath(String.format(FORM_TITLE_XPATH, step));
         if (next)
         {
-            selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithClass(
-                    stepLocator, "ui-panel-title"));
+            selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithClass(stepLocator,
+                    "ui-panel-title"));
         }
         else selenium_.waitUntil(SeleniumExpectedConditions.absenceOfElementLocated(stepLocator));
     }
@@ -278,12 +280,17 @@ public class AddFacilityPage extends BasicWebPage {
      * Advances to the next stage of the Add Facility flow with the Next button.
      *
      * @param currentState     the title of the previous form in the Add Facility flow.
-     * @param errorWidget      the widget to wait for visibility for in the event of an error
-     *                         (leave null if no error expected)
+     * @param errorWidget      the widget to wait for visibility for in the event of an error.
+     *                         specify the widget if there will be an error with a widget, set to the empty string if
+     *                         no error is expected, and set to null if an error with no widget is expected
      */
     public void clickNext(String currentState, String errorWidget)
     {
+        WebElement stepTitle = selenium_.findElement(By.xpath(String.format(FORM_TITLE_XPATH, currentState)));
+
         selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
+
+        selenium_.waitUntil(ExpectedConditions.stalenessOf(stepTitle));
 
         if (errorWidget != null) {
             if (errorWidget.isEmpty()) waitForAddFacilityStep(currentState, false);
@@ -294,7 +301,7 @@ public class AddFacilityPage extends BasicWebPage {
                     throw new IllegalStateException("Search for widget" + errorWidget + " timed out");
                 }
             }
-        }
+        } else { waitForAddFacilityStep(currentState, true); }
     }
 
     /**

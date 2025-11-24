@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
@@ -65,6 +66,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
     {
         final String identifierTypeRequired = errorList.getString("identifierTypeRequired");
         final String foreignCharacterIdentifier = errorList.getString("foreignCharacterIdentifier");
+        final String maximumIdentifierCharLimit = errorList.getString("maximumIdentifierCharLimit");
 
         // Identifier but no Identifier Type
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
@@ -83,7 +85,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
         AddFacilityIdFragment identifierFields = addFacility.fillIdentifierSection(
                 "BUILDING", "Select One", "δ.00000001.PRS");
-        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Identifier", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedFields = identifierFields.getHighlightedFields();
@@ -91,14 +93,14 @@ public class CreateFacilityComplexTests implements SimpleTest {
         assertTrue(errorMessageList.contains(foreignCharacterIdentifier),
                 "Error for identifier field includes foreign characters not displayed.");
         assertEquals(highlightedFields.getLast(), "Identifier:",
-                "Facility Identifier Type is unhighlighted, or more than one error occurred.");
+                "Facility Identifier is unhighlighted, or more than one error occurred.");
 
         // Nonalphanumeric Character in Identifier
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         identifierFields = addFacility.fillIdentifierSection(
                 "BUILDING", "Select One", "IFC@00000001@PRS");
-        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Identifier", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedFields = identifierFields.getHighlightedFields();
@@ -114,12 +116,13 @@ public class CreateFacilityComplexTests implements SimpleTest {
         identifierFields = addFacility.fillIdentifierSection(
                 "BUILDING", "Select One",
                 "IFC.9999999999999999999999999999999999999999999.PRS");
-        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Identifier", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedFields = identifierFields.getHighlightedFields();
 
-        assertFalse(errorMessageList.isEmpty(), "Error for maximum character limit is not displayed.");
+        assertTrue(errorMessageList.contains(maximumIdentifierCharLimit),
+                "Error for maximum character limit is not displayed.");
         assertEquals(highlightedFields.getLast(), "Identifier:",
                 "Facility Identifier Type is unhighlighted, or more than one error occurred.");
 
@@ -324,6 +327,98 @@ public class CreateFacilityComplexTests implements SimpleTest {
         assertTrue(matchingMailingAddress.contains(multiPartCountry.toLowerCase()),
                 "Mailing Address in summary missing country information");
 
+    }
+
+    @Test
+    // F3-023. Rejection of Non-Acceptable Characters
+    public void rejectionNonAcceptableCharacters()
+    {
+        final String foreignCharacterIdentifier = errorList.getString("foreignCharacterIdentifier");
+        final String foreignCharacterFacility = errorList.getString("foreignCharacterFacility");
+        final String foreignCharacterAddress = errorList.getString("foreignCharacterAddress");
+
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        AddFacilityIdFragment identifierFields = addFacility.fillIdentifierSection(
+                "BUILDING", "Select One", "%");
+        addFacility.clickNext("Identifier", null);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedFields = identifierFields.getHighlightedFields();
+
+        assertTrue(errorMessageList.contains(foreignCharacterIdentifier),
+                "Invalid character error does not appear unexpectedly");
+        assertTrue(highlightedFields.contains("Identifier:"),
+                "Facility Identifier field is unhighlighted");
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        AddFacilityNameFragment nameFields = addFacility.fillFacilitySection("A%", "");
+        addFacility.clickNext("Facility", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedFields = nameFields.getHighlightedFields();
+
+        assertTrue(errorMessageList.contains(foreignCharacterFacility),
+                "Invalid character error does not appear unexpectedly");
+        assertTrue(highlightedFields.contains("Name:"), "Facility name field is unhighlighted");
+
+        nameFields = addFacility.fillFacilitySection("", "A%");
+        addFacility.clickNext("Facility", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedFields = nameFields.getHighlightedFields();
+
+        assertTrue(errorMessageList.contains(foreignCharacterFacility),
+                "Invalid character error does not appear unexpectedly");
+        assertTrue(highlightedFields.contains("Description:"),
+                "Facility description field is unhighlighted");
+
+        addFacility.fillFacilitySection("", "");
+        addFacility.clickNext("Facility", "");
+
+        for (int addressLineIndex = 1; addressLineIndex < 4; addressLineIndex++)
+        {
+            List<String> addressLines = Arrays.asList("", "", "");
+            addressLines.set(addressLineIndex - 1, "A%");
+            AddFacilityAddressFragment addressFields = addFacility.fillAddressSection(
+                    addressLines, "Vic", "Victoria", "");
+            addFacility.clickNext("Address", null);
+
+            errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+            highlightedFields = addressFields.getHighlightedFields();
+
+            assertTrue(errorMessageList.contains(foreignCharacterAddress),
+                    "Invalid character error does not appear unexpectedly");
+            if (addressLineIndex == 1) assertTrue(highlightedFields.contains("Address Line 1:*"),
+                    "Address Line 1 is unhighlighted");
+            else assertTrue(highlightedFields.contains("Address Line " + addressLineIndex + ":"),
+                    "Address Line " + addressLineIndex + " field is unhighlighted");
+        }
+
+        AddFacilityAddressFragment addressFields = addFacility.fillAddressSection(
+                List.of("1175 DOUGLAS ST", "", ""), "A%", null, "");
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedFields = addressFields.getHighlightedFields();
+
+        assertTrue(errorMessageList.contains(foreignCharacterAddress),
+                "Invalid character error does not appear unexpectedly");
+        assertTrue(highlightedFields.contains("City:*"), "City field is unhighlighted");
+
+        addressFields = addFacility.fillAddressSection(
+                List.of("1175 DOUGLAS ST", "", ""), "Vic", "Victoria", "A%");
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedFields = addressFields.getHighlightedFields();
+
+        assertTrue(errorMessageList.contains(foreignCharacterAddress),
+                "Invalid character error does not appear unexpectedly");
+        assertTrue(highlightedFields.contains("Postal Code / Zip Code:"),
+                "Postal Code field is unhighlighted");
     }
 
     @Test

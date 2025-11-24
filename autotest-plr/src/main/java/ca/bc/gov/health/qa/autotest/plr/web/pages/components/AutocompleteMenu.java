@@ -140,6 +140,7 @@ public class AutocompleteMenu extends BasicWebPageFragment {
         );
 
         WebElement item;
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(autocompleteListCss));
         List<WebElement> itemList = selenium_.findElements(autocompleteListCss);
         if (itemList.size() == 1)
         {
