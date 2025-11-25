@@ -11,6 +11,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Fragment class for the Address section (third step) when creating a new facility
+ */
 public class AddFacilityAddressFragment extends BasicWebPageFragment {
 
     private static final String AUTOCOMPLETE_FIELD_CSS = "input#form\\:autoComplete_input";
@@ -33,23 +36,63 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
 
     private static final String WIDGET_TITLE_SPAN_CSS = "div.ui-dialog-titlebar > span.ui-dialog-title";
 
+    /**
+     * Initializes fragment and changes selenium's main locator to header of the Address form
+     *
+     * @param selenium      the current SeleniumSession
+     */
     public AddFacilityAddressFragment(SeleniumSession selenium)
     {
         super(selenium, By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Address')]"));
     }
 
+    /**
+     * Gets the Address Line 1 field
+     *
+     * @return  a string of the input to Address Line 1
+     */
     public String getAddressLine1() { return selenium_.findElementByCss(ADDRESS_LINE_1_FIELD_CSS).getAttribute("value"); }
 
+    /**
+     * Gets the Address Line 2 field
+     *
+     * @return  a string of the input to Address Line 2
+     */
     public String getAddressLine2() { return selenium_.findElementByCss(ADDRESS_LINE_2_FIELD_CSS).getAttribute("value"); }
 
+    /**
+     * Gets the Address Line 3 field
+     *
+     * @return  a string of the input to Address Line 3
+     */
     public String getAddressLine3() { return selenium_.findElementByCss(ADDRESS_LINE_3_FIELD_CSS).getAttribute("value"); }
 
+    /**
+     * Gets the City field
+     *
+     * @return  a string of the input to the City field
+     */
     public String getCity() { return selenium_.findElementByCss(CITY_FIELD_CSS).getAttribute("value"); }
 
+    /**
+     * Gets the Postal Code / Zip Code field
+     *
+     * @return  a string of the input to the Postal Code field
+     */
     public String getPostalCode() {return selenium_.findElementByCss(POSTAL_CODE_FIELD_CSS).getAttribute("value"); }
 
+    /**
+     * Gets the Province / State field
+     *
+     * @return  a string of the input to the Province field
+     */
     public String getProvinceState() { return selenium_.findElementByCss(PROVINCE_STATE_FIELD_CSS).getText(); }
 
+    /**
+     * Gets the Country field
+     *
+     * @return  a string of the input to the Country field
+     */
     public String getCountry() { return selenium_.findElementByCss(COUNTRY_FIELD_CSS).getText(); }
 
     /**
@@ -182,18 +225,34 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
         return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
     }
 
+    /**
+     * Returns true if the Province / State field has been disabled (locked as British Columbia)
+     *
+     * @return  boolean of whether the Province field is disabled (true) or not (false)
+     */
     public boolean provinceIsDisabled()
     {
         return selenium_.findElementByCss("div#form\\:province_drop")
                 .getAttribute("class").contains("ui-state-disabled");
     }
 
+    /**
+     * Returns true if the Country field has been disabled (locked as Canada)
+     *
+     * @return  boolean of whether the Country field is disabled (true) or not (false)
+     */
     public boolean countryIsDisabled()
     {
         return selenium_.findElementByCss("div#form\\:country")
                 .getAttribute("class").contains("ui-state-disabled");
     }
 
+    /**
+     * Finds the desired widget form based on a given prefix
+     *
+     * @param widgetTitlePrefix     a string of (unique) characters to be found in the desired widget title
+     * @return                      a WebElement of a widget form matching the widgetTitlePrefix
+     */
     private WebElement getWidget(String widgetTitlePrefix)
     {
         for (WebElement elem : selenium_.findElementsByCss("div[role='dialog']")) {
@@ -205,6 +264,11 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
         throw new IllegalStateException("Civic Address Widget not present.");
     }
 
+    /**
+     * Finds and clicks the button to close the widget
+     *
+     * @param errorWidget   string of the type of widget (same as in waitForWidgetVisibility)
+     */
     public void handleWidgetButton(String errorWidget)
     {
         String buttonCSS = "div.ui-widget-content > ";

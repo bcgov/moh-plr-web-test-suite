@@ -23,6 +23,11 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
 
     private static final String DATE_FIELD_CSS = "span#form\\:effectiveFromDate_identifier";
 
+    /**
+     * Initializes fragment and changes selenium's main locator to header of the Identifier form
+     *
+     * @param selenium      the current SeleniumSession
+     */
     public AddFacilityIdFragment(SeleniumSession selenium)
     {
         super(selenium, By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Identifier')]"));
