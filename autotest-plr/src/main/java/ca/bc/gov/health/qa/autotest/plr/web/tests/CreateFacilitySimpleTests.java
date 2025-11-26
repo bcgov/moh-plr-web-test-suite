@@ -5,6 +5,7 @@ import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityNameFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -59,7 +60,14 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-001. Create Facility
     public void testCreateFacility()
     {
-        
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+        addFacility.fillFacilitySection("Test Facility", "Facility Description");
+        addFacility.clickNext("Facility", false);
+        // TODO add fill addressection + address fragment
+        // addFacility.fillAddressSection("123 Test St", "Test City", "V1V1V1", "BC", "Canada");
     }
 
     @Test
@@ -86,14 +94,14 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
         }
 
-    }    
+    }
     
     @Test
     // F3-003. Facility Minimum Data Requirements
     public void testFacilityMinimumDataRequirements()
     {
-
-    }
+    
+    } 
 
     @Test
     // F3-004. Validate Facility Type Code
@@ -103,52 +111,45 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     }
 
     @Test
-    // F3-005. Adding a Facility ID
-    public void testAddingFacilityID()
-    {
-
-    }
-
-    @Test
     // F3-007. Generating Internal Facility Code (IFC)
     public void testGeneratingInternalFacilityCode()
     {
-
+        //TODO
     }
 
     @Test
     // F3-008. Validate Facility Name
     public void testValidateFacilityName()
     {
-
+        
     }
 
     @Test
     // F3-009. Validate Facility Description
     public void testValidateFacilityDescription()
     {
-
+        
     }
 
     @Test
     // F3-011. Facility Duplicate Check
     public void testFacilityDuplicateCheck()
     {
-
+        //TODO - For this test case it would be useuful to have the FHIR endpoints to create a Facility first, then attempt to create via UI to check for duplicates.
     }
 
     @Test
     // F3-017. Validate Address Lines
     public void testValidateAddressLines()
     {
-
+        //TODO
     }
 
     @Test
     //F3-018. Validate City
     public void testValidateCity()
     {
-
+        //TODO
     }
 
     @Test
