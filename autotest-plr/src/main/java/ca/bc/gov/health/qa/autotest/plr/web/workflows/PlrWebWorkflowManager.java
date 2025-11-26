@@ -239,9 +239,12 @@ implements AutoCloseable
             workflow = PlrWebWorkflow.create(userType);
             workflowMap_.put(userType, workflow);
         }
-        SeleniumSession selenium = workflow.getSeleniumSession();
-        SeleniumContext.get().setSeleniumSession(selenium);
-        selenium.bringToFront();
+        if (workflow.isLoggedIn())
+        {
+            SeleniumSession selenium = workflow.getSeleniumSession();
+            SeleniumContext.get().setSeleniumSession(selenium);
+            selenium.bringToFront();
+        }
         selectedWorkflow_ = workflow;
         return selectedWorkflow_;
     }

@@ -93,7 +93,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         {
             if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
 
-            logIn(workflowManager_, userType);
+            PlrWebWorkflow workflow = logIn(workflowManager_, userType);
             SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
             SearchFacilityResultsFragment searchResults;
 
@@ -144,6 +144,9 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                     "Form result does not contain time taken to retrieve results.");
 
             checkColumns(searchResults);
+
+            workflow.logout();
+            workflow.close();
         }
     }
 
