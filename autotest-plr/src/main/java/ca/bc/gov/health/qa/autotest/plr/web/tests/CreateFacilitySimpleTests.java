@@ -144,7 +144,37 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-004. Validate Facility Type Code
     public void testValidateFacilityTypeCode()
     {
+        // Navigate to Add Facility page
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
         
+        // Get the workflow to properly create a fragment reference
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        
+        // Wait for the page and create fragment - the page is already on the Identifier step
+        addFacility.waitForAddFacilityStep("Identifier", true);
+        
+        // Create the fragment (it will find the existing identifier section on the page)
+        AddFacilityIdFragment identifierFragment = new AddFacilityIdFragment(workflow.getSeleniumSession());
+        
+        // Get the default selected value before interacting with dropdown
+        String defaultValue = identifierFragment.getFacilityTypeMenu().grabSelectedItem();
+        
+        // Verify the default value is "Select One"
+        assertEquals(defaultValue, "Select One", 
+                "Default Facility Type should be 'Select One' (not selected)");
+        
+        // Expand the Facility Type dropdown menu to get all options
+        identifierFragment.getFacilityTypeMenu().expandItemPanel(true);
+        List<String> facilityTypeOptions = identifierFragment.getFacilityTypeMenu().grabItemList();
+        
+        // Verify that only "BUILDING" is available as an option
+        assertEquals(facilityTypeOptions.size(), 2,
+                "Facility Type dropdown should contain two options");
+        assertTrue(facilityTypeOptions.contains("BUILDING - Building"),
+                "'BUILDING - Building' should be a Facility Type option");
+        assertTrue(facilityTypeOptions.contains("Select One"),
+                "'Select One' should be a Facility Type option");
+
     }
 
     @Test
