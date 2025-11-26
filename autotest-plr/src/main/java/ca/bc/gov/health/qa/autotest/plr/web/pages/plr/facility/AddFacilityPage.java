@@ -57,7 +57,8 @@ public class AddFacilityPage extends BasicWebPage {
      * @param facilityTypePrefix        the first few characters to match when selecting the Facility Type field
      * @param identifierTypePrefix      the first few characters to match when selecting the Identifer Type field
      * @param identifier                string to fill the identifier field with
-     * @param effectiveFrom             the date the identifier is effective from, as a list of integers [Y, M, D]
+     * @param effectiveFrom             the date the identifier is effective from, as a list of integers [Y, M, D].
+     *                                  Pass null to leave the date field blank.
      * @return                          a reference to the identifier fragment on the add facility page
      */
     public AddFacilityIdFragment fillIdentifierSection(
@@ -68,7 +69,11 @@ public class AddFacilityPage extends BasicWebPage {
         identifierFragment.selectFacilityType(facilityTypePrefix);
         identifierFragment.selectIdentifierType(identifierTypePrefix);
         identifierFragment.fillIdentifier(identifier);
-        identifierFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        
+        // Only set the date if effectiveFrom is provided
+        if (effectiveFrom != null) {
+            identifierFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        }
 
         return identifierFragment;
     }
@@ -88,7 +93,11 @@ public class AddFacilityPage extends BasicWebPage {
 
         nameFragment.fillName(name);
         nameFragment.fillDescription(description);
-        nameFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        // Only set the date if effectiveFrom is provided
+        if (effectiveFrom != null) {
+            nameFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        }
 
         return nameFragment;
     }
