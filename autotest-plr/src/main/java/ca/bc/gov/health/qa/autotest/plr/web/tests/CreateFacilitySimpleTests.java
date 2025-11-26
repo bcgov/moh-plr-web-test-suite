@@ -245,6 +245,60 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-009. Validate Facility Description
     public void testValidateFacilityDescription()
     {
+        //TODO  Step 1 Create a new facility, specify a facility name, but do not specify facility description.
+
+        //Step 2 - Start creating a new facility, specify a facility description, but do not specify the facility name.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("", "Facility Description");
+        addFacility.clickNext("Facility", true);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("Name is required when Description is provided"),
+                "An error should be returned when Facility Description is provided without a Name.");
+
+        //Step 3 - Start creating a new facility, specify a facility name and facility description, but do not specify the "Effective From" date for the name.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("Test Facility", "Facility Description", null);
+        addFacility.clickNext("Facility", true);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("Effective Start Date is required when Name is provided"),
+                "Not selecting Effective From date for Facility Name should return an error if a name and description is provided.");
+
+        //Step 4 - Start creating a new facility, specify a facility name, and a facility description that exceeds the maximum length of 200 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("Test Facility", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addFacility.clickNext("Facility", true);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Description' length must be between 0 and 200. Your transaction has not been processed. Correct and resubmit."),
+                "Facility Description should return an error if a description is provided with more than 200 characters.");
+
+        //Step 5 - Create a new facility with a facility name and the facility description exactly the maximum length of 200 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("Test Facility", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addFacility.clickNext("Facility", false);
+
+        //TODO finish step for facility creation
         
     }
 
