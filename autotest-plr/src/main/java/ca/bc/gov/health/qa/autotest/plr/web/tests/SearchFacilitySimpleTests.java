@@ -366,7 +366,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
-                "Search Results returned unsuccessfully when only specifying Other Addresss Line 1.");
+                "Search Results returned unsuccessfully when only specifying Other Address Line 1.");
         queryDetails.set(2, "");
 
         // City Specified, Others Empty
