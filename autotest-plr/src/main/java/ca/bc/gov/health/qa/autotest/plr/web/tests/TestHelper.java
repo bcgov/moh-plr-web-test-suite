@@ -4,14 +4,17 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
+import org.openqa.selenium.TimeoutException;
 
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
+
+import static org.testng.Assert.assertEquals;
 
 /**
  * Helper class with commonly-used flows to more easily orchestrate tests across the PLR site
@@ -179,39 +182,27 @@ public final class TestHelper {
     }
 
     /**
-     * Creates and submits a new test facility by going through the full Add Facility flow.
+     * Fills out the Address Section in the Add Facility section.
+     * This method will only perform as expected when already on the Address step in the Add Facility flow.
      * The address specified should ideally have minimal duplicates within the system already.
-     * Set recommended to false only if you know for *certain* the address name will never run into a
-     * recommended correction widget. This will speed up the method but will cause errors if a recommended widget
-     * unexpectedly appears
      *
-     * @param workflowManager   the workflow manager from the test class
+     * @param addFacility       An AddFacilityPage reference to the current page.
      * @param addressData       a list of strings of the data needed for the civic address.
      *                          the first two elements should be the lower and upper limits for a
      *                          randomly generated address number, then the final element should be
      *                          "{ADDRESS_NAME}, {CITY PREFIX}" e.g. DOUGLAS ST, VICTORIA.
-     * @param testType          a string to be used in the facility name - used to specify the type of
-     *                          test being run currently
      * @param maxAttempts       the maximum amount of types to attempt finding a usable non-duplicate address
-     * @return                  a ViewFacilityPage reference to the newly submitted facility
+     * @return                  the address used to fill the section, if successful
      */
-    public static ViewFacilityPage createAndSubmitFacility(
-            PlrWebWorkflowManager workflowManager,List<String> addressData, String testType, int maxAttempts)
+    public static String fillOutAddressSection(AddFacilityPage addFacility, List<String> addressData, int maxAttempts)
     {
         final int ADDRESS_LOWER_LIMIT = Integer.parseInt(addressData.get(0));
         final int ADDRESS_UPPER_LIMIT = Integer.parseInt(addressData.get(1));
         final String CIVIC_ADDRESS = addressData.get(2);
 
-        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager);
-
-        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", "");
-        addFacility.fillFacilitySection(
-                String.format("%s Test Facility", testType), String.format("%s Test Description", testType));
-        addFacility.clickNext("Facility", "");
-
         AddFacilityAddressFragment addressInfo = null;
         int addressAttempts = 0;
+        String ADDRESS = null;
         while (addressAttempts < maxAttempts)
         {
             while (addressInfo == null)
@@ -220,10 +211,19 @@ public final class TestHelper {
                 {
                     int ADDRESS_NUM = ADDRESS_LOWER_LIMIT +
                             RNG.nextInt(ADDRESS_UPPER_LIMIT - ADDRESS_LOWER_LIMIT + 1);
-                    String ADDRESS = String.format("%d %s", ADDRESS_NUM, CIVIC_ADDRESS);
-                    addressInfo = addFacility.fillAddressSection(ADDRESS, ADDRESS);
-                } catch (IllegalStateException ignored) {}
+                    ADDRESS = String.format("%d %s", ADDRESS_NUM, CIVIC_ADDRESS);
+                    addressInfo = addFacility.fillAddressSection(
+                            ADDRESS, ADDRESS.substring(0, ADDRESS.indexOf(CIVIC_ADDRESS)));
+                } catch (TimeoutException timeoutException)
+                  {
+                      addFacility.fillAddressSection("", null);
+                  }
+                  catch (IllegalStateException ignored) {}
             }
+
+            String today = addressInfo.effectiveFromCurrentDate();
+            assertEquals(addressInfo.getEffectiveFrom(), today,
+                    "Effective From Date in Address was not set to the current date as expected");
 
             try
             {
@@ -255,6 +255,37 @@ public final class TestHelper {
         {
             throw new IllegalStateException("No available civic address found after " + maxAttempts + " attempts");
         }
+
+        return ADDRESS;
+    }
+
+    /**
+     * Creates and submits a new test facility by going through the full Add Facility flow.
+     * The address specified should ideally have minimal duplicates within the system already.
+     *
+     * @param workflowManager   the workflow manager from the test class
+     * @param addressData       a list of strings of the data needed for the civic address.
+     *                          the first two elements should be the lower and upper limits for a
+     *                          randomly generated address number, then the final element should be
+     *                          "{ADDRESS_NAME}, {CITY PREFIX}" e.g. DOUGLAS ST, VICTORIA.
+     * @param testType          a string to be used in the facility name - used to specify the type of
+     *                          test being run currently
+     * @param maxAttempts       the maximum amount of types to attempt finding a usable non-duplicate address
+     * @return                  a ViewFacilityPage reference to the newly submitted facility
+     */
+    public static ViewFacilityPage createAndSubmitFacility(
+            PlrWebWorkflowManager workflowManager,List<String> addressData, String testType, int maxAttempts)
+    {
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection(
+                String.format("%s Test Facility", testType), String.format("%s Test Description", testType));
+        addFacility.clickNext("Facility", "");
+
+        fillOutAddressSection(addFacility, addressData, maxAttempts);
         workflowManager.getSelectedWorkflow().getSeleniumSession().setWaitTimeout(Duration.ofSeconds(15));
 
         addFacility.waitForAddFacilityStep("Address", false);

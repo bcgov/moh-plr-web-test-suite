@@ -93,7 +93,7 @@ public class DateMenu extends BasicWebPageFragment {
     {
         displayDatepicker(true);
         selenium_.findElement(datepickerLocator_).findElement(By.cssSelector("button.ui-datepicker-current")).click();
-        return selenium_.findElement(mainLocator_).findElement(inputLocator_).getText();
+        return selenium_.findElement(mainLocator_).findElement(inputLocator_).getAttribute("value");
     }
 
     /**

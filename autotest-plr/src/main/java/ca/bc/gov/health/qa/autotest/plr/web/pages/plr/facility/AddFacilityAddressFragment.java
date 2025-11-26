@@ -294,4 +294,13 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
         for (WebElement fieldElement : webElementList) { highlightedFields.add(fieldElement.getText()); }
         return highlightedFields;
     }
+
+    /**
+     * Gets the date selected in the Effective From date field.
+     *
+     * @return  a string of the date picked for the Effective From date field.
+     */
+    public String getEffectiveFrom() {
+        return selenium_.findElementByCss(DATE_FIELD_CSS + " > input").getAttribute("value");
+    }
 }

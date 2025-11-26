@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
@@ -438,6 +439,54 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Data Owner Code unexpectedly present for Civic Address section");
         assertEquals(newFacility.grabDataBlockContent(FacilitySection.OTHER_ADDRESS, 0).get("Data Owner Code"),
                 "MOH", "Data Owner Code for Other Address section is unexpectedly not MOH");
+
+    }
+
+    @Test
+    // F3-026 Facility address should be able to handle addresses with or without street types
+    public void facilityAddressStreetTypes()
+    {
+        final List<String> streetTypes = List.of("ST", "RD", "HWY", "CRT", "AVE");
+        final List<List<String>> addressData = List.of(List.of("370", "1070", "BATTLE, KAMLOOPS"),
+                List.of("130", "430", "MCGILL, KAMLOOPS"),
+                List.of("3000", "4000", "35, BURNS LAKE"),
+                List.of("100", "120", "CRANBERRY, PORT MOODY"),
+                List.of("305", "630", "MCGOWAN, KAMLOOPS")
+        );
+
+        int streetTypeIndex = 0;
+        for (List<String> addressLine : addressData)
+        {
+            AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+            AddFacilityIdFragment identifierFields = addFacility.fillIdentifierSection(
+                    "BUILDING", "Select One", "");
+            String today = identifierFields.effectiveFromCurrentDate();
+
+            assertEquals(identifierFields.getFacilityType(), "BUILDING - Building",
+                    "Facility Type was not set to BUILDING as anticipated");
+            assertEquals(identifierFields.getEffectiveFrom(),  today,
+                    "Effective From Date in Identifier was not set to the current date as expected");
+
+            addFacility.clickNext("Identifier", "");
+            addFacility.clickNext("Facility", "");
+
+            String fullAddress = fillOutAddressSection(addFacility, addressLine, 5);
+            fullAddress = fullAddress.substring(0, fullAddress.indexOf(",")) + " " + streetTypes.get(streetTypeIndex);
+
+            addFacility.waitForAddFacilityStep("Address", false);
+            ViewFacilityPage newFacility = addFacility.getFacilitySummary().clickSubmitButton();
+
+            String createdAddress = newFacility.grabCivicAddressBlockContent().get("Address Line 1");
+            assertTrue(createdAddress.contains(streetTypes.get(streetTypeIndex)),
+                    "Desired Street Type not found in newly created facility address");
+            assertEquals(createdAddress, fullAddress,
+                    "Newly created facility address and address filled out in Add Facility flow do not match");
+
+            streetTypeIndex++;
+        }
+
+
 
     }
 }

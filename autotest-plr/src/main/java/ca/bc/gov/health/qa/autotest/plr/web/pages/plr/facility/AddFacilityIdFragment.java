@@ -38,7 +38,7 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
      *
      * @return  a DropDownMenu component for the Facility Type
      */
-    public DropDownMenu getFacilityTypeMenu()
+    private DropDownMenu getFacilityTypeMenu()
     {
         return new DropDownMenu(
                 selenium_,
@@ -48,11 +48,18 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     }
 
     /**
+     * Gets the value currently selected in the Facility Type field
+     *
+     * @return  a string of the value currently selected as Facility Type
+     */
+    public String getFacilityType() { return getFacilityTypeMenu().grabSelectedItem(); }
+
+    /**
      * Constructs a DropDownMenu component for the Identifier Type
      *
      * @return  a DropDownMenu component for the Identifier Type
      */
-    public DropDownMenu getIdentifierTypeMenu()
+    private DropDownMenu getIdentifierTypeMenu()
     {
         return new DropDownMenu(
                 selenium_,
@@ -98,7 +105,7 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
      *
      * @return  a DateMenu reference to the Effective From Date menu
      */
-    public DateMenu getEffectiveFromDateMenu()
+    private DateMenu getEffectiveFromDateMenu()
     {
         return new DateMenu(selenium_, By.cssSelector(DATE_FIELD_CSS), "identifier");
     }
@@ -111,6 +118,16 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     public String effectiveFromCurrentDate()
     {
         return getEffectiveFromDateMenu().pickCurrentDate();
+    }
+
+    /**
+     * Gets the date selected in the Effective From date field.
+     *
+     * @return  a string of the date picked for the Effective From date field.
+     */
+    public String getEffectiveFrom()
+    {
+        return selenium_.findElementByCss(DATE_FIELD_CSS + " > input").getAttribute("value");
     }
 
     /**
