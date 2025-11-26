@@ -188,7 +188,57 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-008. Validate Facility Name
     public void testValidateFacilityName()
     {
+        //TODO step 1, create facility without name
+
+        //Step 2 - Start creating a new facility, specify a facility name, but do not specify the "Effective From" date for the name.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("Test Facility", "Facility Description", null);
+        addFacility.clickNext("Facility", true);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
+        assertTrue(errorMessageList.contains("Effective Start Date is required when Name is provided"),
+                "Not selecting Effective From date for Facility Name should return an error if a name is provided.");
+        
+        //Step 3 - Start creating a new facility, specify a facility name that exceeds the maximum length of 100 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Facility Description");
+        addFacility.clickNext("Facility", true);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Name' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit."),
+                "Facility Name should return an error if a name is provided with more than a 100 characters.");        
+
+        //Step 4 - Create a new facility with the facility name exactly the maximum length of 100 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Facility Description");
+        addFacility.clickNext("Facility", false);
+
+        //TODO finish step for facility creation
+
+        //Step 5 - Send acceptable characters for Facility name and description.
+        //Valid chars as per ALM: <blank space>&()+-./0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ\abcdefghijklmnopqrstuvwxyz
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("ABCDEFGHIJKLMNOPQRSTUVWXYZ\\&()+-./0123456789: abcdefghijklmnopqrstuvwxyz", "Facility Description");
+        addFacility.clickNext("Facility", false);
+        
+        //TODO finish step for facility creation
     }
 
     @Test
