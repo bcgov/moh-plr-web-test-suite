@@ -327,6 +327,41 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-022. Validate Effective Start Date Format
     public void testValidateEffectiveStartDateFormat()
     {
+        //Step 1 and 2 - Start creating a Facility and specify a facility type, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY).
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "", List.of(12, 31, 2025));
+        addFacility.clickNext("Identifier", true);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+                "MM-DD-YYYY format for Effective From date should return an error in Type, Identifier Facility.");
+        
+        //Step 3 and 4 - Enter a facility name, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY).
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("Test Facility", "Facility Description", List.of(12, 31, 2025));
+        addFacility.clickNext("Facility", true);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+                "MM-DD-YYYY format for Effective From date should return an error in Facility Name section.");
+
+        //Step 5, 6 and 7- Enter a facility address, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY). Finally correct and create facility.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+        addFacility.fillFacilitySection("Test Facility", "Facility Description");
+        addFacility.clickNext("Facility", false);
+
+        //TODO finish facility creation
 
     }
 
