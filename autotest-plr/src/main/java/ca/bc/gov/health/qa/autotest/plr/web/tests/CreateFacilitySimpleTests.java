@@ -100,14 +100,51 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-003. Facility Minimum Data Requirements
     public void testFacilityMinimumDataRequirements()
     {
-    
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        //TODO Step 1-4
+
+        //Step 5 - Attempt to create a new facility using minimum data, but do not specify the "Facility Start date".
+        AddFacilityIdFragment identifierFields = addFacility.fillIdentifierSection("BUILDING", "Select One", "", null);
+        addFacility.clickNext("Identifier", true);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedFields = identifierFields.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+                "Facility Identifier Effective From not selected should return an error.");
+        assertEquals(highlightedFields.getLast(), "Effective From:*",
+                "Facility Identifier Effective From is unhighlighted, or more than one error occurred.");
+
+        //Step 6 - Attempt to create a new facility using minimum data, but do not specify the "Facility Type".
+        // Navigate to fresh Add Facility page to clear previous form state
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        
+        identifierFields = addFacility.fillIdentifierSection("Select One", "Select One", "", List.of(2025, 11, 20));
+        addFacility.clickNext("Identifier", true);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedFields = identifierFields.getHighlightedFields();
+
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Type'. Your transaction has not been processed. Correct and resubmit."),
+                "Facility Type not selected should return an error.");
+        assertEquals(highlightedFields.getLast(), "Facility Type:*",
+                "Facility Type is unhighlighted, or more than one error occurred.");
+
+        //TODO 7-9
+        // Navigate to fresh Add Facility page to clear previous form state
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", false);
+
+
     } 
 
     @Test
     // F3-004. Validate Facility Type Code
     public void testValidateFacilityTypeCode()
     {
-
+        
     }
 
     @Test
