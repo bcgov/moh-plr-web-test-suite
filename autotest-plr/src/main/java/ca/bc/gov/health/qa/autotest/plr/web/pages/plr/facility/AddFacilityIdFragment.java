@@ -10,6 +10,9 @@ import org.openqa.selenium.WebElement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Fragment class for the Identifier section (first step) when creating a new facility
+ */
 public class AddFacilityIdFragment extends BasicWebPageFragment {
 
     private static final String FACTYPE_FIELD_CSS = "label#form\\:facilityType_label";
@@ -20,6 +23,11 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
 
     private static final String DATE_FIELD_CSS = "span#form\\:effectiveFromDate_identifier";
 
+    /**
+     * Initializes fragment and changes selenium's main locator to header of the Identifier form
+     *
+     * @param selenium      the current SeleniumSession
+     */
     public AddFacilityIdFragment(SeleniumSession selenium)
     {
         super(selenium, By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Identifier')]"));
@@ -30,7 +38,7 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
      *
      * @return  a DropDownMenu component for the Facility Type
      */
-    public DropDownMenu getFacilityTypeMenu()
+    private DropDownMenu getFacilityTypeMenu()
     {
         return new DropDownMenu(
                 selenium_,
@@ -40,11 +48,18 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     }
 
     /**
+     * Gets the value currently selected in the Facility Type field
+     *
+     * @return  a string of the value currently selected as Facility Type
+     */
+    public String getFacilityType() { return getFacilityTypeMenu().grabSelectedItem(); }
+
+    /**
      * Constructs a DropDownMenu component for the Identifier Type
      *
      * @return  a DropDownMenu component for the Identifier Type
      */
-    public DropDownMenu getIdentifierTypeMenu()
+    private DropDownMenu getIdentifierTypeMenu()
     {
         return new DropDownMenu(
                 selenium_,
@@ -78,7 +93,7 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     /**
      * Fills the Identifier field
      *
-     * @param identifier  the string to fill the Other Address Line 1 field with
+     * @param identifier  the string to fill the Identifier field with
      */
     public void fillIdentifier(String identifier)
     {
@@ -90,7 +105,7 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
      *
      * @return  a DateMenu reference to the Effective From Date menu
      */
-    public DateMenu getEffectiveFromDateMenu()
+    private DateMenu getEffectiveFromDateMenu()
     {
         return new DateMenu(selenium_, By.cssSelector(DATE_FIELD_CSS), "identifier");
     }
@@ -106,6 +121,16 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     }
 
     /**
+     * Gets the date selected in the Effective From date field.
+     *
+     * @return  a string of the date picked for the Effective From date field.
+     */
+    public String getEffectiveFrom()
+    {
+        return selenium_.findElementByCss(DATE_FIELD_CSS + " > input").getAttribute("value");
+    }
+
+    /**
      * Picks a specific date as the Effective From Date.
      *
      * @param effectiveYear     the year of the date to pick.
@@ -118,6 +143,11 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
         return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
     }
 
+    /**
+     * Gets highlighted fields (to be used when an error is expected)
+     *
+     * @return  a list of strings of each of the fields that are highlighted
+     */
     public List<String> getHighlightedFields()
     {
         List<String> highlightedFields = new ArrayList<>();

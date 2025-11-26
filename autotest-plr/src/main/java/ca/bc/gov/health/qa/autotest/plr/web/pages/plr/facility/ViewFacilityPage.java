@@ -325,6 +325,11 @@ public class ViewFacilityPage extends BasicWebPage {
         return dataBlockList.size();
     }
 
+    /**
+     * Opens an organization (provider) page in the Organization Relationships section.
+     *
+     * @param dataBlockIndex    the index of organization relationship to open and click into
+     */
     public void openOrg(int dataBlockIndex)
     {
         String linkSelector = getDataBlockContentSelector(FacilitySection.ORGANIZATION_RELATIONSHIPS, dataBlockIndex);

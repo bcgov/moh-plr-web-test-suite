@@ -1,10 +1,19 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Fragment class for the Facility Name section (second step) when creating a new facility
+ */
 public class AddFacilityNameFragment extends BasicWebPageFragment {
 
     private static final String NAME_FIELD_CSS = "input#form\\:faciName";
@@ -13,6 +22,11 @@ public class AddFacilityNameFragment extends BasicWebPageFragment {
 
     private static final String DATE_FIELD_CSS = "span#form\\:effectiveFromDate_FacilityName";
 
+    /**
+     * Initializes fragment and changes selenium's main locator to header of the Facility Name form
+     *
+     * @param selenium      the current SeleniumSession
+     */
     public AddFacilityNameFragment(SeleniumSession selenium)
     {
         super(selenium, By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Facility')]"));
@@ -69,5 +83,21 @@ public class AddFacilityNameFragment extends BasicWebPageFragment {
     public String effectiveFromSpecificDate(int effectiveYear, int effectiveMonth, int effectiveDay)
     {
         return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
+    }
+
+    /**
+     * Gets highlighted fields (to be used when an error is expected)
+     *
+     * @return  a list of strings of each of the fields that are highlighted
+     */
+    public List<String> getHighlightedFields()
+    {
+        List<String> highlightedFields = new ArrayList<>();
+        By highlightedSelector = By.cssSelector("label.ui-outputlabel.ui-widget.ui-state-error");
+        List<WebElement> webElementList = selenium_.findElements(highlightedSelector);
+        for (WebElement fieldElement : webElementList)
+        {
+            highlightedFields.add(fieldElement.getText()); }
+        return highlightedFields;
     }
 }

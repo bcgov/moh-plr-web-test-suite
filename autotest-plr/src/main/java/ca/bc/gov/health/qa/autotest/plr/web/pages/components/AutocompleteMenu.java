@@ -140,6 +140,7 @@ public class AutocompleteMenu extends BasicWebPageFragment {
         );
 
         WebElement item;
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(autocompleteListCss));
         List<WebElement> itemList = selenium_.findElements(autocompleteListCss);
         if (itemList.size() == 1)
         {
@@ -147,17 +148,20 @@ public class AutocompleteMenu extends BasicWebPageFragment {
             if (item.getText().equals("No results"))
             {
                 String msg = String.format("Autocomplete item not found (%S).", itemPrefix);
+                selenium_.findElementByCss("label[for='form:autoComplete_input']").click();
                 throw new IllegalStateException(msg);
             }
         }
         else if (itemList.isEmpty())
         {
             String msg = String.format("Autocomplete item not found (%s).", itemPrefix);
+            selenium_.findElementByCss("label[for='form:autoComplete_input']").click();
             throw new IllegalStateException(msg);
         }
         else
         {
             String msg = String.format("Too many autocomplete items found (%s) (%s).", itemList.size(), itemPrefix);
+            selenium_.findElementByCss("label[for='form:autoComplete_input']").click();
             throw new IllegalStateException(msg);
         }
         return item;
@@ -176,8 +180,8 @@ public class AutocompleteMenu extends BasicWebPageFragment {
         selenium_.scrollIntoView(item);
         String itemLabel = item.getText();
         item.click();
-        waitForPanelLoad(false);
         String completedItem = grabCompletedItem();
+        waitForPanelLoad(false);
         if (!completedItem.equals(itemLabel))
         {
             String msg = String.format("Failed to select autocomplete item (actual: \"%s\", expected: \"%s\").", completedItem, itemLabel);

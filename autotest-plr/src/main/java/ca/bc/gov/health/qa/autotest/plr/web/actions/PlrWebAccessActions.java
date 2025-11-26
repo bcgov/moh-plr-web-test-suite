@@ -105,12 +105,22 @@ public class PlrWebAccessActions
         return waitForSearchFacilityPage();
     }
 
+    /**
+     * Opens the Add Facility page
+     *
+     * @return  an AddFacilityPage object for the add facility page
+     */
     public AddFacilityPage openAddFacility()
     {
         waitForPlrNavigationMenuFragment().openItem(Item.ADD_FACILITY);
         return waitForAddFacilityPage();
     }
 
+    /**
+     * Waits for the Navigation Menu (at top of PLR page) to be present in the browser
+     *
+     * @return  a PlrNavigationMenuFragment object for the navigation menu
+     */
     public PlrNavigationMenuFragment waitForPlrNavigationMenuFragment()
     {
         PlrNavigationMenuFragment fragment = new PlrNavigationMenuFragment(selenium_);
