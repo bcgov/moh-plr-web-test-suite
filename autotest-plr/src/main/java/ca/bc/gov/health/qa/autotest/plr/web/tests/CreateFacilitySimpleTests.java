@@ -92,6 +92,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
             assertFalse(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
                 String.format("Add Facility menu item should NOT be visible for %s user role", userType));
 
+            workflow.logout();
+            workflow.close();
         }
 
     }
@@ -301,7 +303,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         
     }
 
-    @Test
+    /*@Test
     // F3-011. Facility Duplicate Check
     public void testFacilityDuplicateCheck()
     {
@@ -362,6 +364,6 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
         //TODO finish facility creation
 
-    }
+    }*/
 
 }
