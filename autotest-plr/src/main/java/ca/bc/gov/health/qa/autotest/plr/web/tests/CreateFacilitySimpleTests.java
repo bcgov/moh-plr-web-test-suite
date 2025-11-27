@@ -4,9 +4,12 @@ import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityNameFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilitySummaryFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -62,12 +65,19 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
+        //TODO use FHIR data generator in order to create unique facilities.
+
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
         addFacility.fillFacilitySection("Test Facility", "Facility Description");
         addFacility.clickNext("Facility", "");
-        // TODO add fill addressection + address fragment
-        // addFacility.fillAddressSection("123 Test St", "Test City", "V1V1V1", "BC", "Canada");
+        addFacility.fillAddressSection("2269 DOUGLAS ST, V", "2269 DOUGLAS ST, V");
+        addFacility.clickNext("Address", "");
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+        
+        // TODO implement FHIR search check to verify data matches.
+
     }
 
     @Test
