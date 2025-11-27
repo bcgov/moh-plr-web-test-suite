@@ -63,9 +63,9 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
         addFacility.fillFacilitySection("Test Facility", "Facility Description");
-        addFacility.clickNext("Facility", false);
+        addFacility.clickNext("Facility", "");
         // TODO add fill addressection + address fragment
         // addFacility.fillAddressSection("123 Test St", "Test City", "V1V1V1", "BC", "Canada");
     }
@@ -106,7 +106,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
         //Step 5 - Attempt to create a new facility using minimum data, but do not specify the "Facility Start date".
         AddFacilityIdFragment identifierFields = addFacility.fillIdentifierSection("BUILDING", "Select One", "", null);
-        addFacility.clickNext("Identifier", true);
+        addFacility.clickNext("Identifier", null);
 
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedFields = identifierFields.getHighlightedFields();
@@ -121,7 +121,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility = navigateToAddFacilityPage(workflowManager_);
         
         identifierFields = addFacility.fillIdentifierSection("Select One", "Select One", "", List.of(2025, 11, 20));
-        addFacility.clickNext("Identifier", true);
+        addFacility.clickNext("Identifier", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedFields = identifierFields.getHighlightedFields();
@@ -135,7 +135,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         // Navigate to fresh Add Facility page to clear previous form state
         addFacility = navigateToAddFacilityPage(workflowManager_);
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
 
     } 
@@ -157,15 +157,14 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         AddFacilityIdFragment identifierFragment = new AddFacilityIdFragment(workflow.getSeleniumSession());
         
         // Get the default selected value before interacting with dropdown
-        String defaultValue = identifierFragment.getFacilityTypeMenu().grabSelectedItem();
+        String defaultValue = identifierFragment.getFacilityType();
         
         // Verify the default value is "Select One"
         assertEquals(defaultValue, "Select One", 
                 "Default Facility Type should be 'Select One' (not selected)");
         
-        // Expand the Facility Type dropdown menu to get all options
-        identifierFragment.getFacilityTypeMenu().expandItemPanel(true);
-        List<String> facilityTypeOptions = identifierFragment.getFacilityTypeMenu().grabItemList();
+        // Get all available options in the Facility Type dropdown
+        List<String> facilityTypeOptions = identifierFragment.getFacilityTypeOptions();
         
         // Verify that only "BUILDING" is available as an option
         assertEquals(facilityTypeOptions.size(), 2,
@@ -194,10 +193,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("Test Facility", "Facility Description", null);
-        addFacility.clickNext("Facility", true);
+        addFacility.clickNext("Facility", null);
 
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
@@ -208,10 +207,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Facility Description");
-        addFacility.clickNext("Facility", true);
+        addFacility.clickNext("Facility", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Name' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit."),
@@ -221,10 +220,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Facility Description");
-        addFacility.clickNext("Facility", false);
+        addFacility.clickNext("Facility", "");
 
         //TODO finish step for facility creation
 
@@ -233,10 +232,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("ABCDEFGHIJKLMNOPQRSTUVWXYZ\\&()+-./0123456789: abcdefghijklmnopqrstuvwxyz", "Facility Description");
-        addFacility.clickNext("Facility", false);
+        addFacility.clickNext("Facility", "");
         
         //TODO finish step for facility creation
     }
@@ -251,10 +250,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("", "Facility Description");
-        addFacility.clickNext("Facility", true);
+        addFacility.clickNext("Facility", null);
 
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
@@ -265,10 +264,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("Test Facility", "Facility Description", null);
-        addFacility.clickNext("Facility", true);
+        addFacility.clickNext("Facility", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
@@ -279,10 +278,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("Test Facility", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        addFacility.clickNext("Facility", true);
+        addFacility.clickNext("Facility", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
@@ -293,10 +292,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("Test Facility", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        addFacility.clickNext("Facility", false);
+        addFacility.clickNext("Facility", "");
 
         //TODO finish step for facility creation
         
@@ -331,7 +330,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "", List.of(12, 31, 2025));
-        addFacility.clickNext("Identifier", true);
+        addFacility.clickNext("Identifier", null);
 
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
@@ -342,10 +341,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("Test Facility", "Facility Description", List.of(12, 31, 2025));
-        addFacility.clickNext("Facility", true);
+        addFacility.clickNext("Facility", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
@@ -356,10 +355,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
-        addFacility.clickNext("Identifier", false);
+        addFacility.clickNext("Identifier", "");
 
         addFacility.fillFacilitySection("Test Facility", "Facility Description");
-        addFacility.clickNext("Facility", false);
+        addFacility.clickNext("Facility", "");
 
         //TODO finish facility creation
 

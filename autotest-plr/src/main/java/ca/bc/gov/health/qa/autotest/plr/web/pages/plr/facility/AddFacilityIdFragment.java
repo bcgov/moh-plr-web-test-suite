@@ -55,6 +55,18 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     public String getFacilityType() { return getFacilityTypeMenu().grabSelectedItem(); }
 
     /**
+     * Gets all available options in the Facility Type dropdown
+     *
+     * @return  a list of strings of all facility type options
+     */
+    public List<String> getFacilityTypeOptions()
+    {
+        DropDownMenu menu = getFacilityTypeMenu();
+        menu.expandItemPanel(true);
+        return menu.grabItemList();
+    }
+
+    /**
      * Constructs a DropDownMenu component for the Identifier Type
      *
      * @return  a DropDownMenu component for the Identifier Type
