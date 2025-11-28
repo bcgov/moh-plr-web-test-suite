@@ -9,6 +9,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFrag
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityNameFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilitySummaryFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -25,6 +26,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.navigateToAddFacilityPage;
@@ -113,10 +115,44 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     public void testFacilityMinimumDataRequirements()
     {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+ 
+        //TODO use FHIR data generator in order to create unique facilities.
+        //Step 1 - Create a new facility using minimum data.
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
 
-        //TODO Step 1-4
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("50 Douglas St");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", "");
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+        
+        //Step 2 - Verify all the information on each data block
+        // Verify there is exactly one identifier
+        int identifierCount = newFacility.grabDataBlockCount(FacilitySection.IDENTIFIERS);
+        assertEquals(identifierCount, 1, 
+                "There should be exactly one identifier in the facility.");
+               
+        // Verify there are NO names (since we created with minimum data)
+        int nameCount = newFacility.grabDataBlockCount(FacilitySection.NAMES);
+        assertEquals(nameCount, 0, 
+                "There should be no facility names when created with minimum data.");
+
+        //Step 3 - Examine the civic address data block. Make sure there is only one address.
+        int civicAddressCount = newFacility.grabDataBlockCount(FacilitySection.CIVIC_ADDRESSES);
+        assertEquals(civicAddressCount, 1, 
+                "There should be exactly one civic address in the facility.");
+
+        //Step 4 - Examine the other address data block. Make sure there is only one address.
+        int otherAddressCount = newFacility.grabDataBlockCount(FacilitySection.OTHER_ADDRESS);
+        assertEquals(otherAddressCount, 1, 
+                "There should be exactly one other address in the facility.");
 
         //Step 5 - Attempt to create a new facility using minimum data, but do not specify the "Facility Start date".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
         AddFacilityIdFragment identifierFields = addFacility.fillIdentifierSection("BUILDING", "Select One", "", null);
         addFacility.clickNext("Identifier", null);
 
@@ -143,13 +179,65 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         assertEquals(highlightedFields.getLast(), "Facility Type:*",
                 "Facility Type is unhighlighted, or more than one error occurred.");
 
-        //TODO 7-9
-        // Navigate to fresh Add Facility page to clear previous form state
+        //Step 7 - Attempt to create a new facility using minimum data (as in Step 1), but do not specify the "Facility Address Line 1".
         addFacility = navigateToAddFacilityPage(workflowManager_);
+        
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+        
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
 
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Address Line 1'. Your transaction has not been processed. Correct and resubmit."),
+                "Address Line 1 not filled should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "Address Line 1:*",
+                "Address Line 1 is unhighlighted, or more than one error occurred.");
 
+        //Step 8 - Attempt to create a new facility using minimum data (as in Step 1), but do not specify the "Facility Address City".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+        
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'City'. Your transaction has not been processed. Correct and resubmit."),
+                "City not filled should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "City:*",
+                "City is unhighlighted, or more than one error occurred.");
+
+        //Step 9 - Attempt to create a new facility using minimum data (as in Step 1), but do not specify the "Facility Address Effective From Date".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+        
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+                "Address Effective From date not selected should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "Effective From:*",
+                "Address Effective From is unhighlighted, or more than one error occurred.");
     } 
 
     @Test
