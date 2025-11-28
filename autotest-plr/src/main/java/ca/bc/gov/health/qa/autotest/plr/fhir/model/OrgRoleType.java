@@ -35,7 +35,7 @@ public enum OrgRoleType {
     public static OrgRoleType resolveRoleType(String code) {
 		if (code == null) return null;
 		for (OrgRoleType r : OrgRoleType.values()) {
-			if (r.getRoleType().equals(code)) return r;
+			if (r.getRoleType().equalsIgnoreCase(code)) return r;
 		}
 		return null;
 	}
