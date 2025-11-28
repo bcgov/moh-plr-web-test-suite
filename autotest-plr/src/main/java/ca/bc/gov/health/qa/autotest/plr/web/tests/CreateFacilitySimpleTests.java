@@ -374,10 +374,29 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-009. Validate Facility Description
     public void testValidateFacilityDescription()
     {
-        //TODO  Step 1 Create a new facility, specify a facility name, but do not specify facility description.
+        //Step 1 - Create a new facility, specify a facility name, but do not specify facility description.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        //TODO use FHIR data generator in order to create unique facilities.
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.fillFacilitySection("Test Facility", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("580 Simcoe St");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", "");
+
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        summaryFragment.clickSubmitButton();
+        
+        // TODO implement FHIR search check to verify data matches.
 
         //Step 2 - Start creating a new facility, specify a facility description, but do not specify the facility name.
-        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
@@ -427,7 +446,16 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.fillFacilitySection("Test Facility", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         addFacility.clickNext("Facility", "");
 
-        //TODO finish step for facility creation
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("204 Government St");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", "");
+        
+        summaryFragment = addFacility.getFacilitySummary();
+        summaryFragment.clickSubmitButton();
+
+        // TODO implement FHIR search check to verify data matches.
         
     }
 
