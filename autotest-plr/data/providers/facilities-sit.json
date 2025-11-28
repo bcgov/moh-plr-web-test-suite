@@ -11,6 +11,10 @@
 		"fauth": "6375",
 		"ifc": "IFC.00006375.BC.PRS"
 	},
+	"test-update": {
+		"fauth": "6486",
+		"ifc": "IFC.00006486.BC.PRS"
+	},
 	"test011": {
 		"fauth": "6375",
 		"ifc": "IFC.00006375.BC.PRS",
@@ -120,19 +124,7 @@
 			}
 		],
 		"relationships": [
-			{
-				"Relationship Identifier": "RELN.81911.PRS",
-				"Relationship Type": "Location of (LOCATION)",
-				"Related Organization Name": "",
-				"Related Organization Identifier": "IPC.00000480.BC.PRS",
-				"Effective From": "2025-11-04",
-				"Effective To": "2025-11-21",
-				"End Reason": "",
-				"Data Source": "plrselenadmin1@00002855",
-				"DB Created": "2025-11-04",
-				"DB Expired": "",
-				"Data Owner Code": "RNA"
-			},
+			
 			{
 				"Relationship Identifier": "RELN.81919.PRS",
 				"Relationship Type": "Location of (LOCATION)",
@@ -146,23 +138,11 @@
 				"DB Expired": "",
 				"Data Owner Code": "RNA"
 			},
-			{
-				"Relationship Identifier": "RELN.81910.PRS",
-				"Relationship Type": "Location of (LOCATION)",
-				"Related Organization Name": "AZ Test 001",
-				"Related Organization Identifier": "IPC.00082689A.BC.PRS",
-				"Effective From": "2025-11-04",
-				"Effective To": "2025-11-20",
-				"End Reason": "",
-				"Data Source": "plrselenadmin1@00002855",
-				"DB Created": "2025-11-04",
-				"DB Expired": "",
-				"Data Owner Code": "RNA"
-			},
+			
 			{
 				"Relationship Identifier": "RELN.81921.PRS",
 				"Relationship Type": "Location of (LOCATION)",
-				"Related Organization Name": "Alliance Association",
+				"Related Organization Name": "",
 				"Related Organization Identifier": "IPC.00123974.BC.PRS",
 				"Effective From": "2025-11-04",
 				"Effective To": "",

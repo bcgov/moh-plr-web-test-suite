@@ -137,7 +137,7 @@ public class ViewFacilitySimpleActions {
 		assertNotNull(viewFacilityPage);
 		viewFacilityPage.expandAll(expand);
 		try {
-			viewFacilityPage.wait(1000);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			fail("unexpected interruption");
 		}
