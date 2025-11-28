@@ -459,14 +459,32 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         
     }
 
-    /*@Test
+    @Test
     // F3-011. Facility Duplicate Check
     public void testFacilityDuplicateCheck()
     {
-        //TODO - For this test case it would be useuful to have the FHIR endpoints to create a Facility first, then attempt to create via UI to check for duplicates.
+        //For this test case it would be useuful to have the FHIR endpoints to create a Facility first, then attempt to create via UI to check for duplicates.\
+
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.fillFacilitySection("Test Facility", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("580 Simcoe St");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        
+        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7055: An existing facility address was found, can not create duplicate facility. IFC.00006533.BC.PRS"),
+                "Facility Duplicate Check did not return expected warning message.");
+
     }
 
-    @Test
+    /*@Test
     // F3-017. Validate Address Lines
     public void testValidateAddressLines()
     {
