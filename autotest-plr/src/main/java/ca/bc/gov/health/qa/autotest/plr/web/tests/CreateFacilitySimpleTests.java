@@ -287,10 +287,24 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-008. Validate Facility Name
     public void testValidateFacilityName()
     {
-        //TODO step 1, create facility without name
+        //Step 1 - Create a new facility without name
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("20 Olympia Ave");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", "");
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        summaryFragment.clickSubmitButton();
+
+        //TODO check with FHIR that facility got created without name
 
         //Step 2 - Start creating a new facility, specify a facility name, but do not specify the "Effective From" date for the name.
-        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
@@ -325,7 +339,15 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.fillFacilitySection("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Facility Description");
         addFacility.clickNext("Facility", "");
 
-        //TODO finish step for facility creation
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("576 Dallas Rd");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", "");
+        summaryFragment = addFacility.getFacilitySummary();
+        summaryFragment.clickSubmitButton();
+
+        //TODO check with FHIR that facility got created with name with 100 characters long
 
         //Step 5 - Send acceptable characters for Facility name and description.
         //Valid chars as per ALM: <blank space>&()+-./0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ\abcdefghijklmnopqrstuvwxyz
@@ -337,7 +359,15 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.fillFacilitySection("ABCDEFGHIJKLMNOPQRSTUVWXYZ\\&()+-./0123456789: abcdefghijklmnopqrstuvwxyz", "Facility Description");
         addFacility.clickNext("Facility", "");
         
-        //TODO finish step for facility creation
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("18 Douglas St");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", "");
+        summaryFragment = addFacility.getFacilitySummary();
+        summaryFragment.clickSubmitButton();
+
+        //TODO check with FHIR that facility created with valid characters in name
     }
 
     @Test
