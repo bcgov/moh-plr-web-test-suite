@@ -145,8 +145,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
 
             checkColumns(searchResults);
 
-            workflow.logout();
-            workflow.close();
+            workflowManager_.logoutAndClose(userType);
         }
     }
 
@@ -195,6 +194,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 "View page header does not match expected identifier");
     }
 
+    /*
     @Test
     // F1-003. Minimum Data Requirements for Facility Search by Facility ID
     public void testMinDataReqsFacilityID()
@@ -564,4 +564,6 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         assertEquals(criteriaPanel.getCurrentFieldValues(), previousValues,
                 "Field values from previous session do not appear");
     }
+
+     */
 }

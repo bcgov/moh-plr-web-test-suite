@@ -326,6 +326,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
             workflow.logout();
             workflow.close();
             workflowManager_.deselectWorkflow();
+
         }
     }
 }
