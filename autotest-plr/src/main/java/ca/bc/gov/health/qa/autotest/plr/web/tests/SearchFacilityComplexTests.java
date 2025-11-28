@@ -323,9 +323,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
             assertTrue(searchResults.grabResultsRowCount() > 0,
                     "Search results did not return for User Type " + userType);
 
-            workflow.logout();
-            workflow.close();
-            workflowManager_.deselectWorkflow();
+            workflowManager_.logoutAndClose(userType);
         }
     }
 }
