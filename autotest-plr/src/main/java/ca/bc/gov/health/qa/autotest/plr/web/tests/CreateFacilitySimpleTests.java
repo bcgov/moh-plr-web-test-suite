@@ -10,6 +10,8 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityNameFr
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilitySummaryFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -280,7 +282,55 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-007. Generating Internal Facility Code (IFC)
     public void testGeneratingInternalFacilityCode()
     {
-        //TODO
+        //Step 1 - Create a new facility and verify the IFC identifier is generated correctly.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        //TODO use FHIR data generator in order to create unique facilities.
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.fillFacilitySection("Test Facility", "Facility Description");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("230 Menzies St");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", "");
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+        
+        // Verify the identifier was generated correctly
+        int identifierCount = newFacility.grabDataBlockCount(FacilitySection.IDENTIFIERS);
+        assertEquals(identifierCount, 1, 
+                "There should be exactly one identifier in the facility.");
+        
+        // Get the identifier data
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
+        assertNotNull(identifier, "Identifier should be present.");
+        
+        // Verify the IFC format: IFC.00001234.BC.PRS
+        // Pattern: IFC. + 8-digit zero-padded integer + .BC.PRS
+        // No Padding
+        assertTrue(identifier.matches("^IFC\\.\\d{8}\\.BC\\.PRS$"), 
+                "Identifier should match format IFC.########.BC.PRS where # is a digit");
+        
+        // Step 2 - Search for the facility using the identifier to verify identifier is unique and can be found.
+        SearchFacilityPage searchFacility = TestHelper.navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        SearchFacilityResultsFragment results = TestHelper.searchByIdentifier(
+                searchFacility, 
+                List.of("IFC", identifier), 
+                false
+        );
+        
+        // Verify only 1 result is returned
+        int resultCount = results.grabResultsRowCount();
+        assertEquals(resultCount, 1, 
+                "Search should return exactly one facility for the identifier: " + identifier);
+
+        // TODO implement FHIR search check to verify data matches.
+
     }
 
     @Test
