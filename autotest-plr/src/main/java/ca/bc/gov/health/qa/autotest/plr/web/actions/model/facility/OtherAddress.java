@@ -28,6 +28,14 @@ public class OtherAddress {
 	String dataOwnerCode;
 	
 	
+	public String getAddressType() {
+		return addressType;
+	}
+
+	public String getAddressPurpose() {
+		return addressPurpose;
+	}
+
 	public String getAddressTypeSummary() {
 		if(addressType==null)return addressType;
 		return addressType.split("\\(")[0].stripTrailing();

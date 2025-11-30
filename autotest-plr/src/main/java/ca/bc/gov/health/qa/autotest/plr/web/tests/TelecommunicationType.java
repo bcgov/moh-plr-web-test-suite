@@ -1,0 +1,29 @@
+package ca.bc.gov.health.qa.autotest.plr.web.tests;
+
+public enum TelecommunicationType {
+	EMAIL("T - Telephone"), 
+	MOBILE("MB - Mobile"),
+	PAGER("PG - Pager"),
+	FAX("FAX - Fax"),
+	MODEM("M - Modem");
+
+	private String text;
+
+	TelecommunicationType(String text) {
+		this.text = text;
+	}
+
+	public String getText() {
+		return this.text;
+	}
+
+	public static TelecommunicationType fromString(String text) {
+		for (TelecommunicationType b : TelecommunicationType.values()) {
+			if (b.text.equalsIgnoreCase(text)) {
+				return b;
+			}
+		}
+		return null;
+	}
+
+}

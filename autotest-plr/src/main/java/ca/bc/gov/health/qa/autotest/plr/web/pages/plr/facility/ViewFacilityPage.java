@@ -24,7 +24,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile(" \\(.*\\)");
 	private static final String TABLE_ROWS_SELECTOR = " > table > tbody > tr";
 
-	private final ViewHeaderFragment viewHeader_;
+	protected final ViewHeaderFragment viewHeader_;
 
 	/**
 	 * Initializes page object, overloaded constructor for no specified URL
@@ -223,7 +223,7 @@ public class ViewFacilityPage extends BasicWebPage {
 
 	}
 
-	private String getDataBlockHeaderUpdateButtonSelector(FacilitySection section, int index) {
+	protected String getDataBlockHeaderUpdateButtonSelector(FacilitySection section, int index) {
 		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions "
 				+ " > span >a >img[title^='Update']";
 
