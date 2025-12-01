@@ -258,7 +258,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         // Create the fragment (it will find the existing identifier section on the page)
         AddFacilityIdFragment identifierFragment = new AddFacilityIdFragment(workflow.getSeleniumSession());
         
-        // Get the default selected value before interacting with dropdown
+        // Step 2 - Get the default selected value before interacting with dropdown
         String defaultValue = identifierFragment.getFacilityType();
         
         // Verify the default value is "Select One"
@@ -268,7 +268,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         // Get all available options in the Facility Type dropdown
         List<String> facilityTypeOptions = identifierFragment.getFacilityTypeOptions();
         
-        // Verify that only "BUILDING" is available as an option
+        // Step 3 - Verify that only "BUILDING" is available as an option
         assertEquals(facilityTypeOptions.size(), 2,
                 "Facility Type dropdown should contain two options");
         assertTrue(facilityTypeOptions.contains("BUILDING - Building"),
@@ -513,7 +513,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-011. Facility Duplicate Check
     public void testFacilityDuplicateCheck()
     {
-        //For this test case it would be useuful to have the FHIR endpoints to create a Facility first, then attempt to create via UI to check for duplicates.\
+        //TODO For this test case it would be useuful to have the FHIR endpoints to create a Facility first, then attempt to create via UI to check for duplicates.
 
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
@@ -534,14 +534,161 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
     }
 
-    /*@Test
+    @Test
     // F3-017. Validate Address Lines
     public void testValidateAddressLines()
     {
-        //TODO
+        //Step 1 and 2 - Start creating a Facility and arrive at Address tab and in address leave Address Line 1 as blank.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        //addressFragment.fillAddressLine1("20 Olympia Ave");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+
+        addFacility.clickNext("Address", null);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Address Line 1'. Your transaction has not been processed. Correct and resubmit."),
+                "Address Line 1 From date not selected should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "Address Line 1:*",
+                "Address Line 1 is unhighlighted, or more than one error occurred.");
+
+        //Step 3 - Enter "Address Line 2" and "Address Line 3", leave the "Address Line 1" field blank.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine2("Suite 200");
+        addressFragment.fillAddressLine3("Building A");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Address Line 1'. Your transaction has not been processed. Correct and resubmit."),
+                "Address Line 1 should be required even when Address Line 2 and 3 are filled.");
+        assertEquals(highlightedAddressFields.getLast(), "Address Line 1:*",
+                "Address Line 1 is unhighlighted, or more than one error occurred.");
+
+        //Step 4 - N/A (as noted in test case) - Instead, doing Address Line 1 exceeds max length of 100 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Address Line 1' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit."),
+                "Address Line 1 should return an error when exceeding 100 characters.");
+
+        //Step 5 - Enter "Address Line 1", and enter "Address Line 2" that exceeds the maximum length of 100 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillAddressLine2("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Address Line 2' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit."),
+                "Address Line 2 should return an error when exceeding 100 characters.");
+
+        //Step 6 - Enter "Address Line 1", and enter "Address Line 3" that exceeds the maximum length of 100 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillAddressLine3("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Address Line 3' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit."),
+                "Address Line 3 should return an error when exceeding 100 characters.");
+
+        //Step 7 - N/A (as noted in test case)
+
+        //Step 8 - Attempt to create a new facility using "NO FIXED ADDRESS" as "Address Line 1".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("NO FIXED ADDRESS");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+                "Address Line 1 with 'NO FIXED ADDRESS' should return validation error.");
+
+        //Step 9 - Attempt to create a new facility using "UNKNOWN" as "Address Line 1".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("UNKNOWN");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+                "Address Line 1 with 'UNKNOWN' should return validation error.");
+
+        //Step 10 - Attempt to create a new facility using "NA" as "Address Line 1".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("NA");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+                "Address Line 1 with 'NA' should return validation error.");
+
     }
 
-    @Test
+    /*@Test
     //F3-018. Validate City
     public void testValidateCity()
     {
