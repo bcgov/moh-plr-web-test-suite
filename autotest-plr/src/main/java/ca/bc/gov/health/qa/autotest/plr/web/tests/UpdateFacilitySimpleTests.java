@@ -35,118 +35,114 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 	@BeforeMethod
 	public void before(Object[] parameters) {
 
-		
-		 PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN); 
-		 if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
-		
+		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
+		if (!workflow.isLoggedIn()) {
+			workflow.login().openPlr();
+		}
 
 	}
-	
-	//@Test
+
+	 @Test
 	public void testValidateFacilityIdentifiers() {
-		String errMsg="";
+		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
 		JSONObject facility = PlrData.getFacility("test-update");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
-		
+
 		actions.validateFacilityIdentifiers(updatePage);
-		
+
 	}
-	
-	//@Test
+
+	 @Test
 	public void testValidateFacilityName() {
-		String errMsg="";
+		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
-
 		JSONObject facility = PlrData.getFacility("test-update");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
-		
+
 		actions.validateFacilityName(updatePage);
-		
+
 	}
-	
-	//@Test
+
+	 @Test
 	public void testValidateFacilityDescription() {
-		String errMsg="";
+		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
 		JSONObject facility = PlrData.getFacility("test-update");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
-		
+
 		actions.validateFacilityDescription(updatePage);
-		
+
 	}
-	
-	//@Test
+
+	 @Test
 	public void testValidateFacilityMailingAddressType() {
-		String errMsg="";
+		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
 		JSONObject facility = PlrData.getFacility("test-update");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
-		
+
 		actions.validateFacilityMailingAddressType(updatePage);
-		
+
 	}
-	
-	//@Test
+
+	 @Test
 	public void testValidateFacilityMailingAddressPurpose() {
-		String errMsg="";
+		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
 		JSONObject facility = PlrData.getFacility("test-update");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
-		
+
 		actions.validateFacilityMailingAddressPurpose(updatePage);
-		
+
 	}
-	
-	//@Test
+
+	 @Test
 	public void testValidateFacilityDataBlockMultiplicity() {
-		String errMsg="";
+		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
 		JSONObject facility = PlrData.getFacility("test-update");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
-		
+
 		actions.validateFacilityDataBlockMultiplicity(updatePage);
-		
+
 	}
-	
-	
-	
-	//@Test
+
+	 @Test
 	public void testValidateFacilityNotesTexts() {
-		String errMsg="";
+		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
 		JSONObject facility = PlrData.getFacility("test-update");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
-		
+
 		actions.validateFacilityNotesTexts(updatePage);
-		
+
 	}
-	
+
 	@Test
 	public void testValidateRelatedOrganizationID() {
-		String errMsg="";
+		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
 		JSONObject facility = PlrData.getFacility("test-update");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
-		
-		actions.ValidateRelatedOrganizationID(updatePage);
-		
-	}
 
+		actions.ValidateRelatedOrganizationID(updatePage);
+
+	}
 
 }

@@ -73,27 +73,27 @@ public class UpdateFacilitySimpleActions {
 		String ID_FOREIGN_CHAR="IFC.0012479À.BC.PRS";
 		
 		errMsg=updatePage.addIdentifierDataBlock("","IFC."+UpdateSimpleHelper.generateNumericString(8)+".BC.PRS",
-				UpdateSimpleHelper.effective_date() ,"");
+				UpdateSimpleHelper.effective_date() ,"",true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000") && errMsg.contains("The following fields must be supplied: 'Identifier Type'."));
 		
 		errMsg=updatePage.addIdentifierDataBlock(IdentifierTypeName.IFC.getText(),"",
-				UpdateSimpleHelper.effective_date() ,"");
+				UpdateSimpleHelper.effective_date() ,"",true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000") && errMsg.contains("The following fields must be supplied: 'Identifier'."));
 		
 		errMsg=updatePage.addIdentifierDataBlock(IdentifierTypeName.IFC.getText(),ID_FOREIGN_CHAR,
-				UpdateSimpleHelper.effective_date() ,"");
+				UpdateSimpleHelper.effective_date() ,"",true);
 		assertTrue(errMsg.contains("GRS.SYS.IDE.UNK.1.0.7006") && errMsg.contains("Identifiers can contain only numbers, the English alphabet and periods"));
 		
 		errMsg=updatePage.addIdentifierDataBlock(IdentifierTypeName.IFC.getText(),ID_SPECIAL_CHAR,
-				UpdateSimpleHelper.effective_date() ,"");
+				UpdateSimpleHelper.effective_date() ,"",true);
 		assertTrue(errMsg.contains("GRS.SYS.IDE.UNK.1.0.7006") && errMsg.contains("Identifiers can contain only numbers, the English alphabet and periods"));
 		
 		errMsg=updatePage.addIdentifierDataBlock(IdentifierTypeName.IFC.getText(),"IFC."+UpdateSimpleHelper.generateNumericString(10)+".BC.PRS",
-				UpdateSimpleHelper.effective_date() ,"");
+				UpdateSimpleHelper.effective_date() ,"",true);
 		//assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000") && errMsg.contains("The following fields must be supplied: ''Identifier''."));
 		
 		errMsg=updatePage.addIdentifierDataBlock(IdentifierTypeName.IFC.getText(),"IFC."+UpdateSimpleHelper.generateNumericString(8)+".BC.PRS",
-				UpdateSimpleHelper.effective_date() ,"");
+				UpdateSimpleHelper.effective_date() ,"",true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.7033") && errMsg.contains("Cannot create duplicate record. Check the following field: Facility Identifier"));
 		
 	}
@@ -224,7 +224,7 @@ public class UpdateFacilitySimpleActions {
 		String errMsg7033DupNote="GRS.SYS.UNK.UNK.1.0.7033: Cannot create duplicate record. Check the following field: note";
 		
 		errMsg=updatePage.addIdentifierDataBlock(IdentifierTypeName.IFC.getText(),"IFC."+UpdateSimpleHelper.generateNumericString(8)+".BC.PRS",
-				UpdateSimpleHelper.effective_date() ,"");
+				UpdateSimpleHelper.effective_date() ,"",true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.7033") && errMsg.contains("Cannot create duplicate record. Check the following field: Facility Identifier"));
 		//name
 		
@@ -248,8 +248,9 @@ public class UpdateFacilitySimpleActions {
 		
 		
 		//telecom
-		for(int i=0;i<updatePage.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);i++) {
-			updatePage.ceaseDataBlock(FacilitySection.TELECOMMUNICATIONS,i);
+		int count=updatePage.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);
+		for(int i=0;i<count;i++) {
+			updatePage.ceaseDataBlock(FacilitySection.TELECOMMUNICATIONS,0);
 		}
 		
 		errMsg=updatePage.addTelecommunicationDataBlock(TelecommunicationType.PHONE.getText(),UpdateSimpleHelper.generateNumericString(3),
@@ -277,8 +278,9 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 		
 		//e-address
-		for(int i=0;i<updatePage.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true);i++) {
-			updatePage.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES,i);
+		count=updatePage.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true);
+		for(int i=0;i<count;i++) { 
+			updatePage.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES,0);
 		}
 		
 		errMsg=updatePage.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),UpdateSimpleHelper.generateEmail(),
@@ -300,9 +302,13 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 		
 		//relationship
-		/*
-		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG01);
-		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG02);
+		
+		//ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG01);
+		//ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG02);
+		count=updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
+		for(int i=0;i<count;i++) { 
+			updatePage.ceaseDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS,0);
+		}
 		
 		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG01,RelationshipType.LOCATION.getText(),
 				UpdateSimpleHelper.effective_date(),"",false);
@@ -326,34 +332,33 @@ public class UpdateFacilitySimpleActions {
 				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		
-		*/
+		
 		
 		//note
-		int count=updatePage.grabDataBlockCount(FacilitySection.NOTES);
-		for(int i=0;i<updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);i++) {
-			updatePage.ceaseDataBlock(FacilitySection.NOTES,i);
-		}
+		updatePage.ceaseAllDataBlockUnderSection(FacilitySection.NOTES);
+		
 		String noteId=UpdateSimpleHelper.generateAlphabetString(5);
 		errMsg=updatePage.addNoteDataBlock(noteId,UpdateSimpleHelper.generateAlphabetString(5),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		
 		errMsg=updatePage.addNoteDataBlock(noteId,UpdateSimpleHelper.generateAlphabetString(5),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.equals(errMsg7033DupNote));
 		
 		ceaseNoteDataBlockById(updatePage,noteId);
 		
 		errMsg=updatePage.addNoteDataBlock(noteId,UpdateSimpleHelper.generateAlphabetString(5),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		
 		String noteId02=UpdateSimpleHelper.generateAlphabetString(5);
 		errMsg=updatePage.addNoteDataBlock(noteId02,UpdateSimpleHelper.generateAlphabetString(5),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		
-	}
+	
+}
 
 
 
@@ -440,41 +445,41 @@ int index=updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);
 		index=updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);
 		
 		errMsg=updatePage.addNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(maxNoteId+1),UpdateSimpleHelper.generateAlphabetString(5),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5003") && errMsg.contains("'Note Identifier' length must be between 0 and 30"));
 		
 		errMsg=updatePage.addNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(maxNoteId),UpdateSimpleHelper.generateAlphabetString(5),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		index++;
 		
 		errMsg=updatePage.addNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(6),"",
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000") && errMsg.contains("Some mandatory data is missing in your transaction. The following fields must be supplied: 'Note Text'"));
 		
 		errMsg=updatePage.updateNoteDataBlock("",
-				UpdateSimpleHelper.effective_date(),"",index-1);
+				UpdateSimpleHelper.effective_date(),"",index-1,true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000") && errMsg.contains("Some mandatory data is missing in your transaction. The following fields must be supplied: 'Note Text'"));
 		
 		errMsg=updatePage.addNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(3),UpdateSimpleHelper.generateAlphabetString(maxNoteText+1),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5003") && errMsg.contains("'Note Text' length must be between 0 and 255"));
 		
 		errMsg=updatePage.updateNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(maxNoteText+1),
-				UpdateSimpleHelper.effective_date(),"",index-1);
+				UpdateSimpleHelper.effective_date(),"",index-1,true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5003") && errMsg.contains("'Note Text' length must be between 0 and 255"));
 		
 		errMsg=updatePage.addNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.generateAlphabetString(maxNoteText),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		
 		errMsg=updatePage.addNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.generateAlphabetString(maxNoteText),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		index++;
 		
 		errMsg=updatePage.updateNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(maxNoteText),
-				UpdateSimpleHelper.effective_date(),"",index-1);
+				UpdateSimpleHelper.effective_date(),"",index-1,false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		
 		//cease test data
@@ -490,14 +495,16 @@ int index=updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);
 		String ID_SPECIAL_CHAR="IPC.0012479#.BC.PRS";
 		String ID_NONEXIST="IPC.00999999.BC.PRS";
 		String ID_PERSON="IPC.00124841.BC.PRS";
-		String ID_ORG="IPC.00123986.BC.PRS";
-		
+		//String ID_ORG="IPC.00123986.BC.PRS";
+		String ID_ORG="IPC.00082689A.BC.PRS";
 		String errMessage01="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Related Provider Identifier'. Your transaction has not been processed. Correct and resubmit.";
 		String errMessage02="GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Provider Identifier' length must be between 0 and 50. Your transaction has not been processed. Correct and resubmit.";
 		String errMessage03="GRS.SYS.IDE.UNK.1.0.7036: Identifier does not uniquely identify a Provider. Cannot create relationship.";
 		String errMessage04="PRS.FAC.REL.MTN.1.0.9026: The Facility relationship with the Organization cannot be created as the Provider Identifier is not an Organization Identifier.";
 		
 		int index=updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
+		
+		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG);
 		
 		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),"",RelationshipType.LOCATION.getText(),
 				UpdateSimpleHelper.effective_date(),"",true);

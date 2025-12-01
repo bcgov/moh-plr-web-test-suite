@@ -19,6 +19,7 @@ import org.openqa.selenium.support.ui.Select;
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.EndReason;
+import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 
@@ -211,9 +212,32 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		button.click();
 		waitSeconds(2);
 		if(expectError) {
-			selenium_.waitUntil(ExpectedConditions.visibilityOf(button));
+			//selenium_.waitUntil(ExpectedConditions.visibilityOf(button));
+			selenium_.waitUntil(SeleniumExpectedConditions.pageToBeReady());
 		}
 	}
+	
+	private String waitErrorMessage(FacilitySection section) {
+
+		String msgDisplay = "";
+		
+		msgDisplay = getDialogMessages(section);
+		while (StringUtils.isEmpty(msgDisplay)) {
+			waitSeconds(5);
+			try {
+				msgDisplay = getDialogMessages(section);
+			} catch (StaleElementReferenceException e) {
+				waitSeconds(5);
+			}
+		}
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+
+	}
+	
 	
 
 	private void clickHeaderAddDateBlockButton(FacilitySection section) {
@@ -292,13 +316,28 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 				index++;
 			}
 		}
+		
+		String dropListFocusCss = dialogCss + " > div#" + formName + "\\:" + dropDownName
+				+ " >div.ui-helper-hidden-accessible" + " > input#" + formName + "\\:" + dropDownName + "_focus";
+		WebElement dropListFocus = selenium_.findElement(By.cssSelector(dropListFocusCss));
+		selenium_.scrollIntoView(dropListFocus);
+		//dropListFocus=selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(dropListFocusCss)));
 		if (found) {
 			String labelCss = dialogCss + " > div#" + formName + "\\:" + dropDownName + " > label#" + formName + "\\:"
 					+ dropDownName + "_label";
 			WebElement label = selenium_.findElement(By.cssSelector(labelCss));
 			selenium_.scrollIntoView(label);
 			label=selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(labelCss)));
-			label.click();
+			try {
+			label.click();}
+			catch(ElementClickInterceptedException e) {
+				waitSeconds(2);
+				label.clear();
+				boolean is = dropListFocus.isDisplayed();
+				is=label.isDisplayed();
+				label.click();
+			}
+			
 
 			WebElement element = selenium_.getDriver().switchTo().activeElement();
 			for (int i = 0; i < index; i++) {
@@ -326,6 +365,13 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		WebElement button=selenium_.findElement(By.cssSelector(buttonCss));
 		button.click();
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
+	
+	public void ceaseAllDataBlockUnderSection(FacilitySection section) {
+		int count=grabActiveDataBlockCount(section, true);
+		for(int i=0;i<count;i++) { 
+			ceaseDataBlock(section,0);
+		}
 	}
 
 	public String addNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo) {
@@ -404,7 +450,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
-	public String addIdentifierDataBlock(String idType, String id, String effectiveFrom, String effectiveTo) {
+	public String addIdentifierDataBlock(String idType, String id, String effectiveFrom, String effectiveTo,boolean expectError) {
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.IDENTIFIERS).getFormName();
 		String dialogCss=getDialogCss(FacilitySection.IDENTIFIERS);
@@ -425,14 +471,8 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		
 		clickDialogSubmitButton(FacilitySection.IDENTIFIERS);
 		
-		msgDisplay=getDialogMessages(FacilitySection.IDENTIFIERS);
-		
-		if(!StringUtils.isEmpty(msgDisplay)){
-			//cancel button
-			WebElement cancelButton=selenium_.findElement(By.linkText("Cancel"));
-			cancelButton.click();
-		}
-		
+		if(expectError)
+			msgDisplay=waitErrorMessage(FacilitySection.IDENTIFIERS);
 		
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
@@ -441,7 +481,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 
 
 	public String addNoteDataBlock(String id, String text, String effectiveFrom,
-			String effectiveTo) {
+			String effectiveTo,boolean expectError) {
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.NOTES).getFormName();
 		String dialogCss=getDialogCss(FacilitySection.NOTES);
@@ -464,17 +504,10 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.NOTES,effectiveFrom,effectiveTo);
 		
-		
 		clickDialogSubmitButton(FacilitySection.NOTES);
 		
-		msgDisplay=getDialogMessages(FacilitySection.NOTES);
-		
-		if(!StringUtils.isEmpty(msgDisplay)){
-			//cancel button
-			WebElement cancelButton=selenium_.findElement(By.linkText("Cancel"));
-			cancelButton.click();
-		}
-		
+		if(expectError)
+			msgDisplay=waitErrorMessage(FacilitySection.NOTES);
 		
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 
@@ -484,7 +517,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 
 
 	public String updateNoteDataBlock( String text, String effectiveFrom, String effectiveTo,
-			int index) {
+			int index,boolean expectError) {
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.NOTES).getFormName();
 		String dialogCss=getDialogCss(FacilitySection.NOTES);
@@ -505,14 +538,9 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		
 		clickDialogSubmitButton(FacilitySection.NOTES);
 		
-		msgDisplay=getDialogMessages(FacilitySection.NOTES);
-		
-		if(!StringUtils.isEmpty(msgDisplay)){
-			//cancel button
-			WebElement cancelButton=selenium_.findElement(By.linkText("Cancel"));
-			cancelButton.click();
-		}
-		
+		if(expectError)
+			msgDisplay=waitErrorMessage(FacilitySection.NOTES);
+				
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;	
 	}
@@ -537,6 +565,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		
 		selectDropdownListByClick(FacilitySection.ORGANIZATION_RELATIONSHIPS,"relationshipType",relationType);
 		
+		if(expectError)waitSeconds(2);
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ORGANIZATION_RELATIONSHIPS,effectiveFrom,effectiveTo);
 		
 		
@@ -544,18 +573,30 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		
 		//msgDisplay=getDialogMessages(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 		if (expectError) {
-			int count=3;
+			waitSeconds(10);
+			
 			msgDisplay = getDialogMessages(FacilitySection.ORGANIZATION_RELATIONSHIPS);
-			while (StringUtils.isEmpty(msgDisplay) && count!=0) {
-				waitSeconds(5);count--;
-				msgDisplay = getDialogMessages(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+			while (StringUtils.isEmpty(msgDisplay) ) {
+				waitSeconds(5);
+				try {
+				msgDisplay = getDialogMessages(FacilitySection.ORGANIZATION_RELATIONSHIPS);}
+				catch(StaleElementReferenceException  e) {
+					waitSeconds(5);
+				}
 			}
 			WebElement cancelButton=selenium_.findElement(By.linkText("Cancel"));
+			selenium_.scrollIntoView(cancelButton);
 			cancelButton.click();
 		}
 		
-		
-		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		try {
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));}
+		catch(org.openqa.selenium.TimeoutException e) {
+			msgDisplay=getDialogMessages(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+			WebElement cancelButton=selenium_.findElement(By.linkText("Cancel"));
+			selenium_.scrollIntoView(cancelButton);
+			cancelButton.click();
+		}
 		return msgDisplay;
 	}
 	
@@ -591,20 +632,8 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		
 		clickDialogSubmitButton(FacilitySection.TELECOMMUNICATIONS);
 		
-		if (expectError) {
-			int count=3;
-			msgDisplay = getDialogMessages(FacilitySection.TELECOMMUNICATIONS);
-			while (StringUtils.isEmpty(msgDisplay) && count!=0) {
-				waitSeconds(5);count--;
-				msgDisplay = getDialogMessages(FacilitySection.TELECOMMUNICATIONS);
-			}
-		}
-		if(!StringUtils.isEmpty(msgDisplay)){
-			//cancel button
-			WebElement cancelButton=selenium_.findElement(By.linkText("Cancel"));
-			cancelButton.click();
-		}
-		
+		if(expectError)
+			msgDisplay=waitErrorMessage(FacilitySection.TELECOMMUNICATIONS);
 		
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
@@ -634,21 +663,8 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		clickDialogSubmitButton(FacilitySection.ELECTRONIC_ADDRESSES);
 		
 
-		if (expectError) {
-			int count=3;
-			msgDisplay = getDialogMessages(FacilitySection.ELECTRONIC_ADDRESSES);
-			while (StringUtils.isEmpty(msgDisplay) && count!=0) {
-				waitSeconds(5);count--;
-				msgDisplay = getDialogMessages(FacilitySection.ELECTRONIC_ADDRESSES);
-			}
-		}
-		
-		
-		if(!StringUtils.isEmpty(msgDisplay)){
-			//cancel button
-			WebElement cancelButton=selenium_.findElement(By.linkText("Cancel"));
-			cancelButton.click();
-		}
+		if(expectError)
+			msgDisplay=waitErrorMessage(FacilitySection.ELECTRONIC_ADDRESSES);
 		
 		
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
