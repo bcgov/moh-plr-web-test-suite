@@ -267,6 +267,7 @@ public class ViewFacilityPage extends BasicWebPage {
      *
      * @return  a hash map mapping civic address data fields (String) to their associated values (String)
      */
+    @SuppressWarnings("fallthrough")
     public LinkedHashMap<String,String> grabCivicAddressBlockContent()
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
@@ -299,6 +300,7 @@ public class ViewFacilityPage extends BasicWebPage {
                         break;
                     case 5:
                         addFieldDataMap(dataMap, extraFields, 2);
+                        // fall through
                     case 6:
                         addFieldDataMap(dataMap, extraFields, 0);
                         break;

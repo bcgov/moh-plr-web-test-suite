@@ -11,6 +11,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -22,7 +23,6 @@ import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
@@ -38,18 +38,26 @@ public class CreateFacilityComplexTests implements SimpleTest {
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     private static JSONObject errorList;
+    private static JSONObject warningList;
 
     public CreateFacilityComplexTests()
     {
         try
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
+            warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
         }
         catch (IOException e)
         {
             String msg = String.format("Failed to read JSON data (%s).", errorPath);
             throw new IllegalStateException(msg, e);
         }
+    }
+
+    @AfterClass
+    public void teardown() {
+        workflowManager_.logoutAllAndClose();
+        LOG.info("Done.");
     }
 
     @BeforeMethod
@@ -190,7 +198,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
         String fullAddress = String.format("%s%s, %s, %s", geocoderBaseURI, civicAddress, civicCity, civicProvince)
                 .replaceAll(", ", "%2C%20");
 
-        JSONObject geocodeJSON = null;
+        JSONObject geocodeJSON;
         try {
             geocodeJSON = new JSONObject(IOUtils.toString(URI.create(fullAddress), StandardCharsets.UTF_8));
         } catch (IOException e) {
@@ -234,13 +242,82 @@ public class CreateFacilityComplexTests implements SimpleTest {
     }
 
     @Test
+    // F3-019. Facility Address Validation Status
+    public void facilityAddressValidationStatus()
+    {
+        final List<String> addressData = List.of("310", "560", "LINDEN AVE, KAMLOOPS");
+        final String streetTypeEnding = "NUE";
+
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        fillAddressWithValidate(addFacility, addressData, 5);
+
+        ViewFacilityPage newFacility = addFacility.getFacilitySummary().clickSubmitButton();
+
+        String validationStatus = newFacility.grabDataBlockContent(
+                FacilitySection.OTHER_ADDRESS, 0).get("Validation Status");
+        assertEquals(validationStatus, "Valid (V)", "Validation Status is not Valid as expected");
+
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        fillOutAddressSection(addFacility, addressData, 5);
+        addFacility.clickBack("Facility Summary", false);
+        AddFacilityAddressFragment addressInfo = new AddFacilityAddressFragment(
+                workflowManager_.getSelectedWorkflow().getSeleniumSession());
+        addressInfo.fillAddressLine1(addressInfo.getAddressLine1() + streetTypeEnding);
+
+        addFacility.clickNext("Address", "Mailing");
+        addressInfo.handleWidgetButton("Mailing");
+        addFacility.waitForWidgetVisibility("Civic");
+        addressInfo.handleWidgetButton("Civic");
+
+        addFacility.waitForAddFacilityStep("Address", false);
+        newFacility = addFacility.getFacilitySummary().clickSubmitButton();
+
+        validationStatus = newFacility.grabDataBlockContent(
+                FacilitySection.OTHER_ADDRESS,0).get("Validation Status");
+        assertEquals(validationStatus, "Invalid (I)", "Validation Status is not Invalid as expected");
+    }
+
+    @Test
     // F3-020. Facility Address Correction With External Tool
     public void facilityAddressCorrection()
     {
-        final List<String> addressData = List.of("250", "300", "LANSDOWNE ST, KAMLOOPS");
+        //300
+        final String civicAddressRecommendation = warningList.getString("civicAddressRecommendation");
+        final List<String> addressData = List.of("250", "250", "LANSDOWNE ST, KAMLOOPS");
+        final String streetTypeEnding = "R";
 
-        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_,
-                addressData, "Correction", 5);
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        fillAddressWithValidate(addFacility, addressData, 5);
+
+        addFacility.clickBack("Facility Summary", false);
+        AddFacilityAddressFragment addressInfo = new AddFacilityAddressFragment(
+                workflowManager_.getSelectedWorkflow().getSeleniumSession());
+        addressInfo.fillAddressLine1(addressInfo.getAddressLine1() + streetTypeEnding);
+        addFacility.clickNext("Address", "Civic");
+        addFacility.waitForWidgetVisibility("Civic");
+        List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        assertTrue(warningMessageList.contains(civicAddressRecommendation),
+                "Civic Address Recommendation error does not appear unexpectedly");
+
+        addressInfo.handleWidgetButton("Civic");
+
+        addFacility.waitForAddFacilityStep("Address", false);
+        ViewFacilityPage newFacility = addFacility.getFacilitySummary().clickSubmitButton();
 
         assertTrue(newFacility.grabCivicAddressBlockContent().get("Address Line 1").contains(
                 addressData.getLast().substring(0, addressData.getLast().indexOf(","))),
@@ -268,7 +345,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
             {
                 int TWO_WORD_ADDRESS_NUM = TWO_WORD_ADDRESS_LOWER_LIMIT +
                         RNG.nextInt(TWO_WORD_ADDRESS_UPPER_LIMIT - TWO_WORD_ADDRESS_LOWER_LIMIT + 1);
-                String TWO_WORD_ADDRESS = "";
+                String TWO_WORD_ADDRESS;
                 TWO_WORD_ADDRESS = String.format("%d LYNN VALLEY RD", TWO_WORD_ADDRESS_NUM);
                 addressInfo = addFacility.fillAddressSection(
                         TWO_WORD_ADDRESS, TWO_WORD_ADDRESS + ", NORTH");
@@ -295,7 +372,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Mailing Address in summary missing address line information");
 
         assertTrue(matchingMailingAddress.contains(multiPartCity.toLowerCase()),
-                "Maiing Address in summary missing city information");
+                "Mailing Address in summary missing city information");
         assertTrue(matchingMailingAddress.contains(multiPartCountry.toLowerCase()),
                 "Mailing Address in summary missing country information");
 
@@ -324,7 +401,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Mailing Address in summary missing address line information");
 
         assertTrue(matchingMailingAddress.contains(multiPartCity.toLowerCase()),
-                "Maiing Address in summary missing city information");
+                "Mailing Address in summary missing city information");
         assertTrue(matchingMailingAddress.contains(multiPartCountry.toLowerCase()),
                 "Mailing Address in summary missing country information");
 

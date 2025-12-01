@@ -1,27 +1,19 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
-import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Fragment class for the Identifier section (first step) when creating a new facility
  */
-public class AddFacilityIdFragment extends BasicWebPageFragment {
+public class AddFacilityIdFragment extends AddFacilityStepFragment {
 
     private static final String FACTYPE_FIELD_CSS = "label#form\\:facilityType_label";
 
     private static final String IDTYPE_FIELD_CSS = "label#form\\:identifierType_label";
 
     private static final String IDENTIFIER_FIELD_CSS = "input#form\\:identifier";
-
-    private static final String DATE_FIELD_CSS = "span#form\\:effectiveFromDate_identifier";
 
     /**
      * Initializes fragment and changes selenium's main locator to header of the Identifier form
@@ -30,7 +22,9 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
      */
     public AddFacilityIdFragment(SeleniumSession selenium)
     {
-        super(selenium, By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Identifier')]"));
+        super(selenium, "Identifier");
+        STEP_PREFIX = "identifier";
+
     }
 
     /**
@@ -98,62 +92,5 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     public void fillIdentifier(String identifier)
     {
         if (identifier != null) selenium_.fillFieldByCss(IDENTIFIER_FIELD_CSS, identifier);
-    }
-
-    /**
-     * Creates a DateMenu reference for the Effective From Date field
-     *
-     * @return  a DateMenu reference to the Effective From Date menu
-     */
-    private DateMenu getEffectiveFromDateMenu()
-    {
-        return new DateMenu(selenium_, By.cssSelector(DATE_FIELD_CSS), "identifier");
-    }
-
-    /**
-     * Picks the current date as the Effective From Date.
-     *
-     * @return  the date picked within the field as a string.
-     */
-    public String effectiveFromCurrentDate()
-    {
-        return getEffectiveFromDateMenu().pickCurrentDate();
-    }
-
-    /**
-     * Gets the date selected in the Effective From date field.
-     *
-     * @return  a string of the date picked for the Effective From date field.
-     */
-    public String getEffectiveFrom()
-    {
-        return selenium_.findElementByCss(DATE_FIELD_CSS + " > input").getAttribute("value");
-    }
-
-    /**
-     * Picks a specific date as the Effective From Date.
-     *
-     * @param effectiveYear     the year of the date to pick.
-     * @param effectiveMonth    the month of the date to pick (1-12, 1 being January, 12 being December)
-     * @param effectiveDay      the day of the date to pick (expects 1-31)
-     * @return                  the date picked within the field as a string.
-     */
-    public String effectiveFromSpecificDate(int effectiveYear, int effectiveMonth, int effectiveDay)
-    {
-        return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
-    }
-
-    /**
-     * Gets highlighted fields (to be used when an error is expected)
-     *
-     * @return  a list of strings of each of the fields that are highlighted
-     */
-    public List<String> getHighlightedFields()
-    {
-        List<String> highlightedFields = new ArrayList<>();
-        By highlightedSelector = By.cssSelector("label.ui-outputlabel.ui-widget.ui-state-error");
-        List<WebElement> webElementList = selenium_.findElements(highlightedSelector);
-        for (WebElement fieldElement : webElementList) { highlightedFields.add(fieldElement.getText()); }
-        return highlightedFields;
     }
 }

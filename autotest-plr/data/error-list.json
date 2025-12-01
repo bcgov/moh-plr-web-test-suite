@@ -10,6 +10,7 @@
   },
   "warnings" : {
     "missingCriteria" : "Invalid or Incomplete form data provided, please see instructions on the right side.",
-    "maximumResults" : "Maximum search results returned. Please refine your search criteria."
+    "maximumResults" : "Maximum search results returned. Please refine your search criteria.",
+    "civicAddressRecommendation" : "PRS.SYS.ADR.UNK.1.0.7052: Civic Address is not valid - Recommendation is provided."
   }
 }

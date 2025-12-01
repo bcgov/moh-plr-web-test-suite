@@ -1,17 +1,13 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 /**
  * A page object class for the Add Facility page.
@@ -142,16 +138,7 @@ public class AddFacilityPage extends BasicWebPage {
     public AddFacilityAddressFragment fillAddressSection(
             List<String> addressLines, String cityField, String cityPrefix, String postalCode)
     {
-        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(selenium_);
-
-        addressFragment.fillAddressLine1(addressLines.get(0));
-        addressFragment.fillAddressLine2(addressLines.get(1));
-        addressFragment.fillAddressLine3(addressLines.get(2));
-        addressFragment.fillCity(cityField, cityPrefix);
-        addressFragment.fillPostalCode(postalCode);
-        addressFragment.effectiveFromCurrentDate();
-
-        return addressFragment;
+        return fillAddressSection(addressLines, cityField, cityPrefix, postalCode, null);
     }
 
     /**
@@ -162,7 +149,8 @@ public class AddFacilityPage extends BasicWebPage {
      * @param cityField         the string to fill the City field with (with autocomplete)
      * @param cityPrefix        the first few characters to match when selecting an autocompleted City option.
      * @param postalCode        string to fill the postal code field with
-     * @param effectiveFrom     the date the facility name is effective from, as a list of integers [Y, M, D]
+     * @param effectiveFrom     the date the facility name is effective from, as a list of integers [Y, M, D].
+     *                          if effectiveFrom is null, the current date is used.
      * @return                  a reference to the address fragment on the add facility page
      */
     public AddFacilityAddressFragment fillAddressSection(
@@ -177,7 +165,9 @@ public class AddFacilityPage extends BasicWebPage {
         addressFragment.fillCity(cityField, cityPrefix);
         addressFragment.fillPostalCode(postalCode);
 
-        addressFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        if (effectiveFrom == null) addressFragment.effectiveFromCurrentDate();
+        else  addressFragment.effectiveFromSpecificDate(
+                effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return addressFragment;
     }
@@ -269,11 +259,18 @@ public class AddFacilityPage extends BasicWebPage {
 
         try
         {
-            selenium_.waitUntil(ExpectedConditions.attributeToBe(widgetLocator, "aria-hidden", "false"));
-        }
-        catch (org.openqa.selenium.TimeoutException e) { throw new IllegalStateException(e.getMessage()); }
-        catch (org.openqa.selenium.StaleElementReferenceException e) { waitForWidgetVisibility(widget); }
+            if (widget.equals("Mailing")) {
+                List<WebElement> widgetList = selenium_.findElements(widgetLocator).stream().filter(
+                        elem -> elem.getAttribute("role") != null).toList();
 
+                selenium_.waitUntil(ExpectedConditions.attributeToBe(
+                        widgetList.getLast(), "aria-hidden", "false"));
+            }
+            else selenium_.waitUntil(ExpectedConditions.attributeToBe(
+                    widgetLocator, "aria-hidden", "false"));
+        }
+            catch (org.openqa.selenium.TimeoutException e) { throw new IllegalStateException(e.getMessage()); }
+            catch (org.openqa.selenium.StaleElementReferenceException e) { waitForWidgetVisibility(widget); }
     }
 
     /**
@@ -298,7 +295,7 @@ public class AddFacilityPage extends BasicWebPage {
                 try {
                     waitForWidgetVisibility(errorWidget);
                 } catch (IllegalStateException e) {
-                    throw new IllegalStateException("Search for widget" + errorWidget + " timed out");
+                    throw new IllegalStateException("Search for widget " + errorWidget + " timed out");
                 }
             }
         } else { waitForAddFacilityStep(currentState, true); }

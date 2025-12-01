@@ -1,20 +1,14 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
-import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Fragment class for the Address section (third step) when creating a new facility
  */
-public class AddFacilityAddressFragment extends BasicWebPageFragment {
+public class AddFacilityAddressFragment extends AddFacilityStepFragment {
 
     private static final String AUTOCOMPLETE_FIELD_CSS = "input#form\\:autoComplete_input";
 
@@ -27,8 +21,6 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
     private static final String CITY_FIELD_CSS = "input#form\\:city_input";
 
     private static final String POSTAL_CODE_FIELD_CSS = "input#form\\:postalCode";
-
-    private static final String DATE_FIELD_CSS = "span#form\\:effectiveFromDate_address";
 
     private static final String PROVINCE_STATE_FIELD_CSS = "label#form\\:province_drop_label";
 
@@ -43,7 +35,8 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
      */
     public AddFacilityAddressFragment(SeleniumSession selenium)
     {
-        super(selenium, By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Address')]"));
+        super(selenium, "Address");
+        STEP_PREFIX = "address";
     }
 
     /**
@@ -155,8 +148,8 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
 
     /**
      * Fills the Address Autocomplete field using the autocomplete feature.
-     * The field will be filled using addressAutocompleteField to setup autocomplete and
-     * addressAutcompletePrefix to select an autocomplete option.
+     * The field will be filled using addressAutocompleteField to set up autocomplete and
+     * addressAutocompletePrefix to select an autocomplete option.
      *
      * @param addressAutocompleteField     the initial characters to fill the address autocomplete field with
      * @param addressAutocompletePrefix    the first few characters to match when selecting an autocomplete option
@@ -170,7 +163,7 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
     /**
      * Fills the city field, either directly or using the autocomplete feature.
      * If cityPrefix is set to null, the field will be directly filled with cityField.
-     * Otherwise, the field will be filled using cityField to setup autocomplete and
+     * Otherwise, the field will be filled using cityField to set up autocomplete and
      * cityPrefix to select an autocomplete option.
      *
      * @param cityField     the initial characters to fill the city field with
@@ -190,39 +183,6 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
     public void fillPostalCode(String postalCode)
     {
         if (postalCode != null) selenium_.fillFieldByCss(POSTAL_CODE_FIELD_CSS, postalCode);
-    }
-
-    /**
-     * Creates a DateMenu reference for the Effective From Date field
-     *
-     * @return  a DateMenu reference to the Effective From Date menu
-     */
-    public DateMenu getEffectiveFromDateMenu()
-    {
-        return new DateMenu(selenium_, By.cssSelector(DATE_FIELD_CSS), "address");
-    }
-
-    /**
-     * Picks the current date as the Effective From Date.
-     *
-     * @return  the date picked within the field as a string.
-     */
-    public String effectiveFromCurrentDate()
-    {
-        return getEffectiveFromDateMenu().pickCurrentDate();
-    }
-
-    /**
-     * Picks a specific date as the Effective From Date.
-     *
-     * @param effectiveYear     the year of the date to pick.
-     * @param effectiveMonth    the month of the date to pick (1-12, 1 being January, 12 being December)
-     * @param effectiveDay      the day of the date to pick (expects 1-31)
-     * @return                  the date picked within the field as a string.
-     */
-    public String effectiveFromSpecificDate(int effectiveYear, int effectiveMonth, int effectiveDay)
-    {
-        return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
     }
 
     /**
@@ -255,13 +215,15 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
      */
     private WebElement getWidget(String widgetTitlePrefix)
     {
+        boolean secondOne = false;
         for (WebElement elem : selenium_.findElementsByCss("div[role='dialog']")) {
             if (elem.findElement(By.cssSelector(WIDGET_TITLE_SPAN_CSS))
                     .getAttribute("innerHTML").contains(widgetTitlePrefix)) {
-                return elem;
+                if (!widgetTitlePrefix.equals("Mailing") || secondOne) return elem;
+                else { secondOne = true; }
             }
         }
-        throw new IllegalStateException("Civic Address Widget not present.");
+        throw new IllegalStateException("Widget with " + widgetTitlePrefix + " not present.");
     }
 
     /**
@@ -272,35 +234,16 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
     public void handleWidgetButton(String errorWidget)
     {
         String buttonCSS = "div.ui-widget-content > ";
-        if (errorWidget.equals("Civic")) buttonCSS += "table > tbody > tr > td:first-child > ";
+        if (errorWidget.equals("Mailing")) buttonCSS += "table > tbody > tr > td > ";
+        if (errorWidget.equals("Civic") || errorWidget.equals("Mailing"))
+        {
+            buttonCSS += "table > tbody > tr > td:first-child > ";
+        }
         buttonCSS += "button";
 
         WebElement widget = getWidget(errorWidget);
         By buttonSelector = By.cssSelector(buttonCSS);
 
         widget.findElement(buttonSelector).click();
-    }
-
-    /**
-     * Gets highlighted fields (to be used when an error is expected)
-     *
-     * @return  a list of strings of each of the fields that are highlighted
-     */
-    public List<String> getHighlightedFields()
-    {
-        List<String> highlightedFields = new ArrayList<>();
-        By highlightedSelector = By.cssSelector("label.ui-outputlabel.ui-widget.ui-state-error");
-        List<WebElement> webElementList = selenium_.findElements(highlightedSelector);
-        for (WebElement fieldElement : webElementList) { highlightedFields.add(fieldElement.getText()); }
-        return highlightedFields;
-    }
-
-    /**
-     * Gets the date selected in the Effective From date field.
-     *
-     * @return  a string of the date picked for the Effective From date field.
-     */
-    public String getEffectiveFrom() {
-        return selenium_.findElementByCss(DATE_FIELD_CSS + " > input").getAttribute("value");
     }
 }

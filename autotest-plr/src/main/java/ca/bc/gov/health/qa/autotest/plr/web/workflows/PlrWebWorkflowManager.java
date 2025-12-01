@@ -39,6 +39,18 @@ implements AutoCloseable
     }
 
     /**
+     * Closes a browser instance based on its user type.
+     *
+     * @param userType  the user type associated with the browser instance to close
+     */
+    public void close(UserType userType)
+    {
+        PlrWebWorkflow workflow = workflowMap_.get(userType);
+        workflow.close();
+        workflowMap_.remove(userType);
+    }
+
+    /**
      * TODO (AZ) - doc
      *
      * @throws IllegalStateException
@@ -170,6 +182,24 @@ implements AutoCloseable
     }
 
     /**
+     * Logs out a User Type selenium browser instance, then closes it if successful.
+     *
+     * @param userType  the user type associated with the browser instance to close
+     */
+    public void logoutAndClose(UserType userType)
+    {
+        try
+        {
+            PlrWebWorkflow workflow = workflowMap_.get(userType);
+            workflow.logout();
+        }
+        finally
+        {
+            close(userType);
+        }
+    }
+
+    /**
      * TODO (AZ) - doc
      *
      * @param parameters
@@ -239,10 +269,15 @@ implements AutoCloseable
             workflow = PlrWebWorkflow.create(userType);
             workflowMap_.put(userType, workflow);
         }
-        SeleniumSession selenium = workflow.getSeleniumSession();
-        SeleniumContext.get().setSeleniumSession(selenium);
-        selenium.bringToFront();
+        if (workflow.isLoggedIn())
+        {
+            SeleniumSession selenium = workflow.getSeleniumSession();
+            SeleniumContext.get().setSeleniumSession(selenium);
+            selenium.bringToFront();
+            selenium.getDriver().manage().window().maximize();
+        }
         selectedWorkflow_ = workflow;
+        LOG.info("Selected workflow ({}).", workflow.getSeleniumSession());
         return selectedWorkflow_;
     }
 }

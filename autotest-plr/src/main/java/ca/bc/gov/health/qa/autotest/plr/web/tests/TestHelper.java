@@ -4,12 +4,16 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
 import org.openqa.selenium.TimeoutException;
 
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.List;
@@ -257,6 +261,45 @@ public final class TestHelper {
         }
 
         return ADDRESS;
+    }
+
+    /**
+     * Filling the address section ensuring the address used will be valid through DataBC's Geocoder.
+     * Upon the method ending the page will have been transitioned to the Summary step.
+     *
+     * @param addFacility      an AddFacilityPage reference to the add facility page
+     * @param addressData      a list of strings of the data needed for the civic address.
+     *                         the first two elements should be the lower and upper limits for a
+     *                         randomly generated address number, then the final element should be
+     *                         "{ADDRESS_NAME}, {CITY PREFIX}" e.g. DOUGLAS ST, VICTORIA.
+     * @param maxAttempts      the maximum amount of types to attempt finding a usable non-duplicate address
+     */
+    public static void fillAddressWithValidate(AddFacilityPage addFacility,
+                                                                List<String> addressData, int maxAttempts)
+    {
+        final String geocoderBaseURI = "https://geocoder.api.gov.bc.ca/addresses.geojson?addressString=";
+
+        String matchPrecision;
+        do {
+            String validAddress = fillOutAddressSection(addFacility, addressData, maxAttempts);
+            JSONObject geocodeJSON;
+            try {
+                String geocodeAddress = (validAddress + ", BC").replaceAll(
+                        " ", "%20").replaceAll(",", "%2C");
+                geocodeJSON = new JSONObject(IOUtils.toString(
+                        URI.create(geocoderBaseURI + geocodeAddress), StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            matchPrecision = geocodeJSON.getJSONArray("features").getJSONObject(0)
+                    .getJSONObject("properties").getString("matchPrecision");
+            addFacility.waitForAddFacilityStep("Address", false);
+            addFacility.clickBack("Facility Summary", false);
+            addFacility.waitForAddFacilityStep("Address", true);
+        } while (!matchPrecision.equals("CIVIC_NUMBER"));
+
+        addFacility.clickNext("Address", "");
+        addFacility.waitForAddFacilityStep("Address", false);
     }
 
     /**
