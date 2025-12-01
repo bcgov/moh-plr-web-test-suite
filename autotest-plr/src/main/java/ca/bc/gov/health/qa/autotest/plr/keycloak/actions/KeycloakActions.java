@@ -96,34 +96,37 @@ implements AutoCloseable
                 .body(postBody, maskedBody)
                 .build();
         SimpleHttpResponse response = client_.send(request, true, false);
-        SimpleHttpResponse artifactResponse;
-        if (response.getStatusCode() == 200)
+        SimpleHttpResponse alteredResponse = null;
+        try
         {
-            JSONObject responseData = new JSONObject(response.getTextResponseBody());
-            String accessToken = responseData.optString(ACCESS_TOKEN_KEY);
-            if (accessToken.isEmpty())
+            if (response.getStatusCode() == 200)
             {
-                // Generate artifact with original response before failing
-                SimpleHttpClient.generateResponseArtifacts(response, true);
-                throw new IllegalStateException("Access token missing in Keycloak response.");
+                JSONObject responseData = new JSONObject(response.getTextResponseBody());
+                String accessToken = responseData.optString(ACCESS_TOKEN_KEY);
+                if (accessToken.isEmpty())
+                {
+                    throw new IllegalStateException("Failed to retrieve the access token.");
+                }
+                responseData.put(ACCESS_TOKEN_KEY, MASK_INDICATOR);
+                alteredResponse = createAlteredHttpResponse(response, responseData.toString(2));
+                accessToken_ = accessToken;
             }
-            LOG.debug("Keycloak token response received (token length {}).", accessToken.length());
-            // Mask token for artifact
-            responseData.put(ACCESS_TOKEN_KEY, MASK_INDICATOR);
-            artifactResponse = createAlteredHttpResponse(response, responseData.toString(2));
-            accessToken_ = accessToken;
+            else
+            {
+                throw new IllegalStateException("Keycloak login failed.");
+            }
         }
-        else
+        finally
         {
-            // Non-200: capture original for troubleshooting
-            SimpleHttpClient.generateResponseArtifacts(response, true);
-            String snippet = response.getTextResponseBody();
-            if (snippet.length() > 300) snippet = snippet.substring(0, 300) + "...";
-            throw new IllegalStateException(
-                    "Keycloak login failed (status=" + response.getStatusCode() + ") body=" + snippet + ")");
+            if (alteredResponse != null)
+            {
+                SimpleHttpClient.generateResponseArtifacts(alteredResponse, false);
+            }
+            else
+            {
+                throw new IllegalStateException("Failed to generate response artifacts.");
+            }
         }
-        // Always generate artifact for successful case
-        SimpleHttpClient.generateResponseArtifacts(artifactResponse, false);
         LOG.info("Login successful.");
     }
 

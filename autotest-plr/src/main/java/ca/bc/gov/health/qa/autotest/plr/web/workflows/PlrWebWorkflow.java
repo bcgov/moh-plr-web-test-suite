@@ -8,7 +8,7 @@ import java.util.Map;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
-import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.core.util.context.LocalContext;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.PlrWebAccessActions;
@@ -71,7 +71,7 @@ implements AutoCloseable
      */
     public static PlrWebWorkflow create(UserType userType)
     {
-        Config config = ConfigProvider.get().getConfig();
+        Config config = LocalContext.get().getConfig();
         URI uri = URI.create(config.get("web.url"));
         LOG.info("URL ({}).", uri);
         SeleniumSession selenium = SeleniumSession.createChromeSeleniumSession();
@@ -155,7 +155,7 @@ implements AutoCloseable
      */
     public PlrWebAccessActions login()
     {
-        Map<String,String> credentialsMap = PlrData.getCredentials("plr.web", userType_);
+        Map<String,String> credentialsMap = PlrData.getCreadentials("plr.web", userType_);
         PlrWebAccessActions actions = getPlrWebAccessActions();
         actions.login(credentialsMap.get("username"), credentialsMap.get("password"));
         loggedIn_ = true;

@@ -6,7 +6,7 @@ import org.json.JSONObject;
 /**
  * TODO (AZ) - doc
  */
-public class MaintainAccessor
+public class MaintainProviderAccessor
 {
     /**
      * TODO (AZ) - doc
@@ -19,7 +19,7 @@ public class MaintainAccessor
      * @param json
      *        ???
      */
-    public MaintainAccessor(JSONObject json)
+    public MaintainProviderAccessor(JSONObject json)
     {
         json_ = json;
     }
@@ -104,55 +104,6 @@ public class MaintainAccessor
     /**
      * TODO (AZ) - doc
      *
-     * @return ???
-     */
-    public JSONObject getFacilityJson()
-    {
-        return getResourceJson(0, "Location");
-    }
-
-    /**
-     * TODO (AZ) - doc
-     *
-     * @param index
-     *        ???
-     *
-     * @return ???
-     */
-    public JSONObject getFacilityIdentifierJson(int index)
-    {
-        return getFacilityJson().getJSONArray("identifier").getJSONObject(0);
-    }
-
-    /**
-     * TODO (AZ) - doc
-     *
-     * 
-     *        ???
-     *
-     * @return ???
-     */
-    public JSONArray getFacilityExtensionJson()
-    {
-        return getFacilityJson().getJSONArray("extension");
-    }
-
-    /**
-     * TODO (AZ) - doc
-     *
-     * @param index
-     *        ???
-     *
-     * @return ???
-     */
-    public JSONObject getFacilityAddressJson(int index)
-    {
-        return getFacilityExtensionJson().getJSONObject(0).getJSONObject("valueAddress");
-    }
-
-    /**
-     * TODO (AZ) - doc
-     *
      * @param resourceIndex
      *        ???
      *
@@ -163,7 +114,11 @@ public class MaintainAccessor
      */
     public JSONObject getResourceJson(int resourceIndex, String resourceType)
     {
-        JSONObject json = getEntryArrayJson()
+        JSONObject maintainJson =
+                MaintainUtils.findEntry(json_.getJSONArray("parameter"), "name", "maintain");
+        JSONObject json = maintainJson
+                .getJSONObject("resource")
+                .getJSONArray("entry")
                 .getJSONObject(resourceIndex)
                 .getJSONObject("resource");
         if (resourceType != null)
@@ -172,24 +127,6 @@ public class MaintainAccessor
         }
         return json;
     }
-
-    /**
-     * TODO (AZ) - doc
-     *
-     *
-     * @return ???
-     */
-    public JSONArray getEntryArrayJson()
-    {
-        JSONObject maintainJson =
-                MaintainUtils.findEntry(json_.getJSONArray("parameter"), "name", "maintain");
-        JSONArray json = maintainJson
-                .getJSONObject("resource")
-                .getJSONArray("entry");
-
-        return json;
-    }
-
 
     /**
      * TODO (AZ) - doc
