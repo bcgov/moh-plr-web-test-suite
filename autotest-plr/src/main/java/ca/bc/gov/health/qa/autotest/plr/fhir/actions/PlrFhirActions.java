@@ -13,8 +13,9 @@ import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpClient;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpRequest;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpRequestBuilder;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpResponse;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainProviderAccessor;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainAccessor;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.keycloak.actions.KeycloakActions;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
@@ -111,32 +112,44 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Processes a maintain response and extracts the id of the primary resource type requested.
+     * The server may return additional related resources (e.g. OrganizationAffiliation) before
+     * the primary one; therefore we iterate all bundle entries until we find the target FHIR
+     * resource type matching {@code targetType.wire()}.
      *
-     * @param response
-     *        ???
-     *
-     * @return ???
+     * @param response   HTTP response returned by the maintain submission (expected 200)
+     * @param targetType resource type whose id should be returned (e.g. FACILITY -> Location)
+     * @return id of the created/updated primary resource
+     * @throws IllegalStateException if the status code is not 200 or the target resource is missing
      */
-    public String processMaintainResponse(SimpleHttpResponse response)
+    public String processMaintainResponse(SimpleHttpResponse response, PlrFhirResourceType targetType)
     {
-        String id;
-        if (response.getStatusCode() == 200)
-        {
-            JSONObject json = new JSONObject(response.getTextResponseBody());
-            MaintainProviderAccessor accessor = new MaintainProviderAccessor(json);
-            id = accessor.getResourceJson(0, null).getString("id");
+        if (response.getStatusCode() != 200) {
+            throw new IllegalStateException("FHIR maintain request failed. " + response.getTextResponseBody());
         }
-        else
-        {
-            throw new IllegalStateException("FHIR maintain request failed.");
+        JSONObject json = new JSONObject(response.getTextResponseBody());
+        MaintainAccessor accessor = new MaintainAccessor(json);
+        String desiredWireType = targetType.wire();
+        String resourceId = null;
+        for (int i = 0; i < accessor.getEntryArrayJson().length(); i++) {
+            JSONObject resource = accessor.getResourceJson(i, null);
+            if (desiredWireType.equals(resource.optString("resourceType"))) {
+                resourceId = resource.optString("id", null);
+                break;
+            }
         }
-        return id;
+        if (resourceId == null) {
+            throw new IllegalStateException("Maintain response did not contain a " + desiredWireType + " resource id.");
+        }
+        return resourceId;
     }
 
     /**
      * TODO (AZ) - doc
-     *
+     * @param resourceType
+     *        ???
+     *        Organization, Practitioner, Facility
+     * 
      * @param identifier
      *        ???
      *
@@ -148,16 +161,20 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    public JSONObject queryOrganizationByIdentifier(String identifier)
+    public JSONObject queryByIdentifier(PlrFhirResourceType resourceType, String identifier)
     throws InterruptedException,
            IOException
     {
-        return queryProviderByIdentifier("Organization", identifier);
+        return  entityQueryByIdentifier(resourceType.wire(), identifier);
     }
 
     /**
      * TODO (AZ) - doc
-     *
+     * 
+     * @param resourceType
+     *        ???
+     *        Organization, Practitioner, Facility
+     * 
      * @param identifierType
      *        ???
      *
@@ -172,60 +189,13 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    public JSONObject queryOrganizationByIdentifier(
-            IdentifierType identifierType, String identifierValue)
+    public JSONObject queryByIdentifier(
+            PlrFhirResourceType resourceType, IdentifierType identifierType, String identifierValue)
     throws InterruptedException,
            IOException
     {
-        return queryOrganizationByIdentifier(
-                identifierType.getSourceSystem() + "|" + identifierValue);
-    }
-
-    /**
-     * TODO (AZ) - doc
-     *
-     * @param identifier
-     *        ???
-     *
-     * @return ???
-     *
-     * @throws InterruptedException
-     *         if the current thread is interrupted
-     *
-     * @throws IOException
-     *         if an I/O error occurs
-     */
-    public JSONObject queryPractitionerByIdentifier(String identifier)
-    throws InterruptedException,
-           IOException
-    {
-        return queryProviderByIdentifier("Practitioner", identifier);
-    }
-
-    /**
-     * TODO (AZ) - doc
-     *
-     * @param identifierType
-     *        ???
-     *
-     * @param identifierValue
-     *        ???
-     *
-     * @return ???
-     *
-     * @throws InterruptedException
-     *         if the current thread is interrupted
-     *
-     * @throws IOException
-     *         if an I/O error occurs
-     */
-    public JSONObject queryPractitionerByIdentifier(
-            IdentifierType identifierType, String identifierValue)
-    throws InterruptedException,
-           IOException
-    {
-        return queryPractitionerByIdentifier(
-                identifierType.getSourceSystem() + "|" + identifierValue);
+        return queryByIdentifier(
+                resourceType, identifierType.getSourceSystem() + "|" + identifierValue);
     }
 
     /**
@@ -263,7 +233,7 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    public SimpleHttpResponse sendMaintainRequest(String requestPayload)
+    private SimpleHttpResponse sendMaintainRequest(String requestPayload)
     throws InterruptedException,
            IOException
     {
@@ -291,19 +261,30 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    public String submitMaintainRequest(JSONObject requestJson)
+    /**
+     * Submits a maintain request payload and returns the id of the primary resource represented
+     * by {@code targetType}. Use this overload instead of the legacy one to support multiple
+     * maintain request kinds (facility/location, practitioner, organization, etc.).
+     *
+     * @param targetType  primary resource type contained in the maintain bundle
+     * @param requestJson maintain bundle JSON payload
+     * @return created/updated resource id
+     * @throws InterruptedException if the thread is interrupted while sending the request
+     * @throws IOException          if an I/O error occurs while sending the request
+     */
+    public String submitMaintainRequest(PlrFhirResourceType targetType, JSONObject requestJson)
     throws InterruptedException,
            IOException
     {
-        return processMaintainResponse(sendMaintainRequest(requestJson));
+        return processMaintainResponse(sendMaintainRequest(requestJson), targetType);
     }
 
     /**
      * TODO (AZ) - doc
      *
-     * @param providerType
+     * @param resourceType
      *        ???
-     *        Organization, Practitioner
+     *        Organization, Practitioner, Facility
      *
      * @param identifier
      *        ???
@@ -316,14 +297,14 @@ implements AutoCloseable
      * @throws IOException
      *         if an I/O error occurs
      */
-    protected JSONObject queryProviderByIdentifier(String providerType, String identifier)
+    private JSONObject  entityQueryByIdentifier(String resourceType, String identifier)
     throws InterruptedException,
            IOException
     {
         verifyLoggedIn();
         SimpleHttpRequest request = createHttpRequestBuilder()
-                .transactionName("FHIR:Query" + providerType)
-                .uri(uri_.resolve(providerType + "/$entityQuery"))
+                .transactionName("FHIR:Query" + resourceType)
+                .uri(uri_.resolve(resourceType + "/$entityQuery"))
                 .queryParameter("identifier", identifier)
                 .build();
         SimpleHttpResponse response = client_.send(request);
@@ -334,7 +315,7 @@ implements AutoCloseable
         }
         else
         {
-            throw new IllegalStateException(providerType + " FHIR query failed.");
+            throw new IllegalStateException(resourceType + " FHIR query failed.");
         }
         return responseData;
     }

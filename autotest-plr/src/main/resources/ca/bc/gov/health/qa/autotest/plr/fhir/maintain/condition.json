@@ -2,11 +2,11 @@
   "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-condition-extension",
   "extension": [
     {
-        "url": "identifier",
-        "valueIdentifier": {
-                "system": "http://hlth.gov.bc.ca/fhir/provider/identifier-system/bc-condition-id",
-                "value": ""
-        }
+      "url": "identifier",
+      "valueIdentifier": {
+        "system": "http://hlth.gov.bc.ca/fhir/provider/identifier-system/bc-condition-id",
+        "value": ""
+      }
     },
     {
       "url": "restrictionText",
@@ -31,6 +31,25 @@
       "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
       "valuePeriod": {
         "start": ""
+      }
+    },
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+      "valueIdentifier": {
+        "assigner": {
+          "display": "MOH"
+        }
+      }
+    },
+    {
+      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+            "code": "CHG"
+          }
+        ]
       }
     }
   ]
