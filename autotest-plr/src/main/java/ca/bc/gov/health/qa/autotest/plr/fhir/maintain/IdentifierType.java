@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.model;
+package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
 
 /**
  * TODO (AZ) - doc
@@ -65,18 +65,5 @@ public enum IdentifierType
     public String getSourceSystem()
     {
         return sourceSystem_;
-    }
-
-    /*
-     * Get an IdentifierType enum constant matching the given system URI.
-     * @return matching IdentifierType or null if not found
-     */
-    public static IdentifierType resolveIdentifierType(String system) {
-        for (IdentifierType t : IdentifierType.values()) {
-            if (t.getSourceSystem().equals(system)) {
-                return t;
-            }
-        }
-        return null; // unknown system; skip
     }
 }

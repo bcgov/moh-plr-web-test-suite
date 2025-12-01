@@ -16,7 +16,7 @@ public class HomePage
 extends BasicWebPage
 {
     private static final Pattern APPLICATION_VERSION_PATTERN =
-            Pattern.compile("Application Version: (?<version>\\d+\\.\\d+\\.\\d+\\.[a-z0-9]+)");
+            Pattern.compile("Application Version: (?<version>[0-9]+(?:\\.[0-9]+)*)");
 
     private static final String APPLICATION_VERSION_CSS = "table.layout tr.layout:nth-of-type(3)";
     private static final String DSR_BUTTON_CSS          = "button#form\\:dsr";
