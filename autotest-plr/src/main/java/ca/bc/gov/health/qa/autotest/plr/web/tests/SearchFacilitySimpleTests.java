@@ -93,7 +93,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         {
             if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
 
-            PlrWebWorkflow workflow = logIn(workflowManager_, userType);
+            logIn(workflowManager_, userType);
             SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
             SearchFacilityResultsFragment searchResults;
 
@@ -194,7 +194,6 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 "View page header does not match expected identifier");
     }
 
-    /*
     @Test
     // F1-003. Minimum Data Requirements for Facility Search by Facility ID
     public void testMinDataReqsFacilityID()
@@ -564,6 +563,4 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         assertEquals(criteriaPanel.getCurrentFieldValues(), previousValues,
                 "Field values from previous session do not appear");
     }
-
-     */
 }
