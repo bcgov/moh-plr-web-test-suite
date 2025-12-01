@@ -31,6 +31,11 @@ public class Telecommunication {
 		if(purpose==null)return purpose;
 		return purpose.split("\\(")[0].stripTrailing();
 	}
+	
+	
+	public String getType() {
+		return type;
+	}
 	public String getAreaCode() {
 		return areaCode;
 	}

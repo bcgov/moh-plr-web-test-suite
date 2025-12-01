@@ -65,9 +65,18 @@ public class UpdateSimpleHelper {
 		return next_year;
 	}
 	
+	
+	static public String generateEmail(){            
+		return generateAlphabetString(4)+"@"+generateAlphabetString(6)+".com";
+	}
+	
+	static public String generateHTTP(){
+		return "http://"+generateAlphabetString(6)+".domain"+".com";
+	}
+	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+	
 	}
 
 }
+

@@ -1,7 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 public enum TelecommunicationType {
-	EMAIL("T - Telephone"), 
+	PHONE("T - Telephone"), 
 	MOBILE("MB - Mobile"),
 	PAGER("PG - Pager"),
 	FAX("FAX - Fax"),

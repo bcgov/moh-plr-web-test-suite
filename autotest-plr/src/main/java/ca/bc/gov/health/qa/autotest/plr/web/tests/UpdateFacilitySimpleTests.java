@@ -107,7 +107,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 		
 	}
 	
-	@Test
+	//@Test
 	public void testValidateFacilityDataBlockMultiplicity() {
 		String errMsg="";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);

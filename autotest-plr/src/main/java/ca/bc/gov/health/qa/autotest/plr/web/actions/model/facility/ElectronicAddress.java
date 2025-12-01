@@ -29,6 +29,12 @@ public class ElectronicAddress {
 		if(purpose==null)return purpose;
 		return purpose.split("\\(")[0].stripTrailing();
 	}
+	
+	
+
+	public String getType() {
+		return type;
+	}
 
 	public String getAddress() {
 		return address;

@@ -10,12 +10,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.ElectronicAddress;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Note;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.OtherAddress;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Relationship;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Telecommunication;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.ElectronicAddressType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.IdentifierTypeName;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.RelatedProviderIdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.RelationshipType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.TelecommunicationType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -209,7 +215,212 @@ public class UpdateFacilitySimpleActions {
 
 
 	public void validateFacilityDataBlockMultiplicity(UpdateFacilityPage updatePage) {
+		String errMsg="";
+		String ID_ORG01="IPC.00000480.BC.PRS";
+		String ID_ORG02="IPC.00000985.BC.PRS";
+		String errMsg2201Tel="PRS.REG.UNK.MTN.1.0.2201: Entry Error. Each address, e-address and telecomm object that is related to a Facility must have a unique type and purpose combination unless the owner is different. Check the following fields:Telecommunication Type and Purpose";
+		String errMsg2201EAddr="PRS.REG.UNK.MTN.1.0.2201: Entry Error. Each address, e-address and telecomm object that is related to a Facility must have a unique type and purpose combination unless the owner is different. Check the following fields:Electronic Address Type and Purpose";
+		String errMsg7033Dup="GRS.SYS.UNK.UNK.1.0.7033: Cannot create duplicate record. Check the following field: facility relationship";
+		String errMsg7033DupNote="GRS.SYS.UNK.UNK.1.0.7033: Cannot create duplicate record. Check the following field: note";
 		
+		errMsg=updatePage.addIdentifierDataBlock(IdentifierTypeName.IFC.getText(),"IFC."+UpdateSimpleHelper.generateNumericString(8)+".BC.PRS",
+				UpdateSimpleHelper.effective_date() ,"");
+		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.7033") && errMsg.contains("Cannot create duplicate record. Check the following field: Facility Identifier"));
+		//name
+		
+		if(updatePage.grabActiveDataBlockCount(FacilitySection.NAMES, true)>0)
+			updatePage.ceaseDataBlock(FacilitySection.NAMES,0);
+		
+		errMsg=updatePage.addNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),
+				UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.effective_date(),"");
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		/* After name is added, the 'add' button on header is disappeared. this step is not applicable. 
+		errMsg=updatePage.addNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),
+				UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.effective_date(),"");
+		*/
+		
+		updatePage.ceaseDataBlock(FacilitySection.NAMES,0);
+		
+		errMsg=updatePage.addNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),
+				UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.effective_date(),"");
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		
+		//telecom
+		for(int i=0;i<updatePage.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);i++) {
+			updatePage.ceaseDataBlock(FacilitySection.TELECOMMUNICATIONS,i);
+		}
+		
+		errMsg=updatePage.addTelecommunicationDataBlock(TelecommunicationType.PHONE.getText(),UpdateSimpleHelper.generateNumericString(3),
+				UpdateSimpleHelper.generateNumericString(7),UpdateSimpleHelper.generateNumericString(4),
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		errMsg=updatePage.addTelecommunicationDataBlock(TelecommunicationType.PHONE.getText(),UpdateSimpleHelper.generateNumericString(3),
+				UpdateSimpleHelper.generateNumericString(7),UpdateSimpleHelper.generateNumericString(4),
+				UpdateSimpleHelper.effective_date(),"",true);
+		assertTrue(errMsg.equals(errMsg2201Tel));
+		
+		ceaseTelecommunicationByType(updatePage,TelecommunicationType.PHONE);
+	
+		
+		errMsg=updatePage.addTelecommunicationDataBlock(TelecommunicationType.PHONE.getText(),UpdateSimpleHelper.generateNumericString(3),
+				UpdateSimpleHelper.generateNumericString(7),UpdateSimpleHelper.generateNumericString(4),
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+
+		errMsg=updatePage.addTelecommunicationDataBlock(TelecommunicationType.FAX.getText(),UpdateSimpleHelper.generateNumericString(3),
+				UpdateSimpleHelper.generateNumericString(7),"",
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		//e-address
+		for(int i=0;i<updatePage.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true);i++) {
+			updatePage.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES,i);
+		}
+		
+		errMsg=updatePage.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),UpdateSimpleHelper.generateEmail(),
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		errMsg=updatePage.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),UpdateSimpleHelper.generateEmail(),
+				UpdateSimpleHelper.effective_date(),"",true);
+		assertTrue(errMsg.equals(errMsg2201EAddr));
+		
+		ceaseElectronicAddressByType(updatePage,ElectronicAddressType.EMAIL);
+		
+		errMsg=updatePage.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),UpdateSimpleHelper.generateEmail(),
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		errMsg=updatePage.addElectronicAddressDataBlock(ElectronicAddressType.HTTP.getText(),UpdateSimpleHelper.generateHTTP(),
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		//relationship
+		/*
+		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG01);
+		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG02);
+		
+		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG01,RelationshipType.LOCATION.getText(),
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG01,RelationshipType.LOCATION.getText(),
+				UpdateSimpleHelper.effective_date(),"",true);
+		assertTrue(errMsg.equals(errMsg7033Dup));
+		
+		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG01);
+		
+		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG01,RelationshipType.LOCATION.getText(),
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG01,RelationshipType.LOCATED.getText(),
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG02,RelationshipType.LOCATION.getText(),
+				UpdateSimpleHelper.effective_date(),"",false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		*/
+		
+		//note
+		int count=updatePage.grabDataBlockCount(FacilitySection.NOTES);
+		for(int i=0;i<updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);i++) {
+			updatePage.ceaseDataBlock(FacilitySection.NOTES,i);
+		}
+		String noteId=UpdateSimpleHelper.generateAlphabetString(5);
+		errMsg=updatePage.addNoteDataBlock(noteId,UpdateSimpleHelper.generateAlphabetString(5),
+				UpdateSimpleHelper.effective_date(),"");
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		errMsg=updatePage.addNoteDataBlock(noteId,UpdateSimpleHelper.generateAlphabetString(5),
+				UpdateSimpleHelper.effective_date(),"");
+		assertTrue(errMsg.equals(errMsg7033DupNote));
+		
+		ceaseNoteDataBlockById(updatePage,noteId);
+		
+		errMsg=updatePage.addNoteDataBlock(noteId,UpdateSimpleHelper.generateAlphabetString(5),
+				UpdateSimpleHelper.effective_date(),"");
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+		String noteId02=UpdateSimpleHelper.generateAlphabetString(5);
+		errMsg=updatePage.addNoteDataBlock(noteId02,UpdateSimpleHelper.generateAlphabetString(5),
+				UpdateSimpleHelper.effective_date(),"");
+		assertTrue(StringUtils.isEmpty(errMsg));
+		
+	}
+
+
+
+	private void ceaseNoteDataBlockById(UpdateFacilityPage updatePage, String noteId) {
+int index=updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);
+		
+		for (int i=0;i<index;i++) {
+			LinkedHashMap<String, String> resultContent = updatePage.grabDataBlockContent(FacilitySection.NOTES, i);
+			Note result = new Note(resultContent);
+			if(result.getNoteIdentifier().equals(noteId)) {
+				updatePage.ceaseDataBlock(FacilitySection.NOTES, i);
+				
+			}
+			
+		}
+		
+	}
+
+
+
+	private void ceaseRelatedOrganizationDataBlockByRelatedId(UpdateFacilityPage updatePage, String key) {
+
+		int index=updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
+		
+		for (int i=0;i<index;i++) {
+			LinkedHashMap<String, String> resultContent = updatePage.grabOrgRelationshipsBlockContent(i);
+			Relationship result = new Relationship(resultContent);
+			if(result.getRelatedOrganizationIdentifier().equals(key)) {
+				updatePage.ceaseDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS, i);
+				
+			}
+			
+		}
+		
+	}
+
+
+
+	private void ceaseElectronicAddressByType(UpdateFacilityPage updatePage,ElectronicAddressType email) {
+		String key="Email ";
+		int index=updatePage.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true);
+		for (int i=0;i<index;i++) {
+			LinkedHashMap<String, String> resultContent = updatePage.grabDataBlockContent(FacilitySection.ELECTRONIC_ADDRESSES, i);
+			ElectronicAddress result = new ElectronicAddress(resultContent);
+			if(result.getType().contains(key)) {
+				updatePage.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES, i);
+				break;
+			}
+			
+		}
+		
+	}
+
+
+
+	private void ceaseTelecommunicationByType(UpdateFacilityPage updatePage,TelecommunicationType phone) {
+		String key="Telephone";
+		int index=updatePage.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);
+		for (int i=0;i<index;i++) {
+			LinkedHashMap<String, String> resultContent = updatePage.grabDataBlockContent(FacilitySection.TELECOMMUNICATIONS, i);
+			Telecommunication result = new Telecommunication(resultContent);
+			if(result.getType().contains(key)) {
+				updatePage.ceaseDataBlock(FacilitySection.TELECOMMUNICATIONS, i);
+				break;
+			}
+			
+		}
 		
 	}
 
@@ -289,28 +500,28 @@ public class UpdateFacilitySimpleActions {
 		int index=updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
 		
 		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),"",RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.equals(errMessage01));
 		
 		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),UpdateSimpleHelper.generateAlphabetNumericString(maxRelatedId+1),RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.equals(errMessage02));
 		
 		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_SPECIAL_CHAR,RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.equals(errMessage03));
 		
 		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_NONEXIST,RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.equals(errMessage03));
 		
 		
 		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_PERSON,RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.equals(errMessage04));
 		
 		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG,RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"");
+				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 	}
 	

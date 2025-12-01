@@ -25,6 +25,16 @@ public class Note {
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
 	}
+	
+	public String getNoteText() {
+		return noteText;
+	}
+	public void setNoteText(String noteText) {
+		this.noteText = noteText;
+	}
+	public void setNoteIdentifier(String noteIdentifier) {
+		this.noteIdentifier = noteIdentifier;
+	}
 	public Note(String noteIdentifier, String noteText, String effectiveFrom, String effectiveTo, String endReason,
 			String dataSource, String dbCreated, String dbExpired, String dataOwnerCode) {
 		super();
