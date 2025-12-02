@@ -12,11 +12,18 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationAttribute;
 
 /**
- * TODO (AZ) - doc
+ * Builder for Organization maintain requests. Supports configuration of multi-valued
+ * addresses, telecoms, statuses and notes along with scalar attributes (identifier,
+ * name, alias, role type, confidentiality). The {@link #build()} method materializes
+ * a maintain Bundle JSON using a template resource.
  */
-public class MaintainOrgBuilder
+public class MaintainOrgBuilder implements MaintainRequestBuilder
 {
     private List<Map<String,String>>  addressList_     = new ArrayList<>();
     private String                    alias_           = null;
@@ -24,37 +31,29 @@ public class MaintainOrgBuilder
     private String                    identifier_      = null;
     private String                    name_            = null;
     private  List<Map<String,String>> noteList_        = new ArrayList<>();
-    private String                    roleType_        = "ORG";
+    private OrgRoleType               roleType_        = null; // must be explicitly set
     private List<Map<String,String>>  statusList_      = new ArrayList<>();
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
+    private HdsType                   hdsType_         = null;
+    //TODO: ORG PROPERTIES
+    //TODO: O2I relationships
+    //TODO: 02F relationships
+
 
     /**
-     * TODO (AZ) - doc
+     * Constructs an empty Organization builder. Required field validation occurs during {@link #build()}.
      */
     public MaintainOrgBuilder()
     {}
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param type
-     *        ???
-     *        physical, postal
-     *
-     * @param purpose
-     *        ???
-     *        BC, CC, DC, EC, FC, HC, MC, OC
-     *
-     * @param line1
-     *        ???
-     *
-     * @param city
-     *        ???
-     *
-     * @param postalCode
-     *        ???
-     *
-     * @return ???
+     * Adds an address to the organization.
+     * @param type address type (e.g. physical, postal)
+     * @param purpose usage purpose code (BC, CC, DC, EC, FC, HC, MC, OC)
+     * @param line1 first address line
+     * @param city city name
+     * @param postalCode postal code
+     * @return this builder for fluent chaining
      */
     public MaintainOrgBuilder addAddress(
             String type,
@@ -74,12 +73,9 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param text
-     *        ???
-     *
-     * @return ???
+     * Adds a free-form note for the organization.
+     * @param text note text
+     * @return this builder
      */
     public MaintainOrgBuilder addNote(String text)
     {
@@ -90,19 +86,11 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param statusClass
-     *        ???
-     *        AE, LIC
-     *
-     * @param status
-     *        ???
-     *
-     * @param statusReason
-     *        ???
-     *
-     * @return ???
+     * Adds a status entry for the organization.
+     * @param statusClass status classification (e.g. AE, LIC)
+     * @param status status value (e.g. ACTIVE)
+     * @param statusReason status reason code (e.g. GS)
+     * @return this builder
      */
     public MaintainOrgBuilder addStatus(String statusClass, String status, String statusReason)
     {
@@ -115,26 +103,11 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param type
-     *        ???
-     *        email (Email)
-     *        fax   (Fax)
-     *        other (Modem)
-     *        pager (Pager)
-     *        phone (Telephone)
-     *        sms   (Mobile)
-     *        url   (HTTP)
-     *
-     * @param purpose
-     *        ???
-     *        BC, CC, DC, FC, HC, MC, OC
-     *
-     * @param value
-     *        ???
-     *
-     * @return ???
+     * Adds a telecom contact channel for the organization.
+     * @param type channel type (email, fax, other, pager, phone, sms, url)
+     * @param purpose usage purpose code (BC, CC, DC, FC, HC, MC, OC)
+     * @param value channel value (number, address, URL, etc.)
+     * @return this builder
      */
     public MaintainOrgBuilder addTelecom(String type, String purpose, String value)
     {
@@ -146,12 +119,9 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param alias
-     *        ???
-     *
-     * @return ???
+     * Sets the organization alias.
+     * @param alias alternative display name
+     * @return this builder
      */
     public MaintainOrgBuilder alias(String alias)
     {
@@ -160,9 +130,10 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @return ???
+     * Builds the maintain JSON Bundle reflecting configured organization attributes.
+     * Applies defaults for certain required elements when not explicitly set (e.g. ACTIVE status).
+     * When the role type resolves to HDS, an additional _type block is injected
+     * @return immutable JSON representation ready for submission
      */
     public JSONObject build()
     {
@@ -171,12 +142,19 @@ public class MaintainOrgBuilder
                 MethodHandles.lookup().lookupClass(), "maintain-organization.json");
         JSONObject json = new JSONObject(template);
 
-        MaintainProviderAccessor accessor = new MaintainProviderAccessor(json);
+        MaintainAccessor accessor = new MaintainAccessor(json);
         JSONObject orgJson = accessor.getOrgJson();
-        orgJson.getJSONObject("type")
-               .getJSONArray("coding")
-               .getJSONObject(0)
-               .put("code", roleType_);
+     
+       if(roleType_ != null ){ orgJson.getJSONObject("type")
+            .getJSONArray("coding")
+            .getJSONObject(0)
+            .put("code", roleType_.toString());
+        }
+        // Include specialized _type block for HDS role type.
+        if (roleType_ == OrgRoleType.HDS) {
+            requireNonNull(hdsType_, "HDS type required when roleType is HDS");
+            orgJson.put("_type", MaintainUtils.createHdsType(hdsType_));
+        }
         accessor.getOrgIdentifierJson(0).put("value", identifier_);
         orgJson.put("name", name_);
         if (alias_ != null)
@@ -223,13 +201,15 @@ public class MaintainOrgBuilder
         return json;
     }
 
+    @Override
+    public PlrFhirResourceType resourceType() {
+        return PlrFhirResourceType.ORGANIZATION;
+    }
+
     /**
-     * TODO (AZ) - doc
-     *
-     * @param confidentiality
-     *        ???
-     *
-     * @return ???
+     * Sets the confidentiality flag extension value.
+     * @param confidentiality confidentiality boolean
+     * @return this builder
      */
     public MaintainOrgBuilder confidentiality(boolean confidentiality)
     {
@@ -238,12 +218,9 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param identifier
-     *        ???
-     *
-     * @return ???
+     * Sets the organization identifier value.
+     * @param identifier identifier string
+     * @return this builder
      */
     public MaintainOrgBuilder identifier(String identifier)
     {
@@ -252,12 +229,9 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param name
-     *        ???
-     *
-     * @return ???
+     * Sets the organization name.
+     * @param name display name
+     * @return this builder
      */
     public MaintainOrgBuilder name(String name)
     {
@@ -266,23 +240,162 @@ public class MaintainOrgBuilder
     }
 
     /**
-     * TODO (AZ) - doc
-     *
-     * @param roleType
-     *        ???
-     *        BUSINESS, CLINIC, ORG
-     *
-     * @return ???
+     * Sets the organization role type. If changed away from HDS any previously assigned HDS subtype
+     * is cleared. For HDS role types an explicit {@link #hdsType(HdsType)} must be provided before build.
+     * @param roleType role type enum (never null)
+     * @return this builder
      */
-    public MaintainOrgBuilder roleType(String roleType)
+    public MaintainOrgBuilder roleType(OrgRoleType roleType)
     {
-        roleType_ = roleType;
+        roleType_ = requireNonNull(roleType);
+        if (roleType != OrgRoleType.HDS) {
+            hdsType_ = null;
+        }
         return this;
     }
 
-    private void verifyParameters()
-    {
-        requireNonNull(identifier_, "Missing organization identifier.");
-        requireNonNull(name_,       "Missing organization name.");
+    /**
+     * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
+     * @param hdsType classification string
+     * @return this builder
+     */
+    /**
+     * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
+     * @param hdsType HDS subtype enum (never null)
+     * @return this builder
+     * @throws IllegalStateException if role type is not HDS
+     */
+    public MaintainOrgBuilder hdsType(HdsType hdsType) {
+        if (roleType_ != OrgRoleType.HDS) {
+            throw new IllegalStateException("Cannot set HDS subtype when roleType != HDS");
+        }
+        hdsType_ = requireNonNull(hdsType);
+        return this;
     }
+
+    /**
+     * Validates all required organization attributes based on {@link OrganizationAttribute} enum flags.
+     * This automatically adapts if attribute requiredness changes in the enum.
+     * @throws NullPointerException if any required attribute is absent
+     */
+    private void verifyParameters() {
+        for (OrganizationAttribute attr : OrganizationAttribute.values()) {
+            if (attr.isRequired()) {
+                validateRequiredField(attr);
+            }
+        }
+
+        if(roleType_ == OrgRoleType.HDS) {
+            requireNonNull(hdsType_, "Missing HDS type classification for organization with HDS role type.");
+        }
+    }
+
+    /**
+     * Performs attribute-specific required validation.
+     * @param attr required attribute to check
+     */
+    private void validateRequiredField(OrganizationAttribute attr) {
+        switch (attr) {
+            case IDENTIFIER:
+                requireNonNull(identifier_, "Missing organization identifier.");
+                break;
+            case NAME:
+                requireNonNull(name_, "Missing organization name.");
+                break;
+            case ADDRESS:
+                if (addressList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization address is required.");
+                }
+                break;
+            case TELECOM:
+                if (telecomList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization telecom is required.");
+                }
+                break;
+            case STATUS:
+                if (statusList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization status is required.");
+                }
+                break;
+            case NOTE:
+                if (noteList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization note is required.");
+                }
+                break;
+            case ALIAS:
+                requireNonNull(alias_, "Missing organization alias.");
+                break;
+            case CONFIDENTIALITY:
+                requireNonNull(confidentiality_, "Missing organization confidentiality flag.");
+                break;
+            case ROLE_TYPE:
+                requireNonNull(roleType_, "Missing organization role type.");
+                break;
+            default:
+                // no-op for unsupported entries
+                break;
+        }
+    }
+
+    /**
+     * Organization identifier configured.
+     * @return organization identifier value (may be null until set)
+     */
+    public String getIdentifier() { return identifier_; }
+
+    /**
+     * Organization name configured.
+     * @return name value or null if not provided
+     */
+    public String getName() { return name_; }
+
+    /**
+     * Role type code (defaults to HDS if not explicitly set).
+     * @return role type code string
+     */
+    public OrgRoleType getRoleType() { return roleType_; }
+
+    /**
+     * Alias string.
+     * @return alias value or null if not set
+     */
+    public String getAlias() { return alias_; }
+
+    /**
+     * Confidentiality flag extension value.
+     * @return confidentiality Boolean or null if not set
+     */
+    public Boolean getConfidentiality() { return confidentiality_; }
+
+    /**
+     * Returns an immutable snapshot of addresses added.
+     * @return unmodifiable list of address maps
+     */
+    public List<Map<String,String>> getAddressList() { return List.copyOf(addressList_); }
+
+    /**
+     * Telecom entries accumulated.
+     * @return immutable list of telecom maps
+     */
+    public List<Map<String,String>> getTelecomList() { return List.copyOf(telecomList_); }
+
+    /**
+     * Status entries accumulated.
+     * @return immutable list of status maps
+     */
+    public List<Map<String,String>> getStatusList() { return List.copyOf(statusList_); }
+
+    /**
+     * Note entries accumulated.
+     * @return immutable list of note maps
+     */
+    public List<Map<String,String>> getNoteList() { return List.copyOf(noteList_); }
+
+    /**
+     * Returns the configured HDS type classification (may be null if not set or role type not HDS).
+     * @return hds type string or null
+     */
+    public HdsType getHdsType() { return hdsType_; }
+
+    
 }
