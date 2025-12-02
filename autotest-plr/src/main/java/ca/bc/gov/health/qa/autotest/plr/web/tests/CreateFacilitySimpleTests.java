@@ -703,14 +703,70 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
     }
 
-    /*@Test
+    @Test
     //F3-018. Validate City
     public void testValidateCity()
     {
-        //TODO
+        //Step 1 and 2 - Start creating a Facility and arrive at Address tab and in address leave City as blank.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'City'. Your transaction has not been processed. Correct and resubmit."),
+                "City not filled should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "City:*",
+                "City is unhighlighted, or more than one error occurred.");
+
+        //Step 3 - Enter proper "Address Line 1", and enter "City" that exceeds the maximum length of 60 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillCity("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", null); // 61+ chars
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'City' length must be between 0 and 60. Your transaction has not been processed. Correct and resubmit."),
+                "City should return an error when exceeding 60 characters.");
+
+        //Step 4 - Enter "City" that has exactly the maximum length of 60 characters.
+        // The system should accept it as a valid input though address validation will fail if is not a valid city.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillCity("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", null); // 60 chars
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        // Brief pause before reading warnings again
+        shortUiPause();
+
+        // Handle warning dialog "Address Validation Status: Invalid Mailing Address: Invalid Mailing Address" with "Continue w/ Original" button
+        addressFragment.handleWidgetButton("Validation");
+
+        List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        
+        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+                "Only a warning for invalid address should be returned when City is exactly 60 characters.");
     }
 
-    @Test
+    /*@Test
     // F3-022. Validate Effective Start Date Format
     public void testValidateEffectiveStartDateFormat()
     {
