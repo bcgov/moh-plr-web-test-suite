@@ -29,8 +29,6 @@ public class PlrData
     static
     {
         Config config  = ConfigProvider.get().getConfig();
-        /* This original code is likely related to PlrWebWorkflowManager/multiple selenium instances */
-        // Config config = LocalContext.get().getConfig();
         Path dataDir   = Path.of(config.get("data.dir"));
         ENV_NAME       = config.get("env.name");
         PROVIDERS_DIR  = dataDir.resolve("providers");

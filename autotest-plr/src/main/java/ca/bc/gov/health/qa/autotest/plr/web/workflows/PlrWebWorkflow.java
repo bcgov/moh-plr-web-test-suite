@@ -71,8 +71,6 @@ implements AutoCloseable
     public static PlrWebWorkflow create(UserType userType)
     {
         Config config = ConfigProvider.get().getConfig();
-        /* This original code is likely related to PlrWebWorkflowManager/multiple selenium instances */
-        // Config config = LocalContext.get().getConfig();
         URI uri = URI.create(config.get("web.url"));
         LOG.info("URL ({}).", uri);
         SeleniumSession selenium = SeleniumSession.createChromeSeleniumSession();
