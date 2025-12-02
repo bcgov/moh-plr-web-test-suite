@@ -766,20 +766,25 @@ public class CreateFacilitySimpleTests implements SimpleTest {
                 "Only a warning for invalid address should be returned when City is exactly 60 characters.");
     }
 
-    /*@Test
+    @Test
     // F3-022. Validate Effective Start Date Format
     public void testValidateEffectiveStartDateFormat()
     {
         //Step 1 and 2 - Start creating a Facility and specify a facility type, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY).
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
-
-        addFacility.fillIdentifierSection("BUILDING", "Select One", "", List.of(12, 31, 2025));
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "", null);
+        
+        AddFacilityIdFragment idFragment = new AddFacilityIdFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        idFragment.typeEffectiveFromRaw("12-31-2025");
         addFacility.clickNext("Identifier", null);
 
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedIdentifierFields = idFragment.getHighlightedFields();
         
         assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
                 "MM-DD-YYYY format for Effective From date should return an error in Type, Identifier Facility.");
+        assertEquals(highlightedIdentifierFields.getLast(), "Effective From:*",
+                "Identifier Effective From is unhighlighted, or more than one error occurred.");
         
         //Step 3 and 4 - Enter a facility name, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY).
         addFacility = navigateToAddFacilityPage(workflowManager_);
@@ -787,15 +792,21 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
 
-        addFacility.fillFacilitySection("Test Facility", "Facility Description", List.of(12, 31, 2025));
+        AddFacilityNameFragment nameFragment = new AddFacilityNameFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        nameFragment.fillName("Test Facility");
+        nameFragment.fillDescription("Facility Description");
+        nameFragment.typeEffectiveFromRaw("12-31-2025");
         addFacility.clickNext("Facility", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedFacilityFields = nameFragment.getHighlightedFields();
         
         assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
                 "MM-DD-YYYY format for Effective From date should return an error in Facility Name section.");
+        assertEquals(highlightedFacilityFields.getLast(), "Effective From:",
+                "Facility Name Effective From is unhighlighted, or more than one error occurred.");
 
-        //Step 5, 6 and 7- Enter a facility address, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY). Finally correct and create facility.
+        //Step 5, 6 and 7- Enter a facility address, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY)
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
@@ -804,9 +815,21 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.fillFacilitySection("Test Facility", "Facility Description");
         addFacility.clickNext("Facility", "");
 
-        //TODO finish facility creation
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.typeEffectiveFromRaw("12-31-2025");
+        addFacility.clickNext("Address", null);
 
-    }*/
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+                "MM-DD-YYYY format for Effective From date should return an error in Facility Name section.");
+        assertEquals(highlightedAddressFields.getLast(), "Effective From:*",
+                "Address Effective From is unhighlighted, or more than one error occurred.");
+
+    }
 
     // Minimal helper to add a tiny pause for async UI updates
     private static void shortUiPause()

@@ -156,6 +156,16 @@ public class AddFacilityIdFragment extends BasicWebPageFragment {
     }
 
     /**
+     * Types a raw string into the Effective From date input (bypasses date picker UI)
+     *
+     * @param rawDate a date string to type directly
+     */
+    public void typeEffectiveFromRaw(String rawDate)
+    {
+        if (rawDate != null) selenium_.fillFieldByCss(DATE_FIELD_CSS + " > input", rawDate);
+    }
+
+    /**
      * Gets highlighted fields (to be used when an error is expected)
      *
      * @return  a list of strings of each of the fields that are highlighted

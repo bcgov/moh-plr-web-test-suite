@@ -322,4 +322,14 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
     public String getEffectiveFrom() {
         return selenium_.findElementByCss(DATE_FIELD_CSS + " > input").getAttribute("value");
     }
+
+    /**
+     * Types a raw string into the Effective From date input (bypasses date picker UI)
+     *
+     * @param rawDate a date string to type directly
+     */
+    public void typeEffectiveFromRaw(String rawDate)
+    {
+        if (rawDate != null) selenium_.fillFieldByCss(DATE_FIELD_CSS + " > input", rawDate);
+    }
 }
