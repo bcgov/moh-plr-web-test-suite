@@ -2,8 +2,11 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
+
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -35,6 +38,8 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
     private static final String COUNTRY_FIELD_CSS = "label#form\\:country_label";
 
     private static final String WIDGET_TITLE_SPAN_CSS = "div.ui-dialog-titlebar > span.ui-dialog-title";
+
+    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     /**
      * Initializes fragment and changes selenium's main locator to header of the Address form
@@ -256,12 +261,16 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
     private WebElement getWidget(String widgetTitlePrefix)
     {
         for (WebElement elem : selenium_.findElementsByCss("div[role='dialog']")) {
-            if (elem.findElement(By.cssSelector(WIDGET_TITLE_SPAN_CSS))
-                    .getAttribute("innerHTML").contains(widgetTitlePrefix)) {
-                return elem;
-            }
+            String title;
+            try { title = elem.findElement(By.cssSelector(WIDGET_TITLE_SPAN_CSS)).getAttribute("innerHTML"); }
+            catch (org.openqa.selenium.NoSuchElementException ignore) { continue; }
+            if (!title.contains(widgetTitlePrefix)) continue;
+            // Skip hidden/inactive dialogs
+            String ariaHidden = elem.getAttribute("aria-hidden");
+            if ("true".equals(ariaHidden) || !elem.isDisplayed()) continue;
+            return elem;
         }
-        throw new IllegalStateException("Civic Address Widget not present.");
+        throw new IllegalStateException("Visible widget with title containing '" + widgetTitlePrefix + "' not found.");
     }
 
     /**
@@ -278,7 +287,17 @@ public class AddFacilityAddressFragment extends BasicWebPageFragment {
         WebElement widget = getWidget(errorWidget);
         By buttonSelector = By.cssSelector(buttonCSS);
 
-        widget.findElement(buttonSelector).click();
+        try {
+            widget.findElement(buttonSelector).click();
+            return;
+        } catch (org.openqa.selenium.NoSuchElementException e) {
+
+            // Generic fallback: first displayed & enabled button
+            for (WebElement btn : widget.findElements(By.tagName("button"))) {
+                if (btn.isDisplayed() && btn.isEnabled()) { btn.click(); return; }
+            }
+            throw new IllegalStateException("No interactable button found in visible widget '" + errorWidget + "'.");
+        }
     }
 
     /**
