@@ -647,9 +647,14 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addressFragment.effectiveFromCurrentDate();
         addFacility.clickNext("Address", null);
 
-        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        // Handle warning dialog "Address Validation Status: Invalid Mailing Address: Invalid Mailing Address" with "Continue w/ Original" button
+        addressFragment.handleWidgetButton("Validation");
         
-        assertTrue(errorMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+        // Give UI a brief moment to render warnings
+        shortUiPause();
+        List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        
+        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
                 "Address Line 1 with 'NO FIXED ADDRESS' should return validation error.");
 
         //Step 9 - Attempt to create a new facility using "UNKNOWN" as "Address Line 1".
@@ -664,9 +669,14 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addressFragment.effectiveFromCurrentDate();
         addFacility.clickNext("Address", null);
 
-        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        // Handle warning dialog "Address Validation Status: Invalid Mailing Address: Invalid Mailing Address" with "Continue w/ Original" button
+        addressFragment.handleWidgetButton("Validation");
         
-        assertTrue(errorMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+        // Brief pause before reading warnings again
+        shortUiPause();
+        warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        
+        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
                 "Address Line 1 with 'UNKNOWN' should return validation error.");
 
         //Step 10 - Attempt to create a new facility using "NA" as "Address Line 1".
@@ -681,9 +691,14 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addressFragment.effectiveFromCurrentDate();
         addFacility.clickNext("Address", null);
 
-        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        // Handle warning dialog "Address Validation Status: Invalid Mailing Address: Invalid Mailing Address" with "Continue w/ Original" button
+        addressFragment.handleWidgetButton("Validation");
         
-        assertTrue(errorMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+        // Brief pause before reading warnings again
+        shortUiPause();
+        warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        
+        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
                 "Address Line 1 with 'NA' should return validation error.");
 
     }
@@ -737,4 +752,10 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
     }*/
 
+    // Minimal helper to add a tiny pause for async UI updates
+    private static void shortUiPause()
+    {
+        try { Thread.sleep(500); } catch (InterruptedException ignored) { }
+    }
+    
 }
