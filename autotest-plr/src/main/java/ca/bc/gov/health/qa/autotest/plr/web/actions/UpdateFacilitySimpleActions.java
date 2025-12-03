@@ -324,20 +324,18 @@ public class UpdateFacilitySimpleActions {
 		errMsg=updatePage.addNoteDataBlock(noteId02,UpdateSimpleHelper.generateAlphabetString(5),
 				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
+
 		// relationship
-		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage, ID_ORG01);
-		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage, ID_ORG02);
-		/*
-		count = updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
-		for (int i = 0; i < count; i++) {
-			updatePage.ceaseDataBlockOrgID(FacilitySection.ORGANIZATION_RELATIONSHIPS, 0);
-		}*/
+		count=updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
+		for(int i=0;i<count;i++) { 
+			updatePage.ceaseDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS,0);
+			updatePage.waitSeconds(5);
+		}
 
 		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
 				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", false);
 		assertTrue(StringUtils.isEmpty(errMsg));
-		//updatePage.refreshPage();
-		
+
 		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
 				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", true);
 		assertTrue(errMsg.equals(errMsg7033Dup));
@@ -493,17 +491,18 @@ int index=updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);
 		String ID_SPECIAL_CHAR="IPC.0012479#.BC.PRS";
 		String ID_NONEXIST="IPC.00999999.BC.PRS";
 		String ID_PERSON="IPC.00124841.BC.PRS";
-		//String ID_ORG="IPC.00123986.BC.PRS";
 		String ID_ORG="IPC.00082689A.BC.PRS";
 		String errMessage01="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Related Provider Identifier'. Your transaction has not been processed. Correct and resubmit.";
 		String errMessage02="GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Provider Identifier' length must be between 0 and 50. Your transaction has not been processed. Correct and resubmit.";
 		String errMessage03="GRS.SYS.IDE.UNK.1.0.7036: Identifier does not uniquely identify a Provider. Cannot create relationship.";
 		String errMessage04="PRS.FAC.REL.MTN.1.0.9026: The Facility relationship with the Organization cannot be created as the Provider Identifier is not an Organization Identifier.";
-		
-		int index=updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
-		
-		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG);
-		
+
+		int count=updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
+		for(int i=0;i<count;i++) { 
+			updatePage.ceaseDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS,0);
+			updatePage.waitSeconds(5);
+		}
+	
 		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),"",RelationshipType.LOCATION.getText(),
 				UpdateSimpleHelper.effective_date(),"",true);
 		assertTrue(errMsg.equals(errMessage01));
