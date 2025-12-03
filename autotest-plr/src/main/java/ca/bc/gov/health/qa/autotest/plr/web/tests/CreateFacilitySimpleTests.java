@@ -93,9 +93,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
         addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
         addressFragment.effectiveFromCurrentDate();
-        addFacility.clickNext("Address", "");
-        
         try {
+                addFacility.clickNext("Address", null);
                 shortUiPause();
                 addressFragment.handleWidgetButton("Validation");
         } catch (Exception e) {
@@ -164,20 +163,51 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
  
-        //TODO use FHIR data generator in order to create unique facilities.
+        //Generate data in order to create unique facilities.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withAddress();
+        
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
+        
         //Step 1 - Create a new facility using minimum data.
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
         addFacility.clickNext("Facility", "");
 
         AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
-        addressFragment.fillAddressLine1("50 Douglas St");
-        addressFragment.fillCity("Victoria", "Victoria");
-        addressFragment.effectiveFromCurrentDate();
-        addFacility.clickNext("Address", "");
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();        
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
         AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
         ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
         
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        fhirController.close();
+
+        //Make a FHIR check in order to make sure values match on server side.
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        
+
+        assertEquals(facFhir.getAddress().get("line1").toUpperCase(), facilityData.getAddress().get("line1").toUpperCase(),
+                        "Address Line 1 should be present and match the created facility.");
+        assertEquals(facFhir.getAddress().get("city").toUpperCase(), facilityData.getAddress().get("city").toUpperCase(),
+                        "City should be present and match the created facility.");
+
         //Step 2 - Verify all the information on each data block
         // Verify there is exactly one identifier
         int identifierCount = newFacility.grabDataBlockCount(FacilitySection.IDENTIFIERS);
