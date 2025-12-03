@@ -352,28 +352,14 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 				index++;
 			}
 		}
-		
-		String dropListFocusCss = dialogCss + " > div#" + formName + "\\:" + dropDownName
-				+ " >div.ui-helper-hidden-accessible" + " > input#" + formName + "\\:" + dropDownName + "_focus";
-		WebElement dropListFocus = selenium_.findElement(By.cssSelector(dropListFocusCss));
-		selenium_.scrollIntoView(dropListFocus);
-		//dropListFocus=selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(dropListFocusCss)));
 		if (found) {
 			String labelCss = dialogCss + " > div#" + formName + "\\:" + dropDownName + " > label#" + formName + "\\:"
 					+ dropDownName + "_label";
 			WebElement label = selenium_.findElement(By.cssSelector(labelCss));
 			selenium_.scrollIntoView(label);
 			label=selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(labelCss)));
-			try {
-			label.click();}
-			catch(ElementClickInterceptedException e) {
-				waitSeconds(2);
-				label.clear();
-				boolean is = dropListFocus.isDisplayed();
-				is=label.isDisplayed();
-				label.click();
-			}
 			
+			clickbuttonWait(label);
 
 			WebElement element = selenium_.getDriver().switchTo().activeElement();
 			for (int i = 0; i < index; i++) {
