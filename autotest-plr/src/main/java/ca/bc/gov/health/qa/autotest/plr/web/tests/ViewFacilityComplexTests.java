@@ -274,10 +274,10 @@ public class ViewFacilityComplexTests implements SimpleTest {
     {
         final List<String> nonMaxProviderDetails = Arrays.asList("IPC", "IPC.00083115.BC.PRS");
         final List<String> nonMaxProviderInfo = Arrays.asList("Building", "AZ F009", "Location of (LOCATION)", "CPS");
-        final List<String> maxProviderDetails = Arrays.asList("IPC", "IPC.00082689A.BC.PRS");
+        final List<String> maxProviderDetails = Arrays.asList("IPC", "IPC.00124877.BC.PRS");
         final List<String> maxProviderInfo = Arrays.asList("Building",
                 "maximumlengthaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                "Located at (LOCATED)", "RNA");
+                "Location of (LOCATION)", "CPS");
 
         final List<String> facRelFields = Arrays.asList("Facility Type", "Related Facility Name",
                 "Relationship Type", "Data Owner Code");
