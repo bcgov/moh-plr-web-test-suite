@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
@@ -41,15 +42,15 @@ public class PlrData
     {}
 
     /**
-     * TODO (AZ) - doc
+     * Gets the credentials (username/password) for a user in the environment.
      *
      * @param credentialType
-     *        ???
+     *        The type of credential to find in the property map (plr.web/plr.fhir)
      *
      * @param userType
-     *        ???
+     *        The type of user to load credentials from
      *
-     * @return ???
+     * @return  A Map object containing credentials for a user for Web/FHIR
      */
     public static Map<String,String> getCredentials(String credentialType, UserType userType)
     {
@@ -130,6 +131,21 @@ public class PlrData
         }
         return provider;
     }
+    
+    public static JSONObject getFacility(String key) {
+    	JSONObject provider;
+        JSONObject providers = readProviderData(ProviderType.FACILITY);
+        if (providers.has(key))
+        {
+            provider = providers.getJSONObject(key);
+        }
+        else
+        {
+            String msg = String.format("Provider data not found (%s:%s).", ProviderType.FACILITY, key);
+            throw new IllegalStateException(msg);
+        }
+        return provider;
+    }
 
     private static String getCredentialValue(Map <String,String>credentialsMap, String key)
     {
@@ -143,6 +159,27 @@ public class PlrData
     }
 
     private static JSONObject readProviderData(ProviderType providerType)
+    {
+        String fileName = providerType.toString().toLowerCase(Locale.ROOT).replace("_", "-")
+                + "s-" + ENV_NAME + ".json";
+        if(ProviderType.FACILITY.equals(providerType))
+        	fileName = fileName.replace("facilitys","facilities");
+        Path filePath = PROVIDERS_DIR.resolve(fileName);
+        String data;
+        try
+        {
+            // TODO (AZ) - cache string data read
+            data  = Files.readString(filePath);
+        }
+        catch (IOException e)
+        {
+            String msg = String.format("Failed to read provider data (%s).", filePath);
+            throw new IllegalStateException(msg, e);
+        }
+
+        return new JSONObject(data);
+    }
+    private static JSONObject readFacilityData(ProviderType providerType)
     {
         String fileName = providerType.toString().toLowerCase(Locale.ROOT).replace("_", "-")
                 + "s-" + ENV_NAME + ".json";

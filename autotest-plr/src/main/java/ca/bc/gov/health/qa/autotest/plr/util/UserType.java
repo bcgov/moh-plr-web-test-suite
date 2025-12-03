@@ -46,9 +46,9 @@ public enum UserType
             Collections.unmodifiableSet(EnumSet.of(ADMIN, PRIMARY, SECONDARY, CONSUMER));
 
     /**
-     * TODO (AZ) - doc
+     * Gets the DSR user types in this enum
      *
-     * @return ???
+     * @return A set of the DSR user types
      */
     public static Set<UserType> getDsrUserTypeSet()
     {
@@ -56,9 +56,9 @@ public enum UserType
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the PLR user types in this enum
      *
-     * @return ???
+     * @return A set of PLR user types
      */
     public static Set<UserType> getPlrUserTypeSet()
     {

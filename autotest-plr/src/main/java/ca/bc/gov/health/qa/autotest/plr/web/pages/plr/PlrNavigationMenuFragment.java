@@ -86,14 +86,14 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether a link in the navigation menu is visible or not
      *
      * @param item
-     *        ???
+     *        The navigation menu item (page link) to check
      *
-     * @return ???
+     * @return whether the menu item is visible (true) or not (false)
      */
-    public boolean grabItemVisibile(Item item)
+    public boolean grabItemVisible(Item item)
     {
         return SeleniumUtils.grabElementVisible(findMenu(), item.getLocator());
     }
@@ -106,7 +106,7 @@ extends BasicWebPageFragment
      */
     public void openItem(Item item)
     {
-        if (grabItemVisibile(item))
+        if (grabItemVisible(item))
         {
             findMenu().findElement(item.getLocator()).click();
         }

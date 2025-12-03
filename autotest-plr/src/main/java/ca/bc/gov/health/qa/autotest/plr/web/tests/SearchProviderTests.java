@@ -12,9 +12,9 @@ import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.BannerFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchProviderCriteriaFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchProviderResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderCriteriaFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;

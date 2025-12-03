@@ -1,0 +1,187 @@
+{
+	"test001": {
+		"fauth": "6387",
+		"ifc": "IFC.00006387.BC.PRS"
+	},
+	"test005": {
+		"fauth": "6387",
+		"ifc": "IFC.00006387.BC.PRS"
+	},
+	"test003": {
+		"fauth": "6375",
+		"ifc": "IFC.00006375.BC.PRS"
+	},
+	"test-update": {
+		"fauth": "6486",
+		"ifc": "IFC.00006486.BC.PRS"
+	},
+	"test-update02": {
+		"fauth": "2",
+		"ifc": "IFC.00000002.BC.PRS"
+	},
+	"test011": {
+		"fauth": "6375",
+		"ifc": "IFC.00006375.BC.PRS",
+		"Organizations":[
+		{
+		"Relationship Identifier":"RELN.82095.PRS",
+		"Organization Name":"AZ Test 001"},
+		{
+		"Relationship Identifier":"RELN.82094.PRS",
+		"Organization Name":"orgnameabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij"}
+		]
+	},
+	"default-test": {
+		"identifiers": [
+			{
+				"Facility Type": "BUILDING",
+				"Identifier": "IFC.00006387.BC.PRS",
+				"Identifier Type": "IFC",
+				"Effective From": "2025-11-04",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-04",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"names": [
+			{
+				"Name": "maximumlengthaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				"Description": "desc",
+				"Effective From": "2025-11-04",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-04",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"civicAddress": [
+			{
+				"Latitude": "49.2772291",
+				"Longitude": "-123.109414",
+				"Address Line 1": "825 GRIFFITHS WAY",
+				"Address Line 2": "",
+				"Address Line 3": "",
+				"City": "VANCOUVER",
+				"Province / State": "BC - British Columbia", 
+				"Country":"CA - CANADA",
+				"Health Authority": "Vancouver Coastal",
+				"Health Service Delivery Area": "Vancouver",
+				"Local Health Area": "Vancouver - Centre North",
+				"Primary Care Network": "",
+				"Community Health Service Area": "Northeast False Creek"
+			}
+		],
+		"otherAddress": [
+			{
+				"Validation Status": "Invalid (I)",
+				"Address Type": "Physical location (P)",
+				"Address Purpose": "Facility Contact (FC)",
+				"Address Line 1": "825 GRIFFITHS WAY",
+				"Address Line 2": "",
+				"Address Line 3": "",
+				"City": "VANCOUVER",
+				"State/Prov": "BC",
+				"Postal/Zip Code": "V6B 6G1",
+				"Country": "CANADA (CA)",
+				"Effective From": "2025-11-04",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-04",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"telecommunication": [
+			{
+				"Type": "Telephone (T)",
+				"Purpose": "Facility Contact (FC)",
+				"Area Code": "250",
+				"Number": "8886688",
+				"Extension": "",
+				"Effective From": "2025-11-01",
+				"Effective To": "2026-11-01",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-04",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"electronic Address": [
+			{
+				"Type": "Email (E)",
+				"Purpose": "Facility Contact (FC)",
+				"Address": "maxiama@testfacility.com",
+				"Effective From": "2025-11-01",
+				"Effective To": "2026-11-01",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-04",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"relationships": [
+			
+			{
+				"Relationship Identifier": "RELN.81919.PRS",
+				"Relationship Type": "Location of (LOCATION)",
+				"Related Organization Name": "",
+				"Related Organization Identifier": "IPC.00000985.BC.PRS",
+				"Effective From": "2025-11-04",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "ebarrios@idir@00002855",
+				"DB Created": "2025-11-04",
+				"DB Expired": "",
+				"Data Owner Code": "RNA"
+			},
+			
+			{
+				"Relationship Identifier": "RELN.81921.PRS",
+				"Relationship Type": "Location of (LOCATION)",
+				"Related Organization Name": "",
+				"Related Organization Identifier": "IPC.00123974.BC.PRS",
+				"Effective From": "2025-11-04",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "ebarrios@idir@00002855",
+				"DB Created": "2025-11-04",
+				"DB Expired": "",
+				"Data Owner Code": "RNA"
+			},
+			{
+				"Relationship Identifier": "RELN.81920.PRS",
+				"Relationship Type": "Location of (LOCATION)",
+				"Related Organization Name": "Support Services",
+				"Related Organization Identifier": "IPC.00123986.BC.PRS",
+				"Effective From": "2025-11-04",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "ebarrios@idir@00002855",
+				"DB Created": "2025-11-04",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"notes": [
+			{
+				"Note Identifier": "test note",
+				"Note Text": "test content",
+				"Effective From": "2025-11-01",
+				"Effective To": "2026-11-01",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-05",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		]
+	}
+}

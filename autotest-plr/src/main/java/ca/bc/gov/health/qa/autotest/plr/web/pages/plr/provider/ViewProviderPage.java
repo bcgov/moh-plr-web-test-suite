@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 
 import static java.util.Objects.requireNonNull;
 
@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;

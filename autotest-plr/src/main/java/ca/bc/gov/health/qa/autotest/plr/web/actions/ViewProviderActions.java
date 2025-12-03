@@ -20,10 +20,10 @@ import org.apache.logging.log4j.Logger;
 import ca.bc.gov.health.qa.autotest.core.util.text.TextUtils;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ProviderDataFields;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ProviderSection;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderDataFields;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewMode;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 

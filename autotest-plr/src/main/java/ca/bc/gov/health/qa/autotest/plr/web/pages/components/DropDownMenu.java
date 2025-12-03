@@ -14,7 +14,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 
 /**
- * TODO (AZ) - doc
+ * Fragment class for dropdown menu components.
  */
 public class DropDownMenu
 extends BasicWebPageFragment
@@ -25,16 +25,16 @@ extends BasicWebPageFragment
     private final By itemPanelLocator_;
 
     /**
-     * TODO (AZ) - doc
+     * Initializes the dropdown menu fragment with locators to the item panel and dropdown selection
      *
      * @param selenium
-     *        ???
+     *        the current SeleniumSession
      *
      * @param mainLocator
-     *        ???
+     *        the main locator, which should be set to the dropdown's label (dropdown selection)
      *
      * @param itemPanelLocator
-     *        ???
+     *        the item panel locator, which should be set to the dropdown div (full item panel/dropdown)
      */
     public DropDownMenu(SeleniumSession selenium, By mainLocator, By itemPanelLocator)
     {
@@ -43,9 +43,9 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Expands or collapses the dropdown menu panel
      *
-     * @param expand ???
+     * @param expand    whether the menu panel should be expanded (true) or collapsed (false)
      */
     public void expandItemPanel(boolean expand)
     {
@@ -81,9 +81,9 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the dropdown's item menu panel is currently displayed or not
      *
-     * @return ???
+     * @return  boolean of whether the panel is displayed (true) or not (false)
      */
     public boolean grabItemPanelExpanded()
     {
@@ -91,9 +91,9 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the item in the dropdown that is currently selected
      *
-     * @return ???
+     * @return  A string of the name of the selected item
      */
     public String grabSelectedItem()
     {
@@ -223,9 +223,9 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Guard function that verifies the drop-down item panel is in an expected state.
      *
-     * @param expanded ???
+     * @param expanded  whether the item panel should be expanded (true) or collapsed (false)
      *
      * @throws IllegalStateException
      *         if the verification fails.
@@ -241,6 +241,11 @@ extends BasicWebPageFragment
         }
     }
 
+    /**
+     * Waits for the dropdown menu panel to expand/collapse
+     *
+     * @param expanded  whether the dropdown is currently being expanded (true) or collapsed (false)
+     */
     private void waitForItemPanelExpanded(boolean expanded)
     {
         if (expanded)

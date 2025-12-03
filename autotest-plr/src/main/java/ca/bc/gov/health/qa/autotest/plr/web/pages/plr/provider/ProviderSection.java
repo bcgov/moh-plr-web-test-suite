@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -111,6 +111,23 @@ public enum ProviderSection
      * Notes
      */
     NOTES("notesPanel", "Notes"),
+    /**
+     * Names (Facility)
+     */
+    NAMES("nameFacPanel", "Names"),
+    /**
+     * Civic Addresses
+     */
+    CIVIC_ADDRESSES("civicAddressesPanel", "Civic Addresses"),
+    /**
+     * Other Addresses
+     */
+    
+    OTHER_ADDRESSES("addressesPanel", "Other Address"),
+    /**
+     * Organization Relationships
+     */
+    ORGANIZATION_RELATIONSHIPS("organizationRelationshipsPanel", "Organization Relationships"),   
 
     /**
      * Organization Properties
@@ -152,13 +169,25 @@ public enum ProviderSection
                 FACILITY_RELATIONSHIPS,
                 NOTES,
                 ORGANIZATION_PROPERTIES));
+        final Set<ProviderSection> facilitySectionSet=  Collections.unmodifiableSet(EnumSet.of(
+        		IDENTIFIERS,
+                NAMES,
+                CIVIC_ADDRESSES,
+                OTHER_ADDRESSES,
+                TELECOMMUNICATIONS,
+                ELECTRONIC_ADDRESSES,
+                ORGANIZATION_RELATIONSHIPS,
+                NOTES
+                ));
         PROVIDER_TYPE_SECTION_MAP = Map.of(
                 ProviderType.BC_PRACTITIONER,
                 practitionerSectionSet,
                 ProviderType.OOP_PRACTITIONER,
                 practitionerSectionSet,
                 ProviderType.ORGANIZATION,
-                organizationSectionSet);
+                organizationSectionSet,
+                ProviderType.FACILITY,
+                facilitySectionSet);
     }
 
     private static final Set<ProviderSection> REQUIRED_PROVIDER_SECTION_SET =
