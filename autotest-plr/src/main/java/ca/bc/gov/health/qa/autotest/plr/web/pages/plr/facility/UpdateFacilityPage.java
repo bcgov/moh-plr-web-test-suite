@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
@@ -75,6 +76,16 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 
 	}
 	
+	public void refreshPage() {
+		selenium_.getDriver().navigate().refresh();
+
+	}
+
+	public void maxWindow() {
+		selenium_.getDriver().manage().window().maximize();
+	}
+
+
 	private String getSectionSelector(FacilitySection section) {
 		return "div#" + section.getPanelId_();
 	}
@@ -132,6 +143,17 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 			}
 		}
 		return count;
+	}
+
+	private void clickbuttonWait(WebElement button) {
+		try {
+			button.click();
+		}catch(ElementClickInterceptedException|StaleElementReferenceException e){
+			JavascriptExecutor js = (JavascriptExecutor)selenium_.getDriver();
+		    //js.executeScript("arguments[0].scrollIntoView(true);", button);
+		    js.executeScript("arguments[0].click();", button);
+		}
+
 	}
 
 	public void clickDataBlockUpdateButton(FacilitySection section, int index) {
@@ -261,6 +283,20 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		//waitSeconds(2);
 	}
 	
+	private void clickHeaderAddDateBlockButtonOrgID(FacilitySection section) {
+		String title=DIALOG_MAP.get(section).getAddButtonImgText();
+		String clickElementCss=getSectionSelector(section)+" > div > div >a > img[title='"+title+"'";
+		//WebElement clickElement=selenium_.findElement(By.cssSelector(clickElementCss));
+		WebElement clickElement =selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		selenium_.scrollIntoView(clickElement);
+
+		clickbuttonWait(clickElement);
+
+		String dialogCss=getDialogCss(section);
+		WebElement visibleElement = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));//TO DO
+
+	}
+
 	private void setDialogEffectiveFromAndEffectiveTo(FacilitySection section,String effectiveFrom, String effectiveTo) {
 		String dialogCss=getDialogCss(section);
 		String formName=DIALOG_MAP.get(section).getFormName();
@@ -367,6 +403,24 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
 	
+	public void ceaseDataBlockOrgID(FacilitySection section,int index) {
+
+		String formName=DIALOG_MAP.get(section).getFormName();
+		String submitButtonName=DIALOG_MAP.get(section).getSubmitButtonName();
+
+		clickDataBlockUpdateButton(section, index);
+		waitSeconds(2);
+
+		String dialogCss=getDialogCss(section);
+
+		setEndReasonByVisibleText(section,EndReason.CEASE.getText());
+
+		String buttonCss=dialogCss+" > div.formControls"+" > button#"+formName+"\\:"+submitButtonName;
+		WebElement button=selenium_.findElement(By.cssSelector(buttonCss));
+		button.click();
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
+
 	public void ceaseAllDataBlockUnderSection(FacilitySection section) {
 		int count=grabActiveDataBlockCount(section, true);
 		for(int i=0;i<count;i++) { 
@@ -552,7 +606,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		String formName=DIALOG_MAP.get(FacilitySection.ORGANIZATION_RELATIONSHIPS).getFormName();
 		String dialogCss=getDialogCss(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 		
-		clickHeaderAddDateBlockButton(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+		clickHeaderAddDateBlockButtonOrgID(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 		//waitSeconds(2);
 		
 		

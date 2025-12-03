@@ -301,38 +301,6 @@ public class UpdateFacilitySimpleActions {
 				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		
-		//relationship
-		
-		//ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG01);
-		//ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG02);
-		count=updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
-		for(int i=0;i<count;i++) { 
-			updatePage.ceaseDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS,0);
-		}
-		
-		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG01,RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"",false);
-		assertTrue(StringUtils.isEmpty(errMsg));
-		
-		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG01,RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"",true);
-		assertTrue(errMsg.equals(errMsg7033Dup));
-		
-		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage,ID_ORG01);
-		
-		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG01,RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"",false);
-		assertTrue(StringUtils.isEmpty(errMsg));
-		
-		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG01,RelationshipType.LOCATED.getText(),
-				UpdateSimpleHelper.effective_date(),"",false);
-		assertTrue(StringUtils.isEmpty(errMsg));
-		
-		errMsg=updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),ID_ORG02,RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(),"",false);
-		assertTrue(StringUtils.isEmpty(errMsg));
-		
-		
 		
 		//note
 		updatePage.ceaseAllDataBlockUnderSection(FacilitySection.NOTES);
@@ -356,8 +324,38 @@ public class UpdateFacilitySimpleActions {
 		errMsg=updatePage.addNoteDataBlock(noteId02,UpdateSimpleHelper.generateAlphabetString(5),
 				UpdateSimpleHelper.effective_date(),"",false);
 		assertTrue(StringUtils.isEmpty(errMsg));
+		// relationship
+		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage, ID_ORG01);
+		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage, ID_ORG02);
+		/*
+		count = updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
+		for (int i = 0; i < count; i++) {
+			updatePage.ceaseDataBlockOrgID(FacilitySection.ORGANIZATION_RELATIONSHIPS, 0);
+		}*/
+
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
+				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+		//updatePage.refreshPage();
 		
-	
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
+				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", true);
+		assertTrue(errMsg.equals(errMsg7033Dup));
+
+		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage, ID_ORG01);
+
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
+				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
+				RelationshipType.LOCATED.getText(), UpdateSimpleHelper.effective_date(), "", false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG02,
+				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", false);
+		assertTrue(StringUtils.isEmpty(errMsg));
+
 }
 
 
@@ -387,7 +385,7 @@ int index=updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);
 			LinkedHashMap<String, String> resultContent = updatePage.grabOrgRelationshipsBlockContent(i);
 			Relationship result = new Relationship(resultContent);
 			if(result.getRelatedOrganizationIdentifier().equals(key)) {
-				updatePage.ceaseDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS, i);
+				updatePage.ceaseDataBlockOrgID(FacilitySection.ORGANIZATION_RELATIONSHIPS, i);
 				
 			}
 			

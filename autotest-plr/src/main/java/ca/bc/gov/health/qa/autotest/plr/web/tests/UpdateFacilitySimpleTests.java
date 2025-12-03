@@ -42,7 +42,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	 @Test
+	@Test
 	public void testValidateFacilityIdentifiers() {
 		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -55,7 +55,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	 @Test
+	@Test
 	public void testValidateFacilityName() {
 		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -67,7 +67,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	 @Test
+	@Test
 	public void testValidateFacilityDescription() {
 		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -80,7 +80,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	 @Test
+	@Test
 	public void testValidateFacilityMailingAddressType() {
 		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -93,12 +93,12 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	 @Test
+	@Test
 	public void testValidateFacilityMailingAddressPurpose() {
 		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
-		JSONObject facility = PlrData.getFacility("test-update");
+		JSONObject facility = PlrData.getFacility("test-update02");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
 
@@ -106,12 +106,12 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	 @Test
+	@Test
 	public void testValidateFacilityDataBlockMultiplicity() {
 		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
-		JSONObject facility = PlrData.getFacility("test-update");
+		JSONObject facility = PlrData.getFacility("test-update02");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
 
@@ -119,7 +119,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	 @Test
+	@Test
 	public void testValidateFacilityNotesTexts() {
 		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -137,7 +137,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 		String errMsg = "";
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 
-		JSONObject facility = PlrData.getFacility("test-update");
+		JSONObject facility = PlrData.getFacility("test-update02");
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility.getString("fauth"));
 

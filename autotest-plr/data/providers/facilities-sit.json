@@ -15,6 +15,10 @@
 		"fauth": "6486",
 		"ifc": "IFC.00006486.BC.PRS"
 	},
+	"test-update02": {
+		"fauth": "2",
+		"ifc": "IFC.00000002.BC.PRS"
+	},
 	"test011": {
 		"fauth": "6375",
 		"ifc": "IFC.00006375.BC.PRS",
