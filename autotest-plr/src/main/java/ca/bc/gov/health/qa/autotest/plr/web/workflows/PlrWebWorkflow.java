@@ -10,7 +10,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.actions.*;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
-import ca.bc.gov.health.qa.autotest.core.util.context.LocalContext;
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.BannerFragment;
@@ -71,8 +71,6 @@ implements AutoCloseable
     public static PlrWebWorkflow create(UserType userType)
     {
         Config config = ConfigProvider.get().getConfig();
-        /* This original code is likely related to PlrWebWorkflowManager/multiple selenium instances */
-        // Config config = LocalContext.get().getConfig();
         URI uri = URI.create(config.get("web.url"));
         LOG.info("URL ({}).", uri);
         SeleniumSession selenium = SeleniumSession.createChromeSeleniumSession();
