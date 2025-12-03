@@ -2,6 +2,12 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityDataGenerator;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityAddressFragment;
@@ -18,9 +24,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.net.Facility;
 import org.json.JSONObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -36,18 +40,20 @@ import static org.testng.Assert.*;
 
 public class CreateFacilitySimpleTests implements SimpleTest {
 
-    private static final Logger LOG = ExecutionLogManager.getLogger();
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     private static JSONObject errorList;
+    private static FacilityBuilderFactory facilityDataGen;
+    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     public CreateFacilitySimpleTests()
     {
         try
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
+            facilityDataGen = new FacilityBuilderFactory(FacilityDataGenerator.getInstance());
         }
         catch (IOException e)
         {
@@ -69,18 +75,58 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
-        //TODO use FHIR data generator in order to create unique facilities.
+        //Generate data in order to create unique facilities.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
+
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
-        addFacility.fillFacilitySection("Test Facility", "Facility Description");
+        
+        addFacility.fillFacilitySection(facilityData.getName(), facilityData.getDescription());
         addFacility.clickNext("Facility", "");
-        addFacility.fillAddressSection("2269 DOUGLAS ST, V", "2269 DOUGLAS ST, V");
+        
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();
         addFacility.clickNext("Address", "");
+        
+        try {
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
         AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
         ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
         
-        // TODO implement FHIR search check to verify data matches.
+        // Verify that FHIR search returns facility with the same identifier and all sent through webapp are on FHIR response.
+        // Get the identifier data
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        fhirController.close();
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equalsIgnoreCase(facilityData.getName()),
+            "Name should be present and match the created facility.");
+        assertTrue(facFhir.getDescription().equalsIgnoreCase(facilityData.getDescription()),
+            "Description should be present and match the created facility.");
+        assertNotNull(facFhir.getAddress(), "FHIR response should contain an address map.");
+        assertEquals(facFhir.getAddress().get("line1").toUpperCase(), facilityData.getAddress().get("line1").toUpperCase(),
+                        "Address Line 1 should be present and match the created facility.");
+        assertEquals(facFhir.getAddress().get("city").toUpperCase(), facilityData.getAddress().get("city").toUpperCase(),
+                        "City should be present and match the created facility.");
 
     }
 
