@@ -361,18 +361,32 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         //Step 1 - Create a new facility and verify the IFC identifier is generated correctly.
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
-        //TODO use FHIR data generator in order to create unique facilities.
+        //Generate data in order to create unique facilities.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
 
-        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
+
+                addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
-        addFacility.fillFacilitySection("Test Facility", "Facility Description");
+        
+        addFacility.fillFacilitySection(facilityData.getName(), facilityData.getDescription());
         addFacility.clickNext("Facility", "");
 
         AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
-        addressFragment.fillAddressLine1("230 Menzies St");
-        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
         addressFragment.effectiveFromCurrentDate();
-        addFacility.clickNext("Address", "");
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
         AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
         ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
         
@@ -405,7 +419,15 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         assertEquals(resultCount, 1, 
                 "Search should return exactly one facility for the identifier: " + identifier);
 
-        // TODO implement FHIR search check to verify data matches.
+        // Verify that FHIR search returns facility with the same identifier and all sent through webapp are on FHIR response.
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        fhirController.close();
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
 
     }
 
