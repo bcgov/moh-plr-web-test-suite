@@ -117,9 +117,9 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
         assertTrue(facFhir.getIdentifier().equals(identifier),
             "Identifier should be present and match the created facility.");
-        assertTrue(facFhir.getName().equalsIgnoreCase(facilityData.getName()),
+        assertTrue(facFhir.getName().equals(facilityData.getName()),
             "Name should be present and match the created facility.");
-        assertTrue(facFhir.getDescription().equalsIgnoreCase(facilityData.getDescription()),
+        assertTrue(facFhir.getDescription().equals(facilityData.getDescription()),
             "Description should be present and match the created facility.");
         assertNotNull(facFhir.getAddress(), "FHIR response should contain an address map.");
         assertEquals(facFhir.getAddress().get("line1").toUpperCase(), facilityData.getAddress().get("line1").toUpperCase(),
@@ -436,20 +436,46 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     public void testValidateFacilityName()
     {
         //Step 1 - Create a new facility without name
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
+
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
+
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
         addFacility.clickNext("Facility", "");
 
         AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
-        addressFragment.fillAddressLine1("20 Olympia Ave");
-        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
         addressFragment.effectiveFromCurrentDate();
-        addFacility.clickNext("Address", "");
-        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
-        summaryFragment.clickSubmitButton();
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
 
-        //TODO check with FHIR that facility got created without name
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+
+        // Get the identifier data
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
+        
+        //Check with FHIR that facility got created without name
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+
+        assertTrue(facFhir.getName() == null || facFhir.getName().isEmpty(), "Facility Name should NOT be present on FHIR response when created without a name.");
 
         //Step 2 - Start creating a new facility, specify a facility name, but do not specify the "Effective From" date for the name.
         addFacility = navigateToAddFacilityPage(workflowManager_);
@@ -479,6 +505,13 @@ public class CreateFacilitySimpleTests implements SimpleTest {
                 "Facility Name should return an error if a name is provided with more than a 100 characters.");        
 
         //Step 4 - Create a new facility with the facility name exactly the maximum length of 100 characters.
+        config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
+        
+        facilityData = facilityDataGen.build(config);
+
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
@@ -488,18 +521,39 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.clickNext("Facility", "");
 
         addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
-        addressFragment.fillAddressLine1("576 Dallas Rd");
-        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
         addressFragment.effectiveFromCurrentDate();
-        addFacility.clickNext("Address", "");
-        summaryFragment = addFacility.getFacilitySummary();
-        summaryFragment.clickSubmitButton();
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
 
-        //TODO check with FHIR that facility got created with name with 100 characters long
+        summaryFragment = addFacility.getFacilitySummary();
+        newFacility = summaryFragment.clickSubmitButton();
+
+        identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        identifier = identifierData.get("Identifier");
+
+        //Check with FHIR that facility got created with name with 100 characters long
+        facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equals("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            "Name should be present and match the created facility.");    
 
         //Step 5 - Send acceptable characters for Facility name and description.
         //Valid chars as per ALM: <blank space>&()+-./0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ\abcdefghijklmnopqrstuvwxyz
         addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        config = new FacilityMaintainConfig()
+                .withAddress();
+        
+        facilityData = facilityDataGen.build(config);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
@@ -508,14 +562,32 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.clickNext("Facility", "");
         
         addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
-        addressFragment.fillAddressLine1("18 Douglas St");
-        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
         addressFragment.effectiveFromCurrentDate();
-        addFacility.clickNext("Address", "");
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
         summaryFragment = addFacility.getFacilitySummary();
         summaryFragment.clickSubmitButton();
 
-        //TODO check with FHIR that facility created with valid characters in name
+        identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        identifier = identifierData.get("Identifier");
+
+        //Check with FHIR that facility got created with name with 100 characters long
+        facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equals("ABCDEFGHIJKLMNOPQRSTUVWXYZ\\&()+-./0123456789: abcdefghijklmnopqrstuvwxyz"),
+            "Name should be present and match the created facility.");    
+        
+        fhirController.close();
     }
 
     @Test
