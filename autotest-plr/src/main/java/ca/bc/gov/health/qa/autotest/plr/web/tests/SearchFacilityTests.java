@@ -54,6 +54,7 @@ public class SearchFacilityTests implements SimpleTest {
         LOG.info("Done.");
     }
 
+
     @BeforeMethod
     public void before(Object[] parameters)
     {
