@@ -2,6 +2,11 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.actions.FHIRSession;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -22,8 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
@@ -54,11 +58,13 @@ public class CreateFacilityComplexTests implements SimpleTest {
         }
     }
 
+    /*
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
+     */
 
     @BeforeMethod
     public void before(Object[] parameters)
@@ -213,6 +219,35 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Difference between Geocode Latitude and PLR Civic Address Latitude is too large");
         assertTrue(Math.abs(dataLong - civicLong) < COORD_ERROR,
                 "Difference between Geocode Longitude and PLR Civic Address Longitude is too large");
+    }
+
+    @Test
+    // F3-013. Request Facility Health Boundaries
+    public void facilityHealthBoundaries()
+    {
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        final List<String> addressData = List.of("610", "1250", "PLEASANT ST, KAMLOOPS");
+        ViewFacilityPage newFacility = createAndSubmitFacility(workflowManager_,
+                addressData, "Health Boundary", 5);
+        String newIdentifier = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0).get("Identifier");
+        MaintainFacilityBuilder queriedFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, newIdentifier);
+
+        LinkedHashMap<String,String> newCivicAddress = newFacility.grabCivicAddressBlockContent();
+        Map<String,String> fhirCivicAddress = queriedFacility.getHsda();
+
+        assertEquals(newCivicAddress.get("Health Authority"), fhirCivicAddress.get("HA"),
+                "Health Authority does not match between FHIR and PLR site");
+        assertEquals(newCivicAddress.get("Health Service Delivery Area"), fhirCivicAddress.get("HSDA"),
+                "Health Service Delivery Area does not match between FHIR and PLR site");
+        assertEquals(newCivicAddress.get("Local Health Area"), fhirCivicAddress.get("LHA"),
+                "Local Health Area does not match between FHIR and PLR site");
+        assertEquals(newCivicAddress.get("Primary Care Network"), fhirCivicAddress.get("PCN"),
+                "Primary Care Network does not match between FHIR and PLR site");
+        assertEquals(newCivicAddress.get("Community Health Service Area"), fhirCivicAddress.get("CHSA"),
+                "Community Health Service Area does not match between FHIR and PLR site");
+
+        fhirController.close();
     }
 
     @Test
