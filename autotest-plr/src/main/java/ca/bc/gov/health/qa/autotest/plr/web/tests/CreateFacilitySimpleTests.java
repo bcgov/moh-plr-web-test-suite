@@ -45,6 +45,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     private static JSONObject errorList;
+    private static JSONObject warningList;
     private static FacilityBuilderFactory facilityDataGen;
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
@@ -52,13 +53,15 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     {
         try
         {
-            errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
-            facilityDataGen = new FacilityBuilderFactory(FacilityDataGenerator.getInstance());
+                JSONObject root = new JSONObject(Files.readString(errorPath));
+                errorList = root.getJSONObject("errors");
+                warningList = root.getJSONObject("warnings");
+                facilityDataGen = new FacilityBuilderFactory(FacilityDataGenerator.getInstance());
         }
         catch (IOException e)
         {
-            String msg = String.format("Failed to read JSON data (%s).", errorPath);
-            throw new IllegalStateException(msg, e);
+                String msg = String.format("Failed to read JSON data (%s).", errorPath);
+                throw new IllegalStateException(msg, e);
         }
     }
 
@@ -237,7 +240,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedFields = identifierFields.getHighlightedFields();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+        String missingEffectiveFrom = errorList.getString("missingEffectiveFrom");
+        assertTrue(errorMessageList.contains(missingEffectiveFrom),
                 "Facility Identifier Effective From not selected should return an error.");
         assertEquals(highlightedFields.getLast(), "Effective From:*",
                 "Facility Identifier Effective From is unhighlighted, or more than one error occurred.");
@@ -252,7 +256,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedFields = identifierFields.getHighlightedFields();
 
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Type'. Your transaction has not been processed. Correct and resubmit."),
+        String missingFacilityType = errorList.getString("missingFacilityType");
+        assertTrue(errorMessageList.contains(missingFacilityType),
                 "Facility Type not selected should return an error.");
         assertEquals(highlightedFields.getLast(), "Facility Type:*",
                 "Facility Type is unhighlighted, or more than one error occurred.");
@@ -272,7 +277,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Address Line 1'. Your transaction has not been processed. Correct and resubmit."),
+        String missingAddressLine1 = errorList.getString("missingAddressLine1");
+        assertTrue(errorMessageList.contains(missingAddressLine1),
                 "Address Line 1 not filled should return an error.");
         assertEquals(highlightedAddressFields.getLast(), "Address Line 1:*",
                 "Address Line 1 is unhighlighted, or more than one error occurred.");
@@ -292,7 +298,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedAddressFields = addressFragment.getHighlightedFields();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'City'. Your transaction has not been processed. Correct and resubmit."),
+        String missingCity = errorList.getString("missingCity");
+        assertTrue(errorMessageList.contains(missingCity),
                 "City not filled should return an error.");
         assertEquals(highlightedAddressFields.getLast(), "City:*",
                 "City is unhighlighted, or more than one error occurred.");
@@ -312,7 +319,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedAddressFields = addressFragment.getHighlightedFields();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+        assertTrue(errorMessageList.contains(missingEffectiveFrom),
                 "Address Effective From date not selected should return an error.");
         assertEquals(highlightedAddressFields.getLast(), "Effective From:*",
                 "Address Effective From is unhighlighted, or more than one error occurred.");
@@ -488,7 +495,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
-        assertTrue(errorMessageList.contains("Effective Start Date is required when Name is provided"),
+        String effectiveStartRequiredForName = errorList.getString("effectiveStartRequiredForName");
+        assertTrue(errorMessageList.contains(effectiveStartRequiredForName),
                 "Not selecting Effective From date for Facility Name should return an error if a name is provided.");
         
         //Step 3 - Start creating a new facility, specify a facility name that exceeds the maximum length of 100 characters.
@@ -501,7 +509,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.clickNext("Facility", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Name' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit."),
+        String facilityNameTooLong = errorList.getString("facilityNameTooLong");
+        assertTrue(errorMessageList.contains(facilityNameTooLong),
                 "Facility Name should return an error if a name is provided with more than a 100 characters.");        
 
         //Step 4 - Create a new facility with the facility name exactly the maximum length of 100 characters.
@@ -648,8 +657,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.clickNext("Facility", null);
 
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
-        
-        assertTrue(errorMessageList.contains("Name is required when Description is provided"),
+        String nameRequiredWhenDescriptionProvided = errorList.getString("nameRequiredWhenDescriptionProvided");
+        assertTrue(errorMessageList.contains(nameRequiredWhenDescriptionProvided),
                 "An error should be returned when Facility Description is provided without a Name.");
 
         //Step 3 - Start creating a new facility, specify a facility name and facility description, but do not specify the "Effective From" date for the name.
@@ -675,9 +684,11 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.fillFacilitySection("Test Facility", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         addFacility.clickNext("Facility", null);
 
-        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        shortUiPause();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Description' length must be between 0 and 200. Your transaction has not been processed. Correct and resubmit."),
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        String facilityDescriptionTooLong = errorList.getString("facilityDescriptionTooLong");
+        assertTrue(errorMessageList.contains(facilityDescriptionTooLong),
                 "Facility Description should return an error if a description is provided with more than 200 characters.");
 
         //Step 5 - Create a new facility with a facility name and the facility description exactly the maximum length of 200 characters.
@@ -761,7 +772,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         
         //Sometimes validation error will popup before duplicate warning, so handle it if it appears
         try {
-                addFacility.clickNext("Address", null);
+        addFacility.clickNext("Address", null);
                 shortUiPause();
                 addressFragment.handleWidgetButton("Validation");
         } catch (Exception e) {
@@ -769,12 +780,11 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         }
         
         shortUiPause();
-        
+
         List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
-        
-        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7055: An existing facility address was found, can not create duplicate facility. " + facFhir.getIdentifier()),
+        String duplicateFacilityFound = warningList.getString("duplicateFacilityFound") + " " + facFhir.getIdentifier();
+        assertTrue(warningMessageList.contains(duplicateFacilityFound),
                 "Facility Duplicate Check did not return expected warning message.");
-        
 
     }
 
@@ -798,7 +808,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Address Line 1'. Your transaction has not been processed. Correct and resubmit."),
+        String missingAddressLine1 = errorList.getString("missingAddressLine1");
+        assertTrue(errorMessageList.contains(missingAddressLine1),
                 "Address Line 1 From date not selected should return an error.");
         assertEquals(highlightedAddressFields.getLast(), "Address Line 1:*",
                 "Address Line 1 is unhighlighted, or more than one error occurred.");
@@ -819,7 +830,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedAddressFields = addressFragment.getHighlightedFields();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Address Line 1'. Your transaction has not been processed. Correct and resubmit."),
+        assertTrue(errorMessageList.contains(missingAddressLine1),
                 "Address Line 1 should be required even when Address Line 2 and 3 are filled.");
         assertEquals(highlightedAddressFields.getLast(), "Address Line 1:*",
                 "Address Line 1 is unhighlighted, or more than one error occurred.");
@@ -838,7 +849,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Address Line 1' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit."),
+        String addressLine1TooLong = errorList.getString("addressLine1TooLong");
+        assertTrue(errorMessageList.contains(addressLine1TooLong),
                 "Address Line 1 should return an error when exceeding 100 characters.");
 
         //Step 5 - Enter "Address Line 1", and enter "Address Line 2" that exceeds the maximum length of 100 characters.
@@ -856,7 +868,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Address Line 2' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit."),
+        String addressLine2TooLong = errorList.getString("addressLine2TooLong");
+        assertTrue(errorMessageList.contains(addressLine2TooLong),
                 "Address Line 2 should return an error when exceeding 100 characters.");
 
         //Step 6 - Enter "Address Line 1", and enter "Address Line 3" that exceeds the maximum length of 100 characters.
@@ -874,7 +887,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Address Line 3' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit."),
+        String addressLine3TooLong = errorList.getString("addressLine3TooLong");
+        assertTrue(errorMessageList.contains(addressLine3TooLong),
                 "Address Line 3 should return an error when exceeding 100 characters.");
 
         //Step 7 - N/A (as noted in test case)
@@ -898,7 +912,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         shortUiPause();
         List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
         
-        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+        String addressValidationFailed = warningList.getString("addressValidationFailed");
+        assertTrue(warningMessageList.contains(addressValidationFailed),
                 "Address Line 1 with 'NO FIXED ADDRESS' should return validation error.");
 
         //Step 9 - Attempt to create a new facility using "UNKNOWN" as "Address Line 1".
@@ -920,7 +935,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         shortUiPause();
         warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
         
-        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+        assertTrue(warningMessageList.contains(addressValidationFailed),
                 "Address Line 1 with 'UNKNOWN' should return validation error.");
 
         //Step 10 - Attempt to create a new facility using "NA" as "Address Line 1".
@@ -942,7 +957,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         shortUiPause();
         warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
         
-        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+        assertTrue(warningMessageList.contains(addressValidationFailed),
                 "Address Line 1 with 'NA' should return validation error.");
 
     }
@@ -964,7 +979,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
 
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'City'. Your transaction has not been processed. Correct and resubmit."),
+        String missingCity = errorList.getString("missingCity");
+        assertTrue(errorMessageList.contains(missingCity),
                 "City not filled should return an error.");
         assertEquals(highlightedAddressFields.getLast(), "City:*",
                 "City is unhighlighted, or more than one error occurred.");
@@ -982,7 +998,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.clickNext("Address", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'City' length must be between 0 and 60. Your transaction has not been processed. Correct and resubmit."),
+        String cityTooLong = errorList.getString("cityTooLong");
+        assertTrue(errorMessageList.contains(cityTooLong),
                 "City should return an error when exceeding 60 characters.");
 
         //Step 4 - Enter "City" that has exactly the maximum length of 60 characters.
@@ -1005,8 +1022,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addressFragment.handleWidgetButton("Validation");
 
         List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
-        
-        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter."),
+        String addressValidationFailed = warningList.getString("addressValidationFailed");
+        assertTrue(warningMessageList.contains(addressValidationFailed),
                 "Only a warning for invalid address should be returned when City is exactly 60 characters.");
     }
 
@@ -1025,7 +1042,8 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedIdentifierFields = idFragment.getHighlightedFields();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+        String invalidDateFormatEffectiveFrom = errorList.getString("invalidDateFormatEffectiveFrom");
+        assertTrue(errorMessageList.contains(invalidDateFormatEffectiveFrom),
                 "MM-DD-YYYY format for Effective From date should return an error in Type, Identifier Facility.");
         assertEquals(highlightedIdentifierFields.getLast(), "Effective From:*",
                 "Identifier Effective From is unhighlighted, or more than one error occurred.");
@@ -1045,7 +1063,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedFacilityFields = nameFragment.getHighlightedFields();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+        assertTrue(errorMessageList.contains(invalidDateFormatEffectiveFrom),
                 "MM-DD-YYYY format for Effective From date should return an error in Facility Name section.");
         assertEquals(highlightedFacilityFields.getLast(), "Effective From:",
                 "Facility Name Effective From is unhighlighted, or more than one error occurred.");
@@ -1068,7 +1086,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
         List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
         
-        assertTrue(errorMessageList.contains("GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit."),
+        assertTrue(errorMessageList.contains(invalidDateFormatEffectiveFrom),
                 "MM-DD-YYYY format for Effective From date should return an error in Facility Name section.");
         assertEquals(highlightedAddressFields.getLast(), "Effective From:*",
                 "Address Effective From is unhighlighted, or more than one error occurred.");

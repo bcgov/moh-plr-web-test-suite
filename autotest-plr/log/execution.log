@@ -228,3 +228,233 @@ fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
 keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
 web.url      : https://plrt.hlth.gov.bc.ca/plr/
 
+2025-12-04 09:50:44.180 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 09:50:44.188 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 09:50:44.190 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 09:54:33.044 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 09:54:33.051 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 09:54:33.054 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 09:57:53.967 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 09:57:53.972 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 09:57:53.974 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 09:58:54.793 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 09:58:54.797 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 09:58:54.800 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 09:59:39.117 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 09:59:39.122 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 09:59:39.124 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:02:02.944 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:02:02.951 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:02:02.955 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:03:58.899 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:03:58.908 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:03:58.912 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:05:11.393 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:05:11.410 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:05:11.417 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:08:59.616 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:08:59.623 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:08:59.626 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:12:44.017 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:12:44.024 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:12:44.027 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:15:09.018 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:15:09.023 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:15:09.026 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:16:09.260 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:16:09.268 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:16:09.272 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:17:01.640 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:17:01.647 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:17:01.654 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:17:50.219 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:17:50.226 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:17:50.228 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:40:56.826 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:40:56.835 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:40:56.838 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:48:43.568 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:48:43.579 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:48:43.587 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 10:58:15.600 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 10:58:15.610 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 10:58:15.615 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 11:01:35.119 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 11:01:35.124 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 11:01:35.126 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 11:02:22.185 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 11:02:22.189 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 11:02:22.191 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 11:04:22.995 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 11:04:23.002 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 11:04:23.005 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 11:07:16.369 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 11:07:16.374 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 11:07:16.376 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 11:24:57.383 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 11:24:57.389 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 11:24:57.391 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
+2025-12-04 11:27:19.190 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config.properties) ...
+2025-12-04 11:27:19.195 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Loading configuration file (config\config-sit.properties) ...
+2025-12-04 11:27:19.198 PST INFO  [main] [ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider] []{} > Configuration:
+config.files : config-sit.properties
+data.dir     : data/
+env.name     : sit
+fhir.url     : https://plresb-sit.hlth.gov.bc.ca/HSA-web/fhir-rs/
+keycloak.url : https://common-logon-test.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/
+web.url      : https://plrt.hlth.gov.bc.ca/plr/
+
