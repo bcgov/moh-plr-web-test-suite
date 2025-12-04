@@ -72,6 +72,18 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         return this;
     }
 
+    /**
+     * Adds (or replaces) the HSDA info from the FHIR response.
+     * (Not used in maintain payload - auxiliary information related to the address)
+     * This builder only keeps one HSDA instance; invoking this again overwrites the previous HSDA info.
+     *
+     * @param chsa      community health service area
+     * @param pcn       primary care network
+     * @param hsda      health service delivery area
+     * @param lha       local health area
+     * @param ha        health authority
+     * @return          this builder for fluent chaining
+     */
     public MaintainFacilityBuilder addHSDA(
         String chsa, String pcn, String hsda, String lha, String ha
     )
@@ -369,6 +381,10 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         return new HashMap<>(address_);
     }
 
+    /**
+     * Returns a defensive copy of the HSDA map (empty if not set).
+     * @return defensive copy of HSDA (empty map if unset)
+     */
     public Map<String,String> getHsda()
     {
         return new HashMap<>(hsda_);

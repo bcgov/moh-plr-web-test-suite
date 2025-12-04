@@ -3,10 +3,8 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.actions.FHIRSession;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -58,13 +56,11 @@ public class CreateFacilityComplexTests implements SimpleTest {
         }
     }
 
-    /*
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
-     */
 
     @BeforeMethod
     public void before(Object[] parameters)

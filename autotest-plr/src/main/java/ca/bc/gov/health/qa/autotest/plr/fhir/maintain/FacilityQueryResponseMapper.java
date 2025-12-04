@@ -25,17 +25,22 @@ public final class FacilityQueryResponseMapper {
     /** Canonical extension URL that wraps the physical address (valueAddress). */
     private static final String PHYS_ADDRESS_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-physical-address-extension";
 
-
+    /** Canonical extension URL that wraps all health service area values. */
     private static final String HEALTH_SERVICE_AREA_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-health-service-area-extension";
 
+    /** Canonical extension URL that wraps the community health service area (name -> valueString) */
     private static final String COMMUNITY_HEALTH_AREA_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-community-health-area-extension";
 
+    /** Canonical extension URL that wraps the primary care network (name -> valueString) */
     private static final String PRIMARY_CARE_NETWORK_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-primary-care-network-extension";
 
+    /** Canonical extension URL that wraps the health service delivery area (valueString) */
     private static final String HEALTH_SERVICE_DELIVERY_AREA_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-health-service-delivery-area-extension";
 
+    /** Canonical extension URL that wraps the local health area (value string) */
     private static final String LOCAL_HEALTH_AREA_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-local-health-area-extension";
 
+    /** Canonical extension URL that wraps the health authority (value string) */
     private static final String HEALTH_AUTHORITY_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-health-authority-extension";
 
     /** OrganizationAffiliation resourceType constant. */
@@ -179,6 +184,7 @@ public final class FacilityQueryResponseMapper {
             }
         }
 
+        // parse HSDA values to add to builder
         String chsaString = "";
         String pcnString = "";
         String hsdaString = "";
