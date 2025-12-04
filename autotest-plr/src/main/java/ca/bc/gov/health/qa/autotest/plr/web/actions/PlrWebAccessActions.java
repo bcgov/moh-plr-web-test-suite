@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions;
 
 import java.net.URI;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.HomePage;
@@ -9,7 +10,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.common.KeycloakLoginPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.LoginPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment.Item;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
@@ -82,14 +83,25 @@ public class PlrWebAccessActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Opens the Search Provider page
      *
-     * @return ???
+     * @return  a SearchProviderPage object for the search provider page
      */
     public SearchProviderPage openSearchProvider()
     {
         waitForPlrNavigationMenuFragment().openItem(Item.SEARCH_PROVIDER);
         return waitForSearchProviderPage();
+    }
+
+    /**
+     * Opens the Search Facility page
+     *
+     * @return  a SearchFacilityPage object for the search facility page
+     */
+    public SearchFacilityPage openSearchFacility()
+    {
+        waitForPlrNavigationMenuFragment().openItem(Item.SEARCH_FACILITY);
+        return waitForSearchFacilityPage();
     }
 
     private PlrNavigationMenuFragment waitForPlrNavigationMenuFragment()
@@ -104,5 +116,12 @@ public class PlrWebAccessActions
         SearchProviderPage searchProvider = new SearchProviderPage(selenium_);
         searchProvider.waitForReady();
         return searchProvider;
+    }
+
+    private SearchFacilityPage waitForSearchFacilityPage()
+    {
+        SearchFacilityPage searchFacility = new SearchFacilityPage(selenium_);
+        searchFacility.waitForReady();
+        return searchFacility;
     }
 }

@@ -7,7 +7,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 
 /**
- * TODO (AZ) - doc
+ * Fragment class for sections of search pages
  */
 public class SearchSectionFragment
 extends BasicWebPageFragment
@@ -16,10 +16,10 @@ extends BasicWebPageFragment
      * TODO (AZ) - doc
      *
      * @param selenium
-     *        ???
+     *        The current SeleniumSession
      *
      * @param mainLocator
-     *        ???
+     *        The main locator to check for visibility/invisibility/absence
      *
      * @throws NullPointerException
      *         if either {@code driver} or {@code mainLocator} is {@code null}
@@ -30,7 +30,7 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Waits for search facility to be visible and expanded
      */
     @Override
     public void waitForReady()

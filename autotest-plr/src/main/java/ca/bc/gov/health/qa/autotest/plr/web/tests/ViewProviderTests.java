@@ -17,7 +17,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewMode;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;

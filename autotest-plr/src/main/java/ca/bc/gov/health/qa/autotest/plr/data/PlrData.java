@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
@@ -28,6 +29,8 @@ public class PlrData
     static
     {
         Config config  = ConfigProvider.get().getConfig();
+        /* This original code is likely related to PlrWebWorkflowManager/multiple selenium instances */
+        // Config config = LocalContext.get().getConfig();
         Path dataDir   = Path.of(config.get("data.dir"));
         ENV_NAME       = config.get("env.name");
         PROVIDERS_DIR  = dataDir.resolve("providers");
@@ -41,15 +44,15 @@ public class PlrData
     {}
 
     /**
-     * TODO (AZ) - doc
+     * Gets the credentials (username/password) for a user in the environment.
      *
      * @param credentialType
-     *        ???
+     *        The type of credential to find in the property map (plr.web/plr.fhir)
      *
      * @param userType
-     *        ???
+     *        The type of user to load credentials from
      *
-     * @return ???
+     * @return  A Map object containing credentials for a user for Web/FHIR
      */
     public static Map<String,String> getCredentials(String credentialType, UserType userType)
     {

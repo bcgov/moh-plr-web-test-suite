@@ -5,6 +5,8 @@ import static java.util.Objects.requireNonNull;
 import java.net.URI;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchFacilityActions;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
@@ -19,7 +21,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 /**
- * TODO (AZ) - doc
+ * PLR Workflow class to handle creating a selenium session with the correct environment and credentials.
  */
 public class PlrWebWorkflow
 implements AutoCloseable
@@ -33,16 +35,16 @@ implements AutoCloseable
     private boolean loggedIn_ = false;
 
     /**
-     * TODO (AZ) - doc
+     * Initializes a PLR Workflow instance
      *
      * @param selenium
-     *        ???
+     *        the current SeleniumSession
      *
      * @param uri
-     *        ???
+     *        the base URI/URL for the instance
      *
      * @param userType
-     *        ???
+     *        the user type used to log in to PLR with
      */
     private PlrWebWorkflow(SeleniumSession selenium, URI uri, UserType userType)
     {
@@ -52,7 +54,7 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Closes the selenium session / page
      */
     @Override
     public void close()
@@ -62,16 +64,18 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Creates a PLR Workflow instance and an associated selenium session.
      *
      * @param userType
-     *        ???
+     *        the user type to draw credentials from during login
      *
-     * @return ???
+     * @return A PlrWebWorkflow object setup with a selenium session and URI/URL
      */
     public static PlrWebWorkflow create(UserType userType)
     {
         Config config = ConfigProvider.get().getConfig();
+        /* This original code is likely related to PlrWebWorkflowManager/multiple selenium instances */
+        // Config config = LocalContext.get().getConfig();
         URI uri = URI.create(config.get("web.url"));
         LOG.info("URL ({}).", uri);
         SeleniumSession selenium = SeleniumSession.createChromeSeleniumSession();
@@ -79,9 +83,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Creates and gets an actions object for PLR Web Access
      *
-     * @return ???
+     * @return a PlrWebAccessActions object
      */
     public PlrWebAccessActions getPlrWebAccessActions()
     {
@@ -89,9 +93,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Creates and gets an actions object for the Search Provider page
      *
-     * @return ???
+     * @return a SearchProviderActions object
      */
     public SearchProviderActions getSearchProviderActions()
     {
@@ -99,9 +103,19 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Creates and gets an actions object for the Search Facility page
      *
-     * @return ???
+     * @return  a SearchFacilityActions object
+     */
+    public SearchFacilityActions getSearchFacilityActions()
+    {
+        return new SearchFacilityActions(selenium_);
+    }
+
+    /**
+     * Gets the current SeleniumSession
+     *
+     * @return  a reference to the current SeleniumSession
      */
     public SeleniumSession getSeleniumSession()
     {
@@ -109,9 +123,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the URI/URL
      *
-     * @return ???
+     * @return A URI object with the base URL of the workflow
      */
     public URI getURUri()
     {
@@ -119,19 +133,16 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the user type selenium is accessing PLR with
      *
-     * @return ???
+     * @return a UserType object with the user type used
      */
-    public UserType getUserType()
-    {
-        return userType_;
-    }
+    public UserType getUserType() { return userType_; }
 
     /**
-     * TODO (AZ) - doc
+     * Creates and gets an actions object for the View Provider page
      *
-     * @return ???
+     * @return  a ViewProviderActions object
      */
     public ViewProviderActions getViewProviderActions()
     {
@@ -139,9 +150,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the session is logged in
      *
-     * @return ???
+     * @return whether the session is logged in (true) or not (false)
      */
     public boolean isLoggedIn()
     {
@@ -149,9 +160,9 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Logs into the PLR site using given credentials
      *
-     * @return ???
+     * @return a PlrWebAccessActions object with access to the PLR site (provided the credentials are valid)
      */
     public PlrWebAccessActions login()
     {
@@ -163,7 +174,7 @@ implements AutoCloseable
     }
 
     /**
-     * TODO (AZ) - doc
+     * Logs out of the PLR site
      */
     public void logout()
     {
