@@ -597,24 +597,47 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         //Step 1 - Create a new facility, specify a facility name, but do not specify facility description.
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
-        //TODO use FHIR data generator in order to create unique facilities.
+        //Generate data in order to create unique facilities.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withAddress();
+
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
-        addFacility.fillFacilitySection("Test Facility", "");
+        addFacility.fillFacilitySection(facilityData.getName(), "");
         addFacility.clickNext("Facility", "");
 
         AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
-        addressFragment.fillAddressLine1("580 Simcoe St");
-        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
         addressFragment.effectiveFromCurrentDate();
-        addFacility.clickNext("Address", "");
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
 
         AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
-        summaryFragment.clickSubmitButton();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
         
-        // TODO implement FHIR search check to verify data matches.
+        //FHIR search check to verify data matches. With name but without description
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
 
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equalsIgnoreCase(facilityData.getName()),
+            "Name should be present and match the created facility.");
+        assertTrue(facFhir.getDescription() == null || facFhir.getDescription().isEmpty(), "Facility Description should NOT be present on FHIR response when created without a description.");
+        
         //Step 2 - Start creating a new facility, specify a facility description, but do not specify the facility name.
         addFacility = navigateToAddFacilityPage(workflowManager_);
 
@@ -658,24 +681,53 @@ public class CreateFacilitySimpleTests implements SimpleTest {
                 "Facility Description should return an error if a description is provided with more than 200 characters.");
 
         //Step 5 - Create a new facility with a facility name and the facility description exactly the maximum length of 200 characters.
+        
+        //implement FHIR here and data generator
         addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        //Generate data in order to create unique facilities.
+        config = new FacilityMaintainConfig()
+        .withName()
+        .withAddress();
+
+        facilityData = facilityDataGen.build(config);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
         addFacility.clickNext("Identifier", "");
 
-        addFacility.fillFacilitySection("Test Facility", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addFacility.fillFacilitySection(facilityData.getName(), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         addFacility.clickNext("Facility", "");
 
         addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
-        addressFragment.fillAddressLine1("204 Government St");
-        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
         addressFragment.effectiveFromCurrentDate();
-        addFacility.clickNext("Address", "");
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
         
         summaryFragment = addFacility.getFacilitySummary();
-        summaryFragment.clickSubmitButton();
+        newFacility = summaryFragment.clickSubmitButton();
 
-        // TODO implement FHIR search check to verify data matches.
+        //FHIR search check to verify data matches.
+        identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        identifier = identifierData.get("Identifier");
+
+        facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        fhirController.close();
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equalsIgnoreCase(facilityData.getName()),
+            "Name should be present and match the created facility.");
+        assertTrue(facFhir.getDescription().equalsIgnoreCase("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            "Description should be present and match the created facility.");
+        
         
     }
 
