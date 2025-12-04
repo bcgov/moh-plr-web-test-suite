@@ -28,6 +28,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
 {
     private String                    identifier_      = null;
     private Map<String,String>        address_         = new HashMap<>();
+    private Map<String,String>        hsda_            = new HashMap<>();
     private String                    name_            = null;
     private String                    description_     = null;
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
@@ -68,6 +69,20 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         addressInfo.put("city",       city);
         addressInfo.put("postalCode", postalCode);
         this.address_ = addressInfo;
+        return this;
+    }
+
+    public MaintainFacilityBuilder addHSDA(
+        String chsa, String pcn, String hsda, String lha, String ha
+    )
+    {
+        Map<String,String> hsdaInfo = new HashMap<>();
+        hsdaInfo.put("CHSA", chsa);
+        hsdaInfo.put("PCN", pcn);
+        hsdaInfo.put("HSDA", hsda);
+        hsdaInfo.put("LHA", lha);
+        hsdaInfo.put("HA", ha);
+        this.hsda_ = hsdaInfo;
         return this;
     }
 
@@ -354,6 +369,11 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         return new HashMap<>(address_);
     }
 
+    public Map<String,String> getHsda()
+    {
+        return new HashMap<>(hsda_);
+    }
+
     /**
      * Returns an immutable snapshot of telecom entries added so far.
      * @return immutable list of telecom maps
@@ -395,6 +415,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         copy.name_ = this.name_;
         copy.description_ = this.description_;
         copy.address_ = new HashMap<>(this.address_);
+        copy.hsda_ = new HashMap<>(this.hsda_);
         // Deep copy telecom list
         for (Map<String,String> telecom : this.telecomList_) {
             copy.telecomList_.add(new HashMap<>(telecom));
