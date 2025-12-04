@@ -735,7 +735,18 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // F3-011. Facility Duplicate Check
     public void testFacilityDuplicateCheck()
     {
-        //TODO For this test case it would be useuful to have the FHIR endpoints to create a Facility first, then attempt to create via UI to check for duplicates.
+        //Create a Facility through FHIR endpoints then attempt to create via UI to check for duplicates.
+        //Duplicate should be triggered if address is the same.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.createFacility(config);
+
+        fhirController.close();
 
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
@@ -744,15 +755,26 @@ public class CreateFacilitySimpleTests implements SimpleTest {
         addFacility.clickNext("Facility", "");
 
         AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
-        addressFragment.fillAddressLine1("580 Simcoe St");
-        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.fillAddressLine1(facFhir.getAddress().get("line1"));
+        addressFragment.fillCity(facFhir.getAddress().get("city"), facFhir.getAddress().get("city"));
         addressFragment.effectiveFromCurrentDate();
-        addFacility.clickNext("Address", null);
-
+        
+        //Sometimes validation error will popup before duplicate warning, so handle it if it appears
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+        
+        shortUiPause();
+        
         List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
         
-        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7055: An existing facility address was found, can not create duplicate facility. IFC.00006533.BC.PRS"),
+        assertTrue(warningMessageList.contains("PRS.SYS.ADR.UNK.1.0.7055: An existing facility address was found, can not create duplicate facility. " + facFhir.getIdentifier()),
                 "Facility Duplicate Check did not return expected warning message.");
+        
 
     }
 
@@ -1056,7 +1078,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     // Minimal helper to add a tiny pause for async UI updates
     private static void shortUiPause()
     {
-        try { Thread.sleep(500); } catch (InterruptedException ignored) { }
+        try { Thread.sleep(1000); } catch (InterruptedException ignored) { }
     }
     
 }
