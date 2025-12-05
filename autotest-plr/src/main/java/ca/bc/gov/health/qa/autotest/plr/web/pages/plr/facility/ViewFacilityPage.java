@@ -16,8 +16,10 @@ import java.util.regex.Pattern;
  * A page object class for the View Facility page.
  */
 public class ViewFacilityPage extends BasicWebPage {
+
     private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
     private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile(" \\(.*\\)");
+    private static final Pattern DATA_KEY_STAR_PATTERN = Pattern.compile("\\*$");
     private static final String TABLE_ROWS_SELECTOR = " > table > tbody > tr";
 
     private final ViewHeaderFragment viewHeader_;
@@ -196,8 +198,9 @@ public class ViewFacilityPage extends BasicWebPage {
      */
     private static String formatDataKey(String key)
     {
-        String formattedKey = DATA_KEY_SUFFIX_PATTERN.matcher(key).replaceAll("");
+        String formattedKey = DATA_KEY_STAR_PATTERN.matcher(key).replaceAll("");
         formattedKey = DATA_KEY_PARENS_PATTERN.matcher(formattedKey).replaceAll("");
+        formattedKey = DATA_KEY_SUFFIX_PATTERN.matcher(formattedKey).replaceAll("");
         return formattedKey;
     }
 
@@ -215,8 +218,10 @@ public class ViewFacilityPage extends BasicWebPage {
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
         expandDataBlock(section, index, true);
-        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(
-                getDataBlockContentSelector(section, index) + TABLE_ROWS_SELECTOR));
+        String dataBlockContentSelector = getDataBlockContentSelector(section, index);
+        if (section == FacilitySection.ORGANIZATION_RELATIONSHIPS) dataBlockContentSelector += " > form";
+        dataBlockContentSelector += TABLE_ROWS_SELECTOR;
+        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(dataBlockContentSelector));
 
         if (!dataRowElementList.isEmpty())
         {
@@ -260,43 +265,77 @@ public class ViewFacilityPage extends BasicWebPage {
      * All other facility sections are structured differently,
      * so grabDataBlockContent must be used instead for any other facility section.
      *
-     * @param index     the index of data block to get content from
      * @return  a hash map mapping civic address data fields (String) to their associated values (String)
      */
-    public LinkedHashMap<String,String> grabCivicAddressBlockContent(int index)
+    public LinkedHashMap<String,String> grabCivicAddressBlockContent()
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
-        expandDataBlock(FacilitySection.CIVIC_ADDRESSES, index, true);
+        expandDataBlock(FacilitySection.CIVIC_ADDRESSES, 0, true);
         List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(
-                getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, index)
+                getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, 0)
                 + " > div.ui-outputpanel" + TABLE_ROWS_SELECTOR));
+        By tableSelect = By.cssSelector("td" + TABLE_ROWS_SELECTOR);
+
         if (!dataRowElementList.isEmpty())
         {
             selenium_.scrollIntoView(dataRowElementList.getFirst());
         }
         for (WebElement dataRow : dataRowElementList)
         {
-            List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR));
+            List<WebElement> dataEntryList = dataRow.findElements(tableSelect);
             int dataColumnCount = dataEntryList.size();
-            if (dataColumnCount == 2)
-            {
-                addFieldDataMap(dataMap, dataEntryList, 0);
-            }
-            else if (dataColumnCount == 4 || dataColumnCount == 5 || dataColumnCount == 6)
-            {
-                addFieldDataMap(dataMap, dataEntryList.get(0).findElements(
-                        By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 0);
-                if (dataColumnCount == 5) {
-                    addFieldDataMap(dataMap, dataEntryList.get(0).findElements(
-                            By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 2);
-                }
-            }
+            if (dataColumnCount == 2) addFieldDataMap(dataMap, dataEntryList, 0);
             else
             {
-                String msg = String.format("Invalid data row (%d: %s).", dataColumnCount, dataRow.getText());
-                throw new IllegalStateException(msg);
+                List<WebElement> extraFields = dataEntryList.getFirst().findElements(tableSelect);
+                switch (dataColumnCount)
+                {
+                    case 4:
+                        dataMap.put(formatDataKey(extraFields.getFirst().findElement(
+                                By.cssSelector("div.frmDialogLbl > label")).getText()),
+                                extraFields.getFirst().findElement(
+                                        By.cssSelector("div[role] > label")).getText());
+                        addFieldDataMap(dataMap, extraFields, 1);
+                        break;
+                    case 5:
+                        addFieldDataMap(dataMap, extraFields, 2);
+                    case 6:
+                        addFieldDataMap(dataMap, extraFields, 0);
+                        break;
+                    default:
+                        String msg = String.format("Invalid data row (%d: %s).", dataColumnCount, dataRow.getText());
+                        throw new IllegalStateException(msg);
+                }
             }
+
         }
         return dataMap;
+    }
+
+    /**
+     * Determines the number of data blocks in a specific facility section.
+     *
+     * @param section   the facility section to find the number of records for.
+     * @return          an integer of the number of records for a particular facility section.
+     */
+    public int grabDataBlockCount(FacilitySection section)
+    {
+        List<WebElement> dataBlockList = selenium_.findElements(By.cssSelector(
+                getDataBlocksSelector(section)));
+        return dataBlockList.size();
+    }
+
+    /**
+     * Opens an organization (provider) page in the Organization Relationships section.
+     *
+     * @param dataBlockIndex    the index of organization relationship to open and click into
+     */
+    public void openOrg(int dataBlockIndex)
+    {
+        String linkSelector = getDataBlockContentSelector(FacilitySection.ORGANIZATION_RELATIONSHIPS, dataBlockIndex);
+        linkSelector += " > form" + TABLE_ROWS_SELECTOR + " > td > a";
+
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector(linkSelector)));
+        selenium_.findElement(By.cssSelector(linkSelector)).click();
     }
 }

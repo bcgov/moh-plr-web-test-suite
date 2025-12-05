@@ -75,6 +75,11 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
         selenium_.fillFieldByCss(FACILITY_ID_FIELD_CSS, facilityId);
     }
 
+    /**
+     * Gets highlighted fields (to be used when an error is expected)
+     *
+     * @return  a list of strings of each of the fields that are highlighted
+     */
     public List<String> getHighlightedFields()
     {
         List<String> highlightedFields = new ArrayList<>();

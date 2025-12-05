@@ -1,0 +1,1109 @@
+package ca.bc.gov.health.qa.autotest.plr.web.tests;
+
+import ca.bc.gov.health.qa.autotest.core.util.config.Config;
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityDataGenerator;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityAddressFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityNameFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilitySummaryFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
+import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
+import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
+
+import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.navigateToAddFacilityPage;
+import static org.testng.Assert.*;
+
+public class CreateFacilitySimpleTests implements SimpleTest {
+
+    private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
+
+    private static final Config config_ = ConfigProvider.get().getConfig();
+    private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
+    private static JSONObject errorList;
+    private static JSONObject warningList;
+    private static FacilityBuilderFactory facilityDataGen;
+    private static final Logger LOG = ExecutionLogManager.getLogger();
+
+    public CreateFacilitySimpleTests()
+    {
+        try
+        {
+                JSONObject root = new JSONObject(Files.readString(errorPath));
+                errorList = root.getJSONObject("errors");
+                warningList = root.getJSONObject("warnings");
+                facilityDataGen = new FacilityBuilderFactory(FacilityDataGenerator.getInstance());
+        }
+        catch (IOException e)
+        {
+                String msg = String.format("Failed to read JSON data (%s).", errorPath);
+                throw new IllegalStateException(msg, e);
+        }
+    }
+
+    @BeforeMethod
+    public void before(Object[] parameters)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
+        if (!workflow.isLoggedIn()) workflow.login().openPlr();
+    }
+
+    @AfterClass
+    public void teardown() {
+        workflowManager_.logoutAllAndClose();
+        LOG.info("Done.");
+    }
+
+    @Test
+    // F3-001. Create Facility
+    public void testCreateFacility()
+    {
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        //Generate data in order to create unique facilities.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
+
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        
+        addFacility.fillFacilitySection(facilityData.getName(), facilityData.getDescription());
+        addFacility.clickNext("Facility", "");
+        
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+        
+        // Verify that FHIR search returns facility with the same identifier and all sent through webapp are on FHIR response.
+        // Get the identifier data
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        fhirController.close();
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equals(facilityData.getName()),
+            "Name should be present and match the created facility.");
+        assertTrue(facFhir.getDescription().equals(facilityData.getDescription()),
+            "Description should be present and match the created facility.");
+        assertNotNull(facFhir.getAddress(), "FHIR response should contain an address map.");
+        assertEquals(facFhir.getAddress().get("line1").toUpperCase(), facilityData.getAddress().get("line1").toUpperCase(),
+                        "Address Line 1 should be present and match the created facility.");
+        assertEquals(facFhir.getAddress().get("city").toUpperCase(), facilityData.getAddress().get("city").toUpperCase(),
+                        "City should be present and match the created facility.");
+
+    }
+
+    @Test
+    // F3-002. Restrict Facility Access by User Role
+    public void testRestrictFacilityAccessByUserRole()
+    {
+        // Test that ADMIN can see Add Facility menu item
+        PlrWebWorkflow adminWorkflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+        PlrNavigationMenuFragment adminMenu = adminWorkflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
+        
+        assertTrue(adminMenu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
+            "Add Facility menu item should be visible for ADMIN user role");
+
+        // Test that other user types cannot see Add Facility menu item
+        UserType[] userTypesToTest = {UserType.PRIMARY, UserType.SECONDARY, UserType.CONSUMER};
+
+        for (UserType userType : userTypesToTest) {
+
+            PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, userType);
+            PlrNavigationMenuFragment menu = workflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
+
+            assertFalse(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
+                String.format("Add Facility menu item should NOT be visible for %s user role", userType));
+
+            workflow.logout();
+            workflow.close();
+        }
+
+    }
+    
+    @Test
+    // F3-003. Facility Minimum Data Requirements
+    public void testFacilityMinimumDataRequirements()
+    {
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+ 
+        //Generate data in order to create unique facilities.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withAddress();
+        
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
+        
+        //Step 1 - Create a new facility using minimum data.
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();        
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+        
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        fhirController.close();
+
+        //Make a FHIR check in order to make sure values match on server side.
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        
+
+        assertEquals(facFhir.getAddress().get("line1").toUpperCase(), facilityData.getAddress().get("line1").toUpperCase(),
+                        "Address Line 1 should be present and match the created facility.");
+        assertEquals(facFhir.getAddress().get("city").toUpperCase(), facilityData.getAddress().get("city").toUpperCase(),
+                        "City should be present and match the created facility.");
+
+        //Step 2 - Verify all the information on each data block
+        // Verify there is exactly one identifier
+        int identifierCount = newFacility.grabDataBlockCount(FacilitySection.IDENTIFIERS);
+        assertEquals(identifierCount, 1, 
+                "There should be exactly one identifier in the facility.");
+               
+        // Verify there are NO names (since we created with minimum data)
+        int nameCount = newFacility.grabDataBlockCount(FacilitySection.NAMES);
+        assertEquals(nameCount, 0, 
+                "There should be no facility names when created with minimum data.");
+
+        //Step 3 - Examine the civic address data block. Make sure there is only one address.
+        int civicAddressCount = newFacility.grabDataBlockCount(FacilitySection.CIVIC_ADDRESSES);
+        assertEquals(civicAddressCount, 1, 
+                "There should be exactly one civic address in the facility.");
+
+        //Step 4 - Examine the other address data block. Make sure there is only one address.
+        int otherAddressCount = newFacility.grabDataBlockCount(FacilitySection.OTHER_ADDRESS);
+        assertEquals(otherAddressCount, 1, 
+                "There should be exactly one other address in the facility.");
+
+        //Step 5 - Attempt to create a new facility using minimum data, but do not specify the "Facility Start date".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        AddFacilityIdFragment identifierFields = addFacility.fillIdentifierSection("BUILDING", "Select One", "", null);
+        addFacility.clickNext("Identifier", null);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedFields = identifierFields.getHighlightedFields();
+        
+        String missingEffectiveFrom = errorList.getString("missingEffectiveFrom");
+        assertTrue(errorMessageList.contains(missingEffectiveFrom),
+                "Facility Identifier Effective From not selected should return an error.");
+        assertEquals(highlightedFields.getLast(), "Effective From:*",
+                "Facility Identifier Effective From is unhighlighted, or more than one error occurred.");
+
+        //Step 6 - Attempt to create a new facility using minimum data, but do not specify the "Facility Type".
+        // Navigate to fresh Add Facility page to clear previous form state
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        
+        identifierFields = addFacility.fillIdentifierSection("Select One", "Select One", "", List.of(2025, 11, 20));
+        addFacility.clickNext("Identifier", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedFields = identifierFields.getHighlightedFields();
+
+        String missingFacilityType = errorList.getString("missingFacilityType");
+        assertTrue(errorMessageList.contains(missingFacilityType),
+                "Facility Type not selected should return an error.");
+        assertEquals(highlightedFields.getLast(), "Facility Type:*",
+                "Facility Type is unhighlighted, or more than one error occurred.");
+
+        //Step 7 - Attempt to create a new facility using minimum data (as in Step 1), but do not specify the "Facility Address Line 1".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+        
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        String missingAddressLine1 = errorList.getString("missingAddressLine1");
+        assertTrue(errorMessageList.contains(missingAddressLine1),
+                "Address Line 1 not filled should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "Address Line 1:*",
+                "Address Line 1 is unhighlighted, or more than one error occurred.");
+
+        //Step 8 - Attempt to create a new facility using minimum data (as in Step 1), but do not specify the "Facility Address City".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+        
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        String missingCity = errorList.getString("missingCity");
+        assertTrue(errorMessageList.contains(missingCity),
+                "City not filled should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "City:*",
+                "City is unhighlighted, or more than one error occurred.");
+
+        //Step 9 - Attempt to create a new facility using minimum data (as in Step 1), but do not specify the "Facility Address Effective From Date".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+        
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains(missingEffectiveFrom),
+                "Address Effective From date not selected should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "Effective From:*",
+                "Address Effective From is unhighlighted, or more than one error occurred.");
+    } 
+
+    @Test
+    // F3-004. Validate Facility Type Code
+    public void testValidateFacilityTypeCode()
+    {
+        // Navigate to Add Facility page
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        
+        // Get the workflow to properly create a fragment reference
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        
+        // Wait for the page and create fragment - the page is already on the Identifier step
+        addFacility.waitForAddFacilityStep("Identifier", true);
+        
+        // Create the fragment (it will find the existing identifier section on the page)
+        AddFacilityIdFragment identifierFragment = new AddFacilityIdFragment(workflow.getSeleniumSession());
+        
+        // Step 2 - Get the default selected value before interacting with dropdown
+        String defaultValue = identifierFragment.getFacilityType();
+        
+        // Verify the default value is "Select One"
+        assertEquals(defaultValue, "Select One", 
+                "Default Facility Type should be 'Select One' (not selected)");
+        
+        // Get all available options in the Facility Type dropdown
+        List<String> facilityTypeOptions = identifierFragment.getFacilityTypeOptions();
+        
+        // Step 3 - Verify that only "BUILDING" is available as an option
+        assertEquals(facilityTypeOptions.size(), 2,
+                "Facility Type dropdown should contain two options");
+        assertTrue(facilityTypeOptions.contains("BUILDING - Building"),
+                "'BUILDING - Building' should be a Facility Type option");
+        assertTrue(facilityTypeOptions.contains("Select One"),
+                "'Select One' should be a Facility Type option");
+
+    }
+
+    @Test
+    // F3-007. Generating Internal Facility Code (IFC)
+    public void testGeneratingInternalFacilityCode()
+    {
+        //Step 1 - Create a new facility and verify the IFC identifier is generated correctly.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        //Generate data in order to create unique facilities.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
+
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
+
+                addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        
+        addFacility.fillFacilitySection(facilityData.getName(), facilityData.getDescription());
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+        
+        // Verify the identifier was generated correctly
+        int identifierCount = newFacility.grabDataBlockCount(FacilitySection.IDENTIFIERS);
+        assertEquals(identifierCount, 1, 
+                "There should be exactly one identifier in the facility.");
+        
+        // Get the identifier data
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
+        assertNotNull(identifier, "Identifier should be present.");
+        
+        // Verify the IFC format: IFC.00001234.BC.PRS
+        // Pattern: IFC. + 8-digit zero-padded integer + .BC.PRS
+        // No Padding
+        assertTrue(identifier.matches("^IFC\\.\\d{8}\\.BC\\.PRS$"), 
+                "Identifier should match format IFC.########.BC.PRS where # is a digit");
+        
+        // Step 2 - Search for the facility using the identifier to verify identifier is unique and can be found.
+        SearchFacilityPage searchFacility = TestHelper.navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        SearchFacilityResultsFragment results = TestHelper.searchByIdentifier(
+                searchFacility, 
+                List.of("IFC", identifier), 
+                false
+        );
+        
+        // Verify only 1 result is returned
+        int resultCount = results.grabResultsRowCount();
+        assertEquals(resultCount, 1, 
+                "Search should return exactly one facility for the identifier: " + identifier);
+
+        // Verify that FHIR search returns facility with the same identifier and all sent through webapp are on FHIR response.
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        fhirController.close();
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+
+    }
+
+    @Test
+    // F3-008. Validate Facility Name
+    public void testValidateFacilityName()
+    {
+        //Step 1 - Create a new facility without name
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
+
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
+
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+
+        // Get the identifier data
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
+        
+        //Check with FHIR that facility got created without name
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+
+        assertTrue(facFhir.getName() == null || facFhir.getName().isEmpty(), "Facility Name should NOT be present on FHIR response when created without a name.");
+
+        //Step 2 - Start creating a new facility, specify a facility name, but do not specify the "Effective From" date for the name.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection("Test Facility", "Facility Description", null);
+        addFacility.clickNext("Facility", null);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        String effectiveStartRequiredForName = errorList.getString("effectiveStartRequiredForName");
+        assertTrue(errorMessageList.contains(effectiveStartRequiredForName),
+                "Not selecting Effective From date for Facility Name should return an error if a name is provided.");
+        
+        //Step 3 - Start creating a new facility, specify a facility name that exceeds the maximum length of 100 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Facility Description");
+        addFacility.clickNext("Facility", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        String facilityNameTooLong = errorList.getString("facilityNameTooLong");
+        assertTrue(errorMessageList.contains(facilityNameTooLong),
+                "Facility Name should return an error if a name is provided with more than a 100 characters.");        
+
+        //Step 4 - Create a new facility with the facility name exactly the maximum length of 100 characters.
+        config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
+        
+        facilityData = facilityDataGen.build(config);
+
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Facility Description");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
+        summaryFragment = addFacility.getFacilitySummary();
+        newFacility = summaryFragment.clickSubmitButton();
+
+        identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        identifier = identifierData.get("Identifier");
+
+        //Check with FHIR that facility got created with name with 100 characters long
+        facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equals("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            "Name should be present and match the created facility.");    
+
+        //Step 5 - Send acceptable characters for Facility name and description.
+        //Valid chars as per ALM: <blank space>&()+-./0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ\abcdefghijklmnopqrstuvwxyz
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        config = new FacilityMaintainConfig()
+                .withAddress();
+        
+        facilityData = facilityDataGen.build(config);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection("ABCDEFGHIJKLMNOPQRSTUVWXYZ\\&()+-./0123456789: abcdefghijklmnopqrstuvwxyz", "Facility Description");
+        addFacility.clickNext("Facility", "");
+        
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
+        summaryFragment = addFacility.getFacilitySummary();
+        summaryFragment.clickSubmitButton();
+
+        identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        identifier = identifierData.get("Identifier");
+
+        //Check with FHIR that facility got created with name with 100 characters long
+        facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equals("ABCDEFGHIJKLMNOPQRSTUVWXYZ\\&()+-./0123456789: abcdefghijklmnopqrstuvwxyz"),
+            "Name should be present and match the created facility.");    
+        
+        fhirController.close();
+    }
+
+    @Test
+    // F3-009. Validate Facility Description
+    public void testValidateFacilityDescription()
+    {
+        //Step 1 - Create a new facility, specify a facility name, but do not specify facility description.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        //Generate data in order to create unique facilities.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withAddress();
+
+        MaintainFacilityBuilder facilityData = facilityDataGen.build(config);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.fillFacilitySection(facilityData.getName(), "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+
+        AddFacilitySummaryFragment summaryFragment = addFacility.getFacilitySummary();
+        ViewFacilityPage newFacility = summaryFragment.clickSubmitButton();
+        
+        //FHIR search check to verify data matches. With name but without description
+        LinkedHashMap<String, String> identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        String identifier = identifierData.get("Identifier");
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equalsIgnoreCase(facilityData.getName()),
+            "Name should be present and match the created facility.");
+        assertTrue(facFhir.getDescription() == null || facFhir.getDescription().isEmpty(), "Facility Description should NOT be present on FHIR response when created without a description.");
+        
+        //Step 2 - Start creating a new facility, specify a facility description, but do not specify the facility name.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection("", "Facility Description");
+        addFacility.clickNext("Facility", null);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        String nameRequiredWhenDescriptionProvided = errorList.getString("nameRequiredWhenDescriptionProvided");
+        assertTrue(errorMessageList.contains(nameRequiredWhenDescriptionProvided),
+                "An error should be returned when Facility Description is provided without a Name.");
+
+        //Step 3 - Start creating a new facility, specify a facility name and facility description, but do not specify the "Effective From" date for the name.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection("Test Facility", "Facility Description", null);
+        addFacility.clickNext("Facility", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        assertTrue(errorMessageList.contains("Effective Start Date is required when Name is provided"),
+                "Not selecting Effective From date for Facility Name should return an error if a name and description is provided.");
+
+        //Step 4 - Start creating a new facility, specify a facility name, and a facility description that exceeds the maximum length of 200 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection("Test Facility", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addFacility.clickNext("Facility", null);
+
+        shortUiPause();
+        
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        String facilityDescriptionTooLong = errorList.getString("facilityDescriptionTooLong");
+        assertTrue(errorMessageList.contains(facilityDescriptionTooLong),
+                "Facility Description should return an error if a description is provided with more than 200 characters.");
+
+        //Step 5 - Create a new facility with a facility name and the facility description exactly the maximum length of 200 characters.
+        
+        //implement FHIR here and data generator
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        //Generate data in order to create unique facilities.
+        config = new FacilityMaintainConfig()
+        .withName()
+        .withAddress();
+
+        facilityData = facilityDataGen.build(config);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection(facilityData.getName(), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facilityData.getAddress().get("line1"));
+        addressFragment.fillCity(facilityData.getAddress().get("city"), facilityData.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();
+        try {
+                addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+        
+        summaryFragment = addFacility.getFacilitySummary();
+        newFacility = summaryFragment.clickSubmitButton();
+
+        //FHIR search check to verify data matches.
+        identifierData = newFacility.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
+        identifier = identifierData.get("Identifier");
+
+        facFhir = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, identifier);
+
+        fhirController.close();
+
+        assertTrue(facFhir.getIdentifier().equals(identifier),
+            "Identifier should be present and match the created facility.");
+        assertTrue(facFhir.getName().equalsIgnoreCase(facilityData.getName()),
+            "Name should be present and match the created facility.");
+        assertTrue(facFhir.getDescription().equalsIgnoreCase("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            "Description should be present and match the created facility.");
+        
+        
+    }
+
+    @Test
+    // F3-011. Facility Duplicate Check
+    public void testFacilityDuplicateCheck()
+    {
+        //Create a Facility through FHIR endpoints then attempt to create via UI to check for duplicates.
+        //Duplicate should be triggered if address is the same.
+        FacilityMaintainConfig config = new FacilityMaintainConfig()
+                .withName()
+                .withDescription()
+                .withAddress();
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainFacilityBuilder facFhir = fhirController.createFacility(config);
+
+        fhirController.close();
+
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.fillFacilitySection("Test Facility", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1(facFhir.getAddress().get("line1"));
+        addressFragment.fillCity(facFhir.getAddress().get("city"), facFhir.getAddress().get("city"));
+        addressFragment.effectiveFromCurrentDate();
+        
+        //Sometimes validation error will popup before duplicate warning, so handle it if it appears
+        try {
+        addFacility.clickNext("Address", null);
+                shortUiPause();
+                addressFragment.handleWidgetButton("Validation");
+        } catch (Exception e) {
+                LOG.info("Automatic handle of Widget.");
+        }
+        
+        shortUiPause();
+
+        List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        String duplicateFacilityFound = warningList.getString("duplicateFacilityFound") + " " + facFhir.getIdentifier();
+        assertTrue(warningMessageList.contains(duplicateFacilityFound),
+                "Facility Duplicate Check did not return expected warning message.");
+
+    }
+
+    @Test
+    // F3-017. Validate Address Lines
+    public void testValidateAddressLines()
+    {
+        //Step 1 and 2 - Start creating a Facility and arrive at Address tab and in address leave Address Line 1 as blank.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        //addressFragment.fillAddressLine1("20 Olympia Ave");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+
+        addFacility.clickNext("Address", null);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        String missingAddressLine1 = errorList.getString("missingAddressLine1");
+        assertTrue(errorMessageList.contains(missingAddressLine1),
+                "Address Line 1 From date not selected should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "Address Line 1:*",
+                "Address Line 1 is unhighlighted, or more than one error occurred.");
+
+        //Step 3 - Enter "Address Line 2" and "Address Line 3", leave the "Address Line 1" field blank.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine2("Suite 200");
+        addressFragment.fillAddressLine3("Building A");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains(missingAddressLine1),
+                "Address Line 1 should be required even when Address Line 2 and 3 are filled.");
+        assertEquals(highlightedAddressFields.getLast(), "Address Line 1:*",
+                "Address Line 1 is unhighlighted, or more than one error occurred.");
+
+        //Step 4 - N/A (as noted in test case) - Instead, doing Address Line 1 exceeds max length of 100 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        String addressLine1TooLong = errorList.getString("addressLine1TooLong");
+        assertTrue(errorMessageList.contains(addressLine1TooLong),
+                "Address Line 1 should return an error when exceeding 100 characters.");
+
+        //Step 5 - Enter "Address Line 1", and enter "Address Line 2" that exceeds the maximum length of 100 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillAddressLine2("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        String addressLine2TooLong = errorList.getString("addressLine2TooLong");
+        assertTrue(errorMessageList.contains(addressLine2TooLong),
+                "Address Line 2 should return an error when exceeding 100 characters.");
+
+        //Step 6 - Enter "Address Line 1", and enter "Address Line 3" that exceeds the maximum length of 100 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillAddressLine3("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        
+        String addressLine3TooLong = errorList.getString("addressLine3TooLong");
+        assertTrue(errorMessageList.contains(addressLine3TooLong),
+                "Address Line 3 should return an error when exceeding 100 characters.");
+
+        //Step 7 - N/A (as noted in test case)
+
+        //Step 8 - Attempt to create a new facility using "NO FIXED ADDRESS" as "Address Line 1".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("NO FIXED ADDRESS");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        // Handle warning dialog "Address Validation Status: Invalid Mailing Address: Invalid Mailing Address" with "Continue w/ Original" button
+        addressFragment.handleWidgetButton("Validation");
+        
+        // Give UI a brief moment to render warnings
+        shortUiPause();
+        List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        
+        String addressValidationFailed = warningList.getString("addressValidationFailed");
+        assertTrue(warningMessageList.contains(addressValidationFailed),
+                "Address Line 1 with 'NO FIXED ADDRESS' should return validation error.");
+
+        //Step 9 - Attempt to create a new facility using "UNKNOWN" as "Address Line 1".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("UNKNOWN");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        // Handle warning dialog "Address Validation Status: Invalid Mailing Address: Invalid Mailing Address" with "Continue w/ Original" button
+        addressFragment.handleWidgetButton("Validation");
+        
+        // Brief pause before reading warnings again
+        shortUiPause();
+        warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        
+        assertTrue(warningMessageList.contains(addressValidationFailed),
+                "Address Line 1 with 'UNKNOWN' should return validation error.");
+
+        //Step 10 - Attempt to create a new facility using "NA" as "Address Line 1".
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("NA");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        // Handle warning dialog "Address Validation Status: Invalid Mailing Address: Invalid Mailing Address" with "Continue w/ Original" button
+        addressFragment.handleWidgetButton("Validation");
+        
+        // Brief pause before reading warnings again
+        shortUiPause();
+        warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        
+        assertTrue(warningMessageList.contains(addressValidationFailed),
+                "Address Line 1 with 'NA' should return validation error.");
+
+    }
+
+    @Test
+    //F3-018. Validate City
+    public void testValidateCity()
+    {
+        //Step 1 and 2 - Start creating a Facility and arrive at Address tab and in address leave City as blank.
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
+        String missingCity = errorList.getString("missingCity");
+        assertTrue(errorMessageList.contains(missingCity),
+                "City not filled should return an error.");
+        assertEquals(highlightedAddressFields.getLast(), "City:*",
+                "City is unhighlighted, or more than one error occurred.");
+
+        //Step 3 - Enter proper "Address Line 1", and enter "City" that exceeds the maximum length of 60 characters.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillCity("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", null); // 61+ chars
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        String cityTooLong = errorList.getString("cityTooLong");
+        assertTrue(errorMessageList.contains(cityTooLong),
+                "City should return an error when exceeding 60 characters.");
+
+        //Step 4 - Enter "City" that has exactly the maximum length of 60 characters.
+        // The system should accept it as a valid input though address validation will fail if is not a valid city.
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+        addFacility.clickNext("Facility", "");
+
+        addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillCity("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", null); // 60 chars
+        addressFragment.effectiveFromCurrentDate();
+        addFacility.clickNext("Address", null);
+
+        // Brief pause before reading warnings again
+        shortUiPause();
+
+        // Handle warning dialog "Address Validation Status: Invalid Mailing Address: Invalid Mailing Address" with "Continue w/ Original" button
+        addressFragment.handleWidgetButton("Validation");
+
+        List<String> warningMessageList = addFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        String addressValidationFailed = warningList.getString("addressValidationFailed");
+        assertTrue(warningMessageList.contains(addressValidationFailed),
+                "Only a warning for invalid address should be returned when City is exactly 60 characters.");
+    }
+
+    @Test
+    // F3-022. Validate Effective Start Date Format
+    public void testValidateEffectiveStartDateFormat()
+    {
+        //Step 1 and 2 - Start creating a Facility and specify a facility type, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY).
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "", null);
+        
+        AddFacilityIdFragment idFragment = new AddFacilityIdFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        idFragment.typeEffectiveFromRaw("12-31-2025");
+        addFacility.clickNext("Identifier", null);
+
+        List<String> errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedIdentifierFields = idFragment.getHighlightedFields();
+        
+        String invalidDateFormatEffectiveFrom = errorList.getString("invalidDateFormatEffectiveFrom");
+        assertTrue(errorMessageList.contains(invalidDateFormatEffectiveFrom),
+                "MM-DD-YYYY format for Effective From date should return an error in Type, Identifier Facility.");
+        assertEquals(highlightedIdentifierFields.getLast(), "Effective From:*",
+                "Identifier Effective From is unhighlighted, or more than one error occurred.");
+        
+        //Step 3 and 4 - Enter a facility name, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY).
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        AddFacilityNameFragment nameFragment = new AddFacilityNameFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        nameFragment.fillName("Test Facility");
+        nameFragment.fillDescription("Facility Description");
+        nameFragment.typeEffectiveFromRaw("12-31-2025");
+        addFacility.clickNext("Facility", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedFacilityFields = nameFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains(invalidDateFormatEffectiveFrom),
+                "MM-DD-YYYY format for Effective From date should return an error in Facility Name section.");
+        assertEquals(highlightedFacilityFields.getLast(), "Effective From:",
+                "Facility Name Effective From is unhighlighted, or more than one error occurred.");
+
+        //Step 5, 6 and 7- Enter a facility address, and enter the "Effective From" date in an incorrect format (e.g. MM-DD-YYYY)
+        addFacility = navigateToAddFacilityPage(workflowManager_);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection("Test Facility", "Facility Description");
+        addFacility.clickNext("Facility", "");
+
+        AddFacilityAddressFragment addressFragment = new AddFacilityAddressFragment(workflowManager_.selectWorkflow(UserType.ADMIN).getSeleniumSession());
+        addressFragment.fillAddressLine1("123 Test Street");
+        addressFragment.fillCity("Victoria", "Victoria");
+        addressFragment.typeEffectiveFromRaw("12-31-2025");
+        addFacility.clickNext("Address", null);
+
+        errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> highlightedAddressFields = addressFragment.getHighlightedFields();
+        
+        assertTrue(errorMessageList.contains(invalidDateFormatEffectiveFrom),
+                "MM-DD-YYYY format for Effective From date should return an error in Facility Name section.");
+        assertEquals(highlightedAddressFields.getLast(), "Effective From:*",
+                "Address Effective From is unhighlighted, or more than one error occurred.");
+
+    }
+
+    // Minimal helper to add a tiny pause for async UI updates
+    private static void shortUiPause()
+    {
+        try { Thread.sleep(1000); } catch (InterruptedException ignored) { }
+    }
+    
+}

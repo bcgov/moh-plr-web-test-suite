@@ -1,5 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
+/**
+ * Enum of each of the panels/sections in the View Facility section
+ */
 public enum FacilitySection {
     /**
      * Identifiers
