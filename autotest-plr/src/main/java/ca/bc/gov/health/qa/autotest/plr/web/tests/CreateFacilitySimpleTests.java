@@ -26,6 +26,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -70,6 +71,12 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
+    }
+
+    @AfterClass
+    public void teardown() {
+        workflowManager_.logoutAllAndClose();
+        LOG.info("Done.");
     }
 
     @Test
