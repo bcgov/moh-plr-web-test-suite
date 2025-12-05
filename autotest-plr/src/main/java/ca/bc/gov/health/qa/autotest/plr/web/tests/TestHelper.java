@@ -8,6 +8,9 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFrag
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import org.openqa.selenium.TimeoutException;
 
 import java.security.SecureRandom;
@@ -15,7 +18,6 @@ import java.time.Duration;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
-
 /**
  * Helper class with commonly-used flows to more easily orchestrate tests across the PLR site
  */
