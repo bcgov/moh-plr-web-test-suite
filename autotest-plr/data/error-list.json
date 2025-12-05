@@ -5,6 +5,6 @@
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",
-    "maximumResults": "Maximum search results returned. Please refine your search criteria.",
+    "maximumResults": "Maximum search results returned. Please refine your search criteria."
   }
 }
