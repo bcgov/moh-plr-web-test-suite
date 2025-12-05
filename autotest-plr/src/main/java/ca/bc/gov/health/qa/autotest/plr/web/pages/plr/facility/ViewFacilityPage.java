@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
 public class ViewFacilityPage extends BasicWebPage {
     private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
     private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile(" \\(.*\\)");
+    private static final String TABLE_ROWS_SELECTOR = " > table > tbody > tr";
+
     private final ViewHeaderFragment viewHeader_;
 
     /**
@@ -96,7 +98,8 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
     /**
-     * Constructs a CSS selector to select the content panel for a specific "data block" from a facility section by index.
+     * Constructs a CSS selector to select the content panel for a specific "data block"
+     * from a facility section by index.
      *
      * @param section   the Facility Section to select
      * @param index     the index of data block to specifically select
@@ -166,7 +169,8 @@ public class ViewFacilityPage extends BasicWebPage {
     {
         if (grabDataBlockExpanded(section, index) != expand)
         {
-            WebElement expandCollapseButton = selenium_.findElement(By.cssSelector(getDataBlockHeaderExpandSelector(section, index)));
+            WebElement expandCollapseButton = selenium_.findElement(By.cssSelector(
+                    getDataBlockHeaderExpandSelector(section, index)));
             selenium_.scrollIntoView(expandCollapseButton);
             expandCollapseButton.click();
 
@@ -199,7 +203,8 @@ public class ViewFacilityPage extends BasicWebPage {
 
     /**
      * Gets the content from a specific data block within a facility section
-     * The Civic Address field has a different structure, so grabCivicAddressBlockContent must be used instead to obtain civic address details.
+     * The Civic Address field has a different structure,
+     * so grabCivicAddressBlockContent must be used instead to obtain civic address details.
      *
      * @param section   the facility section to get content from
      * @param index     the index of data block within the facility section to get content from
@@ -210,7 +215,9 @@ public class ViewFacilityPage extends BasicWebPage {
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
         expandDataBlock(section, index, true);
-        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(getDataBlockContentSelector(section, index) + " > table > tbody > tr"));
+        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(
+                getDataBlockContentSelector(section, index) + TABLE_ROWS_SELECTOR));
+
         if (!dataRowElementList.isEmpty())
         {
             selenium_.scrollIntoView(dataRowElementList.getFirst());
@@ -228,7 +235,8 @@ public class ViewFacilityPage extends BasicWebPage {
                 }
             }
             else {
-                String msg = String.format("Invalid data row (%s: %d: %s).", section.getTitle(), index, dataRow.getText());
+                String msg = String.format("Invalid data row (%s: %d: %s).",
+                        section.getTitle(), index, dataRow.getText());
                 throw new IllegalStateException(msg);
             }
         }
@@ -249,7 +257,8 @@ public class ViewFacilityPage extends BasicWebPage {
 
     /**
      * Gets the content from a Civic Addresses data block.
-     * All other facility sections are structured differently, so grabDataBlockContent must be used instead for any other facility section.
+     * All other facility sections are structured differently,
+     * so grabDataBlockContent must be used instead for any other facility section.
      *
      * @param index     the index of data block to get content from
      * @return  a hash map mapping civic address data fields (String) to their associated values (String)
@@ -258,15 +267,16 @@ public class ViewFacilityPage extends BasicWebPage {
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
         expandDataBlock(FacilitySection.CIVIC_ADDRESSES, index, true);
-        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, index)
-                + " > div.ui-outputpanel > table > tbody > tr"));
+        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(
+                getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, index)
+                + " > div.ui-outputpanel" + TABLE_ROWS_SELECTOR));
         if (!dataRowElementList.isEmpty())
         {
             selenium_.scrollIntoView(dataRowElementList.getFirst());
         }
         for (WebElement dataRow : dataRowElementList)
         {
-            List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td > table > tbody > tr"));
+            List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR));
             int dataColumnCount = dataEntryList.size();
             if (dataColumnCount == 2)
             {
@@ -274,8 +284,12 @@ public class ViewFacilityPage extends BasicWebPage {
             }
             else if (dataColumnCount == 4 || dataColumnCount == 5 || dataColumnCount == 6)
             {
-                addFieldDataMap(dataMap, dataEntryList.get(0).findElements(By.cssSelector("td > table > tbody > tr")), 0);
-                if (dataColumnCount == 5) { addFieldDataMap(dataMap, dataEntryList.get(0).findElements(By.cssSelector("td > table > tbody > tr")), 2); }
+                addFieldDataMap(dataMap, dataEntryList.get(0).findElements(
+                        By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 0);
+                if (dataColumnCount == 5) {
+                    addFieldDataMap(dataMap, dataEntryList.get(0).findElements(
+                            By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 2);
+                }
             }
             else
             {

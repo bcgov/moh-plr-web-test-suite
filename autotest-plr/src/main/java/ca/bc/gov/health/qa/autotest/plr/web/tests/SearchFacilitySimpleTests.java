@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -19,10 +21,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
+import static org.testng.Assert.*;
 
-public class SearchFacilityTests implements SimpleTest {
+public class SearchFacilitySimpleTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private static final Config config_ = ConfigProvider.get().getConfig();
@@ -32,7 +34,7 @@ public class SearchFacilityTests implements SimpleTest {
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
-    public SearchFacilityTests() {
+    public SearchFacilitySimpleTests() {
         try
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
@@ -45,13 +47,11 @@ public class SearchFacilityTests implements SimpleTest {
         }
     }
 
-
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
-
 
     @BeforeMethod
     public void before(Object[] parameters)
@@ -64,91 +64,103 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     /**
-     * Logs into PLR with a specific userType (if it hasn't been logged in already)
+     * Checks the Column Names of the table of search results
      *
-     * @param userType      the user type to log into PLR as
-     * @return              the PlrWebWorkflow reference to the workflow logged into PLR as the specified user type
+     * @param searchResults     the SearchFacilityResultsFragment reference
      */
-    public PlrWebWorkflow logIn(UserType userType)
+    private void checkColumns(SearchFacilityResultsFragment searchResults)
     {
-        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(userType);
-        if (!workflow.isLoggedIn()) workflow.login().openPlr();
-        return workflow;
+        int index = 0;
+        for (String tableColumn : List.of("Facility Name", "Identifier", "Civic Address"))
+        {
+            assertTrue(searchResults.getTableColumns().get(index).contains(tableColumn),
+                    String.format("Table column %d is not %s", index, tableColumn));
+            index++;
+        }
     }
 
-    /**
-     * Navigate to the "Search Facility" Page
-     *
-     * @param userType      the userType to log in as and navigate to the Search Facility Page with
-     * @return              a SearchFacilityPage reference to the workflow's search facility page component
-     */
-    public SearchFacilityPage navigateToSearchFacilityPage(UserType userType)
+    @Test
+    // F1-001. Facility Search
+    public void testFacilitySearch()
     {
-        PlrWebWorkflow workflow = logIn(userType);
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
+        final Pattern SEARCH_RESULTS_TIME_PATTERN = Pattern.compile("([0-9]+\\.[0-9]{3})");
 
-        // System displays Search by Facility page correctly
-        searchFacility.waitForReady();
+        final String identifierToCheck = "IFC.00000001.BC.PRS";
+        final List<String> criteriaToCheck = Arrays.asList(
+                "AZ F00123 & & (", "1175 DOUGLAS ST", "", "Vic", "Victoria", "Select One", "", "");
 
-        return searchFacility;
-    }
+        for (UserType userType : UserType.values())
+        {
+            if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
 
-    /**
-     * Searches by Identifier in the Search Facility page.
-     *
-     * @param searchFacility    the search facilty page reference
-     * @param queryFields       a list of strings of query details to fill fields with.
-     *                          Index 0: Facility Identifier Type
-     *                          Index 1: Facility Identifier
-     * @param expectedError     whether an error is anticipated when executing the query
-     * @return                  a SearchFacilityResultsFragment reference to the search results of the identifier query
-     */
-    public SearchFacilityResultsFragment searchByIdentifier(
-            SearchFacilityPage searchFacility, List<String> queryFields, boolean expectedError)
-    {
-        return searchFacility.searchByIdentifier(
-                queryFields.getFirst(), queryFields.get(1),
-                expectedError);
-    }
+            logIn(workflowManager_, userType);
+            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
+            SearchFacilityResultsFragment searchResults;
 
-    /**
-     * Searches by Criteria in the Search Facility page.
-     *
-     * @param searchFacility    the search facility page reference
-     * @param queryFields       a list of strings of query details to fill fields with.
-     *                          Index 0: Facility Name
-     *                          Index 1: Civic Address Line 1
-     *                          Index 2: Other Address Line 2
-     *                          Index 3: City Field
-     *                          Index 4: City Prefix (for autocomplete, empty string becomes null)
-     *                          Index 5: Facility Type Prefix
-     *                          Index 6: Service Delivery Area Field
-     *                          Index 7: Service Delivery Area Prefix (for autocomplete, empty string becomes null)
-     * @param expectedError     whether an error is anticipated when executing the query
-     * @return                  a SearchFacilityResultsRequest reference to the search results of the criteria query
-     */
-    public SearchFacilityResultsFragment searchByCriteria(
-            SearchFacilityPage searchFacility, List<String> queryFields, boolean expectedError)
-    {
-        String cityPrefix = null;
-        String sdaPrefix = null;
-        if (!queryFields.get(4).isEmpty()) cityPrefix = queryFields.get(4);
-        if (!queryFields.get(7).isEmpty()) sdaPrefix = queryFields.get(7);
-        return searchFacility.searchByCriteria(
-                queryFields.getFirst(), queryFields.get(1), queryFields.get(2), queryFields.get(3), cityPrefix,
-                queryFields.get(5), queryFields.get(6), sdaPrefix, expectedError);
+            assertTrue(searchFacility.verifyTitle(), "Title of page does not match 'Search Facility'");
+            assertTrue(searchFacility.verifyHistory(), "History checkbox not found");
+
+            assertTrue(searchFacility.grabIdentifierSectionExpanded(),
+                    "Search by Identifier not opened by default");
+            assertFalse(searchFacility.grabCriteriaSectionExpanded(),
+                    "Search by Criteria unexpectedly open by default");
+
+            String formSeconds = null;
+
+            // Identifier Query
+            List<String> queryDetails = Arrays.asList("IFC", identifierToCheck);
+            searchResults = searchByIdentifier(searchFacility, queryDetails, false);
+            String formResults = searchResults.getFormResults();
+            Matcher resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
+            if (resultMatcher.find()) formSeconds = resultMatcher.group();
+
+            assertTrue(searchFacility.checkOrdering(),
+                    "Table of search results is out of position (identifier/criteria search not above table)");
+            assertTrue(formResults.contains("1 result"),
+                    "Form result does not contain number of results in table summary");
+            assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
+                    "Form result does not contain time taken to retrieve results.");
+
+            checkColumns(searchResults);
+
+            // Criteria Query
+            searchFacility.expandSearchCriteria(true);
+            assertTrue(searchFacility.grabCriteriaSectionExpanded(),
+                    "Search by Criteria failed to open");
+            assertFalse(searchFacility.grabIdentifierSectionExpanded(),
+                    "Search by Identifier unexpectedly remained open");
+
+            queryDetails = criteriaToCheck;
+            searchResults = searchByCriteria(searchFacility, queryDetails, false);
+            formResults = searchResults.getFormResults();
+            resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
+            if (resultMatcher.find()) formSeconds = resultMatcher.group();
+
+            assertTrue(searchFacility.checkOrdering(),
+                    "Table of search results is out of position (identifier/criteria search not above table)");
+            assertTrue(formResults.contains("1 result"),
+                    "Form result does not contain number of results in table summary");
+            assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
+                    "Form result does not contain time taken to retrieve results.");
+
+            checkColumns(searchResults);
+
+            workflowManager_.logoutAndClose(userType);
+        }
     }
 
     @Test
     // F1-002. Facility Search by ID
     public void testFacilitySearchID()
     {
-        final List<String> expectedData = Arrays.asList("AZ F00123 & & (", "IFC.00000001.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
+        final List<String> expectedData = Arrays.asList(
+                "AZ F00123 & & (", "IFC.00000001.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
 
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
-        assertTrue(searchFacility.grabIdentifierSectionExpanded(), "Search by Identifier not opened by default");
+        assertTrue(searchFacility.grabIdentifierSectionExpanded(),
+                "Search by Identifier not opened by default");
 
         SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
         List<String> identifierAttributes = identifierPanel.verifyIdentifierTab();
@@ -163,7 +175,8 @@ public class SearchFacilityTests implements SimpleTest {
                 "Search Button not present");
 
         List<String> queryDetails = Arrays.asList("IFC", expectedData.get(1));
-        SearchFacilityResultsFragment searchResults = searchByIdentifier(searchFacility, queryDetails, false);
+        SearchFacilityResultsFragment searchResults;
+        searchResults = searchByIdentifier(searchFacility, queryDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0,
                 "Search Results returned unsuccessfully.");
@@ -183,8 +196,9 @@ public class SearchFacilityTests implements SimpleTest {
 
     @Test
     // F1-003. Minimum Data Requirements for Facility Search by Facility ID
-    public void testMinDataReqsFacilityID() {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+    public void testMinDataReqsFacilityID()
+    {
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
         assertTrue(searchFacility.grabIdentifierSectionExpanded(), "Search by Identifier not opened by default");
 
@@ -246,6 +260,23 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-005. Filtering Identifier Type for Query
+    public void testIdentifierTypes()
+    {
+        List<String> expectedIdentifierTypes = Arrays.asList("Select One", "IFC - Internal Facility Code");
+
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
+        identifierPanel.getIdentifierTypeMenu().expandItemPanel(true);
+
+        for (String expectedType : expectedIdentifierTypes)
+        {
+            assertTrue(identifierPanel.getIdentifierTypeMenu().grabItemList().contains(expectedType),
+                    "Type " + expectedIdentifierTypes + "is unavailable in the identifier type menu");
+        }
+    }
+
+    @Test
     // F1-006. Facility Search by Criteria
     public void testFacilitySearchCriteria()
     {
@@ -256,7 +287,7 @@ public class SearchFacilityTests implements SimpleTest {
         final List<String> expectedFields = Arrays.asList("1175 DOUGLAS ST", "1175 DOUGLAS ST", "VICTORIA", "South Vancouver Island");
 
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
         SearchFacilityCriteriaFragment criteriaPanel = searchFacility.expandSearchCriteria(true);
         assertTrue(searchFacility.grabCriteriaSectionExpanded(),"Search by Criteria not opened by default");
@@ -311,7 +342,7 @@ public class SearchFacilityTests implements SimpleTest {
     // F1-007. Minimum Data Requirements for Facility Search with Criteria
     public void testMinDataReqsCriteria()
     {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityResultsFragment searchResults;
 
         List<String> queryDetails = Arrays.asList("", "", "", "", "", "Select One", "", "");
@@ -337,7 +368,7 @@ public class SearchFacilityTests implements SimpleTest {
         searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
-                "Search Results returned unsuccessfully when only specifying Other Addresss Line 1.");
+                "Search Results returned unsuccessfully when only specifying Other Address Line 1.");
         queryDetails.set(2, "");
 
         // City Specified, Others Empty
@@ -380,12 +411,90 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
+    // F1-008. Facility Attribute Search Rules - Logical
+    public void testFacilitySearchRulesLogical()
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+
+        // Search 1 (Facility Name, Other Address, Facility Type)
+        List<String> queryDetails = Arrays.asList("AZ F00123 & & (", "", "1175 DOUGLAS ST", "", "", "BUILDING", "", "");
+        searchByCriteria(searchFacility, queryDetails, false);
+
+        ViewFacilityPage viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);
+        assertTrue(viewDetails.getViewHeader().grabViewTitle().contains(queryDetails.getFirst()),
+                "Facility is missing expected Facility Name");
+        LinkedHashMap<String,String> identifierMap = viewDetails.grabDataBlockContent(
+                FacilitySection.IDENTIFIERS, 0);
+        LinkedHashMap<String,String> otherMap = viewDetails.grabDataBlockContent(
+                FacilitySection.OTHER_ADDRESS, 0);
+        assertEquals(otherMap.get("Address Line 1"), queryDetails.get(2),
+                "Facility is missing expected Other Address Line 1");
+        assertEquals(identifierMap.get("Facility Type"), queryDetails.get(5),
+                "Facility is missing expected Facility Type");
+
+        workflow.getPlrWebAccessActions().openSearchFacility();
+
+        // Search 2 (Civic Address, City, Service Delivery Area)
+        queryDetails = Arrays.asList(
+                "", "1175 DOUGLAS ST", "", "Vic", "Victoria", "Select One", "South V", "South Vancouver Island");
+        searchByCriteria(searchFacility, queryDetails, false);
+
+        viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);
+        LinkedHashMap<String,String> civicMap = viewDetails.grabCivicAddressBlockContent(0);
+        assertEquals(civicMap.get("Address Line 1"), queryDetails.get(1),
+                "Facility is missing expected Civic Address Line 1");
+        assertEquals(civicMap.get("City"), queryDetails.get(4).toUpperCase(),
+                "Facility is missing expected City");
+        assertEquals(civicMap.get("Health Service Delivery Area"), queryDetails.getLast(),
+                "Facility is missing expected Service Delivery Area");
+    }
+
+    @Test
+    // F1-009: F1-009. Service Delivery Area Recognition
+    public void testServiceDeliveryArea()
+    {
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        SearchFacilityCriteriaFragment criteriaPanel = searchFacility.expandSearchCriteria(true);
+
+        assertTrue(searchFacility.grabCriteriaSectionExpanded(),
+                "Search by Criteria failed to expand");
+
+        criteriaPanel.getServiceDeliveryAreaMenu().displayAutocomplete("South V", true);
+
+        assertTrue(criteriaPanel.getServiceDeliveryAreaMenu().grabAutocompletePanelActive(),
+                "Service Delivery Area autocomplete failed to appear");
+
+        criteriaPanel.getServiceDeliveryAreaMenu().selectItemFromPanel("South Van");
+
+        assertEquals(criteriaPanel.getServiceDeliveryAreaMenu().grabCompletedItem(),
+                "South Vancouver Island (HSDA)",
+                "Service Delivery Area field did not populate with the expected result");
+    }
+
+    @Test
+    // F1-013. Word Wrap Search Results
+    public void testWordWrapResults()
+    {
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        SearchFacilityResultsFragment searchResults;
+
+        List<String> queryDetails = Arrays.asList("a*", "", "", "", "", "Select One", "", "");
+        searchResults = searchByCriteria(searchFacility, queryDetails, false);
+
+        for (int rowIndex = 0; rowIndex < searchResults.grabResultsRowCount(); rowIndex++)
+        {
+            assertTrue(searchResults.verifyWordWrapStyle(rowIndex));
+        }
+    }
+
+    @Test
     // F1-014. Zero Results
     public void testZeroResults()
     {
         final String expectedMessage = "No records found.";
 
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(UserType.ADMIN);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityResultsFragment searchResults;
 
         List<String> fakeFields;
@@ -406,34 +515,52 @@ public class SearchFacilityTests implements SimpleTest {
     }
 
     @Test
-    // Search Facility: Facility Search with Wildcard - Match Ending Character
-    public void testCriteriaSearchWildcardMatchEnding()
+    // F1-017. Previous Facility Search Results Session
+    public void testPreviousResultsSession()
     {
-        final String expectedFacilityName = "ABCDEF";
-        final String facilityNameField = expectedFacilityName.replace(expectedFacilityName.substring(expectedFacilityName.length() - 1), "*");
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                facilityNameField, "", "", "", null,
-                "Select One", "", null, false);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        SearchFacilityResultsFragment searchResults;
 
-        assertTrue(searchResults.grabResultsRowCount() > 0, "Searching for facility with wildcard to match 1 ending character results in no facilities being returned.");
-        assertTrue(searchResults.getResultsRow(0).getFirst().startsWith(expectedFacilityName), "Returned facility doesn't have the expected facility name used in search.");
-    }
+        // Identifier Query
+        SearchFacilityIdFragment identifierPanel = new SearchFacilityIdFragment(workflow.getSeleniumSession());
 
-    @Test
-    // Search Facility: Facility Search with Wildcard - Match All but First Character
-    public void testCriteriaSearchWildcardMatchMany()
-    {
-        final String expectedFacilityName = "yates 580 postal cd";
-        final String facilityNameField = expectedFacilityName.charAt(0) + "*";
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        SearchFacilityResultsFragment searchResults = searchFacility.searchByCriteria(
-                facilityNameField, "", "", "", null,
-                "Select One", "", null,false);
+        List<String> queryDetails = Arrays.asList("IFC", "IFC.00000001.BC.PRS");
+        searchResults = searchByIdentifier(searchFacility, queryDetails, false);
 
-        assertTrue(searchResults.grabResultsRowCount() > 0, "Searching for facility with wildcard to match all but starting character results in no facilities being returned.");
-        assertTrue(searchResults.getResultsRow(0).getFirst().startsWith(expectedFacilityName), "Returned facility doesn't have the expected facility name used in search.");
+        List<String> previousValues = identifierPanel.getCurrentFieldValues();
+        List<String> previousResults = searchResults.getResultsRow(0);
+
+        workflow.getSearchFacilityActions().openSearchResults(0);
+        workflow.getPlrWebAccessActions().openSearchFacility();
+
+        identifierPanel = new SearchFacilityIdFragment(workflow.getSeleniumSession());
+        searchResults = new SearchFacilityResultsFragment(workflow.getSeleniumSession());
+
+        assertEquals(searchResults.getResultsRow(0), previousResults,
+                "Results from previous session do not match / do not appear");
+        assertEquals(identifierPanel.getCurrentFieldValues(), previousValues,
+                "Field values from previous session do not appear");
+
+        // Criteria Query
+        SearchFacilityCriteriaFragment criteriaPanel = new SearchFacilityCriteriaFragment(workflow.getSeleniumSession());
+
+        queryDetails = Arrays.asList("AZ F00123 & & (", "1175 DOUGLAS ST", "", "", "", "Select One", "", "");
+        searchResults = searchByCriteria(searchFacility, queryDetails, false);
+
+        previousValues = criteriaPanel.getCurrentFieldValues();
+        previousResults = searchResults.getResultsRow(0);
+
+        workflow.getSearchFacilityActions().openSearchResults(0);
+        searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
+        searchFacility.expandSearchCriteria(true);
+
+        criteriaPanel = new SearchFacilityCriteriaFragment(workflow.getSeleniumSession());
+        searchResults = new SearchFacilityResultsFragment(workflow.getSeleniumSession());
+
+        assertEquals(searchResults.getResultsRow(0), previousResults,
+                "Results from previous session do not match / do not appear");
+        assertEquals(criteriaPanel.getCurrentFieldValues(), previousValues,
+                "Field values from previous session do not appear");
     }
 }

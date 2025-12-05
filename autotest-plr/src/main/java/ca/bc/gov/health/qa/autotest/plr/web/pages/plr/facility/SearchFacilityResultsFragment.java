@@ -64,9 +64,12 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
     /**
      * Finds a row in the table of search results when searching by facility
      *
-     * @param index     the index of row to search for in the search results
-     * @return  a WebElement reference of the row at the requested index
-     * @throws  IllegalStateException   if no row at the requested index is found, or another error has occurred with finding a unique row at the specified index
+     * @param index                     the index of row to search for in the search results
+     *
+     * @return                          a WebElement reference of the row at the requested index
+     *
+     * @throws  IllegalStateException   if no row at the requested index is found,
+     *                                  or another error has occurred with finding a unique row at the specified index
      */
     public WebElement findResultsRow(int index)
     {
@@ -111,5 +114,86 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
         WebElement row = findResultsRow(index);
         row.findElement(By.cssSelector("td > a")).click();
         waitForAbsent();
+    }
+
+    /**
+     * Gets the full search results as text, including the form message of result count and time taken
+     *
+     * @return  a string of the full search results as text
+     */
+    public String getFormResults()
+    {
+        return selenium_.findElementByCss("form#searchResultsForm").getText();
+    }
+
+    /**
+     * Gets the facility names of each record in the search results
+     * The facility description is discarded in the results
+     *
+     * @return  a list of strings with each facility name in the search results
+     */
+    public List<String> getFacilityNamesList()
+    {
+        List<String> facNameList = new ArrayList<>();
+        for (int facilityCount = 0; facilityCount < grabResultsRowCount(); facilityCount++)
+        {
+            String facName = getResultsRow(facilityCount).getFirst();
+            if (facName.contains(",")) facName = facName.substring(0, facName.indexOf(','));
+            facNameList.add(facName);
+        }
+        return facNameList;
+    }
+
+    /**
+     * Gets the civic addresses for each record in the search results
+     * The country is discarded in the results, see comments for explanation
+     *
+     * @return  a list of strings with each civic address in the search results
+     */
+    public List<String> getCivicAddressList()
+    {
+        List<String> civicAddressList = new ArrayList<>();
+        for (int facilityCount = 0; facilityCount < grabResultsRowCount(); facilityCount++)
+        {
+            String civicAddress = getResultsRow(facilityCount).get(2);
+            /* Slight inaccuracy in testing - the country in the Civic Address is searchable, but the output in search
+               results does not match what is required in the search query.
+               e.g. To search for British Columbia facilities, a reference to "BC" is required in the search. The
+                    search results after this will display the civic address as "British Columbia", not "BC".
+                    Attempting to search for "British Columbia" will result in no results being returned. */
+            civicAddressList.add(civicAddress.substring(0, civicAddress.lastIndexOf(',')));
+        }
+        return civicAddressList;
+    }
+
+    /**
+     * Gets the header values for each column in the table of search results
+     *
+     * @return  a list of strings for the name of each column in the table of search results
+     */
+    public List<String> getTableColumns()
+    {
+        List<String> headerList = new ArrayList<>();
+        List<WebElement> webElementList = selenium_.findElementsByCss(
+                "thead#searchResultsForm\\:tbl_head > tr > th");
+        for (WebElement headerElement : webElementList) headerList.add(headerElement.getText());
+        return headerList;
+    }
+
+    /**
+     * Determines whether a row of the table of search results contains the CSS styles necessary to word wrap
+     * (so all text content is visible on the page)
+     *
+     * @return  whether the row of table of search results has
+     *          white-space set to "normal" and word-break set to "break-all".
+     */
+    public boolean verifyWordWrapStyle(int rowIndex)
+    {
+        WebElement test = findResultsRow(rowIndex);
+        boolean expectedWhiteSpace = test.findElement(By.cssSelector("td")).getAttribute("style")
+                .contains("white-space: normal");
+        boolean expectedWordBreak = test.findElement(By.cssSelector("td")).getAttribute("style")
+                .contains("word-break: break-all");
+        return expectedWhiteSpace && expectedWordBreak;
     }
 }
