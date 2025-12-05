@@ -96,7 +96,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	}
 
 	/*
-	 * Test F2-001 verify details of view facility page with particular user type
+	 * Test F2-001 View Facility Details
 	 */
 	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
 	public void testViewFacilityDetails(UserType userType) {
@@ -104,6 +104,10 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		JSONObject testFacility = PlrData.getFacility("test001");
 		JSONObject expectedFacility = PlrData.getFacility("default-test");
 
+		if(UserType.SECONDARY.equals(userType)||UserType.CONSUMER.equals(userType)) {
+			expectedFacility = PlrData.getFacility("default-test-second");
+
+		}
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, userType);
 		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
 		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
@@ -125,7 +129,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 
 	
 	/*
-	 * Test F2-011 verify details of view facility page with SecondarySrc user type
+	 * Test F2-011 verify Provider Relationship Summary Line
 	 */
 	@Test
 	public void testProviderRelationshipSummaryLine() {
@@ -157,7 +161,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 					else {
 						String orgNameFirst30 = orgName.substring(0, Math.min(orgName.length(), 30));
 						assertTrue(resultSummaryLineText.contains(orgNameFirst30));
-						//assertTrue(!resultSummaryLineText.contains(orgName));
+						assertTrue(!resultSummaryLineText.contains(orgName));
 
 					}
 
@@ -169,7 +173,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	}
 
 	/*
-	 * Test F2-003 verify details of view facility page with SecondarySrc user type
+	 * Test F2-003  Sort Order - View Facility Details Screen
 	 */
 	@Test
 	public void testSortOrderViewFacilityDetailsScreen() {

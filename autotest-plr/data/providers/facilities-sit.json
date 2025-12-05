@@ -1,7 +1,7 @@
 {
 	"test001": {
-		"fauth": "6387",
-		"ifc": "IFC.00006387.BC.PRS"
+		"fauth": "6375",
+		"ifc": "IFC.00006375.BC.PRS"
 	},
 	"test005": {
 		"fauth": "6387",
@@ -23,7 +23,7 @@
 		"Relationship Identifier":"RELN.82095.PRS",
 		"Organization Name":"AZ Test 001"},
 		{
-		"Relationship Identifier":"RELN.82094.PRS",
+		"Relationship Identifier":"RELN.82390.PRS",
 		"Organization Name":"orgnameabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij"}
 		]
 	},
@@ -31,80 +31,94 @@
 		"identifiers": [
 			{
 				"Facility Type": "BUILDING",
-				"Identifier": "IFC.00006387.BC.PRS",
+				"Identifier": "IFC.00006375.BC.PRS",
 				"Identifier Type": "IFC",
-				"Effective From": "2025-11-04",
+				"Effective From": "2025-10-29",
 				"Effective To": "",
 				"End Reason": "",
 				"Data Source": "plrselenadmin1@00002855",
-				"DB Created": "2025-11-04",
+				"DB Created": "2025-10-29",
 				"DB Expired": "",
 				"Data Owner Code": "MOH"
 			}
 		],
 		"names": [
 			{
-				"Name": "maximumlengthaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-				"Description": "desc",
-				"Effective From": "2025-11-04",
+				"Name": "test001",
+				"Description": "",
+				"Effective From": "2025-10-02",
 				"Effective To": "",
 				"End Reason": "",
 				"Data Source": "plrselenadmin1@00002855",
-				"DB Created": "2025-11-04",
+				"DB Created": "2025-11-09",
 				"DB Expired": "",
 				"Data Owner Code": "MOH"
 			}
 		],
 		"civicAddress": [
 			{
-				"Latitude": "49.2772291",
-				"Longitude": "-123.109414",
-				"Address Line 1": "825 GRIFFITHS WAY",
+				"Latitude": "49.8760561",
+				"Longitude": "-119.4884449",
+				"Address Line 1": "2122 RICHTER ST",
 				"Address Line 2": "",
 				"Address Line 3": "",
-				"City": "VANCOUVER",
+				"City": "KELOWNA",
 				"Province / State": "BC - British Columbia", 
 				"Country":"CA - CANADA",
-				"Health Authority": "Vancouver Coastal",
-				"Health Service Delivery Area": "Vancouver",
-				"Local Health Area": "Vancouver - Centre North",
+				"Health Authority": "Interior",
+				"Health Service Delivery Area": "Okanagan",
+				"Local Health Area": "Central Okanagan",
 				"Primary Care Network": "",
-				"Community Health Service Area": "Northeast False Creek"
+				"Community Health Service Area": "Downtown Kelowna"
 			}
 		],
 		"otherAddress": [
 			{
-				"Validation Status": "Invalid (I)",
+				"Validation Status": "Valid (V)",
 				"Address Type": "Physical location (P)",
 				"Address Purpose": "Facility Contact (FC)",
-				"Address Line 1": "825 GRIFFITHS WAY",
+				"Address Line 1": "2122 RICHTER ST",
 				"Address Line 2": "",
 				"Address Line 3": "",
-				"City": "VANCOUVER",
+				"City": "KELOWNA",
 				"State/Prov": "BC",
-				"Postal/Zip Code": "V6B 6G1",
+				"Postal/Zip Code": "V1Y 2N8",
 				"Country": "CANADA (CA)",
-				"Effective From": "2025-11-04",
+				"Effective From": "2025-10-01",
 				"Effective To": "",
 				"End Reason": "",
 				"Data Source": "plrselenadmin1@00002855",
-				"DB Created": "2025-11-04",
+				"DB Created": "2025-10-29",
 				"DB Expired": "",
 				"Data Owner Code": "MOH"
 			}
 		],
 		"telecommunication": [
+		{
+				"Type": "Fax (FAX)",
+				"Purpose": "Facility Contact (FC)",
+				"Area Code": "250",
+				"Number": "3336666",
+				"Extension": "123",
+				"Effective From": "2025-02-05",
+				"Effective To": "2033-10-01",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			},
 			{
 				"Type": "Telephone (T)",
 				"Purpose": "Facility Contact (FC)",
 				"Area Code": "250",
-				"Number": "8886688",
+				"Number": "8886666",
 				"Extension": "",
-				"Effective From": "2025-11-01",
-				"Effective To": "2026-11-01",
+				"Effective From": "2025-01-02",
+				"Effective To": "",
 				"End Reason": "",
 				"Data Source": "plrselenadmin1@00002855",
-				"DB Created": "2025-11-04",
+				"DB Created": "2025-11-09",
 				"DB Expired": "",
 				"Data Owner Code": "MOH"
 			}
@@ -113,12 +127,36 @@
 			{
 				"Type": "Email (E)",
 				"Purpose": "Facility Contact (FC)",
-				"Address": "maxiama@testfacility.com",
-				"Effective From": "2025-11-01",
-				"Effective To": "2026-11-01",
+				"Address": "recp@orgtest.com",
+				"Effective From": "2025-11-03",
+				"Effective To": "",
 				"End Reason": "",
 				"Data Source": "plrselenadmin1@00002855",
-				"DB Created": "2025-11-04",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			},
+			{
+				"Type": "FTP (F)",
+				"Purpose": "Facility Contact (FC)",
+				"Address": "ftp://test.ftp.com",
+				"Effective From": "2025-06-16",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			},
+			{
+				"Type": "HTTP (H)",
+				"Purpose": "Facility Contact (FC)",
+				"Address": "http://recp2.testorg.ca",
+				"Effective From": "2025-02-03",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
 				"DB Expired": "",
 				"Data Owner Code": "MOH"
 			}
@@ -126,55 +164,266 @@
 		"relationships": [
 			
 			{
-				"Relationship Identifier": "RELN.81919.PRS",
-				"Relationship Type": "Location of (LOCATION)",
-				"Related Organization Name": "",
-				"Related Organization Identifier": "IPC.00000985.BC.PRS",
-				"Effective From": "2025-11-04",
-				"Effective To": "",
+				"Relationship Identifier": "RELN.82095.PRS",
+				"Relationship Type": "Located at (LOCATED)",
+				"Related Organization Name": "AZ Test 001",
+				"Related Organization Identifier": "IPC.00082689A.BC.PRS",
+				"Effective From": "2025-10-01",
+				"Effective To": "2027-11-01",
 				"End Reason": "",
-				"Data Source": "ebarrios@idir@00002855",
-				"DB Created": "2025-11-04",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
 				"DB Expired": "",
 				"Data Owner Code": "RNA"
 			},
 			
 			{
-				"Relationship Identifier": "RELN.81921.PRS",
+				"Relationship Identifier": "RELN.82390.PRS",
 				"Relationship Type": "Location of (LOCATION)",
-				"Related Organization Name": "",
-				"Related Organization Identifier": "IPC.00123974.BC.PRS",
-				"Effective From": "2025-11-04",
+				"Related Organization Name": "orgnameabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij",
+				"Related Organization Identifier": "IPC.00124896.BC.PRS",
+				"Effective From": "2025-12-01",
 				"Effective To": "",
 				"End Reason": "",
-				"Data Source": "ebarrios@idir@00002855",
-				"DB Created": "2025-11-04",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-12-05",
 				"DB Expired": "",
 				"Data Owner Code": "RNA"
+			}
+
+		],
+		"notes": [
+			{
+				"Note Identifier": "note001",
+				"Note Text": "note001",
+				"Effective From": "2025-11-03",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
 			},
 			{
-				"Relationship Identifier": "RELN.81920.PRS",
-				"Relationship Type": "Location of (LOCATION)",
-				"Related Organization Name": "Support Services",
-				"Related Organization Identifier": "IPC.00123986.BC.PRS",
+				"Note Identifier": "note002",
+				"Note Text": "note001",
+				"Effective From": "2025-03-03",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			},
+			{
+				"Note Identifier": "note003",
+				"Note Text": "note001",
 				"Effective From": "2025-11-04",
 				"Effective To": "",
 				"End Reason": "",
-				"Data Source": "ebarrios@idir@00002855",
-				"DB Created": "2025-11-04",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		]
+	},
+	"default-test-second": {
+		"identifiers": [
+			{
+				"Facility Type": "BUILDING",
+				"Identifier": "IFC.00006375.BC.PRS",
+				"Identifier Type": "IFC",
+				"Effective From": "2025-10-29",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-10-29",
 				"DB Expired": "",
 				"Data Owner Code": "MOH"
 			}
 		],
-		"notes": [
+		"names": [
 			{
-				"Note Identifier": "test note",
-				"Note Text": "test content",
-				"Effective From": "2025-11-01",
-				"Effective To": "2026-11-01",
+				"Name": "test001",
+				"Description": "",
+				"Effective From": "2025-10-02",
+				"Effective To": "",
 				"End Reason": "",
 				"Data Source": "plrselenadmin1@00002855",
-				"DB Created": "2025-11-05",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"civicAddress": [
+			{
+				"Latitude": "49.8760561",
+				"Longitude": "-119.4884449",
+				"Address Line 1": "2122 RICHTER ST",
+				"Address Line 2": "",
+				"Address Line 3": "",
+				"City": "KELOWNA",
+				"Province / State": "BC - British Columbia", 
+				"Country":"CA - CANADA",
+				"Health Authority": "Interior",
+				"Health Service Delivery Area": "Okanagan",
+				"Local Health Area": "Central Okanagan",
+				"Primary Care Network": "",
+				"Community Health Service Area": "Downtown Kelowna"
+			}
+		],
+		"otherAddress": [
+			{
+				"Validation Status": "Valid (V)",
+				"Address Type": "Physical location (P)",
+				"Address Purpose": "Facility Contact (FC)",
+				"Address Line 1": "2122 RICHTER ST",
+				"Address Line 2": "",
+				"Address Line 3": "",
+				"City": "KELOWNA",
+				"State/Prov": "BC",
+				"Postal/Zip Code": "V1Y 2N8",
+				"Country": "CANADA (CA)",
+				"Effective From": "2025-10-01",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-10-29",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"telecommunication": [
+		{
+				"Type": "Fax (FAX)",
+				"Purpose": "Facility Contact (FC)",
+				"Area Code": "250",
+				"Number": "3336666",
+				"Extension": "123",
+				"Effective From": "2025-02-05",
+				"Effective To": "2033-10-01",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			},
+			{
+				"Type": "Telephone (T)",
+				"Purpose": "Facility Contact (FC)",
+				"Area Code": "250",
+				"Number": "8886666",
+				"Extension": "",
+				"Effective From": "2025-01-02",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"electronic Address": [
+			{
+				"Type": "Email (E)",
+				"Purpose": "Facility Contact (FC)",
+				"Address": "recp@orgtest.com",
+				"Effective From": "2025-11-03",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			},
+			{
+				"Type": "FTP (F)",
+				"Purpose": "Facility Contact (FC)",
+				"Address": "ftp://test.ftp.com",
+				"Effective From": "2025-06-16",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			},
+			{
+				"Type": "HTTP (H)",
+				"Purpose": "Facility Contact (FC)",
+				"Address": "http://recp2.testorg.ca",
+				"Effective From": "2025-02-03",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			}
+		],
+		"relationships": [
+			
+			{
+				"Relationship Identifier": "RELN.82095.PRS",
+				"Relationship Type": "Located at (LOCATED)",
+				"Related Organization Name": "AZ Test 001",
+				"Related Organization Identifier": "IPC.00082689A.BC.PRS",
+				"Effective From": "2025-10-01",
+				"Effective To": "2027-11-01",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "RNA"
+			},
+			
+			{
+				"Relationship Identifier": "RELN.82390.PRS",
+				"Relationship Type": "Location of (LOCATION)",
+				"Related Organization Name": "",
+				"Related Organization Identifier": "IPC.00124896.BC.PRS",
+				"Effective From": "2025-12-01",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-12-05",
+				"DB Expired": "",
+				"Data Owner Code": "RNA"
+			}
+
+		],
+		"notes": [
+			{
+				"Note Identifier": "note001",
+				"Note Text": "note001",
+				"Effective From": "2025-11-03",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			},
+			{
+				"Note Identifier": "note002",
+				"Note Text": "note001",
+				"Effective From": "2025-03-03",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
+				"DB Expired": "",
+				"Data Owner Code": "MOH"
+			},
+			{
+				"Note Identifier": "note003",
+				"Note Text": "note001",
+				"Effective From": "2025-11-04",
+				"Effective To": "",
+				"End Reason": "",
+				"Data Source": "plrselenadmin1@00002855",
+				"DB Created": "2025-11-09",
 				"DB Expired": "",
 				"Data Owner Code": "MOH"
 			}
