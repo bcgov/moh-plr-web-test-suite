@@ -1,28 +1,41 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
+import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
-import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
+import org.openqa.selenium.TimeoutException;
 
 import static java.util.Objects.requireNonNull;
-
 import java.util.ArrayList;
+import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.testng.Assert.assertEquals;
 /**
  * Helper class with commonly-used flows to more easily orchestrate tests across the PLR site
  */
 
 
 public final class TestHelper {
+
 	
 	  private static final Pattern VALUE_CODE_PATTERN =  Pattern.compile("^.*\\((?<code>[^()]+)\\)\\s*$");
+
+
+    private static final SecureRandom RNG = new SecureRandom();
+
     /**
      * Logs into PLR with a specific userType (if it hasn't been logged in already)
      *
@@ -54,6 +67,35 @@ public final class TestHelper {
         searchFacility.waitForReady();
 
         return searchFacility;
+    }
+
+    /**
+     * Navigate to the "Search Provider" page
+     *
+     * @param workflowManager   the workflow manager from the test class
+     * @param userType          the UserType to log in as and navigate to the Search Provider Page with
+     * @return                  a SearchProviderPage reference to the workflow's search provider page component
+     */
+    public static SearchProviderPage navigateToSearchProviderPage(
+            PlrWebWorkflowManager workflowManager, UserType userType)
+    {
+        PlrWebWorkflow workflow = logIn(workflowManager, userType);
+        SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
+
+        // System displays Search by Facility page correctly
+        searchProvider.waitForReady();
+
+        return searchProvider;
+    }
+
+    public static AddFacilityPage navigateToAddFacilityPage(PlrWebWorkflowManager workflowManager)
+    {
+        PlrWebWorkflow workflow = logIn(workflowManager, UserType.ADMIN);
+        AddFacilityPage addFacility = workflow.getPlrWebAccessActions().openAddFacility();
+
+        addFacility.waitForReady();
+
+        return addFacility;
     }
 
     /**
@@ -119,6 +161,7 @@ public final class TestHelper {
 
         return workflow.getSearchFacilityActions().openSearchResults(0);
     }
+
     
     /**
      * extract DataValue from block content map  to a list.
@@ -151,5 +194,151 @@ public final class TestHelper {
             }
         }
         return valueList;
+    }
+
+
+    /**
+     * Searches by Identifier in the Search Provider page.
+     *
+     * @param searchProvider    the search provider page reference
+     * @param queryFields       a list of strings of query details to fill fields with.
+     *                          Index 0: Identifier Type
+     *                          Index 1: Provider ID
+     * @return                  a SearchProviderResultsFragment reference to the search results of the identifier query
+     */
+    public static SearchProviderResultsFragment searchProviderByIdentifier(
+            SearchProviderPage searchProvider, List<String> queryFields)
+    {
+        return searchProvider.searchByIdentifier(queryFields.getFirst(), queryFields.get(1));
+    }
+
+    /**
+     * Navigates to a provider page by its identifier.
+     *
+     * @param workflowManager   the workflow manager from the test class
+     * @param queryFields       the identifier fields (identifier type, then provider ID) to input into search
+     * @param userType          the user type to login to PLR as
+     * @return                  a ViewProviderPage reference to the provider page
+     */
+    public static ViewProviderPage viewProviderByIdentifier(
+            PlrWebWorkflowManager workflowManager, List<String> queryFields, UserType userType)
+    {
+        PlrWebWorkflow workflow = workflowManager.selectWorkflow(userType);
+        SearchProviderPage searchProvider = navigateToSearchProviderPage(workflowManager, userType);
+        searchProviderByIdentifier(searchProvider, queryFields);
+
+        return workflow.getSearchProviderActions().openSearchResults(0);
+    }
+
+    /**
+     * Fills out the Address Section in the Add Facility section.
+     * This method will only perform as expected when already on the Address step in the Add Facility flow.
+     * The address specified should ideally have minimal duplicates within the system already.
+     *
+     * @param addFacility       An AddFacilityPage reference to the current page.
+     * @param addressData       a list of strings of the data needed for the civic address.
+     *                          the first two elements should be the lower and upper limits for a
+     *                          randomly generated address number, then the final element should be
+     *                          "{ADDRESS_NAME}, {CITY PREFIX}" e.g. DOUGLAS ST, VICTORIA.
+     * @param maxAttempts       the maximum amount of types to attempt finding a usable non-duplicate address
+     * @return                  the address used to fill the section, if successful
+     */
+    public static String fillOutAddressSection(AddFacilityPage addFacility, List<String> addressData, int maxAttempts)
+    {
+        final int ADDRESS_LOWER_LIMIT = Integer.parseInt(addressData.get(0));
+        final int ADDRESS_UPPER_LIMIT = Integer.parseInt(addressData.get(1));
+        final String CIVIC_ADDRESS = addressData.get(2);
+
+        AddFacilityAddressFragment addressInfo = null;
+        int addressAttempts = 0;
+        String ADDRESS = null;
+        while (addressAttempts < maxAttempts)
+        {
+            while (addressInfo == null)
+            {
+                try
+                {
+                    int ADDRESS_NUM = ADDRESS_LOWER_LIMIT +
+                            RNG.nextInt(ADDRESS_UPPER_LIMIT - ADDRESS_LOWER_LIMIT + 1);
+                    ADDRESS = String.format("%d %s", ADDRESS_NUM, CIVIC_ADDRESS);
+                    addressInfo = addFacility.fillAddressSection(
+                            ADDRESS, ADDRESS.substring(0, ADDRESS.indexOf(CIVIC_ADDRESS)));
+                } catch (TimeoutException timeoutException)
+                  {
+                      addFacility.fillAddressSection("", null);
+                  }
+                  catch (IllegalStateException ignored) {}
+            }
+
+            String today = addressInfo.effectiveFromCurrentDate();
+            assertEquals(addressInfo.getEffectiveFrom(), today,
+                    "Effective From Date in Address was not set to the current date as expected");
+
+            try
+            {
+                addFacility.clickNext("Address", "Civic");
+                addressInfo.handleWidgetButton("Civic");
+            } catch (IllegalStateException ignored) {}
+
+            try
+            {
+                addFacility.waitForWidgetVisibility("Unknown");
+                addressInfo.handleWidgetButton("Unknown");
+                addressInfo = null;
+                addressAttempts++;
+                continue;
+            } catch (IllegalStateException ignored) {}
+
+            try
+            {
+                addFacility.waitForWidgetVisibility("Duplicate");
+                addressInfo.handleWidgetButton("Duplicate");
+                addressAttempts++;
+                addressInfo = null;
+                continue;
+            } catch (IllegalStateException ignored) {}
+
+            break;
+        }
+        if (addressAttempts == maxAttempts)
+        {
+            throw new IllegalStateException("No available civic address found after " + maxAttempts + " attempts");
+        }
+
+        return ADDRESS;
+    }
+
+    /**
+     * Creates and submits a new test facility by going through the full Add Facility flow.
+     * The address specified should ideally have minimal duplicates within the system already.
+     *
+     * @param workflowManager   the workflow manager from the test class
+     * @param addressData       a list of strings of the data needed for the civic address.
+     *                          the first two elements should be the lower and upper limits for a
+     *                          randomly generated address number, then the final element should be
+     *                          "{ADDRESS_NAME}, {CITY PREFIX}" e.g. DOUGLAS ST, VICTORIA.
+     * @param testType          a string to be used in the facility name - used to specify the type of
+     *                          test being run currently
+     * @param maxAttempts       the maximum amount of types to attempt finding a usable non-duplicate address
+     * @return                  a ViewFacilityPage reference to the newly submitted facility
+     */
+    public static ViewFacilityPage createAndSubmitFacility(
+            PlrWebWorkflowManager workflowManager,List<String> addressData, String testType, int maxAttempts)
+    {
+        AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager);
+
+        addFacility.fillIdentifierSection("BUILDING", "Select One", "");
+        addFacility.clickNext("Identifier", "");
+
+        addFacility.fillFacilitySection(
+                String.format("%s Test Facility", testType), String.format("%s Test Description", testType));
+        addFacility.clickNext("Facility", "");
+
+        fillOutAddressSection(addFacility, addressData, maxAttempts);
+        workflowManager.getSelectedWorkflow().getSeleniumSession().setWaitTimeout(Duration.ofSeconds(15));
+
+        addFacility.waitForAddFacilityStep("Address", false);
+        return addFacility.getFacilitySummary().clickSubmitButton();
+
     }
 }

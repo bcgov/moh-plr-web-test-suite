@@ -6,13 +6,14 @@ import java.net.URI;
 import java.util.Map;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchFacilityActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.*;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+
 import ca.bc.gov.health.qa.autotest.plr.web.actions.PlrWebAccessActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.UpdateFacilitySimpleActions;
@@ -110,6 +111,16 @@ implements AutoCloseable
     public SearchFacilityActions getSearchFacilityActions()
     {
         return new SearchFacilityActions(selenium_);
+    }
+
+    /**
+     * Creates and gets an actions object for the View Facility page
+     *
+     * @return  a ViewFacilityActions object
+     */
+    public ViewFacilityActions getViewFacilityActions()
+    {
+        return new ViewFacilityActions(selenium_);
     }
 
     /**

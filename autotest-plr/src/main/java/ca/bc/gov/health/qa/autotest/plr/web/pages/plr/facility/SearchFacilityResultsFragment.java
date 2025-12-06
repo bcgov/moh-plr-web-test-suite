@@ -184,8 +184,9 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
      * Determines whether a row of the table of search results contains the CSS styles necessary to word wrap
      * (so all text content is visible on the page)
      *
-     * @return  whether the row of table of search results has
-     *          white-space set to "normal" and word-break set to "break-all".
+     * @param rowIndex  the index of the row in the table of search results to check for word wrapping
+     * @return          whether the row of table of search results has
+     *                  white-space set to "normal" and word-break set to "break-all".
      */
     public boolean verifyWordWrapStyle(int rowIndex)
     {
