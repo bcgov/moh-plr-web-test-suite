@@ -1,14 +1,15 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,21 +20,25 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import ca.bc.gov.health.qa.autotest.core.util.text.TextUtils;
+import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.*;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.CivicAddress;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.ElectronicAddress;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Identifier;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Name;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Note;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.OtherAddress;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Relationship;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Telecommunication;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewMode;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilityDataFields;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderDataFields;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
-import ca.bc.gov.health.qa.autotest.core.util.text.TextUtils;
-import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
-import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 
 public class ViewFacilitySimpleActions {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -43,6 +48,18 @@ public class ViewFacilitySimpleActions {
 	private final SeleniumSession selenium_;
 	private final URI uri_;
 	private final UserType userType_;
+	
+	
+	private static Set<FacilitySection> facilitySectionSet=  Collections.unmodifiableSet(EnumSet.of(
+			FacilitySection.IDENTIFIERS,
+			FacilitySection.NAMES,
+			FacilitySection.CIVIC_ADDRESSES,
+			FacilitySection.OTHER_ADDRESS,
+			FacilitySection.TELECOMMUNICATIONS,
+			FacilitySection.ELECTRONIC_ADDRESSES,
+			FacilitySection.ORGANIZATION_RELATIONSHIPS,
+			FacilitySection.NOTES
+            ));
 
 	/*
 	 * private ViewFacilityPage viewFacilityPage;
@@ -79,7 +96,7 @@ public class ViewFacilitySimpleActions {
 	public void verifyFacilitySectionsDisplayed(ViewFacilityPage viewFacilityPage) {
 		ViewMode viewMode = viewFacilityPage.getViewHeader().grabViewMode();
 
-		for (ProviderSection section : getFacilitySectionSet(ProviderType.FACILITY, userType_)) {
+		for (FacilitySection section : getFacilitySectionSet(userType_)) {
 			viewFacilityPage.scrollToSection(section);
 			assertTrue(viewFacilityPage.grabSectionDisplayed(section),
 					String.format("Section displayed (%s)", section));
@@ -91,12 +108,12 @@ public class ViewFacilitySimpleActions {
 		}
 
 	}
-
+/*
 	public void verifySectionsWithActiveDataBlocks(boolean expectedInactive) {
 		ViewFacilityPage viewFacilityPage = waitForViewFacilityPage();
 		ViewMode viewMode = viewFacilityPage.getViewHeader().grabViewMode();
 
-		for (ProviderSection section : getFacilitySectionSet(ProviderType.FACILITY, userType_)) {
+		for (FacilitySection section : getFacilitySectionSet( userType_)) {
 			viewFacilityPage.scrollToSection(section);
 			assertTrue(viewFacilityPage.grabSectionDisplayed(section),
 					String.format("Section displayed (%s)", section));
@@ -117,12 +134,12 @@ public class ViewFacilitySimpleActions {
 			}
 		}
 
-	}
+	}*/
 
-	public static Set<ProviderSection> getFacilitySectionSet(ProviderType providerType, UserType userType) {
-		Set<ProviderSection> set = EnumSet.copyOf(ProviderSection.getProviderSectionSet(providerType));
+	public static Set<FacilitySection> getFacilitySectionSet( UserType userType) {
+		Set<FacilitySection> set = new HashSet<FacilitySection>(facilitySectionSet);
 		if (!userType.equals(UserType.ADMIN)) {
-			set.remove(ProviderSection.REGISTRY_IDENTIFIERS);
+			set.remove(FacilitySection.IDENTIFIERS);
 		}
 		return Collections.unmodifiableSet(set);
 	}
@@ -143,7 +160,7 @@ public class ViewFacilitySimpleActions {
 		}
 	}
 
-	public void checkDataBlocksExpanded(ViewFacilityPage viewFacilityPage, ProviderSection section, boolean active) {
+	public void checkDataBlocksExpanded(ViewFacilityPage viewFacilityPage, FacilitySection section, boolean active) {
 		assertNotNull(viewFacilityPage);
 		int count = viewFacilityPage.grabActiveDataBlockCount(section, active);
 		for (int i = 0; i < count; i++) {
@@ -151,7 +168,7 @@ public class ViewFacilitySimpleActions {
 		}
 	}
 
-	public void checkDataBlocksCollapsed(ViewFacilityPage viewFacilityPage, ProviderSection section, boolean active) {
+	public void checkDataBlocksCollapsed(ViewFacilityPage viewFacilityPage, FacilitySection section, boolean active) {
 		assertNotNull(viewFacilityPage);
 		int count = viewFacilityPage.grabActiveDataBlockCount(section, active);
 		for (int i = 0; i < count; i++) {

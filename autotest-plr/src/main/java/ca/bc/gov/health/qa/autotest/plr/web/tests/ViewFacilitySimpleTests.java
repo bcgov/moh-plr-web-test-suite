@@ -33,7 +33,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewMode;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
+//import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -76,23 +76,23 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		ViewFacilityPage viewFacilityPage = actions.openFacility(facility.getString("fauth"));
 		actions.expandAll(viewFacilityPage, true);
 
-		actions.checkDataBlocksExpanded(viewFacilityPage, ProviderSection.IDENTIFIERS, true);
-		actions.checkDataBlocksExpanded(viewFacilityPage, ProviderSection.OTHER_ADDRESSES, true);
-		actions.checkDataBlocksExpanded(viewFacilityPage, ProviderSection.CIVIC_ADDRESSES, true);
-		actions.checkDataBlocksExpanded(viewFacilityPage, ProviderSection.TELECOMMUNICATIONS, true);
-		actions.checkDataBlocksExpanded(viewFacilityPage, ProviderSection.ELECTRONIC_ADDRESSES, true);
-		actions.checkDataBlocksExpanded(viewFacilityPage, ProviderSection.ORGANIZATION_RELATIONSHIPS, true);
-		actions.checkDataBlocksExpanded(viewFacilityPage, ProviderSection.NOTES, true);
+		actions.checkDataBlocksExpanded(viewFacilityPage, FacilitySection.IDENTIFIERS, true);
+		actions.checkDataBlocksExpanded(viewFacilityPage, FacilitySection.OTHER_ADDRESS, true);
+		actions.checkDataBlocksExpanded(viewFacilityPage, FacilitySection.CIVIC_ADDRESSES, true);
+		actions.checkDataBlocksExpanded(viewFacilityPage, FacilitySection.TELECOMMUNICATIONS, true);
+		actions.checkDataBlocksExpanded(viewFacilityPage, FacilitySection.ELECTRONIC_ADDRESSES, true);
+		actions.checkDataBlocksExpanded(viewFacilityPage, FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
+		actions.checkDataBlocksExpanded(viewFacilityPage, FacilitySection.NOTES, true);
 
 		actions.expandAll(viewFacilityPage, false);
-		actions.checkDataBlocksCollapsed(viewFacilityPage, ProviderSection.IDENTIFIERS, true);
-		actions.checkDataBlocksCollapsed(viewFacilityPage, ProviderSection.NAMES, true);
-		actions.checkDataBlocksCollapsed(viewFacilityPage, ProviderSection.OTHER_ADDRESSES, false);
-		actions.checkDataBlocksCollapsed(viewFacilityPage, ProviderSection.CIVIC_ADDRESSES, false);
-		actions.checkDataBlocksCollapsed(viewFacilityPage, ProviderSection.TELECOMMUNICATIONS, true);
-		actions.checkDataBlocksCollapsed(viewFacilityPage, ProviderSection.ELECTRONIC_ADDRESSES, true);
-		actions.checkDataBlocksCollapsed(viewFacilityPage, ProviderSection.ORGANIZATION_RELATIONSHIPS, true);
-		actions.checkDataBlocksCollapsed(viewFacilityPage, ProviderSection.NOTES, true);
+		actions.checkDataBlocksCollapsed(viewFacilityPage, FacilitySection.IDENTIFIERS, true);
+		actions.checkDataBlocksCollapsed(viewFacilityPage, FacilitySection.NAMES, true);
+		actions.checkDataBlocksCollapsed(viewFacilityPage, FacilitySection.OTHER_ADDRESS, false);
+		actions.checkDataBlocksCollapsed(viewFacilityPage, FacilitySection.CIVIC_ADDRESSES, false);
+		actions.checkDataBlocksCollapsed(viewFacilityPage, FacilitySection.TELECOMMUNICATIONS, true);
+		actions.checkDataBlocksCollapsed(viewFacilityPage, FacilitySection.ELECTRONIC_ADDRESSES, true);
+		actions.checkDataBlocksCollapsed(viewFacilityPage, FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
+		actions.checkDataBlocksCollapsed(viewFacilityPage, FacilitySection.NOTES, true);
 	}
 
 	/*

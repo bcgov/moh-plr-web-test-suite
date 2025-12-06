@@ -121,9 +121,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return getDataBlockSelector(section, index) + "> div.ui-panel-content";
 	}
 
-	public String getDataBlockContentSelector(ProviderSection section, int index) {
-		return getDataBlockSelector(section, index) + "> div.ui-panel-content";
-	}
+	
 
 	/**
 	 * Finds the content panel for a specific "data block" in a facility section
@@ -137,10 +135,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return selenium_.findElementByCss(getDataBlockContentSelector(section, index));
 	}
 
-	private WebElement findDataBlockContent(ProviderSection section, int index) {
-		return selenium_.findElementByCss(getDataBlockContentSelector(section, index));
-	}
-
+	
 	/**
 	 * Determines whether a specific "data block"'s content panel in a facility
 	 * section is displayed or not
@@ -153,9 +148,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return findDataBlockContent(section, index).isDisplayed();
 	}
 
-	public boolean grabDataBlockExpanded(ProviderSection section, int index) {
-		return findDataBlockContent(section, index).isDisplayed();
-	}
+
 
 	/**
 	 * Constructs a CSS selector for the header of a specific "data block" in a
@@ -380,20 +373,12 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * 
 	 */
 
-	public void scrollToSection(ProviderSection section) {
+	public void scrollToSection(FacilitySection section) {
 
 		selenium_.scrollIntoView(selenium_.findElementByCss(getSectionSelector(section)));
 	}
 
-	/**
-	 * get section selector
-	 *
-	 * @param section
-	 * 
-	 */
-	private String getSectionSelector(ProviderSection section) {
-		return "div#" + section.getPanelId();
-	}
+	
 
 	/**
 	 * get section displayed
@@ -402,7 +387,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * 
 	 */
 
-	public boolean grabSectionDisplayed(ProviderSection section) {
+	public boolean grabSectionDisplayed(FacilitySection section) {
 		return selenium_.grabElementVisibleByCss(getSectionSelector(section));
 	}
 
@@ -414,21 +399,6 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * 
 	 */
 
-	public int grabActiveDataBlockCount(ProviderSection section, boolean active) {
-		int count = 0;
-		for (int i = 0; i < grabDataBlockCount(section); i++) {
-			if (grabDataBlockActive(section, i)) {
-				if (active) {
-					count++;
-				}
-			} else {
-				if (!active) {
-					count++;
-				}
-			}
-		}
-		return count;
-	}
 	
 	public int grabActiveDataBlockCount(FacilitySection section, boolean active) {
 		int count = 0;
@@ -452,36 +422,15 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param section
 	 * 
 	 */
-	public int grabDataBlockCount(ProviderSection section) {
-		return selenium_.findElements(By.cssSelector(getDataBlocksSelector(section))).size();
-	}
+	
 	
 	public int grabDataBlockCount(FacilitySection section) {
 		return selenium_.findElements(By.cssSelector(getDataBlocksSelector(section))).size();
 	}
 
-	/**
-	 * get data block Selector
-	 *
-	 * @param section
-	 * 
-	 */
-	private String getDataBlocksSelector(ProviderSection section) {
-		String selector = getSectionContentSelector(section)
-				+ " > table.recordDetailsPanels > tbody > tr > td > div.ui-panel";
-		return selector;
-	}
 
-	/**
-	 * get section content Selector
-	 *
-	 * @param section
-	 * 
-	 */
-	private String getSectionContentSelector(ProviderSection section) {
-		return getSectionSelector(section) + "_content";
-	}
-	
+
+
 	
 
 	/**
@@ -492,10 +441,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * 
 	 */
 
-	public boolean grabDataBlockActive(ProviderSection section, int index) {
-		By locator = By.cssSelector(getDataBlockHeaderActiveSelector(section, index));
-		return selenium_.searchElement(locator) != null;
-	}
+
 	public boolean grabDataBlockActive(FacilitySection section, int index) {
 		By locator = By.cssSelector(getDataBlockHeaderActiveSelector(section, index));
 		return selenium_.searchElement(locator) != null;
@@ -508,38 +454,12 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param index
 	 * 
 	 */
-	private String getDataBlockHeaderActiveSelector(ProviderSection section, int index) {
-		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions > span > img[title='Active']";
-	}
+
 	private String getDataBlockHeaderActiveSelector(FacilitySection section, int index) {
 		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions > span > img[title='Active']";
 	}
 
-	/**
-	 * get data block HeaderSelector *
-	 * 
-	 * @param section
-	 * @param index
-	 * 
-	 */
-	private String getDataBlockHeaderSelector(ProviderSection section, int index) {
-		return getDataBlockSelector(section, index) + " > div.ui-panel-titlebar";
-	}
-
-	/**
-	 * get data block Selector *
-	 * 
-	 * @param section
-	 * @param index
-	 * 
-	 */
-	private String getDataBlockSelector(ProviderSection section, int index) {
-		if (index < 0) {
-			String msg = String.format("Negative index (%d).", index);
-			throw new IllegalArgumentException(msg);
-		}
-		return getDataBlocksSelector(section) + ":nth-of-type(" + (index + 1) + ")";
-	}
+	
 
 	private LinkedHashMap<String, String> grabCivicAddressBlockContent(LinkedHashMap<String, String> dataMap,
 			List<WebElement> dataRowElementList) {
