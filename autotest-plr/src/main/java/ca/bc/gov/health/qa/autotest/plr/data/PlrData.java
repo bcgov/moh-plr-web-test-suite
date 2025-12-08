@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
 
-import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
@@ -131,7 +130,13 @@ public class PlrData
         }
         return provider;
     }
-    
+
+    /**
+     * TODO (KD) - doc
+     *
+     * @param key
+     * @return
+     */
     public static JSONObject getFacility(String key) {
     	JSONObject provider;
         JSONObject providers = readProviderData(ProviderType.FACILITY);
@@ -164,25 +169,6 @@ public class PlrData
                 + "s-" + ENV_NAME + ".json";
         if(ProviderType.FACILITY.equals(providerType))
         	fileName = fileName.replace("facilitys","facilities");
-        Path filePath = PROVIDERS_DIR.resolve(fileName);
-        String data;
-        try
-        {
-            // TODO (AZ) - cache string data read
-            data  = Files.readString(filePath);
-        }
-        catch (IOException e)
-        {
-            String msg = String.format("Failed to read provider data (%s).", filePath);
-            throw new IllegalStateException(msg, e);
-        }
-
-        return new JSONObject(data);
-    }
-    private static JSONObject readFacilityData(ProviderType providerType)
-    {
-        String fileName = providerType.toString().toLowerCase(Locale.ROOT).replace("_", "-")
-                + "s-" + ENV_NAME + ".json";
         Path filePath = PROVIDERS_DIR.resolve(fileName);
         String data;
         try

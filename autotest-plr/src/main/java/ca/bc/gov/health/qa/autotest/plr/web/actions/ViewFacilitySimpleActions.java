@@ -1,10 +1,5 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +16,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.text.TextUtils;
-import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.CivicAddress;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.ElectronicAddress;
@@ -35,10 +29,11 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewMode;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilityDataFields;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
+
+import static org.testng.Assert.*;
 
 public class ViewFacilitySimpleActions {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -61,21 +56,25 @@ public class ViewFacilitySimpleActions {
 			FacilitySection.NOTES
             ));
 
-	/*
-	 * private ViewFacilityPage viewFacilityPage;
-	 * 
-	 * public ViewFacilityPage getViewFacilityPage() { return viewFacilityPage; }
-	 * 
-	 * public void setViewFacilityPage(ViewFacilityPage viewFacilityPage) {
-	 * this.viewFacilityPage = viewFacilityPage; }
-	 */
-
+    /**
+     * TODO (KD) - doc
+     *
+     * @param selenium
+     * @param uri
+     * @param userType
+     */
 	public ViewFacilitySimpleActions(SeleniumSession selenium, URI uri, UserType userType) {
 		selenium_ = selenium;
 		uri_ = uri;
 		userType_ = userType;
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param fauthId
+     * @return
+     */
 	public ViewFacilityPage openFacility(String fauthId) {
 		LOG.info("Open facility({}).", fauthId);
 		ViewFacilityPage viewFacilityPage = new ViewFacilityPage(selenium_, uri_.resolve("plr/FacilityDetails.xhtml"));
@@ -136,6 +135,12 @@ public class ViewFacilitySimpleActions {
 
 	}*/
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param userType
+     * @return
+     */
 	public static Set<FacilitySection> getFacilitySectionSet( UserType userType) {
 		Set<FacilitySection> set = new HashSet<FacilitySection>(facilitySectionSet);
 		if (!userType.equals(UserType.ADMIN)) {
@@ -150,6 +155,12 @@ public class ViewFacilitySimpleActions {
 		return page;
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     * @param expand
+     */
 	public void expandAll(ViewFacilityPage viewFacilityPage, boolean expand) {
 		assertNotNull(viewFacilityPage);
 		viewFacilityPage.expandAll(expand);
@@ -160,6 +171,13 @@ public class ViewFacilitySimpleActions {
 		}
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     * @param section
+     * @param active
+     */
 	public void checkDataBlocksExpanded(ViewFacilityPage viewFacilityPage, FacilitySection section, boolean active) {
 		assertNotNull(viewFacilityPage);
 		int count = viewFacilityPage.grabActiveDataBlockCount(section, active);
@@ -168,15 +186,27 @@ public class ViewFacilitySimpleActions {
 		}
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     * @param section
+     * @param active
+     */
 	public void checkDataBlocksCollapsed(ViewFacilityPage viewFacilityPage, FacilitySection section, boolean active) {
 		assertNotNull(viewFacilityPage);
 		int count = viewFacilityPage.grabActiveDataBlockCount(section, active);
 		for (int i = 0; i < count; i++) {
-			assertTrue(!viewFacilityPage.grabDataBlockExpanded(section, i));
+			assertFalse(viewFacilityPage.grabDataBlockExpanded(section, i));
 		}
 
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     */
 	public void verifyAllFacilityDataBlockExpandButtonDisplayed(ViewFacilityPage viewFacilityPage) {
 		verifySectionDataBlockExpandButtonDisplayed(viewFacilityPage, FacilitySection.IDENTIFIERS);
 		verifySectionDataBlockExpandButtonDisplayed(viewFacilityPage, FacilitySection.NAMES);
@@ -189,6 +219,12 @@ public class ViewFacilitySimpleActions {
 
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     * @param section
+     */
 	public void verifySectionDataBlockExpandButtonDisplayed(ViewFacilityPage viewFacilityPage,
 			FacilitySection section) {
 		int count = viewFacilityPage.grabActiveDataBlockCount(section, true);
@@ -205,6 +241,12 @@ public class ViewFacilitySimpleActions {
 		}
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     * @param userType
+     */
 	public void verifyAllFacilityDataBlockActiveMarkDisplayed(ViewFacilityPage viewFacilityPage, UserType userType) {
 		switch (userType) {
 		case UserType.ADMIN:
@@ -227,6 +269,12 @@ public class ViewFacilitySimpleActions {
 
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     * @param section
+     */
 	public void verifySectionDataBlockActiveMarkDisplayed(ViewFacilityPage viewFacilityPage, FacilitySection section) {
 		int count = viewFacilityPage.grabActiveDataBlockCount(section, true);
 		for (int i = 0; i < count; i++) {
@@ -236,6 +284,12 @@ public class ViewFacilitySimpleActions {
 
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     * @param userType
+     */
 	public void verifyAllFacilityDataBlockUpdateButtonDisplayed(ViewFacilityPage viewFacilityPage, UserType userType) {
 		switch (userType) {
 		case UserType.ADMIN:
@@ -253,6 +307,12 @@ public class ViewFacilitySimpleActions {
 
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     * @param section
+     */
 	public void verifySectionDataBlockUpdateButtonDisplayed(ViewFacilityPage viewFacilityPage,
 			FacilitySection section) {
 		int count = viewFacilityPage.grabActiveDataBlockCount(section, true);
@@ -263,6 +323,12 @@ public class ViewFacilitySimpleActions {
 
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param viewFacilityPage
+     * @param expectedFacility
+     */
 	public void verifyAllSectionsDataBlockAndsummary(ViewFacilityPage viewFacilityPage, JSONObject expectedFacility) {
 		JSONArray idArray = expectedFacility.getJSONArray("identifiers");
 		verifySectionDataBlocksAndSummary(FacilitySection.IDENTIFIERS, true, viewFacilityPage, idArray);
@@ -289,6 +355,14 @@ public class ViewFacilitySimpleActions {
 		verifySectionDataBlocksAndSummary(FacilitySection.TELECOMMUNICATIONS, true, viewFacilityPage, idArray);
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param active
+     * @param viewFacilityPage
+     * @param idArray
+     */
 	public void verifySectionDataBlocksAndSummary(FacilitySection section, boolean active,
 			ViewFacilityPage viewFacilityPage, JSONArray idArray) {
 		int count = viewFacilityPage.grabActiveDataBlockCount(section, active);
@@ -322,7 +396,7 @@ public class ViewFacilitySimpleActions {
 		case FacilitySection.IDENTIFIERS:
 			Identifier idResult = new Identifier(resultContent);
 			Identifier idExpected = new Identifier(expectedJson);
-			assertTrue(idResult.equals(idExpected));
+            assertEquals(idExpected, idResult);
 			
 			assertTrue(resultSummaryLineText.contains(idExpected.getIdType())
 					&& resultSummaryLineText.contains(idExpected.getIdentifier())
@@ -331,7 +405,7 @@ public class ViewFacilitySimpleActions {
 		case FacilitySection.NAMES:
 			Name nameResult = new Name(resultContent);
 			Name nameExpected = new Name(expectedJson);
-			assertTrue(nameResult.equals(nameExpected));
+            assertEquals(nameExpected, nameResult);
 			
 			assertTrue(resultSummaryLineText.contains(nameExpected.getName()));
 					
@@ -339,7 +413,7 @@ public class ViewFacilitySimpleActions {
 		case FacilitySection.NOTES:
 			Note noteResult = new Note(resultContent);
 			Note noteExpected = new Note(expectedJson);
-			assertTrue(noteResult.equals(noteExpected));
+            assertEquals(noteExpected, noteResult);
 			
 			assertTrue(resultSummaryLineText.contains(noteExpected.getNoteIdentifier())
 					&& resultSummaryLineText.contains(noteExpected.getDataOwnerCode())
@@ -348,7 +422,7 @@ public class ViewFacilitySimpleActions {
 		case FacilitySection.ELECTRONIC_ADDRESSES:
 			ElectronicAddress eAddrResult = new ElectronicAddress(resultContent);
 			ElectronicAddress eAddrExpected = new ElectronicAddress(expectedJson);
-			assertTrue(eAddrResult.equals(eAddrExpected));
+            assertEquals(eAddrExpected, eAddrResult);
 			
 			assertTrue(resultSummaryLineText.contains(eAddrExpected.getPurposeSummary())
 					&& resultSummaryLineText.contains(eAddrExpected.getTypeSummary())
@@ -358,7 +432,7 @@ public class ViewFacilitySimpleActions {
 		case FacilitySection.CIVIC_ADDRESSES:
 			CivicAddress cAddrResult = new CivicAddress(resultContent);
 			CivicAddress cAddrExpected = new CivicAddress(expectedJson);
-			assertTrue(cAddrResult.equals(cAddrExpected));
+            assertEquals(cAddrExpected, cAddrResult);
 			
 			assertTrue(resultSummaryLineText.contains(cAddrExpected.getAddressLine1())
 					&& resultSummaryLineText.contains(cAddrExpected.getCity())
@@ -368,7 +442,7 @@ public class ViewFacilitySimpleActions {
 		case FacilitySection.ORGANIZATION_RELATIONSHIPS:
 			Relationship reResult = new Relationship(resultContent);
 			Relationship reExpected = new Relationship(expectedJson);
-			assertTrue(reResult.equals(reExpected));
+            assertEquals(reExpected, reResult);
 			
 			assertTrue(resultSummaryLineText.contains(reExpected.getRelatedProviderRoleType())
 					&& resultSummaryLineText.contains(reExpected.getRelationshipTypeSummary())
@@ -378,7 +452,7 @@ public class ViewFacilitySimpleActions {
 		case FacilitySection.OTHER_ADDRESS:
 			OtherAddress oAddrResult = new OtherAddress(resultContent);
 			OtherAddress oAddExpected = new OtherAddress(expectedJson);
-			assertTrue(oAddrResult.equals(oAddExpected));
+            assertEquals(oAddExpected, oAddrResult);
 			
 			assertTrue(resultSummaryLineText.contains(oAddExpected.getAddressPurposeSummary())
 					&& resultSummaryLineText.contains(oAddExpected.getAddressTypeSummary())
@@ -390,7 +464,7 @@ public class ViewFacilitySimpleActions {
 		case FacilitySection.TELECOMMUNICATIONS:
 			Telecommunication teleResult = new Telecommunication(resultContent);
 			Telecommunication teleExpected = new Telecommunication(expectedJson);
-			assertTrue(teleResult.equals(teleExpected));
+            assertEquals(teleExpected, teleResult);
 			
 			assertTrue(resultSummaryLineText.contains(teleExpected.getPurposeSummary())
 					&& resultSummaryLineText.contains(teleExpected.getTypeSummary())
@@ -403,7 +477,6 @@ public class ViewFacilitySimpleActions {
 			fail("No expected facility section name found");
 			break;
 		}
-		return;
 	}
 
 	private boolean checkSectionDataBlocksKeys(FacilitySection section, LinkedHashMap<String, String> result) {
@@ -474,8 +547,13 @@ public class ViewFacilitySimpleActions {
 		}
 	
 	}
-	
-	
+
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param viewFacilityPage
+     */
 	public void verifyDataBlockSortOrder(FacilitySection section,ViewFacilityPage viewFacilityPage)
     {
         List<String> sortKeyList = FacilityDataFields.getSortKey(section);
