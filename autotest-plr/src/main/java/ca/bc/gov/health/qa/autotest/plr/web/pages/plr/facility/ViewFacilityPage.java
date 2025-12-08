@@ -2,7 +2,6 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 import org.openqa.selenium.By;
@@ -48,6 +47,11 @@ public class ViewFacilityPage extends BasicWebPage {
 		viewHeader_ = new ViewHeaderFragment(selenium);
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param expand
+     */
 	public void expandAll(boolean expand) {
 		viewHeader_.expandAll(expand);
 	}
@@ -149,8 +153,6 @@ public class ViewFacilityPage extends BasicWebPage {
 		return findDataBlockContent(section, index).isDisplayed();
 	}
 
-
-
 	/**
 	 * Constructs a CSS selector for the header of a specific "data block" in a
 	 * facility section
@@ -204,6 +206,12 @@ public class ViewFacilityPage extends BasicWebPage {
 		}
 	}
 
+    /** TODO (KD) - doc
+     *
+     * @param section
+     * @param index
+     * @return
+     */
 	public boolean isDataBlockExpandButtonDisplayed(FacilitySection section, int index) {
 		WebElement expandCollapseButton = selenium_
 				.findElement(By.cssSelector(getDataBlockHeaderExpandSelector(section, index)));
@@ -223,6 +231,13 @@ public class ViewFacilityPage extends BasicWebPage {
 
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param index
+     * @return
+     */
 	public boolean isDataBlockActiveMarkDisplayed(FacilitySection section, int index) {
 		WebElement activeMark = selenium_
 				.findElement(By.cssSelector(getDataBlockHeaderActiveMarkSelector(section, index)));
@@ -230,26 +245,34 @@ public class ViewFacilityPage extends BasicWebPage {
 		return activeMark.isDisplayed();
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param index
+     * @return
+     */
 	public boolean isDataBlockUpdateButtonDisplayed(FacilitySection section, int index) {
 		// String cssString = getDataBlockHeaderSelector(section, index)+ " >
 		// div.ui-panel-actions " + " > span >a >img[title^='Update']" ;
-		boolean foundit = false;
 		WebElement updateButton = null;
 		try {
 			updateButton = selenium_
 					.findElement(By.cssSelector(getDataBlockHeaderUpdateButtonSelector(section, index)));
-			foundit = true;
 		} catch (org.openqa.selenium.NoSuchElementException e) {
 			return false;
 		}
-		if (foundit) {
-			selenium_.scrollIntoView(updateButton);
-			return updateButton.isDisplayed();
-		}
-		return foundit;
+        selenium_.scrollIntoView(updateButton);
+        return updateButton.isDisplayed();
 	}
 
-
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param index
+     * @return
+     */
 	public String grabDataBlockSummaryLine(FacilitySection section, int index) {
 		String cssString = getDataBlockHeaderSelector(section, index);
 		cssString = cssString + " > span.ui-panel-title";
@@ -319,6 +342,15 @@ public class ViewFacilityPage extends BasicWebPage {
     }
 
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param index
+     * @param dataMap
+     * @param dataRowElementList
+     * @return
+     */
 	public LinkedHashMap<String, String> grabBlockContent(FacilitySection section, int index,
 			LinkedHashMap<String, String> dataMap, List<WebElement> dataRowElementList) {
 		if (!dataRowElementList.isEmpty()) {
@@ -382,7 +414,6 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param section
 	 * 
 	 */
-
 	public void scrollToSection(FacilitySection section) {
 
 		selenium_.scrollIntoView(selenium_.findElementByCss(getSectionSelector(section)));
@@ -396,7 +427,6 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param section
 	 * 
 	 */
-
 	public boolean grabSectionDisplayed(FacilitySection section) {
 		return selenium_.grabElementVisibleByCss(getSectionSelector(section));
 	}
@@ -408,8 +438,6 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param active
 	 * 
 	 */
-
-	
 	public int grabActiveDataBlockCount(FacilitySection section, boolean active) {
 		int count = 0;
 		for (int i = 0; i < grabDataBlockCount(section); i++) {
@@ -531,6 +559,12 @@ public class ViewFacilityPage extends BasicWebPage {
 		return grabDataBlockContent(FacilitySection.NOTES, index);
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param index
+     * @return
+     */
 	public LinkedHashMap<String, String> grabOrgRelationshipsBlockContent(int index) {
 		LinkedHashMap<String, String> dataMap = new LinkedHashMap<>();
 		expandDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS, index, true);
