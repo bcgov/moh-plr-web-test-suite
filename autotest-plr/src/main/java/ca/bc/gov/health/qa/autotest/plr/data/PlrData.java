@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
 
-import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
@@ -132,6 +131,27 @@ public class PlrData
         return provider;
     }
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param key
+     * @return
+     */
+    public static JSONObject getFacility(String key) {
+    	JSONObject provider;
+        JSONObject providers = readProviderData(ProviderType.FACILITY);
+        if (providers.has(key))
+        {
+            provider = providers.getJSONObject(key);
+        }
+        else
+        {
+            String msg = String.format("Provider data not found (%s:%s).", ProviderType.FACILITY, key);
+            throw new IllegalStateException(msg);
+        }
+        return provider;
+    }
+
     private static String getCredentialValue(Map <String,String>credentialsMap, String key)
     {
         String value = credentialsMap.get(key);
@@ -147,6 +167,8 @@ public class PlrData
     {
         String fileName = providerType.toString().toLowerCase(Locale.ROOT).replace("_", "-")
                 + "s-" + ENV_NAME + ".json";
+        if(ProviderType.FACILITY.equals(providerType))
+        	fileName = fileName.replace("facilitys","facilities");
         Path filePath = PROVIDERS_DIR.resolve(fileName);
         String data;
         try

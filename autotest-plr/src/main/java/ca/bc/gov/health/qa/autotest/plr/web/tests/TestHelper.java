@@ -13,16 +13,27 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityRes
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import org.openqa.selenium.TimeoutException;
 
+
+import static java.util.Objects.requireNonNull;
+
+import java.util.ArrayList;
 import java.security.SecureRandom;
 import java.time.Duration;
+
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.testng.Assert.assertEquals;
 /**
  * Helper class with commonly-used flows to more easily orchestrate tests across the PLR site
  */
+
+
 public final class TestHelper {
 
+	private static final Pattern VALUE_CODE_PATTERN =  Pattern.compile("^.*\\((?<code>[^()]+)\\)\\s*$");
     private static final SecureRandom RNG = new SecureRandom();
     /**
      * Logs into PLR with a specific userType (if it hasn't been logged in already)
@@ -149,6 +160,41 @@ public final class TestHelper {
 
         return workflow.getSearchFacilityActions().openSearchResults(0);
     }
+
+    
+    /**
+     * extract DataValue from block content map  to a list.
+     *
+     * @param List<String> keyList   the list of keys for extracting
+     * @param dataMap                the map of block data content
+     * 
+     */
+    public static List<String> extractDataValueList(
+            List<String> keyList, Map<String,String> dataMap)
+    {
+        List<String> valueList = new ArrayList<>();
+        for (String key : keyList)
+        {
+            requireNonNull(key, "Null key.");
+            String value = dataMap.get(key);
+            if (value != null)
+            {
+                Matcher matcher = VALUE_CODE_PATTERN.matcher(value);
+                if (matcher.matches())
+                {
+                    value = matcher.group("code");
+                }
+                valueList.add(value);
+            }
+            else
+            {
+                String msg = String.format("Null value for key (%s).", key);
+                throw new NullPointerException(msg);
+            }
+        }
+        return valueList;
+    }
+
 
     /**
      * Searches by Identifier in the Search Provider page.
@@ -292,5 +338,6 @@ public final class TestHelper {
 
         addFacility.waitForAddFacilityStep("Address", false);
         return addFacility.getFacilitySummary().clickSubmitButton();
+
     }
 }

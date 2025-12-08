@@ -180,6 +180,10 @@ implements AutoCloseable
             close();
         }
     }
+    
+ 
+
+
 
     /**
      * Logs out a User Type selenium browser instance, then closes it if successful.

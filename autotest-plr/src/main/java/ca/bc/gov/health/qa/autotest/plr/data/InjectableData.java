@@ -47,6 +47,19 @@ public class InjectableData
         }
         return toArray(data);
     }
+    
+    @DataProvider(name = "facilityTestUserTypes")
+    public static Object[][] getFacilityTestUserTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        
+        data.add(new Object[]{UserType.ADMIN});
+        data.add(new Object[]{UserType.PRIMARY});
+        data.add(new Object[]{UserType.SECONDARY});
+        data.add(new Object[]{UserType.CONSUMER});
+       
+        return toArray(data);
+    }
 
     /**
      * TODO (AZ) - doc
