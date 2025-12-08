@@ -181,37 +181,7 @@ implements AutoCloseable
         }
     }
     
-    /**
-     * Logs out a User Type selenium browser instance, then closes it if successful.
-     *
-     * @param userType  the user type associated with the browser instance to close
-     */
-    public void logoutAndClose(UserType userType)
-    {
-        try
-        {
-            PlrWebWorkflow workflow = workflowMap_.get(userType);
-            workflow.logout();
-        }
-        finally
-        {
-            close(userType);
-        }
-    }
-
-
-
- /**
-     * Closes a browser instance based on its user type.
-     *
-     * @param userType  the user type associated with the browser instance to close
-     */
-    public void close(UserType userType)
-    {
-        PlrWebWorkflow workflow = workflowMap_.get(userType);
-        workflow.close();
-        workflowMap_.remove(userType);
-    }
+ 
 
 
 

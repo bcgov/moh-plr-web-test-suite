@@ -29,13 +29,8 @@ import static org.testng.Assert.assertEquals;
 
 
 public final class TestHelper {
-
-	
-	  private static final Pattern VALUE_CODE_PATTERN =  Pattern.compile("^.*\\((?<code>[^()]+)\\)\\s*$");
-
-
+	private static final Pattern VALUE_CODE_PATTERN =  Pattern.compile("^.*\\((?<code>[^()]+)\\)\\s*$");
     private static final SecureRandom RNG = new SecureRandom();
-
     /**
      * Logs into PLR with a specific userType (if it hasn't been logged in already)
      *
