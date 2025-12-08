@@ -1,10 +1,30 @@
 {
   "errors": {
-    "missingIdentifierType" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier Type'. Your transaction has not been processed. Correct and resubmit.",
-    "missingFacilityIdentifier" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier'. Your transaction has not been processed. Correct and resubmit."
+    "missingIdentifierType": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier Type'. Your transaction has not been processed. Correct and resubmit.",
+    "missingFacilityIdentifier": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Identifier'. Your transaction has not been processed. Correct and resubmit.",
+    "identifierTypeRequired": "Identifier Type is required when Identifier is provided",
+    "foreignCharacterIdentifier": "GRS.SYS.IDE.UNK.1.0.7006: Identifiers can contain only numbers, the English alphabet and periods.",
+    "maximumIdentifierCharLimit": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Identifier' length must be within allowed limits.",
+    "foreignCharacterFacility": "GRS.SYS.ELE.UNK.1.0.9020: Facility Name and descriptions can contain only spaces, &, ', (, ), +, -, ., /, \\, :, numbers and the English alphabet.",
+    "foreignCharacterAddress": "GRS.SYS.ADD.UNK.1.1.7003: Addresses can contain only spaces, &, ', -, ., numbers, and the english alphabet.",
+    "missingEffectiveFrom": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Effective From'. Your transaction has not been processed. Correct and resubmit.",
+    "missingFacilityType": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Facility Type'. Your transaction has not been processed. Correct and resubmit.",
+    "missingAddressLine1": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Address Line 1'. Your transaction has not been processed. Correct and resubmit.",
+    "missingCity": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'City'. Your transaction has not been processed. Correct and resubmit.",
+    "invalidDateFormatEffectiveFrom": "GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit.",
+    "facilityNameTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Name' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit.",
+    "addressLine1TooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Address Line 1' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit.",
+    "addressLine2TooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Address Line 2' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit.",
+    "addressLine3TooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Address Line 3' length must be between 0 and 100. Your transaction has not been processed. Correct and resubmit.",
+    "cityTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'City' length must be between 0 and 60. Your transaction has not been processed. Correct and resubmit.",
+    "effectiveStartRequiredForName": "Effective Start Date is required when Name is provided",
+    "nameRequiredWhenDescriptionProvided": "Name is required when Description is provided",
+    "facilityDescriptionTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Description' length must be between 0 and 200. Your transaction has not been processed. Correct and resubmit."
   },
-  "warnings" : {
-    "missingCriteria" : "Invalid or Incomplete form data provided, please see instructions on the right side.",
-    "maximumResults" : "Maximum search results returned. Please refine your search criteria.",
+  "warnings": {
+    "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",
+    "maximumResults": "Maximum search results returned. Please refine your search criteria.",
+    "addressValidationFailed": "PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter.",
+    "duplicateFacilityFound": "PRS.SYS.ADR.UNK.1.0.7055: An existing facility address was found, can not create duplicate facility."
   }
 }

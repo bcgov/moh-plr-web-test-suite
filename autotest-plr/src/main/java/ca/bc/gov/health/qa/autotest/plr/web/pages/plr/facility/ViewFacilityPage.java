@@ -20,9 +20,10 @@ import java.util.regex.Pattern;
  * A page object class for the View Facility page.
  */
 public class ViewFacilityPage extends BasicWebPage {
-	private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
-	private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile(" \\(.*\\)");
-	private static final String TABLE_ROWS_SELECTOR = " > table > tbody > tr";
+    private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
+    private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile(" \\(.*\\)");
+    private static final Pattern DATA_KEY_STAR_PATTERN = Pattern.compile("\\*$");
+    private static final String TABLE_ROWS_SELECTOR = " > table > tbody > tr";
 
 	private final ViewHeaderFragment viewHeader_;
 
@@ -248,6 +249,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return foundit;
 	}
 
+
 	public String grabDataBlockSummaryLine(FacilitySection section, int index) {
 		String cssString = getDataBlockHeaderSelector(section, index);
 		cssString = cssString + " > span.ui-panel-title";
@@ -256,58 +258,66 @@ public class ViewFacilityPage extends BasicWebPage {
 		return headerTitle.getText();
 	}
 
-	/*
-	 * Removes the colon and parentheses from data fields for easier reference
-	 *
-	 * @param key the key to be formatted and subsequently used in a hash map
-	 * 
-	 * @return the formatted key as a string
-	 */
-	private static String formatDataKey(String key) {
-		String formattedKey = DATA_KEY_SUFFIX_PATTERN.matcher(key).replaceAll("");
-		formattedKey = DATA_KEY_PARENS_PATTERN.matcher(formattedKey).replaceAll("");
-		return formattedKey;
-	}
+	
 
-	/**
-	 * Gets the content from a specific data block within a facility section The
-	 * Civic Address field has a different structure, so
-	 * grabCivicAddressBlockContent must be used instead to obtain civic address
-	 * details.
-	 *
-	 * @param section the facility section to get content from
-	 * @param index   the index of data block within the facility section to get
-	 *                content from
-	 * @return a hash map mapping data block fields (String) to its associated
-	 *         values (String)
-	 * @throws IllegalStateException If a specific row of data in the block is
-	 *                               formatted unexpectedly
-	 */
-	public LinkedHashMap<String, String> grabDataBlockContent(FacilitySection section, int index) {
-		LinkedHashMap<String, String> dataMap = new LinkedHashMap<>();
-		expandDataBlock(section, index, true);
-		List<WebElement> dataRowElementList = selenium_
-				.findElements(By.cssSelector(getDataBlockContentSelector(section, index) + TABLE_ROWS_SELECTOR));
+    /**
+     * Removes the colon and parentheses from data fields for easier reference
+     *
+     * @param key   the key to be formatted and subsequently used in a hash map
+     * @return  the formatted key as a string
+     */
+    private static String formatDataKey(String key)
+    {
+        String formattedKey = DATA_KEY_STAR_PATTERN.matcher(key).replaceAll("");
+        formattedKey = DATA_KEY_PARENS_PATTERN.matcher(formattedKey).replaceAll("");
+        formattedKey = DATA_KEY_SUFFIX_PATTERN.matcher(formattedKey).replaceAll("");
+        return formattedKey;
+    }
 
-		if (!dataRowElementList.isEmpty()) {
-			selenium_.scrollIntoView(dataRowElementList.getFirst());
-		}
-		for (WebElement dataRow : dataRowElementList) {
-			List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td"));
-			int dataColumnCount = dataEntryList.size();
-			if (dataColumnCount == 2 || dataColumnCount == 4) {
-				dataMap.put(formatDataKey(dataEntryList.get(0).getText()), dataEntryList.get(1).getText());
-				if (dataColumnCount == 4) {
-					dataMap.put(formatDataKey(dataEntryList.get(2).getText()), dataEntryList.get(3).getText());
-				}
-			} else {
-				String msg = String.format("Invalid data row (%s: %d: %s).", section.getTitle(), index,
-						dataRow.getText());
-				throw new IllegalStateException(msg);
-			}
-		}
-		return dataMap;
-	}
+    /**
+     * Gets the content from a specific data block within a facility section
+     * The Civic Address field has a different structure,
+     * so grabCivicAddressBlockContent must be used instead to obtain civic address details.
+     *
+     * @param section   the facility section to get content from
+     * @param index     the index of data block within the facility section to get content from
+     * @return  a hash map mapping data block fields (String) to its associated values (String)
+     * @throws IllegalStateException    If a specific row of data in the block is formatted unexpectedly
+     */
+    public LinkedHashMap<String,String> grabDataBlockContent(FacilitySection section, int index)
+    {
+    	 LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
+         expandDataBlock(section, index, true);
+         String dataBlockContentSelector = getDataBlockContentSelector(section, index);
+         if (section == FacilitySection.ORGANIZATION_RELATIONSHIPS) dataBlockContentSelector += " > form";
+         dataBlockContentSelector += TABLE_ROWS_SELECTOR;
+         List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(dataBlockContentSelector));
+
+         if (!dataRowElementList.isEmpty())
+         {
+             selenium_.scrollIntoView(dataRowElementList.getFirst());
+         }
+         for (WebElement dataRow : dataRowElementList)
+         {
+             List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td"));
+             int dataColumnCount = dataEntryList.size();
+             if (dataColumnCount == 2 || dataColumnCount == 4)
+             {
+                 dataMap.put(formatDataKey(dataEntryList.get(0).getText()), dataEntryList.get(1).getText());
+                 if (dataColumnCount == 4)
+                 {
+                     dataMap.put(formatDataKey(dataEntryList.get(2).getText()), dataEntryList.get(3).getText());
+                 }
+             }
+             else {
+                 String msg = String.format("Invalid data row (%s: %d: %s).",
+                         section.getTitle(), index, dataRow.getText());
+                 throw new IllegalStateException(msg);
+             }
+         }
+         return dataMap;
+    }
+
 
 	public LinkedHashMap<String, String> grabBlockContent(FacilitySection section, int index,
 			LinkedHashMap<String, String> dataMap, List<WebElement> dataRowElementList) {
@@ -416,23 +426,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return count;
 	}
 
-	/**
-	 * get data block count
-	 *
-	 * @param section
-	 * 
-	 */
 	
-	
-	public int grabDataBlockCount(FacilitySection section) {
-		return selenium_.findElements(By.cssSelector(getDataBlocksSelector(section))).size();
-	}
-
-
-
-
-	
-
 	/**
 	 * check data block active or not *
 	 * 
@@ -547,5 +541,85 @@ public class ViewFacilityPage extends BasicWebPage {
 						+ " > form" + TABLE_ROWS_SELECTOR));
 		return grabBlockContent(FacilitySection.ORGANIZATION_RELATIONSHIPS, index, dataMap, dataRowElementList);
 	}
+
+
+    /**
+     * Gets the content from a Civic Addresses data block.
+     * All other facility sections are structured differently,
+     * so grabDataBlockContent must be used instead for any other facility section.
+     *
+     * @return  a hash map mapping civic address data fields (String) to their associated values (String)
+     */
+    public LinkedHashMap<String,String> grabCivicAddressBlockContent()
+    {
+        LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
+        expandDataBlock(FacilitySection.CIVIC_ADDRESSES, 0, true);
+        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(
+                getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, 0)
+                + " > div.ui-outputpanel" + TABLE_ROWS_SELECTOR));
+        By tableSelect = By.cssSelector("td" + TABLE_ROWS_SELECTOR);
+
+        if (!dataRowElementList.isEmpty())
+        {
+            selenium_.scrollIntoView(dataRowElementList.getFirst());
+        }
+        for (WebElement dataRow : dataRowElementList)
+        {
+            List<WebElement> dataEntryList = dataRow.findElements(tableSelect);
+            int dataColumnCount = dataEntryList.size();
+            if (dataColumnCount == 2) addFieldDataMap(dataMap, dataEntryList, 0);
+            else
+            {
+                List<WebElement> extraFields = dataEntryList.getFirst().findElements(tableSelect);
+                switch (dataColumnCount)
+                {
+                    case 4:
+                        dataMap.put(formatDataKey(extraFields.getFirst().findElement(
+                                By.cssSelector("div.frmDialogLbl > label")).getText()),
+                                extraFields.getFirst().findElement(
+                                        By.cssSelector("div[role] > label")).getText());
+                        addFieldDataMap(dataMap, extraFields, 1);
+                        break;
+                    case 5:
+                        addFieldDataMap(dataMap, extraFields, 2);
+                    case 6:
+                        addFieldDataMap(dataMap, extraFields, 0);
+                        break;
+                    default:
+                        String msg = String.format("Invalid data row (%d: %s).", dataColumnCount, dataRow.getText());
+                        throw new IllegalStateException(msg);
+                }
+            }
+
+        }
+        return dataMap;
+    }
+
+    /**
+     * Determines the number of data blocks in a specific facility section.
+     *
+     * @param section   the facility section to find the number of records for.
+     * @return          an integer of the number of records for a particular facility section.
+     */
+    public int grabDataBlockCount(FacilitySection section)
+    {
+        List<WebElement> dataBlockList = selenium_.findElements(By.cssSelector(
+                getDataBlocksSelector(section)));
+        return dataBlockList.size();
+    }
+
+    /**
+     * Opens an organization (provider) page in the Organization Relationships section.
+     *
+     * @param dataBlockIndex    the index of organization relationship to open and click into
+     */
+    public void openOrg(int dataBlockIndex)
+    {
+        String linkSelector = getDataBlockContentSelector(FacilitySection.ORGANIZATION_RELATIONSHIPS, dataBlockIndex);
+        linkSelector += " > form" + TABLE_ROWS_SELECTOR + " > td > a";
+
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector(linkSelector)));
+        selenium_.findElement(By.cssSelector(linkSelector)).click();
+    }
 
 }
