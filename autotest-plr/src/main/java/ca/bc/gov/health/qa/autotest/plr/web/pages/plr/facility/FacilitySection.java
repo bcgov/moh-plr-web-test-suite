@@ -38,6 +38,7 @@ public enum FacilitySection {
      * Organization Relationships
      */
     ORGANIZATION_RELATIONSHIPS("organizationRelationshipsPanel", "Organization Relationships"),
+    
 
     /**
      * Notes
@@ -66,4 +67,6 @@ public enum FacilitySection {
      * @return  a string of the facility section's title
      */
     public String getTitle() { return title_; }
+    
+    
 }

@@ -47,6 +47,24 @@ public class InjectableData
         }
         return toArray(data);
     }
+    
+    @DataProvider(name = "facilityTestUserTypes")
+    /**
+     * Provides a matrix of user types for facility tests.
+     *
+     * @return a two-dimensional array of test parameters
+     */
+    public static Object[][] getFacilityTestUserTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        
+        data.add(new Object[]{UserType.ADMIN});
+        data.add(new Object[]{UserType.PRIMARY});
+        data.add(new Object[]{UserType.SECONDARY});
+        data.add(new Object[]{UserType.CONSUMER});
+       
+        return toArray(data);
+    }
 
     /**
      * TODO (AZ) - doc

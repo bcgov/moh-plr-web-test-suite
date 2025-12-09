@@ -153,6 +153,13 @@ public class FHIRController implements AutoCloseable {
 
     //TODO: ceasePractitioner(IdentifierType identifier)
 
+    /**
+     * Queries FHIR for a facility by identifier type and value.
+     *
+     * @param idType the identifier system/type to search by
+     * @param idValue the identifier value to match
+     * @return a builder populated from the FHIR response
+     */
     public MaintainFacilityBuilder queryFacilityByIdentifier(IdentifierType idType, String idValue) {
 
         JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.FACILITY, idType, idValue);
@@ -161,6 +168,13 @@ public class FHIRController implements AutoCloseable {
         return FacilityQueryResponseMapper.fromQueryBundle(response);
     }
 
+    /**
+     * Queries FHIR for an organization by identifier type and value.
+     *
+     * @param idType the identifier system/type to search by
+     * @param idValue the identifier value to match
+     * @return a builder populated from the FHIR response
+     */
     public MaintainOrgBuilder queryOrganizationByIdentifier(IdentifierType idType, String idValue) {
 
         JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.ORGANIZATION, idType, idValue);

@@ -324,7 +324,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
     {
         //300
         final String civicAddressRecommendation = warningList.getString("civicAddressRecommendation");
-        final List<String> addressData = List.of("250", "250", "LANSDOWNE ST, KAMLOOPS");
+        final List<String> addressData = List.of("250", "300", "LANSDOWNE ST, KAMLOOPS");
         final String streetTypeEnding = "R";
 
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);

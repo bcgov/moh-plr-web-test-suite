@@ -43,6 +43,12 @@ public enum HdsType {
      */
     OUTPATIENT;
 
+    /**
+     * Resolves an HDS type enum from a code string.
+     *
+     * @param code the HDS code
+     * @return the matching `HdsType`, or null if not found
+     */
     public static HdsType resolveHdsType(String code) {
 		if (code == null) return null;
 		for (HdsType h : HdsType.values()) {

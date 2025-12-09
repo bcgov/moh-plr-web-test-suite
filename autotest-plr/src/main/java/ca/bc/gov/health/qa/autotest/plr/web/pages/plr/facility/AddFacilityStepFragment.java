@@ -14,8 +14,14 @@ import java.util.List;
  */
 public class AddFacilityStepFragment extends BasicWebPageFragment {
 
+    /**
+     * CSS prefix used to locate Effective From date fields within the form.
+     */
     public static final String DATE_FIELD_PREFIX_CSS = "span#form\\:effectiveFromDate_";
 
+    /**
+     * The lowercase prefix used to construct element IDs for a specific step.
+     */
     public String STEP_PREFIX;
 
     /**
@@ -30,6 +36,10 @@ public class AddFacilityStepFragment extends BasicWebPageFragment {
                 By.xpath(String.format("//table//tbody//tr//td//div//div//span[contains(text(),'%s')]", stepType)));
     }
 
+    /**
+     * Gets the CSS selector for the date field associated with this step.
+     * @return the CSS selector string for the date field
+     */
     public String getDateFieldCss() { return DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX; }
 
     /**
@@ -60,6 +70,16 @@ public class AddFacilityStepFragment extends BasicWebPageFragment {
     public String effectiveFromSpecificDate(int effectiveYear, int effectiveMonth, int effectiveDay)
     {
         return getEffectiveFromDateMenu().pickSpecificDate(effectiveYear, effectiveMonth, effectiveDay);
+    }
+
+    /**
+     * Types a raw string into the Effective From date input (bypasses date picker UI)
+     *
+     * @param rawDate a date string to type directly
+     */
+    public void typeEffectiveFromRaw(String rawDate)
+    {
+        if (rawDate != null) selenium_.fillFieldByCss(DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX + " > input", rawDate);
     }
 
     /**

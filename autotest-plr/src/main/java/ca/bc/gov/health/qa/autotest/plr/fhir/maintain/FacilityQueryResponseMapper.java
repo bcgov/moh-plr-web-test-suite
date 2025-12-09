@@ -179,7 +179,7 @@ public final class FacilityQueryResponseMapper {
             String line1 = lines != null && lines.length() > 0 ? lines.optString(0, null) : valueAddress.optString("text", null);
             String city = valueAddress.optString("city", null);
             String postal = valueAddress.optString("postalCode", null);
-            if (line1 != null && city != null && postal != null) {
+            if (line1 != null && city != null) {
                 b.addAddress(line1, city, postal);
             }
         }

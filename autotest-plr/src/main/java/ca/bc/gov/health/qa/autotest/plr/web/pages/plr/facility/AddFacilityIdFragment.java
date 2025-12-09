@@ -2,6 +2,9 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
+
+import java.util.List;
+
 import org.openqa.selenium.By;
 
 /**
@@ -47,6 +50,18 @@ public class AddFacilityIdFragment extends AddFacilityStepFragment {
      * @return  a string of the value currently selected as Facility Type
      */
     public String getFacilityType() { return getFacilityTypeMenu().grabSelectedItem(); }
+
+    /**
+     * Gets all available options in the Facility Type dropdown
+     *
+     * @return  a list of strings of all facility type options
+     */
+    public List<String> getFacilityTypeOptions()
+    {
+        DropDownMenu menu = getFacilityTypeMenu();
+        menu.expandItemPanel(true);
+        return menu.grabItemList();
+    }
 
     /**
      * Constructs a DropDownMenu component for the Identifier Type
