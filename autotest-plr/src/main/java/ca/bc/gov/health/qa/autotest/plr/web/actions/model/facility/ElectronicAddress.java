@@ -1,12 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
 import org.json.JSONObject;
+
+import static org.testng.Assert.*;
 
 public class ElectronicAddress {
 	String type;
@@ -21,13 +20,19 @@ public class ElectronicAddress {
 	String dataOwnerCode;
 	
 	public String getTypeSummary() {
-		if(type==null)return type;
+		if(type==null) return null;
 		return type.split("\\(")[0].stripTrailing();
 	}
 
 	public String getPurposeSummary() {
-		if(purpose==null)return purpose;
+		if(purpose==null) return null;
 		return purpose.split("\\(")[0].stripTrailing();
+	}
+	
+	
+
+	public String getType() {
+		return type;
 	}
 
 	public String getAddress() {
@@ -57,11 +62,11 @@ public class ElectronicAddress {
 		super();
 		assertNotNull(jsonData);
 
-		assertTrue(!jsonData.isNull("Type"));
+        assertFalse(jsonData.isNull("Type"));
 		this.type = jsonData.getString("Type");
-		assertTrue(!jsonData.isNull("Purpose"));
+        assertFalse(jsonData.isNull("Purpose"));
 		this.purpose = jsonData.getString("Purpose");
-		assertTrue(!jsonData.isNull("Address"));
+        assertFalse(jsonData.isNull("Address"));
 		this.address = jsonData.getString("Address");
 
 		if (!jsonData.isNull("Effective From"))
