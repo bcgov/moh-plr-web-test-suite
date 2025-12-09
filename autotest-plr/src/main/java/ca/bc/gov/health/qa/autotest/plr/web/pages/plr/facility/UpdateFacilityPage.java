@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
@@ -22,7 +23,6 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.EndReason;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
-import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 
 public class UpdateFacilityPage extends ViewFacilityPage {
 	
@@ -66,9 +66,14 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		}
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param second
+     */
 	public void waitSeconds(int second) {
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(1000L * second);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			fail(e.getMessage());
@@ -118,6 +123,14 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	private String getDataBlockHeaderSelector(FacilitySection section, int index) {
 		return getDataBlockSelector(section, index) + " > div.ui-panel-titlebar";
 	}
+
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param index
+     * @return
+     */
 	public boolean grabDataBlockActive(FacilitySection section, int index) {
 		By locator = By.cssSelector(getDataBlockHeaderActiveSelector(section, index));
 		return selenium_.searchElement(locator) != null;
@@ -128,7 +141,14 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 				+ " > span >a >img[title^='Update']";
 
 	}
-	
+
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param active
+     * @return
+     */
 	public int grabActiveDataBlockCount(FacilitySection section, boolean active) {
 		int count = 0;
 		for (int i = 0; i < grabDataBlockCount(section); i++) {
@@ -156,6 +176,12 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param index
+     */
 	public void clickDataBlockUpdateButton(FacilitySection section, int index) {
 		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
 		WebElement updateButton = selenium_.waitUntil(ExpectedConditions
@@ -183,44 +209,32 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return "div#"+dialogName+" > div#"+dialogName+"_content" +" > form#"+formName;
 	}
 	
-	private void setEndReasonByVisibleText(FacilitySection section, String visibleText) {
-		
-		String formName=DIALOG_MAP.get(section).getFormName();
-		String endReasonName=DIALOG_MAP.get(section).getEndReasonName();
-		
-		String dialogCss=getDialogCss(section);
-		String dropListCss=dialogCss+" > div#"+formName+"\\:"+endReasonName+" >div.ui-helper-hidden-accessible"+" > select#"+formName+"\\:"+endReasonName+"_input";
-		WebElement dropList=selenium_.findElement(By.cssSelector(dropListCss));
-		selenium_.scrollIntoView(dropList);
-		Select select= new Select(dropList);
-		List<WebElement> ll = select.getOptions();
-		
-		select.selectByVisibleText(visibleText);
+	private void setEndReasonByVisibleText(FacilitySection section, String visibleText)
+    {
+        String formName=DIALOG_MAP.get(section).getFormName();
+        String endReasonName=DIALOG_MAP.get(section).getEndReasonName();
+
+        DropDownMenu endReasonDrop = new DropDownMenu(selenium_,
+                By.cssSelector("label#" + formName + "\\:" + endReasonName + "_label"),
+                By.cssSelector("div#" + formName + "\\:" + endReasonName + "_panel"));
+
+        endReasonDrop.selectItem(visibleText);
 	}
 	
 	
-	private void setDropdownListByVisibleText(FacilitySection section, String dropdownName,String visibleText) {
-		
+	private void setDropdownListByVisibleText(FacilitySection section, String dropdownName,String visibleText)
+    {
 		String formName=DIALOG_MAP.get(section).getFormName();
-		String dialogCss=getDialogCss(section);
-		
-		String dropListCss=dialogCss+" > div#"+formName+"\\:"+dropdownName+" >div.ui-helper-hidden-accessible"+" > select#"+formName+"\\:"+dropdownName+"_input";
-		WebElement dropList=selenium_.findElement(By.cssSelector(dropListCss));
-		selenium_.scrollIntoView(dropList);
-		Select select= new Select(dropList);
-		select.selectByVisibleText(visibleText);
+
+        DropDownMenu dropdownMenu = new DropDownMenu(selenium_,
+                By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label"),
+                By.cssSelector("div#" + formName + "\\:" + dropdownName + "_panel"));
+
+        dropdownMenu.selectItem(visibleText);
 	}
 	
 	private void clickDialogSubmitButton(FacilitySection section) {
-		
-		String formName=DIALOG_MAP.get(section).getFormName();
-		String submitButtonName=DIALOG_MAP.get(section).getSubmitButtonName();
-		String dialogCss=getDialogCss(section);
-		
-		String buttonCss=dialogCss+" > div.formControls"+" > button#"+formName+"\\:"+submitButtonName;
-		WebElement button=selenium_.findElement(By.cssSelector(buttonCss));
-		button.click();
-		waitSeconds(2);
+		clickDialogSubmitButton(section, false);
 	}
 
 	private void clickDialogSubmitButton(FacilitySection section,boolean expectError) {
@@ -371,6 +385,13 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 				
 		
 	}
+
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     * @param index
+     */
 	public void ceaseDataBlock(FacilitySection section,int index) {
 		
 		String formName=DIALOG_MAP.get(section).getFormName();
@@ -388,7 +409,8 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		button.click();
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
-	
+
+    // TODO
 	public void ceaseDataBlockOrgID(FacilitySection section,int index) {
 
 		String formName=DIALOG_MAP.get(section).getFormName();
@@ -407,6 +429,11 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param section
+     */
 	public void ceaseAllDataBlockUnderSection(FacilitySection section) {
 		int count=grabActiveDataBlockCount(section, true);
 		for(int i=0;i<count;i++) { 
@@ -414,6 +441,23 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		}
 	}
 
+    private void findAndFillField(String dialogCss, String formName, String field, String fieldCss)
+    {
+        String inputNameCss=dialogCss+" >input#"+formName+"\\:"+fieldCss;
+        WebElement inputName=selenium_.findElement(By.cssSelector(inputNameCss));
+        inputName.clear();
+        if(!StringUtils.isEmpty(field))inputName.sendKeys(field);
+    }
+
+    /**
+     * TODO (KD) - doc
+     *
+     * @param name
+     * @param desc
+     * @param effectiveFrom
+     * @param effectiveTo
+     * @return
+     */
 	public String addNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo) {
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.NAMES).getFormName();
@@ -423,16 +467,10 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		//waitSeconds(2);
 		
 		//<input id="maintainFacilityNameForm:shortName"
-		String inputNameCss=dialogCss+" >input#"+formName+"\\:"+"shortName";
-		WebElement inputName=selenium_.findElement(By.cssSelector(inputNameCss));
-		inputName.clear();
-		if(!StringUtils.isEmpty(name))inputName.sendKeys(name);
+        findAndFillField(dialogCss,formName,name,"shortName");
 		
 		//<input id="maintainFacilityNameForm:description"
-		String inputDescCss=dialogCss+" >input#"+formName+"\\:"+"description";
-		WebElement inputDesc=selenium_.findElement(By.cssSelector(inputDescCss));
-		inputDesc.clear();
-		if(!StringUtils.isEmpty(desc))inputDesc.sendKeys(desc);
+        findAndFillField(dialogCss,formName,desc,"description");
 		
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.NAMES,effectiveFrom,effectiveTo);
 		
@@ -452,6 +490,16 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param name
+     * @param desc
+     * @param effectiveFrom
+     * @param effectiveTo
+     * @param index
+     * @return
+     */
 	public String updateNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo,int index) {
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.NAMES).getFormName();
@@ -461,16 +509,10 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		//waitSeconds(2);
 		
 		//<input id="maintainFacilityNameForm:shortName"
-		String inputNameCss=dialogCss+" >input#"+formName+"\\:"+"shortName";
-		WebElement inputName=selenium_.findElement(By.cssSelector(inputNameCss));
-		inputName.clear();
-		if(!StringUtils.isEmpty(name))inputName.sendKeys(name);
+        findAndFillField(dialogCss,formName,name,"shortName");
 		
 		//<input id="maintainFacilityNameForm:description"
-		String inputDescCss=dialogCss+" >input#"+formName+"\\:"+"description";
-		WebElement inputDesc=selenium_.findElement(By.cssSelector(inputDescCss));
-		inputDesc.clear();
-		if(!StringUtils.isEmpty(desc))inputDesc.sendKeys(desc);
+        findAndFillField(dialogCss,formName,desc,"description");
 		
 		setEndReasonByVisibleText(FacilitySection.NAMES,EndReason.CHG.getText());
 		
@@ -490,6 +532,16 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
+    /**
+     * TODO (KD) - doc
+     *
+     * @param idType
+     * @param id
+     * @param effectiveFrom
+     * @param effectiveTo
+     * @param expectError
+     * @return
+     */
 	public String addIdentifierDataBlock(String idType, String id, String effectiveFrom, String effectiveTo,boolean expectError) {
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.IDENTIFIERS).getFormName();
@@ -518,8 +570,16 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
-
-
+    /**
+     * TODO (KD) - doc
+     *
+     * @param id
+     * @param text
+     * @param effectiveFrom
+     * @param effectiveTo
+     * @param expectError
+     * @return
+     */
 	public String addNoteDataBlock(String id, String text, String effectiveFrom,
 			String effectiveTo,boolean expectError) {
 		String msgDisplay="";
@@ -554,8 +614,16 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
-
-
+    /**
+     * TODO (KD) - doc
+     *
+     * @param text
+     * @param effectiveFrom
+     * @param effectiveTo
+     * @param index
+     * @param expectError
+     * @return
+     */
 	public String updateNoteDataBlock( String text, String effectiveFrom, String effectiveTo,
 			int index,boolean expectError) {
 		String msgDisplay="";
@@ -585,7 +653,17 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;	
 	}
 
-	
+    /**
+     * TODO (KD) - doc
+     *
+     * @param idType
+     * @param id
+     * @param relationType
+     * @param effectiveFrom
+     * @param effectiveTo
+     * @param expectError
+     * @return
+     */
 	public String addRelatedOrganizationDataBlock(String idType, String id, String relationType,String effectiveFrom,
 			String effectiveTo, boolean expectError) {
 		String msgDisplay="";
@@ -639,7 +717,19 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		}
 		return msgDisplay;
 	}
-	
+
+    /**
+     * TODO (KD) - doc
+     *
+     * @param type
+     * @param areaCode
+     * @param phoneNumber
+     * @param extension
+     * @param effectiveFrom
+     * @param effectiveTo
+     * @param expectError
+     * @return
+     */
 	public String addTelecommunicationDataBlock(String type, String areaCode, String phoneNumber,String extension,
 			String effectiveFrom,String effectiveTo, boolean expectError) {
 		String msgDisplay="";
@@ -678,7 +768,17 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	
+
+    /**
+     * TODO (KD) - doc
+     *
+     * @param type
+     * @param address
+     * @param effectiveFrom
+     * @param effectiveTo
+     * @param expectError
+     * @return
+     */
 	public String addElectronicAddressDataBlock(String type, String address,
 			String effectiveFrom,String effectiveTo,boolean expectError) {
 		String msgDisplay="";
