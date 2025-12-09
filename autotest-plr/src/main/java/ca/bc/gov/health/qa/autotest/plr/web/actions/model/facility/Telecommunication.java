@@ -2,30 +2,41 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
 import java.util.LinkedHashMap;
 import java.util.Objects;
-
+import static org.testng.Assert.*;
 import org.json.JSONObject;
 
-import static org.testng.Assert.*;
-
+/**
+ * TODO (KD)
+ */
 public class Telecommunication {
-	String type;
-	String purpose;
-	String areaCode;
-	String number;
-	String extension;
-	String effectiveFrom;
-	String effectiveTo;
-	String endReason;
-	String dataSource;
-	String dbCreated;
-	String dbExpired;
-	String dataOwnerCode;
+	private String type;
+	private String purpose;
+	private String areaCode;
+	private String number;
+	private String extension;
+	private String effectiveFrom;
+	private String effectiveTo;
+	private String endReason;
+	private String dataSource;
+	private String dbCreated;
+	private String dbExpired;
+	private String dataOwnerCode;
 	
 	
+	/**
+	 * Gets a simplified Type value (text before parenthesis).
+	 *
+	 * @return the type summary or the original value if null
+	 */
 	public String getTypeSummary() {
 		if(type==null) return null;
 		return type.split("\\(")[0].stripTrailing();
 	}
+	/**
+	 * Gets a simplified Purpose value (text before parenthesis).
+	 *
+	 * @return the purpose summary or the original value if null
+	 */
 	public String getPurposeSummary() {
 		if(purpose==null) return null;
 		return purpose.split("\\(")[0].stripTrailing();
@@ -35,18 +46,55 @@ public class Telecommunication {
 	public String getType() {
 		return type;
 	}
+	
+	/**
+	 * Gets the area code.
+	 *
+	 * @return the area code or null
+	 */
 	public String getAreaCode() {
 		return areaCode;
 	}
+	/**
+	 * Gets the phone number.
+	 *
+	 * @return the number value
+	 */
 	public String getNumber() {
 		return number;
 	}
+	/**
+	 * Gets the extension.
+	 *
+	 * @return the extension or null
+	 */
 	public String getExtension() {
 		return extension;
 	}
+	/**
+	 * Gets the data owner code.
+	 *
+	 * @return the data owner code or null
+	 */
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
 	}
+	/**
+	 * Constructs a Telecommunication using explicit values.
+	 *
+	 * @param type the type
+	 * @param purpose the purpose
+	 * @param areaCode area code
+	 * @param number phone number
+	 * @param extension extension
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param endReason end reason
+	 * @param dataSource data source
+	 * @param dbCreated database created timestamp
+	 * @param dbExpired database expired timestamp
+	 * @param dataOwnerCode data owner code
+	 */
 	public Telecommunication(String type, String purpose, String areaCode, String number, String extension,
 			String effectiveFrom, String effectiveTo, String endReason, String dataSource, String dbCreated,
 			String dbExpired, String dataOwnerCode) {
@@ -86,6 +134,11 @@ public class Telecommunication {
 				&& Objects.equals(purpose, other.purpose) && Objects.equals(type, other.type);
 	}
 	
+	/**
+	 * Constructs a Telecommunication from a JSON object.
+	 *
+	 * @param jsonData the JSON data containing fields
+	 */
 	public Telecommunication(JSONObject jsonData) {
 		super();
 		assertNotNull(jsonData);
@@ -119,6 +172,11 @@ public class Telecommunication {
 
 	}
 
+	/**
+	 * Constructs a Telecommunication from a map of label to value.
+	 *
+	 * @param map the map with keys matching UI labels
+	 */
 	public Telecommunication(LinkedHashMap<String, String> map) {
 		super();
 		assertNotNull(map);

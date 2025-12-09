@@ -7,7 +7,14 @@ import java.util.Map;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 
+/**
+ * Utility holder for facility section data field ordering and keys.
+ */
 public class FacilityDataFields {
+	/**
+	 * Utility class; no instances.
+	 */
+	private FacilityDataFields() {}
 	private static final Map<FacilitySection, List<String>> SORT_KEY_MAP;
 	static {
 		Map<FacilitySection, List<String>> map = new EnumMap<>(FacilitySection.class);
@@ -21,6 +28,12 @@ public class FacilityDataFields {
 	}
 	
 	
+	/**
+	 * Returns the sort order key list for a facility section.
+	 *
+	 * @param section the facility section enum
+	 * @return list of field keys used for ordering
+	 */
 	public static List<String> getSortKey(FacilitySection section)
     {
         return SORT_KEY_MAP.get(section);

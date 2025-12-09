@@ -161,6 +161,11 @@ implements AutoCloseable
     }
     
     
+    /**
+     * Lazily creates and returns helper actions for viewing facility pages.
+     *
+     * @return an instance of `ViewFacilitySimpleActions`
+     */
     public ViewFacilitySimpleActions getViewFacilitySimpleActions()
     {
         return new ViewFacilitySimpleActions(selenium_, uri_, userType_);

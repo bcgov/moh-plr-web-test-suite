@@ -509,28 +509,64 @@ public class ViewFacilityPage extends BasicWebPage {
 
 	}
 
+	/**
+     * TODO (KD) - doc
+     *
+     * @param index
+     * @return
+     */
 	public LinkedHashMap<String, String> grabIdentifiersBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.IDENTIFIERS, index);
 
 	}
 
+	/**
+     * TODO (KD) - doc
+     *
+     * @param index
+     * @return
+     */
 	public LinkedHashMap<String, String> grabNamesBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.NAMES, index);
 
 	}
 
+	/**
+     * TODO (KD) - doc
+     *
+     * @param index
+     * @return
+     */
 	public LinkedHashMap<String, String> grabOtherAddressBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.OTHER_ADDRESS, index);
 	}
 
+	/**
+     * TODO (KD) - doc
+     *
+     * @param index
+     * @return
+     */
 	public LinkedHashMap<String, String> grabTelecommunicationsBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.TELECOMMUNICATIONS, index);
 	}
 
+	/**
+     * TODO (KD) - doc
+     *
+     * @param index
+     * @return
+     */
 	public LinkedHashMap<String, String> grabElectronicAddressesBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.ELECTRONIC_ADDRESSES, index);
 	}
 
+	/**
+     * TODO (KD) - doc
+     *
+     * @param index
+     * @return
+     */
 	public LinkedHashMap<String, String> grabNotesBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.NOTES, index);
 	}
@@ -560,6 +596,7 @@ public class ViewFacilityPage extends BasicWebPage {
      *
      * @return  a hash map mapping civic address data fields (String) to their associated values (String)
      */
+    @SuppressWarnings("fallthrough")
     public LinkedHashMap<String,String> grabCivicAddressBlockContent()
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
@@ -592,6 +629,7 @@ public class ViewFacilityPage extends BasicWebPage {
                         break;
                     case 5:
                         addFieldDataMap(dataMap, extraFields, 2);
+                        // fall through
                     case 6:
                         addFieldDataMap(dataMap, extraFields, 0);
                         break;

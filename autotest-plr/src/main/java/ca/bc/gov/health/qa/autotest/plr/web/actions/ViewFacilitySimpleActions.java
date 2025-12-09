@@ -35,6 +35,11 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 import static org.testng.Assert.*;
 
+/**
+ * Simple action helpers for interacting with the PLR Facility view page.
+ * Provides high-level workflows used by tests to open a facility and
+ * verify the presence and state of section data blocks.
+ */
 public class ViewFacilitySimpleActions {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
@@ -69,12 +74,13 @@ public class ViewFacilitySimpleActions {
 		userType_ = userType;
 	}
 
-    /**
-     * TODO (KD) - doc
-     *
-     * @param fauthId
-     * @return
-     */
+	/**
+	 * Opens the Facility Details page for the given facility authorization id
+	 * and waits until the page is ready.
+	 *
+	 * @param fauthId the facility authorization identifier (FAUTH ID) to open
+	 * @return a ready {@link ViewFacilityPage} instance for further interactions
+	 */
 	public ViewFacilityPage openFacility(String fauthId) {
 		LOG.info("Open facility({}).", fauthId);
 		ViewFacilityPage viewFacilityPage = new ViewFacilityPage(selenium_, uri_.resolve("plr/FacilityDetails.xhtml"));
@@ -84,13 +90,11 @@ public class ViewFacilitySimpleActions {
 	}
 
 	/**
-	 * verify all facility section blocks displayed verify name and identifier
-	 * blocks not empty
-	 * 
-	 * @param viewFacilityPage
+	 * Verifies that all expected facility sections are displayed. For IDENTIFIERS
+	 * and NAMES sections, also verifies that at least one active data block is
+	 * present (not empty).
 	 *
-	 * @param
-	 * 
+	 * @param viewFacilityPage the facility view page already opened and ready
 	 */
 	public void verifyFacilitySectionsDisplayed(ViewFacilityPage viewFacilityPage) {
 		ViewMode viewMode = viewFacilityPage.getViewHeader().grabViewMode();

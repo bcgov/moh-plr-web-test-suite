@@ -2,29 +2,31 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
 import java.util.LinkedHashMap;
 import java.util.Objects;
+import static org.testng.Assert.*;
 
 import org.json.JSONObject;
 
-import static org.testng.Assert.*;
-
+/**
+ * TODO (KD)
+ */
 public class OtherAddress {
-	String validationStatus;
-	String addressType;
-	String addressPurpose;
-	String addressLine1;
-	String addressLine2;
-	String addressLine3;
-	String city;
-	String stateProv;
-	String postalZipCode;
-	String country;
-	String effectiveFrom;
-	String effectiveTo;
-	String endReason;
-	String dataSource;
-	String dbCreated;
-	String dbExpired;
-	String dataOwnerCode;
+	private String validationStatus;
+	private String addressType;
+	private String addressPurpose;
+	private String addressLine1;
+	private String addressLine2;
+	private String addressLine3;
+	private String city;
+	private String stateProv;
+	private String postalZipCode;
+	private String country;
+	private String effectiveFrom;
+	private String effectiveTo;
+	private String endReason;
+	private String dataSource;
+	private String dbCreated;
+	private String dbExpired;
+	private String dataOwnerCode;
 	
 	
 	public String getAddressType() {
@@ -35,36 +37,88 @@ public class OtherAddress {
 		return addressPurpose;
 	}
 
+	
+	/**
+	 * Gets a simplified Address Type value (text before parenthesis).
+	 *
+	 * @return the address type summary or the original value if null
+	 */
 	public String getAddressTypeSummary() {
 		if(addressType==null) return null;
 		return addressType.split("\\(")[0].stripTrailing();
 	}
 	
+	/**
+	 * Gets a simplified Address Purpose value (text before parenthesis).
+	 *
+	 * @return the address purpose summary or the original value if null
+	 */
 	public String getAddressPurposeSummary() {
 		if(addressPurpose==null) return null;
 		return addressPurpose.split("\\(")[0].stripTrailing();
 	}
 	
+	/**
+	 * Gets Address Line 1.
+	 *
+	 * @return the Address Line 1 value or null
+	 */
 	public String getAddressLine1() {
 		return addressLine1;
 	}
 	
+	/**
+	 * Gets City.
+	 *
+	 * @return the city value or null
+	 */
 	public String getCity() {
 		return city;
 	}
 	
+	/**
+	 * Gets State/Province.
+	 *
+	 * @return the state/province value or null
+	 */
 	public String getStateProv() {
 		return stateProv;
 	}
 	
+	/**
+	 * Gets the data owner code.
+	 *
+	 * @return the data owner code or null
+	 */
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
 	}
 	
+	    /**
+	     * Constructs an OtherAddress using explicit values.
+	     *
+	     * @param validationStatus validation status
+	     * @param addressType address type
+	     * @param addressPurpose address purpose
+	     * @param addressLine1 Address Line 1
+	     * @param addressLine2 Address Line 2
+	     * @param addressLine3 Address Line 3
+	     * @param city city
+	     * @param stateProv state/province
+	     * @param postalZipCode postal or zip code
+	     * @param country country
+	     * @param effectiveFrom effective from date
+	     * @param effectiveTo effective to date
+	     * @param endReason end reason
+	     * @param dataSource data source
+	     * @param dbCreated database created timestamp
+	     * @param dbExpired database expired timestamp
+	     * @param dataOwnerCode data owner code
+	     */
 	public OtherAddress(String validationStatus, String addressType, String addressPurpose, String addressLine1,
-			String addressLine2, String addressLine3, String city, String stateProv, String postalZipCode,
-			String country, String effectiveFrom, String effectiveTo, String endReason, String dataSource,
-			String dbCreated, String dbExpired, String dataOwnerCode) {
+		    String addressLine2, String addressLine3, String city, String stateProv, String postalZipCode,
+		    String country, String effectiveFrom, String effectiveTo, String endReason, String dataSource,
+		    String dbCreated, String dbExpired, String dataOwnerCode) {
 		super();
 		this.validationStatus = validationStatus;
 		this.addressType = addressType;
@@ -112,6 +166,11 @@ public class OtherAddress {
 	}
 	
 	
+	/**
+	 * Constructs an OtherAddress from a JSON object.
+	 *
+	 * @param jsonData the JSON data containing fields
+	 */
 	public OtherAddress(JSONObject jsonData) {
 		super();
 		assertNotNull(jsonData);
@@ -156,6 +215,11 @@ public class OtherAddress {
 
 	}
 
+	/**
+	 * Constructs an OtherAddress from a map of label to value.
+	 *
+	 * @param map the map with keys matching UI labels
+	 */
 	public OtherAddress(LinkedHashMap<String, String> map) {
 		super();
 		assertNotNull(map);

@@ -49,6 +49,11 @@ public class InjectableData
     }
     
     @DataProvider(name = "facilityTestUserTypes")
+    /**
+     * Provides a matrix of user types for facility tests.
+     *
+     * @return a two-dimensional array of test parameters
+     */
     public static Object[][] getFacilityTestUserTypes()
     {
         List<Object[]> data = new ArrayList<>();

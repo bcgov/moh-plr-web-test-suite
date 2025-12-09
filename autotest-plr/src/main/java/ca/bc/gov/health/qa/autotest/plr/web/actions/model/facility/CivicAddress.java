@@ -8,44 +8,79 @@ import java.util.Objects;
 
 import org.json.JSONObject;
 
+/**
+ * TODO (KD)
+ */
 public class CivicAddress {
-	String latitude;
-	String longitude;
-	String addressLine1;
-	String addressLine2;
-	String addressLine3;
-	String city;
-	String provinceState;
-	String country;
-	String healthAuthority;
-	String healthServiceDeliveryArea;
-	String localHealthArea;
-	String primaryCareNetwork;
-	String communityHealthServiceArea;
+	private String latitude;
+	private String longitude;
+	private String addressLine1;
+	private String addressLine2;
+	private String addressLine3;
+	private String city;
+	private String provinceState;
+	private String country;
+	private String healthAuthority;
+	private String healthServiceDeliveryArea;
+	private String localHealthArea;
+	private String primaryCareNetwork;
+	private String communityHealthServiceArea;
 	
+	/**
+	 * Gets Address Line 1.
+	 *
+	 * @return the value of Address Line 1 or null
+	 */
 	public String getAddressLine1() {
 		return addressLine1;
 	}
 
-
-
+	/**
+	 * Gets City.
+	 *
+	 * @return the city value or null
+	 */
 	public String getCity() {
 		return city;
 	}
 
-
-
+	/**
+	 * Gets a simplified Province/State value (drops non-letters from the second token).
+	 *
+	 * @return a cleaned summary of Province/State or null
+	 */
 	public String getProvinceStateSummary() {
 		if (provinceState==null)return null;
 		String[] parts=provinceState.split("-");
 		return parts[1].replaceAll("^[^A-Z]*", "");
 	}
 
+	/**
+	 * Returns the data owner code for this entity.
+	 *
+	 * @return the data owner code
+	 */
 	public String getDataOwnerCode() {
 		return "MOH";
 	}
 
-
+	/**
+	 * Constructs a CivicAddress using explicit values.
+	 *
+	 * @param latitude the latitude value
+	 * @param longitude the longitude value
+	 * @param addressLine1 Address Line 1
+	 * @param addressLine2 Address Line 2
+	 * @param addressLine3 Address Line 3
+	 * @param city the city name
+	 * @param provinceState province/state text
+	 * @param country the country name
+	 * @param healthAuthority health authority name/code
+	 * @param healthServiceDeliveryArea health service delivery area
+	 * @param localHealthArea local health area
+	 * @param primaryCareNetwork primary care network
+	 * @param communityHealthServiceArea community health service area
+	 */
 	public CivicAddress(String latitude, String longitude, String addressLine1, String addressLine2,
 			String addressLine3, String city, String provinceState, String country, String healthAuthority,
 			String healthServiceDeliveryArea, String localHealthArea, String primaryCareNetwork,
@@ -99,6 +134,11 @@ public class CivicAddress {
 
 
 
+	/**
+	 * Constructs a CivicAddress from a JSON object.
+	 *
+	 * @param jsonData the JSON data containing address fields
+	 */
 	public CivicAddress(JSONObject jsonData) {
 		super();
 		assertNotNull(jsonData);
@@ -137,6 +177,11 @@ public class CivicAddress {
 
 	}
 
+	/**
+	 * Constructs a CivicAddress from a map of label to value.
+	 *
+	 * @param map the map with keys matching UI labels
+	 */
 	public CivicAddress(LinkedHashMap<String, String> map) {
 		super();
 		assertNotNull(map);

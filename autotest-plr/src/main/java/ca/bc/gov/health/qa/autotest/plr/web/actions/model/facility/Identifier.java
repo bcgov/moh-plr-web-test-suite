@@ -9,34 +9,57 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
+/**
+ * TODO (KD)
+ */
 public class Identifier {
-	String facilityType;
-	String identifier;
-	String idType;
-	String effectiveFrom;
-	String effectiveTo;
-	String endReason;
-	String dataSource;
-	String dbCreated;
-	String dbExpired;
-	String dataOwnerCode;
+	private String facilityType;
+	private String identifier;
+	private String idType;
+	private String effectiveFrom;
+	private String effectiveTo;
+	private String endReason;
+	private String dataSource;
+	private String dbCreated;
+	private String dbExpired;
+	private String dataOwnerCode;
 	
 	
 
+	/**
+	 * Gets the identifier value.
+	 *
+	 * @return the identifier string
+	 */
 	public String getIdentifier() {
 		return identifier;
 	}
 
+	/**
+	 * Gets the identifier type.
+	 *
+	 * @return the identifier type
+	 */
 	public String getIdType() {
 		return idType;
 	}
 
+	/**
+	 * Gets the data owner code.
+	 *
+	 * @return the data owner code or null
+	 */
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
 	}
 
 	
 
+	/**
+	 * Constructs an Identifier from a JSON object.
+	 *
+	 * @param jsonData the JSON data containing fields
+	 */
 	public Identifier(JSONObject jsonData) {
 		super();
 		assertNotNull(jsonData);
@@ -65,6 +88,11 @@ public class Identifier {
 
 	}
 
+	/**
+	 * Constructs an Identifier from a map of label to value.
+	 *
+	 * @param map the map with keys matching UI labels
+	 */
 	public Identifier(LinkedHashMap<String, String> map) {
 		super();
 		assertNotNull(map);

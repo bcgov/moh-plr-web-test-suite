@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
 
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -13,6 +15,8 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
  */
 public final class FacilityQueryResponseMapper {
 
+    private static final Logger LOG = ExecutionLogManager.getLogger();
+
     private FacilityQueryResponseMapper() {}
 
     /** Canonical extension URL for facility note wrapper. */
@@ -20,6 +24,24 @@ public final class FacilityQueryResponseMapper {
 
     /** Canonical extension URL that wraps the physical address (valueAddress). */
     private static final String PHYS_ADDRESS_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-physical-address-extension";
+
+    /** Canonical extension URL that wraps all health service area values. */
+    private static final String HEALTH_SERVICE_AREA_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-health-service-area-extension";
+
+    /** Canonical extension URL that wraps the community health service area (name -> valueString) */
+    private static final String COMMUNITY_HEALTH_AREA_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-community-health-area-extension";
+
+    /** Canonical extension URL that wraps the primary care network (name -> valueString) */
+    private static final String PRIMARY_CARE_NETWORK_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-primary-care-network-extension";
+
+    /** Canonical extension URL that wraps the health service delivery area (valueString) */
+    private static final String HEALTH_SERVICE_DELIVERY_AREA_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-health-service-delivery-area-extension";
+
+    /** Canonical extension URL that wraps the local health area (value string) */
+    private static final String LOCAL_HEALTH_AREA_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-local-health-area-extension";
+
+    /** Canonical extension URL that wraps the health authority (value string) */
+    private static final String HEALTH_AUTHORITY_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-facility-health-authority-extension";
 
     /** OrganizationAffiliation resourceType constant. */
     private static final String ORG_AFFILIATION_TYPE = "OrganizationAffiliation";
@@ -137,15 +159,19 @@ public final class FacilityQueryResponseMapper {
     
         JSONArray extensions = location.optJSONArray("extension");
         JSONObject valueAddress = null;
+        JSONArray hsdaInfo = null;
         if (extensions != null) {
             for (int i = 0; i < extensions.length(); i++) {
                 JSONObject ext = extensions.optJSONObject(i);
                 if (ext == null) continue;
                 if (PHYS_ADDRESS_EXTENSION_URL.equals(ext.optString("url"))) {
                     valueAddress = ext.optJSONObject("valueAddress");
-                    break;
+                }
+                if (HEALTH_SERVICE_AREA_URL.equals(ext.optString("url"))) {
+                    hsdaInfo = ext.optJSONArray("extension");
                 }
             }
+
         }
 
         if (valueAddress != null) {
@@ -156,6 +182,37 @@ public final class FacilityQueryResponseMapper {
             if (line1 != null && city != null) {
                 b.addAddress(line1, city, postal);
             }
+        }
+
+        // parse HSDA values to add to builder
+        String chsaString = "";
+        String pcnString = "";
+        String hsdaString = "";
+        String lhaString = "";
+        String haString = "";
+        if (hsdaInfo != null) {
+            for (int i = 0; i < hsdaInfo.length(); i++) {
+                JSONObject ext = hsdaInfo.optJSONObject(i);
+                if (ext == null) continue;
+                if (COMMUNITY_HEALTH_AREA_URL.equals(ext.optString("url"))) {
+                    for (int j = 0; j < ext.optJSONArray("extension").length(); j++) {
+                        if (ext.optJSONArray("extension").optJSONObject(j).get("url").equals("name")) {
+                            chsaString = ext.optJSONArray("extension").optJSONObject(j).optString("valueString", "");
+                        }
+                    }
+                }
+                if (PRIMARY_CARE_NETWORK_URL.equals(ext.optString("url"))) {
+                    for (int j = 0; j < ext.optJSONArray("extension").length(); j++) {
+                        if (ext.optJSONArray("extension").optJSONObject(j).get("url").equals("name")) {
+                            pcnString = ext.optJSONArray("extension").optJSONObject(j).optString("valueString", "");
+                        }
+                    }
+                }
+                if (HEALTH_SERVICE_DELIVERY_AREA_URL.equals(ext.optString("url"))) { hsdaString = ext.optString("valueString", ""); }
+                if (LOCAL_HEALTH_AREA_URL.equals(ext.optString("url"))) { lhaString = ext.optString("valueString", ""); }
+                if (HEALTH_AUTHORITY_URL.equals(ext.optString("url"))) { haString = ext.optString("valueString", ""); }
+            }
+            b.addHSDA(chsaString, pcnString, hsdaString, lhaString, haString);
         }
     }
 

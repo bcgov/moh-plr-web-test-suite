@@ -8,44 +8,92 @@ import java.util.Objects;
 
 import org.json.JSONObject;
 
+/**
+ * TODO (KD)
+ */
 public class Relationship {
-	String relationshipIdentifier;
-	String relationshipType;
-	String relatedOrganizationName;
-	String relatedOrganizationIdentifier;	
-	String effectiveFrom;
-	String effectiveTo;
-	String endReason;
-	String dataSource;
-	String dbCreated;
-	String dbExpired;
-	String dataOwnerCode;
+	private String relationshipIdentifier;
+	private String relationshipType;
+	private String relatedOrganizationName;
+	private String relatedOrganizationIdentifier;	
+	private String effectiveFrom;
+	private String effectiveTo;
+	private String endReason;
+	private String dataSource;
+	private String dbCreated;
+	private String dbExpired;
+	private String dataOwnerCode;
 	
 	
+	/**
+	 * Gets the relationship identifier.
+	 *
+	 * @return the relationship identifier
+	 */
 	public String getRelationshipIdentifier() {
 		return relationshipIdentifier;
 	}
+	/**
+	 * Gets the related organization identifier.
+	 *
+	 * @return the related organization identifier
+	 */
 	public String getRelatedOrganizationIdentifier() {
 		return relatedOrganizationIdentifier;
 	}
+	/**
+	 * Gets a simplified Relationship Type value (text before parenthesis).
+	 *
+	 * @return the relationship type summary or the original value if null
+	 */
 	public String getRelationshipTypeSummary() {
 		if(relationshipType==null)return relationshipType;
 		return relationshipType.split("\\(")[0].stripTrailing();
-		
+        
 	}
+	/**
+	 * Gets the related organization name.
+	 *
+	 * @return the related organization name
+	 */
 	public String getRelatedOrganizationName() {
 		return relatedOrganizationName;
 	}
+	/**
+	 * Gets the data owner code.
+	 *
+	 * @return the data owner code or null
+	 */
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
 	}
 	
+	/**
+	 * Gets the related provider role type.
+	 *
+	 * @return the role type constant
+	 */
 	public String getRelatedProviderRoleType() {
 		return "ORG";
 	}
-	public Relationship(String relationshipIdentifier, String relationshipType, String relatedOrganizationName,
-			String relatedOrganizationIdentifier, String effectiveFrom, String effectiveTo, String endReason,
-			String dataSource, String dbCreated, String dbExpired, String dataOwnerCode) {
+	    /**
+	     * Constructs a Relationship using explicit values.
+	     *
+	     * @param relationshipIdentifier the relationship identifier
+	     * @param relationshipType the relationship type
+	     * @param relatedOrganizationName related organization name
+	     * @param relatedOrganizationIdentifier related organization identifier
+	     * @param effectiveFrom effective from date
+	     * @param effectiveTo effective to date
+	     * @param endReason end reason
+	     * @param dataSource data source
+	     * @param dbCreated database created timestamp
+	     * @param dbExpired database expired timestamp
+	     * @param dataOwnerCode data owner code
+	     */
+	    public Relationship(String relationshipIdentifier, String relationshipType, String relatedOrganizationName,
+		    String relatedOrganizationIdentifier, String effectiveFrom, String effectiveTo, String endReason,
+		    String dataSource, String dbCreated, String dbExpired, String dataOwnerCode) {
 		super();
 		this.relationshipIdentifier = relationshipIdentifier;
 		this.relationshipType = relationshipType;
@@ -83,6 +131,11 @@ public class Relationship {
 				&& Objects.equals(relationshipType, other.relationshipType);
 	}
 	
+	/**
+	 * Constructs a Relationship from a JSON object.
+	 *
+	 * @param jsonData the JSON data containing fields
+	 */
 	public Relationship(JSONObject jsonData) {
 		super();
 		assertNotNull(jsonData);
@@ -115,6 +168,11 @@ public class Relationship {
 
 	}
 
+	/**
+	 * Constructs a Relationship from a map of label to value.
+	 *
+	 * @param map the map with keys matching UI labels
+	 */
 	public Relationship(LinkedHashMap<String, String> map) {
 		super();
 		assertNotNull(map);

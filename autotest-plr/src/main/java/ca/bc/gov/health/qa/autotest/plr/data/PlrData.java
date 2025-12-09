@@ -134,8 +134,8 @@ public class PlrData
     /**
      * TODO (KD) - doc
      *
-     * @param key
-     * @return
+     * @param key the configuration key name
+     * @return the string value for the given key, or null if absent
      */
     public static JSONObject getFacility(String key) {
     	JSONObject provider;

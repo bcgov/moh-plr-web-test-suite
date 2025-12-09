@@ -36,6 +36,7 @@
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",
     "maximumResults": "Maximum search results returned. Please refine your search criteria.",
     "addressValidationFailed": "PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter.",
-    "duplicateFacilityFound": "PRS.SYS.ADR.UNK.1.0.7055: An existing facility address was found, can not create duplicate facility."
+    "duplicateFacilityFound": "PRS.SYS.ADR.UNK.1.0.7055: An existing facility address was found, can not create duplicate facility.",
+    "civicAddressRecommendation": "PRS.SYS.ADR.UNK.1.0.7052: Civic Address is not valid - Recommendation is provided."
   }
 }

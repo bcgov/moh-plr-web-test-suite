@@ -32,6 +32,12 @@ public enum OrgRoleType {
         return roleType_;
     }
 
+    /**
+     * Resolves an organization role type from a code string.
+     *
+     * @param code the role code
+     * @return the matching `OrgRoleType`, or null if not found
+     */
     public static OrgRoleType resolveRoleType(String code) {
 		if (code == null) return null;
 		for (OrgRoleType r : OrgRoleType.values()) {

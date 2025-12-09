@@ -4,35 +4,70 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 
 import org.json.JSONObject;
-
 import static org.testng.Assert.*;
 
+/**
+ * TODO (KD)
+ */
 public class Note {
-	String noteIdentifier;
-	String noteText;
-	String effectiveFrom;
-	String effectiveTo;
-	String endReason;
-	String dataSource;
-	String dbCreated;
-	String dbExpired;
-	String dataOwnerCode;
+	private String noteIdentifier;
+	private String noteText;
+	private String effectiveFrom;
+	private String effectiveTo;
+	private String endReason;
+	private String dataSource;
+	private String dbCreated;
+	private String dbExpired;
+	private String dataOwnerCode;
 	
+	/**
+	 * Gets the note identifier.
+	 *
+	 * @return the note identifier
+	 */
 	public String getNoteIdentifier() {
 		return noteIdentifier;
 	}
+	/**
+	 * Gets the data owner code.
+	 *
+	 * @return the data owner code or null
+	 */
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
 	}
 	
+	/**
+ * TODO (KD)
+ 	*/
 	public String getNoteText() {
 		return noteText;
 	}
+	/**
+	 * TODO (KD)
+	 */
 	public void setNoteText(String noteText) {
 		this.noteText = noteText;
 	}
+	/**
+	 * TODO (KD)
+	 */
 	public void setNoteIdentifier(String noteIdentifier) { this.noteIdentifier = noteIdentifier; }
 
+	
+	/**
+	 * Constructs a Note using explicit values.
+	 *
+	 * @param noteIdentifier the note identifier
+	 * @param noteText the note text content
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param endReason end reason
+	 * @param dataSource data source
+	 * @param dbCreated database created timestamp
+	 * @param dbExpired database expired timestamp
+	 * @param dataOwnerCode data owner code
+	 */
 	public Note(String noteIdentifier, String noteText, String effectiveFrom, String effectiveTo, String endReason,
 			String dataSource, String dbCreated, String dbExpired, String dataOwnerCode) {
 		super();
@@ -67,6 +102,11 @@ public class Note {
 				&& Objects.equals(noteText, other.noteText);
 	}
 	
+	/**
+	 * Constructs a Note from a JSON object.
+	 *
+	 * @param jsonData the JSON data containing fields
+	 */
 	public Note(JSONObject jsonData) {
 		super();
 		assertNotNull(jsonData);
@@ -93,6 +133,11 @@ public class Note {
 
 	}
 
+	/**
+	 * Constructs a Note from a map of label to value.
+	 *
+	 * @param map the map with keys matching UI labels
+	 */
 	public Note(LinkedHashMap<String, String> map) {
 		super();
 		assertNotNull(map);

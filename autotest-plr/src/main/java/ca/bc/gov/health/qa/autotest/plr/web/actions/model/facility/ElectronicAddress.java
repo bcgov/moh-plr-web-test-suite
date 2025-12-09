@@ -2,28 +2,39 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
 import java.util.LinkedHashMap;
 import java.util.Objects;
-
+import static org.testng.Assert.*;
 import org.json.JSONObject;
 
-import static org.testng.Assert.*;
-
+/**
+ * TODO (KD)
+ */
 public class ElectronicAddress {
-	String type;
-	String purpose;
-	String address;
-	String effectiveFrom;
-	String effectiveTo;
-	String endReason;
-	String dataSource;
-	String dbCreated;
-	String dbExpired;
-	String dataOwnerCode;
+	private String type;
+	private String purpose;
+	private String address;
+	private String effectiveFrom;
+	private String effectiveTo;
+	private String endReason;
+	private String dataSource;
+	private String dbCreated;
+	private String dbExpired;
+	private String dataOwnerCode;
 	
+	/**
+	 * Gets a simplified Type value (text before parenthesis).
+	 *
+	 * @return the type summary or the original value if null
+	 */
 	public String getTypeSummary() {
 		if(type==null) return null;
 		return type.split("\\(")[0].stripTrailing();
 	}
 
+	/**
+	 * Gets a simplified Purpose value (text before parenthesis).
+	 *
+	 * @return the purpose summary or the original value if null
+	 */
 	public String getPurposeSummary() {
 		if(purpose==null) return null;
 		return purpose.split("\\(")[0].stripTrailing();
@@ -35,14 +46,38 @@ public class ElectronicAddress {
 		return type;
 	}
 
+	/**
+	 * Gets the electronic address value.
+	 *
+	 * @return the address
+	 */
 	public String getAddress() {
 		return address;
 	}
 
+	/**
+	 * Gets the data owner code.
+	 *
+	 * @return the data owner code or null
+	 */
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
 	}
 
+	/**
+	 * Constructs an ElectronicAddress using explicit values.
+	 *
+	 * @param type the type
+	 * @param purpose the purpose
+	 * @param address the address value
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param endReason end reason
+	 * @param dataSource data source
+	 * @param dbCreated database created timestamp
+	 * @param dbExpired database expired timestamp
+	 * @param dataOwnerCode data owner code
+	 */
 	public ElectronicAddress(String type, String purpose, String address, String effectiveFrom, String effectiveTo,
 			String endReason, String dataSource, String dbCreated, String dbExpired, String dataOwnerCode) {
 		super();
@@ -58,6 +93,11 @@ public class ElectronicAddress {
 		this.dataOwnerCode = dataOwnerCode;
 	}
 	
+	/**
+	 * Constructs an ElectronicAddress from a JSON object.
+	 *
+	 * @param jsonData the JSON data containing fields
+	 */
 	public ElectronicAddress(JSONObject jsonData) {
 		super();
 		assertNotNull(jsonData);
@@ -86,6 +126,11 @@ public class ElectronicAddress {
 
 	}
 
+	/**
+	 * Constructs an ElectronicAddress from a map of label to value.
+	 *
+	 * @param map the map with keys matching UI labels
+	 */
 	public ElectronicAddress(LinkedHashMap<String, String> map) {
 		super();
 		assertNotNull(map);

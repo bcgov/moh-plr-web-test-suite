@@ -1,20 +1,16 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
-import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Fragment class for the Facility Summary section (final step) when creating a new facility
  */
-public class AddFacilitySummaryFragment extends BasicWebPageFragment {
+public class AddFacilitySummaryFragment extends AddFacilityStepFragment {
 
     private static final String SUBMIT_BUTTON_CSS = "button#form\\:addProviderSubmit";
 
@@ -33,8 +29,7 @@ public class AddFacilitySummaryFragment extends BasicWebPageFragment {
      */
     public AddFacilitySummaryFragment(SeleniumSession selenium)
     {
-        super(selenium,
-                By.xpath("//table//tbody//tr//td//div//div//span[contains(text(),'Facility Summary')]"));
+        super(selenium, "Facility Summary");
     }
 
     /**

@@ -28,6 +28,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
 {
     private String                    identifier_      = null;
     private Map<String,String>        address_         = new HashMap<>();
+    private Map<String,String>        hsda_            = new HashMap<>();
     private String                    name_            = null;
     private String                    description_     = null;
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
@@ -68,6 +69,32 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         addressInfo.put("city",       city);
         addressInfo.put("postalCode", postalCode);
         this.address_ = addressInfo;
+        return this;
+    }
+
+    /**
+     * Adds (or replaces) the HSDA info from the FHIR response.
+     * (Not used in maintain payload - auxiliary information related to the address)
+     * This builder only keeps one HSDA instance; invoking this again overwrites the previous HSDA info.
+     *
+     * @param chsa      community health service area
+     * @param pcn       primary care network
+     * @param hsda      health service delivery area
+     * @param lha       local health area
+     * @param ha        health authority
+     * @return          this builder for fluent chaining
+     */
+    public MaintainFacilityBuilder addHSDA(
+        String chsa, String pcn, String hsda, String lha, String ha
+    )
+    {
+        Map<String,String> hsdaInfo = new HashMap<>();
+        hsdaInfo.put("CHSA", chsa);
+        hsdaInfo.put("PCN", pcn);
+        hsdaInfo.put("HSDA", hsda);
+        hsdaInfo.put("LHA", lha);
+        hsdaInfo.put("HA", ha);
+        this.hsda_ = hsdaInfo;
         return this;
     }
 
@@ -355,6 +382,15 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     }
 
     /**
+     * Returns a defensive copy of the HSDA map (empty if not set).
+     * @return defensive copy of HSDA (empty map if unset)
+     */
+    public Map<String,String> getHsda()
+    {
+        return new HashMap<>(hsda_);
+    }
+
+    /**
      * Returns an immutable snapshot of telecom entries added so far.
      * @return immutable list of telecom maps
      */
@@ -395,6 +431,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         copy.name_ = this.name_;
         copy.description_ = this.description_;
         copy.address_ = new HashMap<>(this.address_);
+        copy.hsda_ = new HashMap<>(this.hsda_);
         // Deep copy telecom list
         for (Map<String,String> telecom : this.telecomList_) {
             copy.telecomList_.add(new HashMap<>(telecom));

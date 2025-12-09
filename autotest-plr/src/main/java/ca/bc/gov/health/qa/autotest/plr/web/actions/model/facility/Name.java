@@ -8,18 +8,35 @@ import java.util.Objects;
 
 import org.json.JSONObject;
 
+/**
+ * TODO (KD)
+ */
 public class Name {
-	String name;
-	String description;
-	String effectiveFrom;
-	String effectiveTo;
-	String endReason;
-	String dataSource;
-	String dbCreated;
-	String dbExpired;
-	String dataOwnerCode;
+	private String name;
+	private String description;
+	private String effectiveFrom;
+	private String effectiveTo;
+	private String endReason;
+	private String dataSource;
+	private String dbCreated;
+	private String dbExpired;
+	private String dataOwnerCode;
+	
+	/**
+	* Constructs a Name using explicit values.
+	*
+	* @param name the facility name
+	* @param description the description text
+	* @param effectiveFrom effective from date
+	* @param effectiveTo effective to date
+	* @param endReason end reason
+	* @param dataSource data source
+	* @param dbCreated database created timestamp
+	* @param dbExpired database expired timestamp
+	* @param dataOwnerCode data owner code
+	*/
 	public Name(String name, String description, String effectiveFrom, String effectiveTo, String endReason,
-			String dataSource, String dbCreated, String dbExpired, String dataOwnerCode) {
+		String dataSource, String dbCreated, String dbExpired, String dataOwnerCode) {
 		super();
 		this.name = name;
 		this.description = description;
@@ -32,10 +49,20 @@ public class Name {
 		this.dataOwnerCode = dataOwnerCode;
 	}
 	
+	/**
+	 * Gets the facility name.
+	 *
+	 * @return the name string
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Constructs a Name from a JSON object.
+	 *
+	 * @param jsonData the JSON data containing fields
+	 */
 	public Name(JSONObject jsonData) {
 		super();
 		assertNotNull(jsonData);
@@ -63,6 +90,11 @@ public class Name {
 
 	}
 
+	/**
+	 * Constructs a Name from a map of label to value.
+	 *
+	 * @param map the map with keys matching UI labels
+	 */
 	public Name(LinkedHashMap<String, String> map) {
 		super();
 		assertNotNull(map);
