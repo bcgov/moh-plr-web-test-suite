@@ -1,12 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
 import org.json.JSONObject;
+
+import static org.testng.Assert.*;
 
 public class OtherAddress {
 	String validationStatus;
@@ -37,12 +36,12 @@ public class OtherAddress {
 	}
 
 	public String getAddressTypeSummary() {
-		if(addressType==null)return addressType;
+		if(addressType==null) return null;
 		return addressType.split("\\(")[0].stripTrailing();
 	}
 	
 	public String getAddressPurposeSummary() {
-		if(addressPurpose==null)return addressPurpose;
+		if(addressPurpose==null) return null;
 		return addressPurpose.split("\\(")[0].stripTrailing();
 	}
 	
@@ -117,11 +116,11 @@ public class OtherAddress {
 		super();
 		assertNotNull(jsonData);
 
-		assertTrue(!jsonData.isNull("Validation Status"));
+        assertFalse(jsonData.isNull("Validation Status"));
 		this.validationStatus = jsonData.getString("Validation Status");
-		assertTrue(!jsonData.isNull("Address Type"));
+        assertFalse(jsonData.isNull("Address Type"));
 		this.addressType = jsonData.getString("Address Type");
-		assertTrue(!jsonData.isNull("Address Purpose"));
+        assertFalse(jsonData.isNull("Address Purpose"));
 		this.addressPurpose = jsonData.getString("Address Purpose");
 		
 		if (!jsonData.isNull("Address Line 1"))

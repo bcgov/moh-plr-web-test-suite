@@ -4,6 +4,7 @@ import java.util.Random;
 
 import org.apache.commons.lang3.StringUtils;
 
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.text.DateFormat;
@@ -12,45 +13,36 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class UpdateSimpleHelper {
-	
-	static public String  generateAlphabetNumericString(int length) {
-		String allowedChars = 
-		        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-		
-		Random random = new Random();
-	
-		StringBuilder sb = new StringBuilder(length);
-		for (int i = 0; i < length; i++) {
+
+    static private String generateRandomString(int length, String allowedChars)
+    {
+        Random random = new Random();
+
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
             int randomIndex = random.nextInt(allowedChars.length());
             sb.append(allowedChars.charAt(randomIndex));
         }
-		return sb.toString();
+        return sb.toString();
+    }
+
+	static public String  generateAlphabetNumericString(int length) {
+		String allowedChars = 
+		        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        return generateRandomString(length, allowedChars);
 	}
 	
 	static public String  generateAlphabetString(int length) {
 		String allowedChars =    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 		
-		Random random = new Random();
-	
-		StringBuilder sb = new StringBuilder(length);
-		for (int i = 0; i < length; i++) {
-            int randomIndex = random.nextInt(allowedChars.length());
-            sb.append(allowedChars.charAt(randomIndex));
-        }
-		return sb.toString();
+		return generateRandomString(length, allowedChars);
 	}
 	
 	static public String  generateNumericString(int length) {
 		String allowedChars =   "0123456789";
 		
-		Random random = new Random();
-	
-		StringBuilder sb = new StringBuilder(length);
-		for (int i = 0; i < length; i++) {
-            int randomIndex = random.nextInt(allowedChars.length());
-            sb.append(allowedChars.charAt(randomIndex));
-        }
-		return sb.toString();
+		return generateRandomString(length, allowedChars);
 	}
 
 	static public String effective_date() {
@@ -78,9 +70,15 @@ public class UpdateSimpleHelper {
 	static public String generateHTTP(){
 		return "http://"+generateAlphabetString(6)+".domain"+".com";
 	}
-	
+
+    /**
+     * TODO (KD) - doc
+     *
+     * @param IfcID
+     * @return
+     */
 	static public String getFaultId(String IfcID) {
-		assertTrue(!StringUtils.isEmpty(IfcID));
+        assertFalse(StringUtils.isEmpty(IfcID));
 		assertTrue(IfcID.startsWith("IFC.")&&IfcID.endsWith(".BC.PRS"));
 
         int startIndex = IfcID.indexOf('.');

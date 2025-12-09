@@ -1,12 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
 import org.json.JSONObject;
+
+import static org.testng.Assert.*;
 
 public class Note {
 	String noteIdentifier;
@@ -32,9 +31,8 @@ public class Note {
 	public void setNoteText(String noteText) {
 		this.noteText = noteText;
 	}
-	public void setNoteIdentifier(String noteIdentifier) {
-		this.noteIdentifier = noteIdentifier;
-	}
+	public void setNoteIdentifier(String noteIdentifier) { this.noteIdentifier = noteIdentifier; }
+
 	public Note(String noteIdentifier, String noteText, String effectiveFrom, String effectiveTo, String endReason,
 			String dataSource, String dbCreated, String dbExpired, String dataOwnerCode) {
 		super();
@@ -73,9 +71,9 @@ public class Note {
 		super();
 		assertNotNull(jsonData);
 
-		assertTrue(!jsonData.isNull("Note Identifier"));
+        assertFalse(jsonData.isNull("Note Identifier"));
 		this.noteIdentifier = jsonData.getString("Note Identifier");
-		assertTrue(!jsonData.isNull("Note Text"));
+        assertFalse(jsonData.isNull("Note Text"));
 		this.noteText = jsonData.getString("Note Text");
 		
 		if (!jsonData.isNull("Effective From"))

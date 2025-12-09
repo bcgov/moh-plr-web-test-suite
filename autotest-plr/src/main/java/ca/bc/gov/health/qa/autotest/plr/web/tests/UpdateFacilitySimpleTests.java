@@ -51,6 +51,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 	}
 
 	@Test
+    // F4-004. Validate Facility Identifiers
 	public void testValidateFacilityIdentifiers() {
 
 		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -63,6 +64,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 	}
 
 	@Test
+    // F4-005. Validate Facility Name
 	public void testValidateFacilityName() {
 		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -74,6 +76,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 	}
 
 	@Test
+    // F4-006. Validate Facility Description
 	public void testValidateFacilityDescription() {
 		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -85,6 +88,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 	}
 
 	@Test
+    // F4-014. Validate Facility Mailing Address Type
 	public void testValidateFacilityMailingAddressType() {
 
 		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -96,6 +100,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 	}
 
 	@Test
+    // F4-015. Validate Facility Mailing Address Purpose
 	public void testValidateFacilityMailingAddressPurpose() {
 
 		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -107,6 +112,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 	}
 
 	@Test
+    // F4-023. Validate Facility Data Block Multiplicity
 	public void testValidateFacilityDataBlockMultiplicity() {
 
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig();
@@ -128,6 +134,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 	}
 
 	@Test
+    // F4-038. Validate Facility Notes Text
 	public void testValidateFacilityNotesTexts() {
 
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -139,6 +146,7 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 	}
 
 	@Test
+    // F4-041. Validate Related Organization ID
 	public void testValidateRelatedOrganizationID() {
 
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig();
