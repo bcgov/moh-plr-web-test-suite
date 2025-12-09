@@ -12,8 +12,20 @@
 		"ifc": "IFC.00006375.BC.PRS"
 	},
 	"test-update": {
-		"fauth": "6486",
-		"ifc": "IFC.00006486.BC.PRS"
+		"fauth": "6576",
+		"ifc": "IFC.00006576.BC.PRS"
+	},
+	"test-update02": {
+		"fauth": "2",
+		"ifc": "IFC.00000002.BC.PRS"
+	},
+	"test-update23": {
+		"fauth": "6574",
+		"ifc": "IFC.00006574.BC.PRS"
+	},
+	"test-update41": {
+		"fauth": "6575",
+		"ifc": "IFC.00006575.BC.PRS"
 	},
 	"test011": {
 		"fauth": "6375",

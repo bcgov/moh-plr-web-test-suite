@@ -4,12 +4,12 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.openqa.selenium.TimeoutException;
@@ -22,7 +22,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.security.SecureRandom;
 import java.time.Duration;
-
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -35,7 +34,6 @@ import static org.testng.Assert.assertEquals;
 
 
 public final class TestHelper {
-
 	private static final Pattern VALUE_CODE_PATTERN =  Pattern.compile("^.*\\((?<code>[^()]+)\\)\\s*$");
     private static final SecureRandom RNG = new SecureRandom();
     /**
@@ -168,7 +166,7 @@ public final class TestHelper {
     /**
      * extract DataValue from block content map  to a list.
      *
-     * @param List<String> keyList   the list of keys for extracting
+     * @param keyList               the list of keys for extracting
      * @param dataMap                the map of block data content
      * 
      */

@@ -19,7 +19,18 @@
     "cityTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'City' length must be between 0 and 60. Your transaction has not been processed. Correct and resubmit.",
     "effectiveStartRequiredForName": "Effective Start Date is required when Name is provided",
     "nameRequiredWhenDescriptionProvided": "Name is required when Description is provided",
-    "facilityDescriptionTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Description' length must be between 0 and 200. Your transaction has not been processed. Correct and resubmit."
+    "facilityDescriptionTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Facility Description' length must be between 0 and 200. Your transaction has not been processed. Correct and resubmit.",
+    "errMsg2201Tel": "PRS.REG.UNK.MTN.1.0.2201: Entry Error. Each address, e-address and telecomm object that is related to a Facility must have a unique type and purpose combination unless the owner is different. Check the following fields:Telecommunication Type and Purpose",
+    "errMsg2201EAddr": "PRS.REG.UNK.MTN.1.0.2201: Entry Error. Each address, e-address and telecomm object that is related to a Facility must have a unique type and purpose combination unless the owner is different. Check the following fields:Electronic Address Type and Purpose",
+    "errMsg5000NoteText": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Note Text'. Your transaction has not been processed. Correct and resubmit.",
+    "errMsg5000RelatedProviderIdentifier": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Related Provider Identifier'. Your transaction has not been processed. Correct and resubmit.",
+    "errMsg5003NoteIdentifier": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Note Identifier' length must be between 0 and 30. Your transaction has not been processed. Correct and resubmit.",
+    "errMsg5003NoteText": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Note Text' length must be between 0 and 255. Your transaction has not been processed. Correct and resubmit.",
+    "errMsg5003ProviderIdentifier": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Provider Identifier' length must be between 0 and 50. Your transaction has not been processed. Correct and resubmit.",
+    "errMsg7033Dup": "GRS.SYS.UNK.UNK.1.0.7033: Cannot create duplicate record. Check the following field: facility relationship",
+    "errMsg7033DupNote": "GRS.SYS.UNK.UNK.1.0.7033: Cannot create duplicate record. Check the following field: note",
+    "errMsg7036": "GRS.SYS.IDE.UNK.1.0.7036: Identifier does not uniquely identify a Provider. Cannot create relationship.",
+    "errMsg9026": "PRS.FAC.REL.MTN.1.0.9026: The Facility relationship with the Organization cannot be created as the Provider Identifier is not an Organization Identifier."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",

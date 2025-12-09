@@ -1,11 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import java.util.LinkedHashMap;
 import java.util.Objects;
-
+import static org.testng.Assert.*;
 import org.json.JSONObject;
 
 /**
@@ -32,7 +29,7 @@ public class Telecommunication {
 	 * @return the type summary or the original value if null
 	 */
 	public String getTypeSummary() {
-		if(type==null)return type;
+		if(type==null) return null;
 		return type.split("\\(")[0].stripTrailing();
 	}
 	/**
@@ -41,9 +38,15 @@ public class Telecommunication {
 	 * @return the purpose summary or the original value if null
 	 */
 	public String getPurposeSummary() {
-		if(purpose==null)return purpose;
+		if(purpose==null) return null;
 		return purpose.split("\\(")[0].stripTrailing();
 	}
+	
+	
+	public String getType() {
+		return type;
+	}
+	
 	/**
 	 * Gets the area code.
 	 *
@@ -140,11 +143,11 @@ public class Telecommunication {
 		super();
 		assertNotNull(jsonData);
 
-		assertTrue(!jsonData.isNull("Type"));
+        assertFalse(jsonData.isNull("Type"));
 		this.type = jsonData.getString("Type");
-		assertTrue(!jsonData.isNull("Purpose"));
+        assertFalse(jsonData.isNull("Purpose"));
 		this.purpose = jsonData.getString("Purpose");
-		assertTrue(!jsonData.isNull("Number"));
+        assertFalse(jsonData.isNull("Number"));
 		this.number = jsonData.getString("Number");
 		
 		if (!jsonData.isNull("Area Code"))

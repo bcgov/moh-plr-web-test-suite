@@ -1,10 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import java.util.LinkedHashMap;
 import java.util.Objects;
+import static org.testng.Assert.*;
 
 import org.json.JSONObject;
 
@@ -31,13 +29,22 @@ public class OtherAddress {
 	private String dataOwnerCode;
 	
 	
+	public String getAddressType() {
+		return addressType;
+	}
+
+	public String getAddressPurpose() {
+		return addressPurpose;
+	}
+
+	
 	/**
 	 * Gets a simplified Address Type value (text before parenthesis).
 	 *
 	 * @return the address type summary or the original value if null
 	 */
 	public String getAddressTypeSummary() {
-		if(addressType==null)return addressType;
+		if(addressType==null) return null;
 		return addressType.split("\\(")[0].stripTrailing();
 	}
 	
@@ -47,7 +54,7 @@ public class OtherAddress {
 	 * @return the address purpose summary or the original value if null
 	 */
 	public String getAddressPurposeSummary() {
-		if(addressPurpose==null)return addressPurpose;
+		if(addressPurpose==null) return null;
 		return addressPurpose.split("\\(")[0].stripTrailing();
 	}
 	
@@ -168,11 +175,11 @@ public class OtherAddress {
 		super();
 		assertNotNull(jsonData);
 
-		assertTrue(!jsonData.isNull("Validation Status"));
+        assertFalse(jsonData.isNull("Validation Status"));
 		this.validationStatus = jsonData.getString("Validation Status");
-		assertTrue(!jsonData.isNull("Address Type"));
+        assertFalse(jsonData.isNull("Address Type"));
 		this.addressType = jsonData.getString("Address Type");
-		assertTrue(!jsonData.isNull("Address Purpose"));
+        assertFalse(jsonData.isNull("Address Purpose"));
 		this.addressPurpose = jsonData.getString("Address Purpose");
 		
 		if (!jsonData.isNull("Address Line 1"))

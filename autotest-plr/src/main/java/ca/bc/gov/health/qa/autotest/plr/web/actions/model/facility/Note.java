@@ -1,12 +1,10 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
 import org.json.JSONObject;
+import static org.testng.Assert.*;
 
 /**
  * TODO (KD)
@@ -38,6 +36,25 @@ public class Note {
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
 	}
+	
+	/**
+ * TODO (KD)
+ 	*/
+	public String getNoteText() {
+		return noteText;
+	}
+	/**
+	 * TODO (KD)
+	 */
+	public void setNoteText(String noteText) {
+		this.noteText = noteText;
+	}
+	/**
+	 * TODO (KD)
+	 */
+	public void setNoteIdentifier(String noteIdentifier) { this.noteIdentifier = noteIdentifier; }
+
+	
 	/**
 	 * Constructs a Note using explicit values.
 	 *
@@ -94,9 +111,9 @@ public class Note {
 		super();
 		assertNotNull(jsonData);
 
-		assertTrue(!jsonData.isNull("Note Identifier"));
+        assertFalse(jsonData.isNull("Note Identifier"));
 		this.noteIdentifier = jsonData.getString("Note Identifier");
-		assertTrue(!jsonData.isNull("Note Text"));
+        assertFalse(jsonData.isNull("Note Text"));
 		this.noteText = jsonData.getString("Note Text");
 		
 		if (!jsonData.isNull("Effective From"))

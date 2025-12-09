@@ -316,40 +316,18 @@ public class ViewFacilityPage extends BasicWebPage {
          dataBlockContentSelector += TABLE_ROWS_SELECTOR;
          List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(dataBlockContentSelector));
 
-         if (!dataRowElementList.isEmpty())
-         {
-             selenium_.scrollIntoView(dataRowElementList.getFirst());
-         }
-         for (WebElement dataRow : dataRowElementList)
-         {
-             List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td"));
-             int dataColumnCount = dataEntryList.size();
-             if (dataColumnCount == 2 || dataColumnCount == 4)
-             {
-                 dataMap.put(formatDataKey(dataEntryList.get(0).getText()), dataEntryList.get(1).getText());
-                 if (dataColumnCount == 4)
-                 {
-                     dataMap.put(formatDataKey(dataEntryList.get(2).getText()), dataEntryList.get(3).getText());
-                 }
-             }
-             else {
-                 String msg = String.format("Invalid data row (%s: %d: %s).",
-                         section.getTitle(), index, dataRow.getText());
-                 throw new IllegalStateException(msg);
-             }
-         }
-         return dataMap;
+         return grabBlockContent(section, index, dataMap, dataRowElementList);
     }
 
 
     /**
      * TODO (KD) - doc
      *
-     * @param section
-     * @param index
-     * @param dataMap
+     * @param section               the facility section to get content from
+     * @param index                 the index of block within the facility section to get content from
+     * @param dataMap               the hash map to fill with data block fields/associated values
      * @param dataRowElementList
-     * @return
+     * @return                      a hash map mapping data block fields (String) to its associated values (String)
      */
 	public LinkedHashMap<String, String> grabBlockContent(FacilitySection section, int index,
 			LinkedHashMap<String, String> dataMap, List<WebElement> dataRowElementList) {
