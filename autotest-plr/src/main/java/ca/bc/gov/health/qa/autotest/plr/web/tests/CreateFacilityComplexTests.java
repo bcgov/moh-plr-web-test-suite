@@ -563,6 +563,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
             addFacility.clickNext("Facility", "");
 
             String fullAddress = fillOutAddressSection(addFacility, addressLine, 5);
+            fullAddress = fullAddress.substring(0, fullAddress.indexOf(",")) + " " + streetTypes.get(streetTypeIndex);
 
             addFacility.waitForAddFacilityStep("Address", false);
             ViewFacilityPage newFacility = addFacility.getFacilitySummary().clickSubmitButton();
