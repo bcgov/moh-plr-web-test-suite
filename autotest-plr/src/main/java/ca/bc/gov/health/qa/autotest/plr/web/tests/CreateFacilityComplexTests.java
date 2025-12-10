@@ -319,9 +319,8 @@ public class CreateFacilityComplexTests implements SimpleTest {
     // F3-020. Facility Address Correction With External Tool
     public void facilityAddressCorrection()
     {
-        //300
         final String civicAddressRecommendation = warningList.getString("civicAddressRecommendation");
-        final List<String> addressData = List.of("250", "300", "LANSDOWNE ST, KAMLOOPS");
+        final List<String> addressData = List.of("270", "270", "LANSDOWNE ST, KAMLOOPS");
         final String streetTypeEnding = "R";
 
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
@@ -563,6 +562,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
             addFacility.clickNext("Facility", "");
 
             String fullAddress = fillOutAddressSection(addFacility, addressLine, 5);
+            fullAddress = fullAddress.substring(0, fullAddress.indexOf(",")) + " " + streetTypes.get(streetTypeIndex);
 
             addFacility.waitForAddFacilityStep("Address", false);
             ViewFacilityPage newFacility = addFacility.getFacilitySummary().clickSubmitButton();
