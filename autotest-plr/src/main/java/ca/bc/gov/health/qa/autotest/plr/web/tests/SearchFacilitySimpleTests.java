@@ -9,6 +9,9 @@ import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityCriteriaFragment;
@@ -73,9 +76,16 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     {
         final Pattern SEARCH_RESULTS_TIME_PATTERN = Pattern.compile("([0-9]+\\.[0-9]{3})");
 
-        final String identifierToCheck = "IFC.00000001.BC.PRS";
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+        FacilityMaintainConfig cfg = new FacilityMaintainConfig();
+        MaintainFacilityBuilder dummyFacility = fhirController.createFacility(cfg);
+
+        final String identifierToCheck = dummyFacility.getIdentifier();
         final List<String> criteriaToCheck = Arrays.asList(
-                "AZ F00123 & & (", "1175 DOUGLAS ST", "", "Vic", "Victoria", "Select One", "", "");
+                dummyFacility.getName(),
+                dummyFacility.getAddress().get("line1"), "",
+                dummyFacility.getAddress().get("city").substring(0, dummyFacility.getAddress().get("city").length() - 1),
+                dummyFacility.getAddress().get("city"), "Select One", "", "");
 
         for (UserType userType : UserType.values())
         {
