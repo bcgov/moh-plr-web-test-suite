@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;

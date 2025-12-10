@@ -1,6 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
