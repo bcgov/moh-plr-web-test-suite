@@ -12,6 +12,7 @@ import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityCriteriaFragment;
@@ -61,7 +62,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     public void teardown() {
         fhirController.close();
 
-        workflowManager_.logoutAllAndClose();
+        // workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
 
@@ -72,6 +73,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
         dummyFacility = fhirController.createFacility(dummyCfg);
+
+        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
     }
 
     @BeforeMethod
@@ -429,8 +432,12 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
+        LOG.info(dummyFacility.getHsda());
+
         // Search 1 (Facility Name, Other Address, Facility Type)
-        List<String> queryDetails = Arrays.asList("AZ F00123 & & (", "", "1175 DOUGLAS ST", "", "", "BUILDING", "", "");
+        List<String> queryDetails = Arrays.asList(dummyFacility.getName(), "",
+                dummyFacility.getAddress().get("line1").toUpperCase(),
+                "", "", "BUILDING", "", "");
         searchByCriteria(searchFacility, queryDetails, false);
 
         ViewFacilityPage viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);
@@ -449,7 +456,11 @@ public class SearchFacilitySimpleTests implements SimpleTest {
 
         // Search 2 (Civic Address, City, Service Delivery Area)
         queryDetails = Arrays.asList(
-                "", "1175 DOUGLAS ST", "", "Vic", "Victoria", "Select One", "South V", "South Vancouver Island");
+                "", dummyFacility.getAddress().get("line1"), "",
+                dummyFacility.getAddress().get("city").charAt(0) + dummyFacility.getAddress().get("city").substring(1,3).toLowerCase(),
+                dummyFacility.getAddress().get("city").charAt(0) + dummyFacility.getAddress().get("city").substring(1).toLowerCase(),
+                "Select One",
+                dummyFacility.getHsda().get("HSDA").substring(0, 3), dummyFacility.getHsda().get("HSDA"));
         searchByCriteria(searchFacility, queryDetails, false);
 
         viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);
