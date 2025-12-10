@@ -71,6 +71,7 @@ public class DateMenu extends BasicWebPageFragment {
         if (grabDatePanelActive() != active)
         {
             WebElement dateFieldSpan = selenium_.findElement(mainLocator_);
+            selenium_.scrollIntoView(selenium_.findElement(mainLocator_));
             dateFieldSpan.findElement(By.cssSelector("button.ui-datepicker-trigger")).click();
             waitForPanelLoad(active);
         }
@@ -92,6 +93,7 @@ public class DateMenu extends BasicWebPageFragment {
     public String pickCurrentDate()
     {
         displayDatepicker(true);
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector("button.ui-datepicker-current")));
         selenium_.findElement(datepickerLocator_).findElement(By.cssSelector("button.ui-datepicker-current")).click();
         return selenium_.findElement(mainLocator_).findElement(inputLocator_).getAttribute("value");
     }
