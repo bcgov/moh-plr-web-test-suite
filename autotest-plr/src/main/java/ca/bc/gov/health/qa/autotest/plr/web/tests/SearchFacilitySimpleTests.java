@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
@@ -38,8 +39,10 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     private static JSONObject errorList;
     private static JSONObject warningList;
+    private static FHIRController fhirController;
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
+    private MaintainFacilityBuilder dummyFacility;
 
     public SearchFacilitySimpleTests() {
         try
@@ -56,8 +59,19 @@ public class SearchFacilitySimpleTests implements SimpleTest {
 
     @AfterClass
     public void teardown() {
+        fhirController.close();
+
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
+    }
+
+    @BeforeTest
+    public void beforeTest()
+    {
+        fhirController = new FHIRController(UserType.ADMIN);
+
+        FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
+        dummyFacility = fhirController.createFacility(dummyCfg);
     }
 
     @BeforeMethod
@@ -75,10 +89,6 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     public void testFacilitySearch()
     {
         final Pattern SEARCH_RESULTS_TIME_PATTERN = Pattern.compile("([0-9]+\\.[0-9]{3})");
-
-        FHIRController fhirController = new FHIRController(UserType.ADMIN);
-        FacilityMaintainConfig cfg = new FacilityMaintainConfig();
-        MaintainFacilityBuilder dummyFacility = fhirController.createFacility(cfg);
 
         final String identifierToCheck = dummyFacility.getIdentifier();
         final List<String> criteriaToCheck = Arrays.asList(
@@ -151,18 +161,12 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-002. Facility Search by ID
     public void testFacilitySearchID()
     {
-        FHIRController fhirController = new FHIRController(UserType.ADMIN);
-        FacilityMaintainConfig cfg = new FacilityMaintainConfig();
-        MaintainFacilityBuilder dummyFacility = fhirController.createFacility(cfg);
-
         Map<String, String> dummyAddress = dummyFacility.getAddress();
         final List<String> expectedData = Arrays.asList(
                 dummyFacility.getName(), dummyFacility.getIdentifier(),
                 dummyAddress.get("line1").toUpperCase() + ",\n" +
                         dummyAddress.get("city").toUpperCase() + ",\nBritish Columbia"
         );
-
-        fhirController.close();
 
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
@@ -487,7 +491,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityResultsFragment searchResults;
 
-        List<String> queryDetails = Arrays.asList("a*", "", "", "", "", "Select One", "", "");
+        List<String> queryDetails = Arrays.asList(dummyFacility.getName().charAt(0) + "*",
+                "", "", "", "", "Select One", "", "");
         searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
         for (int rowIndex = 0; rowIndex < searchResults.grabResultsRowCount(); rowIndex++)
@@ -533,7 +538,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         // Identifier Query
         SearchFacilityIdFragment identifierPanel = new SearchFacilityIdFragment(workflow.getSeleniumSession());
 
-        List<String> queryDetails = Arrays.asList("IFC", "IFC.00000001.BC.PRS");
+        List<String> queryDetails = Arrays.asList("IFC", dummyFacility.getIdentifier());
         searchResults = searchByIdentifier(searchFacility, queryDetails, false);
 
         List<String> previousValues = identifierPanel.getCurrentFieldValues();
@@ -553,7 +558,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         // Criteria Query
         SearchFacilityCriteriaFragment criteriaPanel = new SearchFacilityCriteriaFragment(workflow.getSeleniumSession());
 
-        queryDetails = Arrays.asList("AZ F00123 & & (", "1175 DOUGLAS ST", "", "", "", "Select One", "", "");
+        queryDetails = Arrays.asList(dummyFacility.getName(), dummyFacility.getAddress().get("line1"),
+                "", "", "", "Select One", "", "");
         searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
         previousValues = criteriaPanel.getCurrentFieldValues();
