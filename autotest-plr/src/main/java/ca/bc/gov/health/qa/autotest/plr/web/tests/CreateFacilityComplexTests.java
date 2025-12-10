@@ -320,7 +320,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
     public void facilityAddressCorrection()
     {
         final String civicAddressRecommendation = warningList.getString("civicAddressRecommendation");
-        final List<String> addressData = List.of("270", "270", "LANSDOWNE ST, KAMLOOPS");
+        final List<String> addressData = List.of("250", "300", "LANSDOWNE ST, KAMLOOPS");
         final String streetTypeEnding = "R";
 
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
