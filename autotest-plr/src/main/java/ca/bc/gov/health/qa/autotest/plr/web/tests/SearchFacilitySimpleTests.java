@@ -67,22 +67,6 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         }
     }
 
-    /**
-     * Checks the Column Names of the table of search results
-     *
-     * @param searchResults     the SearchFacilityResultsFragment reference
-     */
-    private void checkColumns(SearchFacilityResultsFragment searchResults)
-    {
-        int index = 0;
-        for (String tableColumn : List.of("Facility Name", "Identifier", "Civic Address"))
-        {
-            assertTrue(searchResults.getTableColumns().get(index).contains(tableColumn),
-                    String.format("Table column %d is not %s", index, tableColumn));
-            index++;
-        }
-    }
-
     @Test
     // F1-001. Facility Search
     public void testFacilitySearch()
@@ -125,7 +109,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
             assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
                     "Form result does not contain time taken to retrieve results.");
 
-            checkColumns(searchResults);
+            workflowManager_.getSelectedWorkflow().getSearchFacilityActions().checkColumns(searchResults);
 
             // Criteria Query
             searchFacility.expandSearchCriteria(true);
@@ -147,7 +131,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
             assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
                     "Form result does not contain time taken to retrieve results.");
 
-            checkColumns(searchResults);
+            workflowManager_.getSelectedWorkflow().getSearchFacilityActions().checkColumns(searchResults);
 
             workflowManager_.logoutAndClose(userType);
         }

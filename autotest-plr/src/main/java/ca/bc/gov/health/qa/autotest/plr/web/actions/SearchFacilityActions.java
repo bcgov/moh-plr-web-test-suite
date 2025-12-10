@@ -4,6 +4,10 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFaci
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
+import java.util.List;
+
+import static org.testng.Assert.assertTrue;
+
 /**
  * Actions class for the Search Facility page/functions
  */
@@ -31,5 +35,21 @@ public class SearchFacilityActions {
         ViewFacilityPage viewFacility = new ViewFacilityPage(selenium_);
         viewFacility.waitForReady();
         return viewFacility;
+    }
+
+    /**
+     * Checks the Column Names of the table of search results
+     *
+     * @param searchResults     the SearchFacilityResultsFragment reference
+     */
+    public void checkColumns(SearchFacilityResultsFragment searchResults)
+    {
+        int index = 0;
+        for (String tableColumn : List.of("Facility Name", "Identifier", "Civic Address"))
+        {
+            assertTrue(searchResults.getTableColumns().get(index).contains(tableColumn),
+                    String.format("Table column %d is not %s", index, tableColumn));
+            index++;
+        }
     }
 }
