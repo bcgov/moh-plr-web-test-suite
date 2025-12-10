@@ -56,11 +56,13 @@ public class CreateFacilityComplexTests implements SimpleTest {
         }
     }
 
+    /*
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
+     */
 
     @BeforeMethod
     public void before(Object[] parameters)
@@ -545,7 +547,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 List.of("130", "430", "MCGILL, KAMLOOPS"),
                 List.of("3000", "4000", "35, BURNS LAKE"),
                 List.of("100", "120", "CRANBERRY, PORT MOODY"),
-                List.of("305", "630", "MCGOWAN, KAMLOOPS")
+                List.of("306", "630", "MCGOWAN, KAMLOOPS")
         );
 
         int streetTypeIndex = 0;

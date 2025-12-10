@@ -203,6 +203,7 @@ public class AutocompleteMenu extends BasicWebPageFragment {
         if (itemPrefix == null)
         {
             selenium_.fillField(mainLocator_, autocompleteField);
+            selenium_.click(mainLocator_);
             waitForPanelLoad(false);
             return grabCompletedItem();
         }
