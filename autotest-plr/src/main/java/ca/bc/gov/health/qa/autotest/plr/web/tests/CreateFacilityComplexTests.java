@@ -359,9 +359,6 @@ public class CreateFacilityComplexTests implements SimpleTest {
     // F3-021. Facility Address with Multi-Part Street Name
     public void addressMultiPartStreetName()
     {
-        final int TWO_WORD_ADDRESS_LOWER_LIMIT = 800;
-        final int TWO_WORD_ADDRESS_UPPER_LIMIT = 1650;
-
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
@@ -369,26 +366,15 @@ public class CreateFacilityComplexTests implements SimpleTest {
         addFacility.fillFacilitySection("Multi Part Street Facility", "Multi Part Street Description");
         addFacility.clickNext("Facility", "");
 
-        AddFacilityAddressFragment addressInfo = null;
-        while (addressInfo == null)
-        {
-            try
-            {
-                int TWO_WORD_ADDRESS_NUM = TWO_WORD_ADDRESS_LOWER_LIMIT +
-                        RNG.nextInt(TWO_WORD_ADDRESS_UPPER_LIMIT - TWO_WORD_ADDRESS_LOWER_LIMIT + 1);
-                String TWO_WORD_ADDRESS;
-                TWO_WORD_ADDRESS = String.format("%d LYNN VALLEY RD", TWO_WORD_ADDRESS_NUM);
-                addressInfo = addFacility.fillAddressSection(
-                        TWO_WORD_ADDRESS, TWO_WORD_ADDRESS + ", NORTH");
-            } catch (IllegalStateException ignored) {}
-        }
+        AddFacilityAddressFragment addressInfo = addFacility.fillAddressSection(
+                "935 LYNN VALLEY RD, N", "935 LYNN VALLEY RD, N");
         String multiPartAddressLine = addressInfo.getAddressLine1();
         String multiPartCity = addressInfo.getCity();
         String multiPartCountry = addressInfo.getCountry().substring(
                 addressInfo.getCountry().indexOf("-")+1).strip();
 
 
-        addFacility.clickNext("Facility", "Civic");
+        addFacility.clickNext("Address", "Civic");
 
         addressInfo.handleWidgetButton("Civic");
         addFacility.waitForAddFacilityStep("Address", false);
@@ -417,7 +403,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 addressInfo.getCountry().indexOf("-")+1).strip();
 
 
-        addFacility.clickNext("Facility", "Civic");
+        addFacility.clickNext("Address", "Civic");
 
         addressInfo.handleWidgetButton("Civic");
         addFacility.waitForAddFacilityStep("Address", false);
@@ -507,7 +493,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
         }
 
         AddFacilityAddressFragment addressFields = addFacility.fillAddressSection(
-                List.of("1175 DOUGLAS ST", "", ""), "A%", null, "");
+                List.of("1175 DOUGLAS ST", "", ""), "A^", null, "");
         addFacility.clickNext("Address", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();

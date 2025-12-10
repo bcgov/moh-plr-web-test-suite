@@ -181,8 +181,11 @@ public class AutocompleteMenu extends BasicWebPageFragment {
         String completedItem = grabCompletedItem();
         if (!completedItem.equals(itemLabel))
         {
-            String msg = String.format("Failed to select autocomplete item (actual: \"%s\", expected: \"%s\").", completedItem, itemLabel);
-            throw new IllegalStateException(msg);
+            if (!completedItem.isEmpty())
+            {
+                String msg = String.format("Failed to select autocomplete item (actual: \"%s\", expected: \"%s\").", completedItem, itemLabel);
+                throw new IllegalStateException(msg);
+            } else { return itemLabel; }
         }
         return completedItem;
     }
@@ -200,6 +203,7 @@ public class AutocompleteMenu extends BasicWebPageFragment {
         if (itemPrefix == null)
         {
             selenium_.fillField(mainLocator_, autocompleteField);
+            waitForPanelLoad(false);
             return grabCompletedItem();
         }
         else
