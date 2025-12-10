@@ -38,11 +38,8 @@ public class SearchFacilityPage extends BasicWebPage
      */
     private static String getSearchSectionXPath(String title)
     {
-        return new StringBuilder().append("//div[@id='accordian']")
-                .append("/div[contains(@class,'ui-accordion-header') and contains(text(), '")
-                .append(title)
-                .append("')]")
-                .toString();
+        return "//div[@id='accordian']/div[contains(@class,'ui-accordion-header') and contains(text(), '" +
+                title + "')]";
     }
 
     /**

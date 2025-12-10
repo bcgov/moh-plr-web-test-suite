@@ -121,8 +121,10 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
      */
     public List<String> getCurrentFieldValues()
     {
-        String identifierField = "" + selenium_.findElementByCss(FACILITY_ID_FIELD_CSS).getAttribute("value");
-        String identifierTypeField = "" + selenium_.findElementByCss(ID_TYPE_FIELD_CSS).getText();
+        String identifierField = "";
+        String identifierTypeField = "";
+        identifierField += selenium_.findElementByCss(FACILITY_ID_FIELD_CSS).getAttribute("value");
+        identifierTypeField += selenium_.findElementByCss(ID_TYPE_FIELD_CSS).getText();
         return Arrays.asList(identifierTypeField, identifierField);
     }
 }

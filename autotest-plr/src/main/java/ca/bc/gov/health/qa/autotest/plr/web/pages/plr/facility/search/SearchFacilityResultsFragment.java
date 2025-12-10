@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
@@ -74,11 +75,9 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
     public WebElement findResultsRow(int index)
     {
         WebElement row;
-        By rowLocator = By.cssSelector(
-                new StringBuilder("tr[data-ri='").append(index).append("']").toString()
-        );
+        By rowLocator = By.cssSelector("tr[data-ri='" + index + "']");
         List<WebElement> rowList = findResultsTableData().findElements(rowLocator);
-        if (rowList.size() == 1) row = rowList.get(0);
+        if (rowList.size() == 1) row = rowList.getFirst();
         else
         {
             String msg = String.format("Failed to retrieve search results (row index: %s).", index);
@@ -190,10 +189,10 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
      */
     public boolean verifyWordWrapStyle(int rowIndex)
     {
-        WebElement test = findResultsRow(rowIndex);
-        boolean expectedWhiteSpace = test.findElement(By.cssSelector("td")).getAttribute("style")
+        WebElement test = findResultsRow(rowIndex).findElement(By.cssSelector("td"));
+        boolean expectedWhiteSpace = Objects.requireNonNull(test.getAttribute("style"))
                 .contains("white-space: normal");
-        boolean expectedWordBreak = test.findElement(By.cssSelector("td")).getAttribute("style")
+        boolean expectedWordBreak = Objects.requireNonNull(test.getAttribute("style"))
                 .contains("word-break: break-all");
         return expectedWhiteSpace && expectedWordBreak;
     }
