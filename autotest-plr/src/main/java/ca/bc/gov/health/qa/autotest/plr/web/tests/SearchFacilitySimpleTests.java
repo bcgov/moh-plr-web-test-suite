@@ -151,8 +151,18 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-002. Facility Search by ID
     public void testFacilitySearchID()
     {
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+        FacilityMaintainConfig cfg = new FacilityMaintainConfig();
+        MaintainFacilityBuilder dummyFacility = fhirController.createFacility(cfg);
+
+        Map<String, String> dummyAddress = dummyFacility.getAddress();
         final List<String> expectedData = Arrays.asList(
-                "AZ F00123 & & (", "IFC.00000001.BC.PRS", "1175 DOUGLAS ST,\nVICTORIA,\nBritish Columbia");
+                dummyFacility.getName(), dummyFacility.getIdentifier(),
+                dummyAddress.get("line1").toUpperCase() + ",\n" +
+                        dummyAddress.get("city").toUpperCase() + ",\nBritish Columbia"
+        );
+
+        fhirController.close();
 
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
