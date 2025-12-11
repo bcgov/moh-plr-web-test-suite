@@ -6,18 +6,18 @@ import java.net.URI;
 import java.util.Map;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.*;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.SearchFacilityActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
-import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 
 import ca.bc.gov.health.qa.autotest.plr.web.actions.PlrWebAccessActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchProviderActions;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.UpdateFacilitySimpleActions;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewFacilitySimpleActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.BannerFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;

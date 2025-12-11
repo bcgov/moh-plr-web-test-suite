@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.actions;
+package ca.bc.gov.health.qa.autotest.plr.web.actions.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
