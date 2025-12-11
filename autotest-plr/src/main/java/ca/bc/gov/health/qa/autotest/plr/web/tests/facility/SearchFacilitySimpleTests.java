@@ -160,47 +160,40 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-002. Facility Search by ID
     public void testFacilitySearchID()
     {
-        final List<String> expectedData = Arrays.asList(
-                dummyFacility.getName(), dummyFacility.getIdentifier(),
-                dummyAddress.get("line1").toUpperCase() + ",\n" +
-                        dummyAddress.get("city").toUpperCase() + ",\nBritish Columbia"
-        );
+        final String expectedCivicAddress = String.format("%s,\n%s,\nBritish Columbia",
+                dummyAddress.get("line1").toUpperCase(), dummyAddress.get("city").toUpperCase());
+        final SearchFacilityActions actions = workflowManager_.getSelectedWorkflow().getSearchFacilityActions();
 
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        // Test Start
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
-        assertTrue(searchFacility.isIdentifierSectionExpanded(),
-                "Search by Identifier not opened by default");
+        assertTrue(page.isIdentifierSectionExpanded(), "Search by Identifier not opened by default");
 
-        SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
-        List<String> identifierAttributes = identifierPanel.verifyIdentifierTab();
+        SearchFacilityIdFragment identifierPanel = page.expandSearchIdentifier(true);
+        List<String> identifierAttributes = identifierPanel.getIdentifierTab();
 
-        assertTrue(identifierAttributes.getFirst().contains("(*)"),
-                "Instruction for mandatory fields not present");
-        assertTrue(identifierAttributes.get(1).contains("Facility Identifier Type*"),
-                "Facility Identifier Type attribute not present");
-        assertTrue(identifierAttributes.get(2).contains("Facility Identifier*"),
-                "Facility Identifier attribute not present");
-        assertTrue(identifierAttributes.getLast().contains("Search"),
-                "Search Button not present");
+        for (IdentifierTabAttribute attribute : IdentifierTabAttribute.values())
+        {
+            assertTrue(identifierAttributes.get(attribute.getIndex()).contains(attribute.getString()),
+                    attribute.getString() + " not present in correct location");
+        }
 
-        List<String> queryDetails = Arrays.asList("IFC", expectedData.get(1));
-        SearchFacilityResultsFragment searchResults;
-        searchResults = searchByIdentifier(searchFacility, queryDetails, false);
+        List<String> queryDetails = Arrays.asList("IFC", dummyFacility.getIdentifier());
+        SearchFacilityResultsFragment searchResults = searchByIdentifier(page, queryDetails, false);
 
-        assertTrue(searchResults.grabResultsRowCount() > 0,
-                "Search Results returned unsuccessfully.");
+        assertTrue(searchResults.grabResultsRowCount() > 0, "Search Results returned unsuccessfully.");
 
-        assertTrue(searchResults.getResultsRow(0).get(1).contains(expectedData.get(1)),
-                "Returned facility doesn't have the expected identifier used in search.");
-        assertTrue(searchResults.getResultsRow(0).get(0).startsWith(expectedData.get(0)),
+        assertTrue(searchResults.getResultsRow(0).get(0).startsWith(dummyFacility.getName()),
                 "Returned facility doesn't have the expected facility name.");
-        assertEquals(searchResults.getResultsRow(0).get(2), expectedData.get(2),
+        assertTrue(searchResults.getResultsRow(0).get(1).contains(dummyFacility.getIdentifier()),
+                "Returned facility doesn't have the expected identifier used in search.");
+        assertEquals(searchResults.getResultsRow(0).get(2), expectedCivicAddress,
                 "Returned facility doesn't have the expected civic address.");
 
-        ViewFacilityPage searchDetails = workflow.getSearchFacilityActions().openSearchResults(0);
+        ViewFacilityPage searchDetails = actions.openSearchResults(0);
         String viewTitle = searchDetails.getViewHeader().grabViewTitle();
-        assertTrue(viewTitle.contains(expectedData.get(1)),
+
+        assertTrue(viewTitle.contains(dummyFacility.getIdentifier()),
                 "View page header does not match expected identifier");
     }
 

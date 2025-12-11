@@ -95,7 +95,7 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
      *
      * @return  a list of string text from each detail of the identifier tab [instruction, (fields), search button]
      */
-    public List<String> verifyIdentifierTab()
+    public List<String> getIdentifierTab()
     {
         List<String> tabDetails = new ArrayList<>();
 
