@@ -10,7 +10,6 @@ import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchFacilityActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
@@ -41,7 +40,6 @@ public class SearchFacilityComplexTests implements SimpleTest {
     private static FHIRController fhirController;
 
     private MaintainFacilityBuilder dummyFacility;
-    private Map<String,String> dummyAddress;
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
@@ -59,6 +57,8 @@ public class SearchFacilityComplexTests implements SimpleTest {
 
     @AfterClass
     public void teardown() {
+        fhirController.close();
+
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
@@ -69,9 +69,6 @@ public class SearchFacilityComplexTests implements SimpleTest {
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
         dummyFacility = fhirController.createFacility(dummyCfg);
-
-        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
-        dummyAddress = dummyFacility.getAddress();
     }
 
     @BeforeMethod
@@ -192,7 +189,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
     // F1-016. Search Results Limited By Data Permissions
     public void testDataPermissions()
     {
-        final List<String> queryFields = Arrays.asList("IFC", "IFC.00000001.BC.PRS");
+        final List<String> queryFields = Arrays.asList("IFC", dummyFacility.getIdentifier());
 
         for (UserType userType : UserType.values())
         {
