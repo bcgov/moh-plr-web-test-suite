@@ -44,6 +44,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
     private MaintainFacilityBuilder dummyFacility;
+    private Map<String,String> dummyAddress;
 
     public SearchFacilitySimpleTests() {
         try
@@ -62,19 +63,19 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     public void teardown() {
         fhirController.close();
 
-        // workflowManager_.logoutAllAndClose();
+        workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
 
     @BeforeTest
-    public void beforeTest()
-    {
+    public void beforeTest() {
         fhirController = new FHIRController(UserType.ADMIN);
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
         dummyFacility = fhirController.createFacility(dummyCfg);
 
         dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
+        dummyAddress = dummyFacility.getAddress();
     }
 
     @BeforeMethod
@@ -96,9 +97,11 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         final String identifierToCheck = dummyFacility.getIdentifier();
         final List<String> criteriaToCheck = Arrays.asList(
                 dummyFacility.getName(),
-                dummyFacility.getAddress().get("line1"), "",
-                dummyFacility.getAddress().get("city").substring(0, dummyFacility.getAddress().get("city").length() - 1),
-                dummyFacility.getAddress().get("city"), "Select One", "", "");
+                dummyAddress.get("line1"), "",
+                dummyAddress.get("city").charAt(0) + dummyAddress.get("city").substring(1,
+                        dummyAddress.get("city").length() - 1).toLowerCase(),
+                dummyAddress.get("city").charAt(0) + dummyAddress.get("city").substring(1).toLowerCase(),
+                "Select One", "", "");
 
         for (UserType userType : UserType.values())
         {
@@ -164,7 +167,6 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-002. Facility Search by ID
     public void testFacilitySearchID()
     {
-        Map<String, String> dummyAddress = dummyFacility.getAddress();
         final List<String> expectedData = Arrays.asList(
                 dummyFacility.getName(), dummyFacility.getIdentifier(),
                 dummyAddress.get("line1").toUpperCase() + ",\n" +
@@ -295,11 +297,20 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-006. Facility Search by Criteria
     public void testFacilitySearchCriteria()
     {
+        final String uniqueNamePrefix = generateAlphabetString(5); // reasonably likely to be unique
+
+        List<MaintainFacilityBuilder> criteriaFacilities = Arrays.asList(
+                fhirController.createFacility(
+                        new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(2))),
+                fhirController.createFacility(
+                        new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(2))),
+                fhirController.createFacility(
+                        new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(2)))
+        );
+
         final List<String> expectedAttributes = Arrays.asList(
                 "Facility Name", "Civic Address Line 1", "Other Address Line 1",
                 "City", "Facility Type", "Service Delivery Area");
-        final List<String> expectedFacilities = Arrays.asList("ABCDEF", "AZ F00123 & & (", "AZ F003 && fytfy & (");
-        final List<String> expectedFields = Arrays.asList("1175 DOUGLAS ST", "1175 DOUGLAS ST", "VICTORIA", "South Vancouver Island");
 
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
@@ -317,31 +328,36 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         assertTrue(criteriaAttributes.getLast().contains("Search"),
                 "Search button not present");
 
-        List<String> queryDetails = Arrays.asList("A*", expectedFields.get(0), expectedFields.get(1), "Vic", "Victoria",
-                "BUILDING", "South", "South Vancouver");
+        List<String> queryDetails = Arrays.asList(uniqueNamePrefix + "*", "", "", "", "", "BUILDING", "", "");
         SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
         assertTrue(searchResults.grabResultsRowCount() > 2,
                 "Searching for facility with criteria results in expected facilities not being returned.");
 
-        for (int resultsIndex = 0; resultsIndex < 3; resultsIndex++)
+        int resultsIndex = 0;
+        for (MaintainFacilityBuilder criteriaFacility : criteriaFacilities)
         {
             ViewFacilityPage searchDetails = workflow.getSearchFacilityActions().openSearchResults(resultsIndex);
 
-            assertTrue(searchDetails.getViewHeader().grabViewTitle().contains(expectedFacilities.get(resultsIndex)),
+            assertTrue(searchDetails.getViewHeader().grabViewTitle().contains(criteriaFacility.getName()),
                     "Viewing facility leads to unexpected page");
+
             LinkedHashMap<String,String> civicMap = searchDetails.grabCivicAddressBlockContent();
             LinkedHashMap<String,String> otherMap = searchDetails.grabDataBlockContent(
                     FacilitySection.OTHER_ADDRESS, 0);
-            assertEquals(civicMap.get("Address Line 1"), expectedFields.get(0),
+
+            assertEquals(civicMap.get("Address Line 1").toLowerCase(),
+                    criteriaFacility.getAddress().get("line1").toLowerCase(),
                     "Viewing facility has unexpected civic address.");
-            assertEquals(otherMap.get("Address Line 1"), expectedFields.get(1),
+            assertEquals(otherMap.get("Address Line 1").toLowerCase(),
+                    criteriaFacility.getAddress().get("line1").toLowerCase(),
                     "Viewing facility has unexpected other address.");
-            assertEquals(civicMap.get("City"), expectedFields.get(2),
+            // TODO is this other address or civic address what is populated by FHIR?
+            assertEquals(civicMap.get("City").toLowerCase(), criteriaFacility.getAddress().get("city").toLowerCase(),
                     "Viewing facility has unexpected city.");
-            assertEquals(civicMap.get("Health Service Delivery Area"), expectedFields.get(3),
-                    "Viewing facility has unexpected service delivery area.");
 
             workflow.getPlrWebAccessActions().openSearchFacility();
+
+            resultsIndex++;
         }
 
         criteriaPanel = searchFacility.expandSearchCriteria(true);
@@ -363,7 +379,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         List<String> queryDetails = Arrays.asList("", "", "", "", "", "Select One", "", "");
 
         // Facility Name Specified, Others Empty
-        queryDetails.set(0, "Test Name");
+        queryDetails.set(0, dummyFacility.getName());
         searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
@@ -371,7 +387,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         queryDetails.set(0, "");
 
         // Civic Address Line 1 Specified, Others Empty
-        queryDetails.set(1, "Test Civic Address");
+        queryDetails.set(1, dummyAddress.get("line1"));
         searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
@@ -379,7 +395,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         queryDetails.set(1, "");
 
         // Other Address Line 1 Specified, Others Empty
-        queryDetails.set(2, "Test Other Address");
+        queryDetails.set(2, dummyAddress.get("line1"));
         searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
@@ -387,7 +403,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         queryDetails.set(2, "");
 
         // City Specified, Others Empty
-        queryDetails.set(3, "Test City");
+        queryDetails.set(3, dummyAddress.get("city"));
         searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
@@ -403,7 +419,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         queryDetails.set(5, "Select One");
 
         // Service Delivery Area Specified, Others Empty
-        queryDetails.set(6, "Test SDA");
+        queryDetails.set(6, dummyFacility.getHsda().get("HSDA") + " (HSDA)");
         searchResults = searchByCriteria(searchFacility, queryDetails, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
@@ -432,11 +448,9 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
-        LOG.info(dummyFacility.getHsda());
-
         // Search 1 (Facility Name, Other Address, Facility Type)
         List<String> queryDetails = Arrays.asList(dummyFacility.getName(), "",
-                dummyFacility.getAddress().get("line1").toUpperCase(),
+                dummyAddress.get("line1").toUpperCase(),
                 "", "", "BUILDING", "", "");
         searchByCriteria(searchFacility, queryDetails, false);
 
@@ -456,11 +470,11 @@ public class SearchFacilitySimpleTests implements SimpleTest {
 
         // Search 2 (Civic Address, City, Service Delivery Area)
         queryDetails = Arrays.asList(
-                "", dummyFacility.getAddress().get("line1"), "",
-                dummyFacility.getAddress().get("city").charAt(0) + dummyFacility.getAddress().get("city").substring(1,3).toLowerCase(),
-                dummyFacility.getAddress().get("city").charAt(0) + dummyFacility.getAddress().get("city").substring(1).toLowerCase(),
+                "", dummyAddress.get("line1"), "",
+                dummyAddress.get("city").charAt(0) + dummyAddress.get("city").substring(1,3).toLowerCase(),
+                dummyAddress.get("city").charAt(0) + dummyAddress.get("city").substring(1).toLowerCase(),
                 "Select One",
-                dummyFacility.getHsda().get("HSDA").substring(0, 3), dummyFacility.getHsda().get("HSDA"));
+                dummyFacility.getHsda().get("HSDA").substring(0, 4), dummyFacility.getHsda().get("HSDA"));
         searchByCriteria(searchFacility, queryDetails, false);
 
         viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);

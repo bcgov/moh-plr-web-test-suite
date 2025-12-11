@@ -379,6 +379,21 @@ public final class TestHelper {
 
         addFacility.waitForAddFacilityStep("Address", false);
         return addFacility.getFacilitySummary().clickSubmitButton();
+    }
 
+    static private String generateRandomString(int length, String allowedChars)
+    {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int randomIndex = RNG.nextInt(allowedChars.length());
+            sb.append(allowedChars.charAt(randomIndex));
+        }
+        return sb.toString();
+    }
+
+    static public String generateAlphabetString(int length) {
+        String allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+        return generateRandomString(length, allowedChars);
     }
 }

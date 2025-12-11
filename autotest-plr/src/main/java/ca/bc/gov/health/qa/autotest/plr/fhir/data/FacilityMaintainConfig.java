@@ -23,12 +23,14 @@ public class FacilityMaintainConfig {
     private boolean description;
     private boolean name;
     private boolean address;   
-    private boolean identifier; 
+    private boolean identifier;
+    private boolean nameManual;
 
 
     // multi-valued counts
     private int noteCount;            // number of notes to generate (0 => omit notes unless required)
     private int relationshipCount;    // number of org relationships to generate (0 => omit relationships unless required)
+    private String facility_name;     // manually selected name (if applicable)
 
     /**
      * Default constructor: enables all required attributes to build a valid facility based on FacilityAttribute enum.
@@ -55,6 +57,7 @@ public class FacilityMaintainConfig {
                 default: break;
             }
         }
+        this.nameManual = false;
     }
 
     // Accessors for factory usage
@@ -109,6 +112,11 @@ public class FacilityMaintainConfig {
     public boolean isIdentifierEnabled() { return identifier; }
 
     /**
+     * Verifies if NAME will be manually set instead of randomly generated.
+     * @return true if name will be manually generated, false if not */
+    public boolean isNameManualEnabled() { return nameManual; }
+
+    /**
      * Number of note entries that will be generated.
      * @return note count (0 if notes disabled)
      */
@@ -119,6 +127,12 @@ public class FacilityMaintainConfig {
      * @return relationship count (0 if none requested)
      */
     public int getRelationshipCount() { return relationshipCount; }
+
+    /**
+     * Name that is used for the facility if name will be manually set
+     * @return  facility name (null if will be randomly generated)
+     */
+    public String getName() { return facility_name; }
 
     /**
      * Indicates whether at least one note will be generated.
@@ -168,6 +182,15 @@ public class FacilityMaintainConfig {
     /** Explicitly (re)enable IDENTIFIER (required by default).
      * @return this config for fluent chaining */
     public FacilityMaintainConfig withIdentifier() { this.identifier = true; return this; }
+    /** Explicitly enable NAME with a desired specific facility name.
+     * @param name  the name to set as the facility name.
+     * @return this config for fluent chaining */
+    public FacilityMaintainConfig withName(String name)
+    {
+        this.name = true; this.nameManual = true;
+        this.facility_name = name;
+        return this;
+    }
 
     /**
      * Set number of notes to generate.
