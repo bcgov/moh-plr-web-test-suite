@@ -10,11 +10,13 @@ import java.util.regex.Pattern;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
+import ca.bc.gov.health.qa.autotest.plr.data.SearchFacilityConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.SearchFacilityActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityCriteriaFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityIdFragment;
@@ -94,8 +96,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     public void testFacilitySearch(UserType userType)
     {
         final Pattern SEARCH_RESULTS_TIME_PATTERN = Pattern.compile("([0-9]+\\.[0-9]{3})");
-
-        final String identifierToCheck = dummyFacility.getIdentifier();
+        final List<String> identifierToCheck = Arrays.asList("IFC", dummyFacility.getIdentifier());
         final List<String> criteriaToCheck = Arrays.asList(
                 dummyFacility.getName(),
                 dummyAddress.get("line1"), "",
@@ -103,57 +104,54 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                         dummyAddress.get("city").length() - 1).toLowerCase(),
                 dummyAddress.get("city").charAt(0) + dummyAddress.get("city").substring(1).toLowerCase(),
                 "Select One", "", "");
+        final SearchFacilityActions actions = workflowManager_.getSelectedWorkflow().getSearchFacilityActions();
 
-        logIn(workflowManager_, userType);
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
         SearchFacilityResultsFragment searchResults;
-
-        assertTrue(searchFacility.verifyTitle(), "Title of page does not match 'Search Facility'");
-        assertTrue(searchFacility.verifyHistory(), "History checkbox not found");
-
-        assertTrue(searchFacility.grabIdentifierSectionExpanded(),
-                "Search by Identifier not opened by default");
-        assertFalse(searchFacility.grabCriteriaSectionExpanded(),
-                "Search by Criteria unexpectedly open by default");
-
         String formSeconds = null;
 
-        // Identifier Query
-        List<String> queryDetails = Arrays.asList("IFC", identifierToCheck);
-        searchResults = searchByIdentifier(searchFacility, queryDetails, false);
-        String formResults = searchResults.getFormResults();
-        Matcher resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
-        if (resultMatcher.find()) formSeconds = resultMatcher.group();
+        // Test Start
+        logIn(workflowManager_, userType);
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, userType);
 
-        assertTrue(searchFacility.checkOrdering(),
-                "Table of search results is out of position (identifier/criteria search not above table)");
-        assertTrue(formResults.contains("1 result"),
-                "Form result does not contain number of results in table summary");
-        assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
-                "Form result does not contain time taken to retrieve results.");
+        assertTrue(actions.verifyTitle(), "Title of page does not match 'Search Facility'");
+        assertTrue(actions.verifyHistory(), "History checkbox not found");
 
-        workflowManager_.getSelectedWorkflow().getSearchFacilityActions().checkColumns(searchResults);
+        for (String searchType : List.of("Identifier", "Criteria"))
+        {
+            if (searchType.equals("Identifier"))
+            {
+                assertTrue(page.isIdentifierSectionExpanded(), "Search by Identifier not opened by default");
+                assertFalse(page.isCriteriaSectionExpanded(), "Search by Criteria open by default in error");
 
-        // Criteria Query
-        searchFacility.expandSearchCriteria(true);
-        assertTrue(searchFacility.grabCriteriaSectionExpanded(), "Search by Criteria failed to open");
-        assertFalse(searchFacility.grabIdentifierSectionExpanded(),
-                "Search by Identifier unexpectedly remained open");
+                searchResults = searchByIdentifier(page, identifierToCheck, false);
+            } else
+            {
+                page.expandSearchCriteria(true);
 
-        queryDetails = criteriaToCheck;
-        searchResults = searchByCriteria(searchFacility, queryDetails, false);
-        formResults = searchResults.getFormResults();
-        resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
-        if (resultMatcher.find()) formSeconds = resultMatcher.group();
+                assertTrue(page.isCriteriaSectionExpanded(), "Search by Criteria failed to open");
+                assertFalse(page.isIdentifierSectionExpanded(), "Search by Identifier remained open in error");
 
-        assertTrue(searchFacility.checkOrdering(),
-                "Table of search results is out of position (identifier/criteria search not above table)");
-        assertTrue(formResults.contains("1 result"),
-                "Form result does not contain number of results in table summary");
-        assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
-                "Form result does not contain time taken to retrieve results.");
+                searchResults = searchByCriteria(page, criteriaToCheck, false);
+            }
 
-        workflowManager_.getSelectedWorkflow().getSearchFacilityActions().checkColumns(searchResults);
+            String formResults = searchResults.getFormResults();
+            List<String> tableColumns = searchResults.getTableColumns();
+            Matcher resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
+            if (resultMatcher.find()) formSeconds = resultMatcher.group();
+
+            assertTrue(actions.checkOrdering(),
+                    "Table of search results is out of position (identifier/criteria search not above table)");
+            assertTrue(formResults.contains("1 result"),
+                    "Form result does not contain number of results in table summary");
+            assertTrue(formResults.contains("(" + formSeconds + " seconds)"),
+                    "Form result does not contain time taken to retrieve results.");
+
+            for (TableColumn column : TableColumn.values())
+            {
+                assertTrue(tableColumns.get(column.getIndex()).contains(column.getName()),
+                        "Table column " + column.getIndex() + " is not " + column.getName());
+            }
+        }
 
         workflowManager_.logoutAndClose(userType);
     }
@@ -171,7 +169,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
-        assertTrue(searchFacility.grabIdentifierSectionExpanded(),
+        assertTrue(searchFacility.isIdentifierSectionExpanded(),
                 "Search by Identifier not opened by default");
 
         SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
@@ -212,7 +210,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     {
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
-        assertTrue(searchFacility.grabIdentifierSectionExpanded(), "Search by Identifier not opened by default");
+        assertTrue(searchFacility.isIdentifierSectionExpanded(), "Search by Identifier not opened by default");
 
         SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
 
@@ -311,7 +309,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
         SearchFacilityCriteriaFragment criteriaPanel = searchFacility.expandSearchCriteria(true);
-        assertTrue(searchFacility.grabCriteriaSectionExpanded(),"Search by Criteria not opened by default");
+        assertTrue(searchFacility.isCriteriaSectionExpanded(),"Search by Criteria not opened by default");
 
         List<String> criteriaAttributes = criteriaPanel.verifyCriteriaTab();
         assertEquals(criteriaAttributes.getFirst(), "At least 1 search criteria must be entered.",
@@ -492,7 +490,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityCriteriaFragment criteriaPanel = searchFacility.expandSearchCriteria(true);
 
-        assertTrue(searchFacility.grabCriteriaSectionExpanded(),
+        assertTrue(searchFacility.isCriteriaSectionExpanded(),
                 "Search by Criteria failed to expand");
 
         criteriaPanel.getServiceDeliveryAreaMenu().displayAutocomplete("South V", true);

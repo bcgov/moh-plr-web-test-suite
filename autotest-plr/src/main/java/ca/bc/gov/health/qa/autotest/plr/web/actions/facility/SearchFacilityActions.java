@@ -7,6 +7,8 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.apache.logging.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.support.locators.RelativeLocator;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,19 +49,36 @@ public class SearchFacilityActions {
     }
 
     /**
-     * Checks the Column Names of the table of search results
+     * Determines whether the page title is Search Facility as expected.
      *
-     * @param searchResults     the SearchFacilityResultsFragment reference
+     * @return  whether the page title is "Search Facility" (true) or not (false)
      */
-    public void checkColumns(SearchFacilityResultsFragment searchResults)
+    public boolean verifyTitle()
     {
-        int index = 0;
-        for (String tableColumn : List.of("Facility Name", "Identifier", "Civic Address"))
-        {
-            assertTrue(searchResults.getTableColumns().get(index).contains(tableColumn),
-                    String.format("Table column %d is not %s", index, tableColumn));
-            index++;
-        }
+        String headingLocator = "div#container > div#content > table > tbody > tr > td > h2";
+        return selenium_.findElementByCss(headingLocator).getText().equals("Search Facility");
+    }
+
+    /**
+     * Determines whether the "Include History" checkbox exists
+     *
+     * @return  whether the "Include History" checkbox exists (true) or not (false)
+     */
+    public boolean verifyHistory()
+    {
+        return selenium_.grabElementPresentByCss("span.historyCheckBox");
+    }
+
+    /**
+     * Checks the ordering of elements on the page is correct
+     * (namely, whether the table of search results is below the identifier/criteria search elements)
+     *
+     * @return  whether the table of search results is in the correct position (true) or not (false)
+     */
+    public boolean checkOrdering()
+    {
+        return selenium_.findElement(RelativeLocator.with(
+                By.cssSelector("div#accordian")).above(By.cssSelector("span#searchResultsGroup"))).isDisplayed();
     }
 
     /**
