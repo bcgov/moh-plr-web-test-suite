@@ -19,7 +19,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.types.EndReason;
+import ca.bc.gov.health.qa.autotest.plr.util.EndReason;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 

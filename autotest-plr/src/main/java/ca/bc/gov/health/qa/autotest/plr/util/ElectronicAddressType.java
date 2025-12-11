@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.tests.types;
+package ca.bc.gov.health.qa.autotest.plr.util;
 
 public enum ElectronicAddressType {
 	EMAIL("E - Email"), 
