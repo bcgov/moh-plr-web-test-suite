@@ -4,7 +4,9 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
+import org.apache.logging.log4j.Logger;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,6 +20,8 @@ import static org.testng.Assert.assertTrue;
  */
 public class SearchFacilityActions {
     private final SeleniumSession selenium_;
+
+    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     /**
      * Initializes class and SeleniumSession.
@@ -67,7 +71,7 @@ public class SearchFacilityActions {
     public LinkedHashMap<String,String> setupWildcards(String criteriaField)
     {
         LinkedHashMap<String,String> wildcardMap = new LinkedHashMap<>();
-        wildcardMap.put("trailingWildcard", criteriaField.charAt(0) + "*");
+        wildcardMap.put("trailingWildcard", criteriaField.substring(0, 2) + "*");
         wildcardMap.put("precedingWildcard", "*" + criteriaField.substring(1).replace("\n", " "));
         wildcardMap.put("middleWildcard", criteriaField.charAt(0) + "*" + criteriaField.charAt(criteriaField.length()-1));
         wildcardMap.put("multipleWildcard", "*" + criteriaField.substring(1,4).replace("\n", " ") + "*");
@@ -100,6 +104,9 @@ public class SearchFacilityActions {
             case "middleWildcard":
                 assertTrue(wildcardField.toLowerCase().startsWith(wildcardQueries.get("firstExpectedChar")),
                         "A facility name does not match the middle wildcard case's starting characters");
+                LOG.info("wildcard Field: " + wildcardField);
+                LOG.info("expected ending: " + wildcardQueries.get("lastExpectedChar"));
+                LOG.info("actual ending: " + wildcardField.charAt(wildcardField.length()-1));
                 assertTrue(wildcardField.toLowerCase().endsWith(wildcardQueries.get("lastExpectedChar")),
                         "A facility name does not match the middle wildcard case's ending characters");
                 break;
@@ -173,7 +180,7 @@ public class SearchFacilityActions {
      * @param wildcardQueries   Map of wildcard queries to test against (based on wildcardType)
      */
     public void wildcardOtherCheck(SearchFacilityPage searchFacility, String wildcardType,
-                                    List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
+                                   List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
     {
         queryDetails.set(2, wildcardQueries.get(wildcardType));
         SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);

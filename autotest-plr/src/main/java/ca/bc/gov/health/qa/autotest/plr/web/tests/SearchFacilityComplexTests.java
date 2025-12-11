@@ -40,6 +40,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
     private static FHIRController fhirController;
 
     private MaintainFacilityBuilder dummyFacility;
+    private Map<String,String> dummyAddress;
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
@@ -69,6 +70,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
         dummyFacility = fhirController.createFacility(dummyCfg);
+        dummyAddress = dummyFacility.getAddress();
     }
 
     @BeforeMethod
@@ -87,9 +89,9 @@ public class SearchFacilityComplexTests implements SimpleTest {
     {
         final SearchFacilityActions actions = workflowManager_.getSelectedWorkflow().getSearchFacilityActions();
 
-        final String expectedName = "ABCDEF";
-        final String expectedCivicAddress = "1175 DOUGLAS ST,\nVICTORIA";
-        final String expectedOtherAddress = "1175 DOUGLAS ST";
+        final String expectedName = dummyFacility.getName();
+        final String expectedCivicAddress = dummyAddress.get("line1") + ",\n" + dummyAddress.get("city");
+        final String expectedOtherAddress = dummyAddress.get("line1");
         final String expectedWarningMessage = warningList.getString("missingCriteria");
         final List<String> wildcardTypes = Arrays.asList(
                 "trailingWildcard", "precedingWildcard", "middleWildcard", "multipleWildcard");

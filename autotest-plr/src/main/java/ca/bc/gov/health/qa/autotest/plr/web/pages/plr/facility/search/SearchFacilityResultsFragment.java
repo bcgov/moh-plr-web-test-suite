@@ -144,6 +144,24 @@ public class SearchFacilityResultsFragment extends BasicWebPageFragment
     }
 
     /**
+     * Gets the identifiers for each record in the search results
+     * The (IFC) tag is discarded in the results.
+     *
+     * @return  a list of strings with each identifier in the search results
+     */
+    public List<String> getIdentifierList()
+    {
+        List<String> identifierList = new ArrayList<>();
+        for (int idCount = 0; idCount < grabResultsRowCount(); idCount++)
+        {
+            String identifier = getResultsRow(idCount).get(1);
+            identifier = identifier.substring(0, identifier.indexOf(" (IFC)"));
+            identifierList.add(identifier);
+        }
+        return identifierList;
+    }
+
+    /**
      * Gets the civic addresses for each record in the search results
      * The country is discarded in the results, see comments for explanation
      *
