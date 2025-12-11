@@ -7,7 +7,12 @@ import java.util.*;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchFacilityActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
@@ -20,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
@@ -32,6 +38,10 @@ public class SearchFacilityComplexTests implements SimpleTest {
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     private static JSONObject warningList;
+    private static FHIRController fhirController;
+
+    private MaintainFacilityBuilder dummyFacility;
+    private Map<String,String> dummyAddress;
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
@@ -53,6 +63,17 @@ public class SearchFacilityComplexTests implements SimpleTest {
         LOG.info("Done.");
     }
 
+    @BeforeTest
+    public void beforeTest() {
+        fhirController = new FHIRController(UserType.ADMIN);
+
+        FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
+        dummyFacility = fhirController.createFacility(dummyCfg);
+
+        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
+        dummyAddress = dummyFacility.getAddress();
+    }
+
     @BeforeMethod
     public void before(Object[] parameters)
     {
@@ -63,133 +84,12 @@ public class SearchFacilityComplexTests implements SimpleTest {
         }
     }
 
-    /**
-     * creates a map of wildcard queries - helper function for wildcard test case
-     *
-     * @param criteriaField     the string to be creating wildcard queries for
-     * @return                  a map of wildcard queries to be used in a criteria field
-     */
-    private LinkedHashMap<String,String> setupWildcards(String criteriaField)
-    {
-        LinkedHashMap<String,String> wildcardMap = new LinkedHashMap<>();
-        wildcardMap.put("trailingWildcard", criteriaField.charAt(0) + "*");
-        wildcardMap.put("precedingWildcard", "*" + criteriaField.substring(1).replace("\n", " "));
-        wildcardMap.put("middleWildcard", criteriaField.charAt(0) + "*" + criteriaField.charAt(criteriaField.length()-1));
-        wildcardMap.put("multipleWildcard", "*" + criteriaField.substring(1,4).replace("\n", " ") + "*");
-        wildcardMap.put("firstExpectedChar", String.valueOf(criteriaField.toLowerCase().charAt(0)));
-        wildcardMap.put("lastExpectedChar", String.valueOf(criteriaField.toLowerCase().charAt(criteriaField.length()-1)));
-        wildcardMap.put("middleExpectedChars", criteriaField.substring(1,4).toLowerCase());
-
-        return wildcardMap;
-    }
-
-    /**
-     * Helper function to assign correct test assertion(s) to run depending on wildcard query used.
-     *
-     * @param wildcardField     Field to verify the wildcard query returns a matching field
-     * @param wildcardType      Type of wildcard query being executed (key for wildcardQueries)
-     * @param wildcardQueries   Map of wildcard queries to test against (based on wildcardType)
-     */
-    private void wildcardCases(String wildcardField, String wildcardType, LinkedHashMap<String,String> wildcardQueries)
-    {
-        switch (wildcardType)
-        {
-            case "trailingWildcard":
-                assertTrue(wildcardField.toLowerCase().startsWith(wildcardQueries.get("firstExpectedChar")),
-                        "Wildcard field doesn't match the trailing wildcard case's starting characters");
-                break;
-            case "precedingWildcard":
-                assertTrue(wildcardField.toLowerCase().endsWith(wildcardQueries.get("lastExpectedChar")),
-                        "Wildcard field does not match the preceding wildcard case's ending characters");
-                break;
-            case "middleWildcard":
-                assertTrue(wildcardField.toLowerCase().startsWith(wildcardQueries.get("firstExpectedChar")),
-                        "A facility name does not match the middle wildcard case's starting characters");
-                assertTrue(wildcardField.toLowerCase().endsWith(wildcardQueries.get("lastExpectedChar")),
-                        "A facility name does not match the middle wildcard case's ending characters");
-                break;
-            case "multipleWildcard":
-                assertTrue(wildcardField.toLowerCase().contains(wildcardQueries.get("middleExpectedChars")),
-                        "A facility name does not match the multiple wildcard case's middle characters");
-                break;
-        }
-    }
-
-    /**
-     * Helper function for handling facility name wildcard queries and assertions
-     *
-     * @param searchFacility    The search facility page reference
-     * @param wildcardType      Which wildcard type to test against (key for wildcardQueries)
-     * @param queryDetails      List of default query details
-     * @param wildcardQueries   Map of wildcard queries to test against (based on wildcardType)
-     */
-    private void wildcardNameCheck(SearchFacilityPage searchFacility, String wildcardType,
-                                   List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
-    {
-        queryDetails.set(0, wildcardQueries.get(wildcardType));
-        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
-        List<String> facilityNameList = searchResults.getFacilityNamesList();
-        while (facilityNameList.contains("Link to View Facility")) facilityNameList.remove("Link to View Facility");
-
-        assertFalse(facilityNameList.isEmpty(),
-                "Searching facility name with " + wildcardType + " unexpectedly returns no testable results");
-        for (String facilityName : facilityNameList)
-        {
-            wildcardCases(facilityName, wildcardType, wildcardQueries);
-        }
-    }
-
-    /**
-     * Helper function for handling civic address wildcard queries and assertions
-     *
-     * @param searchFacility    The search facility page reference
-     * @param wildcardType      Which wildcard type to test against (key for wildcardQueries)
-     * @param queryDetails      List of default query details
-     * @param wildcardQueries   Map of wildcard queries to test against (based on wildcardType)
-     */
-    private void wildcardCivicCheck(SearchFacilityPage searchFacility, String wildcardType,
-                                    List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
-    {
-        queryDetails.set(1, wildcardQueries.get(wildcardType));
-        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
-        assertTrue(searchResults.grabResultsRowCount() > 0,
-                "Searching civic address with " + wildcardType + " unexpectedly returns no testable results");
-
-        for (String civicAddress : searchResults.getCivicAddressList())
-        {
-            if (!wildcardType.equals("middleWildcard")) wildcardCases(civicAddress, wildcardType, wildcardQueries);
-            else {
-                assertTrue(civicAddress.toLowerCase().startsWith(wildcardQueries.get("firstExpectedChar")),
-                        "A civic address does not match the middle wildcard case's starting characters");
-                // Implicit wildcard exists at end of civic address so only check containment after first character
-                assertTrue(civicAddress.substring(1).toLowerCase()
-                                .contains(wildcardQueries.get("lastExpectedChar")),
-                        "A civic address does not match the middle wildcard case's ending characters");
-            }
-        }
-    }
-
-    /**
-     * Helper function for partially handling other address wildcard query and assertion
-     *
-     * @param searchFacility    The search facility page reference
-     * @param wildcardType      Which wildcard type to test against (key for wildcardQueries)
-     * @param queryDetails      List of default query details
-     * @param wildcardQueries   Map of wildcard queries to test against (based on wildcardType)
-     */
-    private void wildcardOtherCheck(SearchFacilityPage searchFacility, String wildcardType,
-                                    List<String> queryDetails, LinkedHashMap<String,String> wildcardQueries)
-    {
-        queryDetails.set(2, wildcardQueries.get(wildcardType));
-        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
-        assertTrue(searchResults.grabResultsRowCount() > 0,
-                "Searching civic address with " + wildcardType + " unexpectedly returns no testable results");
-    }
-
     @Test
     // F1-010. Facility Search Rules
     public void testFacilitySearchRules()
     {
+        final SearchFacilityActions actions = workflowManager_.getSelectedWorkflow().getSearchFacilityActions();
+
         final String expectedName = "ABCDEF";
         final String expectedCivicAddress = "1175 DOUGLAS ST,\nVICTORIA";
         final String expectedOtherAddress = "1175 DOUGLAS ST";
@@ -201,30 +101,26 @@ public class SearchFacilityComplexTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 
         // Facility Name Steps
-        LinkedHashMap<String,String> wildcardQueries = setupWildcards(expectedName);
+        LinkedHashMap<String,String> wildcardQueries = actions.setupWildcards(expectedName);
         List<String> queryDetails = Arrays.asList(expectedName, "", "", "", "", "Select One", "", "");
 
-        for (String wildcardType : wildcardTypes) wildcardNameCheck(
+        for (String wildcardType : wildcardTypes) actions.wildcardNameCheck(
                 searchFacility, wildcardType, queryDetails, wildcardQueries);
 
         // Civic Address Steps
-        wildcardQueries = setupWildcards(expectedCivicAddress);
+        wildcardQueries = actions.setupWildcards(expectedCivicAddress);
         queryDetails = Arrays.asList("", expectedCivicAddress, "", "", "", "Select One", "", "");
 
-        for (String wildcardType : wildcardTypes) wildcardCivicCheck(
+        for (String wildcardType : wildcardTypes) actions.wildcardCivicCheck(
                 searchFacility, wildcardType, queryDetails, wildcardQueries);
 
         // Other Address Steps
-        wildcardQueries = setupWildcards(expectedOtherAddress);
+        wildcardQueries = actions.setupWildcards(expectedOtherAddress);
         queryDetails = Arrays.asList("", "", expectedOtherAddress, "", "", "Select One", "", "");
 
         for (String wildcardType : wildcardTypes)
         {
-            wildcardOtherCheck(searchFacility, wildcardType, queryDetails, wildcardQueries);
-            ViewFacilityPage searchDetails = workflow.getSearchFacilityActions().openSearchResults(0);
-            LinkedHashMap<String,String> otherMap = searchDetails.grabDataBlockContent(
-                    FacilitySection.OTHER_ADDRESS,0);
-            wildcardCases(otherMap.get("Address Line 1"), wildcardType, wildcardQueries);
+            actions.wildcardOtherCheck(searchFacility, wildcardType, queryDetails, wildcardQueries);
             workflow.getPlrWebAccessActions().openSearchFacility();
         }
 
