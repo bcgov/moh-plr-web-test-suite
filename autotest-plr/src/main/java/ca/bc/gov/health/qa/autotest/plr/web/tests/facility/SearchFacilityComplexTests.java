@@ -7,6 +7,7 @@ import java.util.*;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
@@ -186,40 +187,35 @@ public class SearchFacilityComplexTests implements SimpleTest {
                 "Form result does not match expected maximum search results.");
     }
 
-    @Test
+    @Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
     // F1-016. Search Results Limited By Data Permissions
-    public void testDataPermissions()
+    public void testDataPermissions(UserType userType)
     {
         final List<String> queryFields = Arrays.asList("IFC", dummyFacility.getIdentifier());
 
-        for (UserType userType : UserType.values())
+        PlrWebWorkflow workflow = logIn(workflowManager_, userType);
+        PlrNavigationMenuFragment menu = workflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
+
+        assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.SEARCH_FACILITY),
+                "Search Facility not visible as a menu option for User Type" + userType);
+
+        if (userType.equals(UserType.ADMIN))
         {
-            if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
-
-            PlrWebWorkflow workflow = logIn(workflowManager_, userType);
-            PlrNavigationMenuFragment menu = workflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
-
-            assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.SEARCH_FACILITY),
-                    "Search Facility not visible as a menu option for User Type" + userType);
-
-            if (userType.equals(UserType.ADMIN))
-            {
-                assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
-                        "Add Facility not visible as a menu option for Reg Admin User");
-            } else
-            {
-                assertFalse(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
-                        "Add Facility unexpectedly visible as a menu option for " + userType);
-            }
-
-            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
-            SearchFacilityResultsFragment searchResults;
-            searchResults = searchByIdentifier(searchFacility, queryFields, false);
-
-            assertTrue(searchResults.grabResultsRowCount() > 0,
-                    "Search results did not return for User Type " + userType);
-
-            workflowManager_.logoutAndClose(userType);
+            assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
+                    "Add Facility not visible as a menu option for Reg Admin User");
+        } else
+        {
+            assertFalse(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
+                    "Add Facility unexpectedly visible as a menu option for " + userType);
         }
+
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
+        SearchFacilityResultsFragment searchResults;
+        searchResults = searchByIdentifier(searchFacility, queryFields, false);
+
+        assertTrue(searchResults.grabResultsRowCount() > 0,
+                "Search results did not return for User Type " + userType);
+
+        workflowManager_.logoutAndClose(userType);
     }
 }
