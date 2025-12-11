@@ -301,11 +301,11 @@ public class SearchFacilitySimpleTests implements SimpleTest {
 
         List<MaintainFacilityBuilder> criteriaFacilities = Arrays.asList(
                 fhirController.createFacility(
-                        new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(2))),
+                        new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(3))),
                 fhirController.createFacility(
-                        new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(2))),
+                        new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(3))),
                 fhirController.createFacility(
-                        new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(2)))
+                        new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(3)))
         );
 
         final List<String> expectedAttributes = Arrays.asList(
@@ -336,6 +336,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         int resultsIndex = 0;
         for (MaintainFacilityBuilder criteriaFacility : criteriaFacilities)
         {
+            MaintainFacilityBuilder criteriaFacilityInfo = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+                    criteriaFacility.getIdentifier());
             ViewFacilityPage searchDetails = workflow.getSearchFacilityActions().openSearchResults(resultsIndex);
 
             assertTrue(searchDetails.getViewHeader().grabViewTitle().contains(criteriaFacility.getName()),
@@ -351,9 +353,10 @@ public class SearchFacilitySimpleTests implements SimpleTest {
             assertEquals(otherMap.get("Address Line 1").toLowerCase(),
                     criteriaFacility.getAddress().get("line1").toLowerCase(),
                     "Viewing facility has unexpected other address.");
-            // TODO is this other address or civic address what is populated by FHIR?
             assertEquals(civicMap.get("City").toLowerCase(), criteriaFacility.getAddress().get("city").toLowerCase(),
                     "Viewing facility has unexpected city.");
+            assertEquals(civicMap.get("Health Service Delivery Area"), criteriaFacilityInfo.getHsda().get("HSDA"),
+                    "Viewing facility has unexpected service delivery area.");
 
             workflow.getPlrWebAccessActions().openSearchFacility();
 
