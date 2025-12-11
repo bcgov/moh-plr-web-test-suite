@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
@@ -88,9 +89,9 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         }
     }
 
-    @Test
+    @Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
     // F1-001. Facility Search
-    public void testFacilitySearch()
+    public void testFacilitySearch(UserType userType)
     {
         final Pattern SEARCH_RESULTS_TIME_PATTERN = Pattern.compile("([0-9]+\\.[0-9]{3})");
 
@@ -103,64 +104,58 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 dummyAddress.get("city").charAt(0) + dummyAddress.get("city").substring(1).toLowerCase(),
                 "Select One", "", "");
 
-        for (UserType userType : UserType.values())
-        {
-            if (userType.equals(UserType.MOH) || userType.equals(UserType.USER)) continue;
+        logIn(workflowManager_, userType);
+        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
+        SearchFacilityResultsFragment searchResults;
 
-            logIn(workflowManager_, userType);
-            SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
-            SearchFacilityResultsFragment searchResults;
+        assertTrue(searchFacility.verifyTitle(), "Title of page does not match 'Search Facility'");
+        assertTrue(searchFacility.verifyHistory(), "History checkbox not found");
 
-            assertTrue(searchFacility.verifyTitle(), "Title of page does not match 'Search Facility'");
-            assertTrue(searchFacility.verifyHistory(), "History checkbox not found");
+        assertTrue(searchFacility.grabIdentifierSectionExpanded(),
+                "Search by Identifier not opened by default");
+        assertFalse(searchFacility.grabCriteriaSectionExpanded(),
+                "Search by Criteria unexpectedly open by default");
 
-            assertTrue(searchFacility.grabIdentifierSectionExpanded(),
-                    "Search by Identifier not opened by default");
-            assertFalse(searchFacility.grabCriteriaSectionExpanded(),
-                    "Search by Criteria unexpectedly open by default");
+        String formSeconds = null;
 
-            String formSeconds = null;
+        // Identifier Query
+        List<String> queryDetails = Arrays.asList("IFC", identifierToCheck);
+        searchResults = searchByIdentifier(searchFacility, queryDetails, false);
+        String formResults = searchResults.getFormResults();
+        Matcher resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
+        if (resultMatcher.find()) formSeconds = resultMatcher.group();
 
-            // Identifier Query
-            List<String> queryDetails = Arrays.asList("IFC", identifierToCheck);
-            searchResults = searchByIdentifier(searchFacility, queryDetails, false);
-            String formResults = searchResults.getFormResults();
-            Matcher resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
-            if (resultMatcher.find()) formSeconds = resultMatcher.group();
+        assertTrue(searchFacility.checkOrdering(),
+                "Table of search results is out of position (identifier/criteria search not above table)");
+        assertTrue(formResults.contains("1 result"),
+                "Form result does not contain number of results in table summary");
+        assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
+                "Form result does not contain time taken to retrieve results.");
 
-            assertTrue(searchFacility.checkOrdering(),
-                    "Table of search results is out of position (identifier/criteria search not above table)");
-            assertTrue(formResults.contains("1 result"),
-                    "Form result does not contain number of results in table summary");
-            assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
-                    "Form result does not contain time taken to retrieve results.");
+        workflowManager_.getSelectedWorkflow().getSearchFacilityActions().checkColumns(searchResults);
 
-            workflowManager_.getSelectedWorkflow().getSearchFacilityActions().checkColumns(searchResults);
+        // Criteria Query
+        searchFacility.expandSearchCriteria(true);
+        assertTrue(searchFacility.grabCriteriaSectionExpanded(), "Search by Criteria failed to open");
+        assertFalse(searchFacility.grabIdentifierSectionExpanded(),
+                "Search by Identifier unexpectedly remained open");
 
-            // Criteria Query
-            searchFacility.expandSearchCriteria(true);
-            assertTrue(searchFacility.grabCriteriaSectionExpanded(),
-                    "Search by Criteria failed to open");
-            assertFalse(searchFacility.grabIdentifierSectionExpanded(),
-                    "Search by Identifier unexpectedly remained open");
+        queryDetails = criteriaToCheck;
+        searchResults = searchByCriteria(searchFacility, queryDetails, false);
+        formResults = searchResults.getFormResults();
+        resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
+        if (resultMatcher.find()) formSeconds = resultMatcher.group();
 
-            queryDetails = criteriaToCheck;
-            searchResults = searchByCriteria(searchFacility, queryDetails, false);
-            formResults = searchResults.getFormResults();
-            resultMatcher = SEARCH_RESULTS_TIME_PATTERN.matcher(formResults);
-            if (resultMatcher.find()) formSeconds = resultMatcher.group();
+        assertTrue(searchFacility.checkOrdering(),
+                "Table of search results is out of position (identifier/criteria search not above table)");
+        assertTrue(formResults.contains("1 result"),
+                "Form result does not contain number of results in table summary");
+        assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
+                "Form result does not contain time taken to retrieve results.");
 
-            assertTrue(searchFacility.checkOrdering(),
-                    "Table of search results is out of position (identifier/criteria search not above table)");
-            assertTrue(formResults.contains("1 result"),
-                    "Form result does not contain number of results in table summary");
-            assertTrue(formResults.contains(String.format("(%s seconds)", formSeconds)),
-                    "Form result does not contain time taken to retrieve results.");
+        workflowManager_.getSelectedWorkflow().getSearchFacilityActions().checkColumns(searchResults);
 
-            workflowManager_.getSelectedWorkflow().getSearchFacilityActions().checkColumns(searchResults);
-
-            workflowManager_.logoutAndClose(userType);
-        }
+        workflowManager_.logoutAndClose(userType);
     }
 
     @Test
