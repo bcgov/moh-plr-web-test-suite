@@ -78,10 +78,10 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         fhirController = new FHIRController(UserType.ADMIN);
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
-        dummyFacility = fhirController.createFacility(dummyCfg);
+        //dummyFacility = fhirController.createFacility(dummyCfg);
 
-        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
-        dummyAddress = dummyFacility.getAddress();
+        //dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
+        //dummyAddress = dummyFacility.getAddress();
     }
 
     @BeforeMethod
@@ -409,46 +409,51 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-008. Facility Attribute Search Rules - Logical
     public void testFacilitySearchRulesLogical()
     {
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
-
-        // Search 1 (Facility Name, Other Address, Facility Type)
-        List<String> queryDetails = Arrays.asList(dummyFacility.getName(), "",
+        final List<String> search1Details = Arrays.asList(
+                dummyFacility.getName(), "",
                 dummyAddress.get("line1").toUpperCase(),
                 "", "", "BUILDING", "", "");
-        searchByCriteria(searchFacility, queryDetails, false);
-
-        ViewFacilityPage viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);
-        assertTrue(viewDetails.getViewHeader().grabViewTitle().contains(queryDetails.getFirst()),
-                "Facility is missing expected Facility Name");
-        LinkedHashMap<String,String> identifierMap = viewDetails.grabDataBlockContent(
-                FacilitySection.IDENTIFIERS, 0);
-        LinkedHashMap<String,String> otherMap = viewDetails.grabDataBlockContent(
-                FacilitySection.OTHER_ADDRESS, 0);
-        assertEquals(otherMap.get("Address Line 1"), queryDetails.get(2),
-                "Facility is missing expected Other Address Line 1");
-        assertEquals(identifierMap.get("Facility Type"), queryDetails.get(5),
-                "Facility is missing expected Facility Type");
-
-        workflow.getPlrWebAccessActions().openSearchFacility();
-
-        // Search 2 (Civic Address, City, Service Delivery Area)
-        queryDetails = Arrays.asList(
-                "", dummyAddress.get("line1"), "",
+        final List<String> search2Details = Arrays.asList("",
+                dummyAddress.get("line1"), "",
                 dummyAddress.get("city").charAt(0) + dummyAddress.get("city").substring(1,3).toLowerCase(),
                 dummyAddress.get("city").charAt(0) + dummyAddress.get("city").substring(1).toLowerCase(),
                 "Select One",
                 dummyFacility.getHsda().get("HSDA").substring(0, 4), dummyFacility.getHsda().get("HSDA"));
-        searchByCriteria(searchFacility, queryDetails, false);
+        final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        final SearchFacilityActions actions = workflow.getSearchFacilityActions();
+        ViewFacilityPage viewDetails;
 
-        viewDetails = workflow.getSearchFacilityActions().openSearchResults(0);
+        // Test Start
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+
+        // Search 1 (Facility Name, Other Address, Facility Type)
+        searchByCriteria(page, search1Details, false);
+
+        viewDetails = actions.openSearchResults(0);
+        LinkedHashMap<String,String> identifierMap = viewDetails.grabIdentifiersBlockContent(0);
+        LinkedHashMap<String,String> otherMap = viewDetails.grabOtherAddressBlockContent(0);
+
+        assertTrue(viewDetails.getViewHeader().grabViewTitle().contains(search1Details.getFirst()),
+                "Facility is missing expected " + CriteriaTabAttribute.FACILITY_NAME.getString());
+        assertEquals(otherMap.get(OtherAddressField.ADDRESS_LINE_1.getString()), search1Details.get(2),
+                "Facility is missing expected " + CriteriaTabAttribute.OTHER_ADDRESS.getString());
+        assertEquals(identifierMap.get(IdentifierField.FACILITY_TYPE.getString()), search1Details.get(5),
+                "Facility is missing expected " + CriteriaTabAttribute.FACILITY_TYPE.getString());
+
+        workflow.getPlrWebAccessActions().openSearchFacility();
+
+        // Search 2 (Civic Address, City, Service Delivery Area)
+        searchByCriteria(page, search2Details, false);
+
+        viewDetails = actions.openSearchResults(0);
         LinkedHashMap<String,String> civicMap = viewDetails.grabCivicAddressBlockContent();
-        assertEquals(civicMap.get("Address Line 1"), queryDetails.get(1),
-                "Facility is missing expected Civic Address Line 1");
-        assertEquals(civicMap.get("City"), queryDetails.get(4).toUpperCase(),
-                "Facility is missing expected City");
-        assertEquals(civicMap.get("Health Service Delivery Area"), queryDetails.getLast(),
-                "Facility is missing expected Service Delivery Area");
+
+        assertEquals(civicMap.get(CivicAddressField.ADDRESS_LINE_1.getString()), search2Details.get(1),
+                "Facility is missing expected " + CriteriaTabAttribute.CIVIC_ADDRESS.getString());
+        assertEquals(civicMap.get(CivicAddressField.CITY.getString()), search2Details.get(4).toUpperCase(),
+                "Facility is missing expected " + CriteriaTabAttribute.CITY.getString());
+        assertEquals(civicMap.get(CivicAddressField.HEALTH_SERVICE_DELIVERY_AREA.getString()), search2Details.getLast(),
+                "Facility is missing expected " + CriteriaTabAttribute.SERVICE_DELIVERY_AREA.getString());
     }
 
     @Test

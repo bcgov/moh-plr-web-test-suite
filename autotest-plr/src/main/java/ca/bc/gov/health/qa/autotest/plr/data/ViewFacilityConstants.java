@@ -52,4 +52,25 @@ public class ViewFacilityConstants {
 
         public String getString() { return fieldString; }
     }
+
+    /** */
+    public enum IdentifierField
+    {
+        FACILITY_TYPE("Facility Type"),
+        IDENTIFIER("Identifier"),
+        IDENTIFIER_TYPE("Identifier Type"),
+        EFFECTIVE_FROM("Effective From"),
+        EFFECTIVE_TO("Effective To"),
+        END_REASON("End Reason"),
+        DATA_SOURCE("Data Source"),
+        DB_CREATED("DB Created"),
+        DB_EXPIRED("DB Expired"),
+        DATA_OWNER_CODE("Data Owner Code");
+
+        private final String fieldString;
+
+        IdentifierField(String fieldString) { this.fieldString = fieldString; }
+
+        public String getString() { return fieldString; }
+    }
 }
