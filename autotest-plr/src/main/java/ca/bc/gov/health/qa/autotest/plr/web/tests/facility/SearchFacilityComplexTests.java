@@ -8,6 +8,7 @@ import java.util.*;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
+import ca.bc.gov.health.qa.autotest.plr.data.SearchFacilityConstants;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
@@ -172,20 +173,24 @@ public class SearchFacilityComplexTests implements SimpleTest {
     // F1-015. Maximum Search Results
     public void testMaximumResults()
     {
-        final int expectedResults = 20;
+        // TODO: very costly - a fhir endpoint query for criteria would save a lot on unnecessary facility creation
+        for (int count = 0; count <= SearchFacilityConstants.maximumResults; count++)
+        {
+            fhirController.createFacility(new FacilityMaintainConfig().withName("A" + generateAlphabetString(8)));
+        }
         final String maxResultsWarning = warningList.getString("maximumResults");
         final List<String> queryDetails = Arrays.asList("A*", "", "", "", "", "Select One", "", "");
 
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
-        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        SearchFacilityResultsFragment searchResults = searchByCriteria(page, queryDetails, false);
 
-        List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        List<String> warningMessageList = page.waitForAlertMessagesFragment().grabWarningMessageList();
 
-        assertEquals(searchResults.grabResultsRowCount(), expectedResults,
+        assertEquals(searchResults.grabResultsRowCount(), SearchFacilityConstants.maximumResults,
                 "Returned search result does not match the expected maximum number of search results.");
         assertTrue(warningMessageList.contains(maxResultsWarning),
                 "Maximum search results warning not displayed.");
-        assertTrue(searchResults.getFormResults().contains(String.format("%d results", expectedResults)),
+        assertTrue(searchResults.getFormResults().contains(SearchFacilityConstants.maximumResults + " results"),
                 "Form result does not match expected maximum search results.");
     }
 

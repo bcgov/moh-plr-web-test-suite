@@ -12,6 +12,8 @@ public class SearchFacilityConstants {
     public static final String noNameFacility = "Link to View Facility";
     /** Message that appears when search results return zero results */
     public static final String zeroResultsMessage = "No records found.";
+    /** Maximum search results expected on a page */
+    public static final int maximumResults = 20;
 
     /** Expected columns of table of search results  */
     public enum TableColumn
