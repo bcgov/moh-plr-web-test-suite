@@ -59,6 +59,8 @@ public class SearchFacilityConstants {
         private final int attributeIndex;
         public static final List<CriteriaTabAttribute> fieldList = List.of(
                 FACILITY_NAME, CIVIC_ADDRESS, OTHER_ADDRESS, CITY, FACILITY_TYPE, SERVICE_DELIVERY_AREA);
+        public static final List<CriteriaTabAttribute> queryFieldList = List.of(
+                FACILITY_NAME, CIVIC_ADDRESS, OTHER_ADDRESS, CITY, CITY, FACILITY_TYPE, SERVICE_DELIVERY_AREA);
 
         CriteriaTabAttribute(String attributeString, int attributeIndex)
         {

@@ -77,10 +77,10 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         fhirController = new FHIRController(UserType.ADMIN);
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
-        //dummyFacility = fhirController.createFacility(dummyCfg);
+        dummyFacility = fhirController.createFacility(dummyCfg);
 
-        //dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
-        //dummyAddress = dummyFacility.getAddress();
+        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
+        dummyAddress = dummyFacility.getAddress();
     }
 
     @BeforeMethod
@@ -365,70 +365,41 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-007. Minimum Data Requirements for Facility Search with Criteria
     public void testMinDataReqsCriteria()
     {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
-        SearchFacilityResultsFragment searchResults;
-
+        final String expectedMessage = warningList.getString("missingCriteria");
+        SearchFacilityResultsFragment searchResults = null;
         List<String> queryDetails = Arrays.asList("", "", "", "", "", "Select One", "", "");
+        List<String> facilityData = Arrays.asList(
+                dummyFacility.getName(),
+                dummyAddress.get("line1"),
+                dummyAddress.get("line1"),
+                dummyAddress.get("city"), "",
+                "BUILDING",
+                dummyFacility.getHsda().get("HSDA") + " (HSDA)");
 
-        // Facility Name Specified, Others Empty
-        queryDetails.set(0, dummyFacility.getName());
-        searchResults = searchByCriteria(searchFacility, queryDetails, false);
+        // Test Start
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
-        assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
-                "Search Results returned unsuccessfully when only specifying Test Name");
-        queryDetails.set(0, "");
+        for (int index = 0; index < facilityData.size(); index++)
+        {
+            if (index == 4) continue;
+            queryDetails.set(index, facilityData.get(index));
+            searchResults = searchByCriteria(page, queryDetails, false);
 
-        // Civic Address Line 1 Specified, Others Empty
-        queryDetails.set(1, dummyAddress.get("line1"));
-        searchResults = searchByCriteria(searchFacility, queryDetails, false);
+            assertTrue(searchResults.grabResultsRowCount() >= 0,
+                    "Search Results returned unsuccessfully when only specifying " +
+                            CriteriaTabAttribute.queryFieldList.get(index).getIndex());
 
-        assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
-                "Search Results returned unsuccessfully when only specifying Civic Address Line 1.");
-        queryDetails.set(1, "");
-
-        // Other Address Line 1 Specified, Others Empty
-        queryDetails.set(2, dummyAddress.get("line1"));
-        searchResults = searchByCriteria(searchFacility, queryDetails, false);
-
-        assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
-                "Search Results returned unsuccessfully when only specifying Other Address Line 1.");
-        queryDetails.set(2, "");
-
-        // City Specified, Others Empty
-        queryDetails.set(3, dummyAddress.get("city"));
-        searchResults = searchByCriteria(searchFacility, queryDetails, false);
-
-        assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
-                "Search Results returned unsuccessfully when only specifying City.");
-        queryDetails.set(3, "");
-
-        // Facility Type Specified, Others Empty
-        queryDetails.set(5, "BUILDING");
-        searchResults = searchByCriteria(searchFacility, queryDetails, false);
-
-        assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
-                "Search Results returned unsuccessfully when only specifying Facility Type.");
-        queryDetails.set(5, "Select One");
-
-        // Service Delivery Area Specified, Others Empty
-        queryDetails.set(6, dummyFacility.getHsda().get("HSDA") + " (HSDA)");
-        searchResults = searchByCriteria(searchFacility, queryDetails, false);
-
-        assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
-                "Search Results returned unsuccessfully when only specifying Service Delivery Area.");
-        queryDetails.set(6, "");
-
+            if (index == 5) queryDetails.set(index, "Select One");
+            else queryDetails.set(index, "");
+        }
         int searchResultsCount = searchResults.grabResultsRowCount();
 
         // All Criteria Empty
-        final String expectedMessage = warningList.getString("missingCriteria");
-
-        searchResults = searchByCriteria(searchFacility, queryDetails, true);
-        List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+        searchResults = searchByCriteria(page, queryDetails, true);
+        List<String> warningMessageList = page.waitForAlertMessagesFragment().grabWarningMessageList();
 
         assertTrue(warningMessageList.contains(expectedMessage),
                 "Missing minimum requirements message warning not displayed.");
-
         assertEquals(searchResults.grabResultsRowCount(), searchResultsCount,
                 "Error query changed query results unexpectedly.");
     }
