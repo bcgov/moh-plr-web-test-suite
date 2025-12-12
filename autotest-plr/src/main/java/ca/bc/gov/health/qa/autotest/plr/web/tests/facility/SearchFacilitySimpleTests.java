@@ -11,6 +11,7 @@ import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.data.SearchFacilityConstants.*;
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
@@ -283,8 +284,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     public void testFacilitySearchCriteria()
     {
         final String uniqueNamePrefix = generateAlphabetString(5); // reasonably likely to be unique
-
-        List<MaintainFacilityBuilder> criteriaFacilities = Arrays.asList(
+        final List<MaintainFacilityBuilder> criteriaFacilities = Arrays.asList(
                 fhirController.createFacility(
                         new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(3))),
                 fhirController.createFacility(
@@ -292,30 +292,34 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 fhirController.createFacility(
                         new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(3)))
         );
+        final List<String> queryDetails = Arrays.asList(uniqueNamePrefix + "*", "", "", "", "", "BUILDING", "", "");
 
-        final List<String> expectedAttributes = Arrays.asList(
-                "Facility Name", "Civic Address Line 1", "Other Address Line 1",
-                "City", "Facility Type", "Service Delivery Area");
-
+        // Test Start
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
-        SearchFacilityCriteriaFragment criteriaPanel = searchFacility.expandSearchCriteria(true);
-        assertTrue(searchFacility.isCriteriaSectionExpanded(),"Search by Criteria not opened by default");
+        SearchFacilityCriteriaFragment criteriaPanel = page.expandSearchCriteria(true);
+        List<String> criteriaAttributes = criteriaPanel.getCriteriaTab();
 
-        List<String> criteriaAttributes = criteriaPanel.verifyCriteriaTab();
-        assertEquals(criteriaAttributes.getFirst(), "At least 1 search criteria must be entered.",
+        assertTrue(page.isCriteriaSectionExpanded(),"Search by Criteria not opened by default");
+        assertEquals(criteriaAttributes.get(CriteriaTabAttribute.CRITERIA_INSTRUCTION.getIndex()),
+                     CriteriaTabAttribute.CRITERIA_INSTRUCTION.getString(),
                 "Instruction to fill at least 1 field does not match expected result.");
-        List<String> criteriaFields = criteriaAttributes.subList(1, criteriaAttributes.size()-2);
-        assertEquals(criteriaFields, expectedAttributes, "Unexpected mismatch of criteria fields");
-        assertTrue(criteriaAttributes.get(criteriaAttributes.size()-2).contains("Clear"),
+        for (CriteriaTabAttribute attribute : CriteriaTabAttribute.fieldList)
+        {
+            assertEquals(criteriaAttributes.get(attribute.getIndex()), attribute.getString(),
+                    "Unexpected mismatch of criteria fields");
+        }
+        assertEquals(criteriaAttributes.get(CriteriaTabAttribute.CLEAR_BUTTON.getIndex()),
+                     CriteriaTabAttribute.CLEAR_BUTTON.getString(),
                 "Clear Button not present");
-        assertTrue(criteriaAttributes.getLast().contains("Search"),
+        assertEquals(criteriaAttributes.get(CriteriaTabAttribute.SEARCH_BUTTON.getIndex()),
+                     CriteriaTabAttribute.SEARCH_BUTTON.getString(),
                 "Search button not present");
 
-        List<String> queryDetails = Arrays.asList(uniqueNamePrefix + "*", "", "", "", "", "BUILDING", "", "");
-        SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
-        assertTrue(searchResults.grabResultsRowCount() > 2,
+        SearchFacilityResultsFragment searchResults = searchByCriteria(page, queryDetails, false);
+
+        assertEquals(searchResults.grabResultsRowCount(), 3,
                 "Searching for facility with criteria results in expected facilities not being returned.");
 
         int resultsIndex = 0;
@@ -324,32 +328,33 @@ public class SearchFacilitySimpleTests implements SimpleTest {
             MaintainFacilityBuilder criteriaFacilityInfo = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
                     criteriaFacility.getIdentifier());
             ViewFacilityPage searchDetails = workflow.getSearchFacilityActions().openSearchResults(resultsIndex);
-
-            assertTrue(searchDetails.getViewHeader().grabViewTitle().contains(criteriaFacility.getName()),
-                    "Viewing facility leads to unexpected page");
-
             LinkedHashMap<String,String> civicMap = searchDetails.grabCivicAddressBlockContent();
             LinkedHashMap<String,String> otherMap = searchDetails.grabDataBlockContent(
                     FacilitySection.OTHER_ADDRESS, 0);
 
-            assertEquals(civicMap.get("Address Line 1").toLowerCase(),
+            assertTrue(searchDetails.getViewHeader().grabViewTitle().contains(criteriaFacility.getName()),
+                    "Viewing facility leads to unexpected page");
+
+            assertEquals(civicMap.get(CivicAddressField.ADDRESS_LINE_1.getString()).toLowerCase(),
                     criteriaFacility.getAddress().get("line1").toLowerCase(),
                     "Viewing facility has unexpected civic address.");
-            assertEquals(otherMap.get("Address Line 1").toLowerCase(),
+            assertEquals(otherMap.get(OtherAddressField.ADDRESS_LINE_1.getString()).toLowerCase(),
                     criteriaFacility.getAddress().get("line1").toLowerCase(),
                     "Viewing facility has unexpected other address.");
-            assertEquals(civicMap.get("City").toLowerCase(), criteriaFacility.getAddress().get("city").toLowerCase(),
+            assertEquals(civicMap.get(CivicAddressField.CITY.getString()).toLowerCase(),
+                    criteriaFacility.getAddress().get("city").toLowerCase(),
                     "Viewing facility has unexpected city.");
-            assertEquals(civicMap.get("Health Service Delivery Area"), criteriaFacilityInfo.getHsda().get("HSDA"),
+            assertEquals(civicMap.get(CivicAddressField.HEALTH_SERVICE_DELIVERY_AREA.getString()),
+                    criteriaFacilityInfo.getHsda().get("HSDA"),
                     "Viewing facility has unexpected service delivery area.");
 
             workflow.getPlrWebAccessActions().openSearchFacility();
-
             resultsIndex++;
         }
 
-        criteriaPanel = searchFacility.expandSearchCriteria(true);
+        criteriaPanel = page.expandSearchCriteria(true);
         criteriaPanel.clickClearButton();
+
         for (String fieldValue : criteriaPanel.getCurrentFieldValues())
         {
             assertTrue(fieldValue.isEmpty() || fieldValue.equals("Select One"),

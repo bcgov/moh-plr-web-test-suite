@@ -183,7 +183,7 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
      * @return  a list of string text from each detail of the criteria tab
      *          [instruction, (fields), clear button, search button]
      */
-    public List<String> verifyCriteriaTab()
+    public List<String> getCriteriaTab()
     {
         List<String> tabDetails = new ArrayList<>();
 
