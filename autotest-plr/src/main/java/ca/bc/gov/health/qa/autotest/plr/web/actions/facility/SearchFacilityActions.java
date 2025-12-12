@@ -1,6 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.facility;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
+import ca.bc.gov.health.qa.autotest.plr.data.SearchFacilityConstants;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
@@ -150,7 +150,8 @@ public class SearchFacilityActions {
         queryDetails.set(0, wildcardQueries.get(wildcardType));
         SearchFacilityResultsFragment searchResults = searchByCriteria(searchFacility, queryDetails, false);
         List<String> facilityNameList = searchResults.getFacilityNamesList();
-        while (facilityNameList.contains("Link to View Facility")) facilityNameList.remove("Link to View Facility");
+        while (facilityNameList.contains(SearchFacilityConstants.noNameFacility))
+            facilityNameList.remove(SearchFacilityConstants.noNameFacility);
 
         assertFalse(facilityNameList.isEmpty(),
                 "Searching facility name with " + wildcardType + " unexpectedly returns no testable results");
@@ -207,8 +208,7 @@ public class SearchFacilityActions {
                 "Searching civic address with " + wildcardType + " unexpectedly returns no testable results");
 
         ViewFacilityPage searchDetails = openSearchResults(0);
-        LinkedHashMap<String,String> otherMap = searchDetails.grabDataBlockContent(
-                FacilitySection.OTHER_ADDRESS,0);
+        LinkedHashMap<String,String> otherMap = searchDetails.grabOtherAddressBlockContent(0);
         wildcardCases(otherMap.get("Address Line 1"), wildcardType, wildcardQueries);
     }
 }

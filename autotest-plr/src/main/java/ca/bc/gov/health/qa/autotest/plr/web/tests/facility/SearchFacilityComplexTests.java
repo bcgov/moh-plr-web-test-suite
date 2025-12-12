@@ -88,7 +88,6 @@ public class SearchFacilityComplexTests implements SimpleTest {
     public void testFacilitySearchRules()
     {
         final SearchFacilityActions actions = workflowManager_.getSelectedWorkflow().getSearchFacilityActions();
-
         final String expectedName = dummyFacility.getName();
         final String expectedCivicAddress = dummyAddress.get("line1") + ",\n" + dummyAddress.get("city");
         final String expectedOtherAddress = dummyAddress.get("line1");
@@ -103,15 +102,15 @@ public class SearchFacilityComplexTests implements SimpleTest {
         LinkedHashMap<String,String> wildcardQueries = actions.setupWildcards(expectedName);
         List<String> queryDetails = Arrays.asList(expectedName, "", "", "", "", "Select One", "", "");
 
-        for (String wildcardType : wildcardTypes) actions.wildcardNameCheck(
-                searchFacility, wildcardType, queryDetails, wildcardQueries);
+        for (String wildcardType : wildcardTypes)
+            actions.wildcardNameCheck(searchFacility, wildcardType, queryDetails, wildcardQueries);
 
         // Civic Address Steps
         wildcardQueries = actions.setupWildcards(expectedCivicAddress);
         queryDetails = Arrays.asList("", expectedCivicAddress, "", "", "", "Select One", "", "");
 
-        for (String wildcardType : wildcardTypes) actions.wildcardCivicCheck(
-                searchFacility, wildcardType, queryDetails, wildcardQueries);
+        for (String wildcardType : wildcardTypes)
+            actions.wildcardCivicCheck(searchFacility, wildcardType, queryDetails, wildcardQueries);
 
         // Other Address Steps
         wildcardQueries = actions.setupWildcards(expectedOtherAddress);
@@ -130,8 +129,10 @@ public class SearchFacilityComplexTests implements SimpleTest {
             queryDetails.set(fieldIndex, "*");
             searchByCriteria(searchFacility, queryDetails, false);
             List<String> warningMessageList = searchFacility.waitForAlertMessagesFragment().grabWarningMessageList();
+
             assertTrue(warningMessageList.contains(expectedWarningMessage),
                     "Warning not displayed for only wildcard case");
+
             queryDetails.set(fieldIndex, "");
         }
     }

@@ -8,6 +8,8 @@ public class SearchFacilityConstants {
     public static final String sdaExpected = "South Vancouver Island (HSDA)";
     public static final String sdaPrefix1 = sdaExpected.substring(0, 6);
     public static final String sdaPrefix2 = sdaExpected.substring(0, 8);
+    /** "Name" displayed in the search results a facility has no name */
+    public static final String noNameFacility = "Link to View Facility";
 
     /** Expected columns of table of search results  */
     public enum TableColumn

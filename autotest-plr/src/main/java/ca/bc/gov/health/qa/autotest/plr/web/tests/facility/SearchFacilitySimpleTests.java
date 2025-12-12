@@ -78,10 +78,10 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         fhirController = new FHIRController(UserType.ADMIN);
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
-        //dummyFacility = fhirController.createFacility(dummyCfg);
+        dummyFacility = fhirController.createFacility(dummyCfg);
 
-        //dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
-        //dummyAddress = dummyFacility.getAddress();
+        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
+        dummyAddress = dummyFacility.getAddress();
     }
 
     @BeforeMethod
