@@ -481,12 +481,13 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-013. Word Wrap Search Results
     public void testWordWrapResults()
     {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        final List<String> queryDetails = Arrays.asList(dummyFacility.getName().charAt(0) + "*",
+                "", "", "", "", "Select One", "", "");
         SearchFacilityResultsFragment searchResults;
 
-        List<String> queryDetails = Arrays.asList(dummyFacility.getName().charAt(0) + "*",
-                "", "", "", "", "Select One", "", "");
-        searchResults = searchByCriteria(searchFacility, queryDetails, false);
+        // Test Start
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        searchResults = searchByCriteria(page, queryDetails, false);
 
         for (int rowIndex = 0; rowIndex < searchResults.grabResultsRowCount(); rowIndex++)
         {
