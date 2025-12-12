@@ -201,63 +201,63 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-003. Minimum Data Requirements for Facility Search by Facility ID
     public void testMinDataReqsFacilityID()
     {
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
-
-        assertTrue(searchFacility.isIdentifierSectionExpanded(), "Search by Identifier not opened by default");
-
-        SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
-
         final String facIdentifierEmptyError = errorList.getString("missingFacilityIdentifier");
         final String identifierTypeEmptyError = errorList.getString("missingIdentifierType");
 
+        // Test Start
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+
+        assertTrue(page.isIdentifierSectionExpanded(), "Search by Identifier not opened by default");
+
+        SearchFacilityIdFragment identifierPanel = page.expandSearchIdentifier(true);
+
         // Positive Test
-        List<String> positiveTestDetails = Arrays.asList("IFC", "IFC.00000000.BC.PRS");
-        SearchFacilityResultsFragment searchResults = searchByIdentifier(searchFacility, positiveTestDetails, false);
+        List<String> positiveTestDetails = Arrays.asList("IFC", dummyFacility.getIdentifier());
+        SearchFacilityResultsFragment searchResults = searchByIdentifier(page, positiveTestDetails, false);
 
         List<String> highlightedFields = identifierPanel.getHighlightedFields();
 
-        assertTrue(searchResults.grabResultsRowCount() > 0 || searchResults.grabResultsRowCount() == 0,
-                "Search Results returned unsuccessfully.");
+        assertTrue(searchResults.grabResultsRowCount() >= 0, "Results returned unsuccessfully.");
         assertTrue(highlightedFields.isEmpty(), "Fields are highlighted despite no errors appearing");
 
         // Facility Identifier Empty, Identifier Type Specified
         List<String> facIdentifierDetails = Arrays.asList("IFC", "");
-        searchByIdentifier(searchFacility, facIdentifierDetails, true);
+        searchByIdentifier(page, facIdentifierDetails, true);
 
-        List<String> errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedFields = identifierPanel.getHighlightedFields();
 
         assertTrue(errorMessageList.contains(facIdentifierEmptyError),
                 "Missing minimum requirement of Facility Identifier error not displayed.");
-        assertEquals(highlightedFields.getLast(), "Facility Identifier*",
+        assertEquals(highlightedFields.getLast(), IdentifierTabAttribute.FACILITY_IDENTIFIER.getString(),
                 "Facility Identifier is unhighlighted, or more than one error occurred.");
 
         // Identifier Type Empty, Facility Identifier Specified
-        List<String> identifierTypeDetails = Arrays.asList("Select One", "IFC.00000000.BC.PRS");
-        searchByIdentifier(searchFacility, identifierTypeDetails, true);
+        List<String> identifierTypeDetails = Arrays.asList("Select One", dummyFacility.getIdentifier());
+        searchByIdentifier(page, identifierTypeDetails, true);
 
-        errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedFields = identifierPanel.getHighlightedFields();
 
         assertTrue(errorMessageList.contains(identifierTypeEmptyError),
                 "Missing minimum requirement of Facility Identifier Type error not displayed.");
-        assertEquals(highlightedFields.getLast(), "Facility Identifier Type*",
+        assertEquals(highlightedFields.getLast(), IdentifierTabAttribute.FACILITY_IDENTIFIER_TYPE.getString(),
                 "Facility Identifier Type is unhighlighted, or more than one error occurred.");
 
         // Both Identifier Type and Facility Identifier Empty
         List<String> emptyFieldDetails = Arrays.asList("Select One", "");
-        searchByIdentifier(searchFacility, emptyFieldDetails, true);
+        searchByIdentifier(page, emptyFieldDetails, true);
 
-        errorMessageList = searchFacility.waitForAlertMessagesFragment().grabErrorMessageList();
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
         highlightedFields = identifierPanel.getHighlightedFields();
 
         assertTrue(errorMessageList.contains(facIdentifierEmptyError),
                 "Missing minimum requirement of Facility Identifier error not displayed.");
         assertTrue(errorMessageList.contains(identifierTypeEmptyError),
                 "Missing minimum requirement of Facility Identifier Type error not displayed.");
-        assertTrue(highlightedFields.contains("Facility Identifier Type*"),
+        assertTrue(highlightedFields.contains(IdentifierTabAttribute.FACILITY_IDENTIFIER_TYPE.getString()),
                 "Facility Identifier Type field not highlighted.");
-        assertTrue(highlightedFields.contains("Facility Identifier*"),
+        assertTrue(highlightedFields.contains(IdentifierTabAttribute.FACILITY_IDENTIFIER.getString()),
                 "Facility Identifier field not highlighted.");
         assertEquals(highlightedFields.size(), 2, "Unexpected amount of highlighted fields");
     }
