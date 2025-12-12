@@ -194,7 +194,9 @@ public class SearchFacilityComplexTests implements SimpleTest {
     public void testDataPermissions(UserType userType)
     {
         final List<String> queryFields = Arrays.asList("IFC", dummyFacility.getIdentifier());
+        SearchFacilityResultsFragment searchResults;
 
+        // Test Start
         PlrWebWorkflow workflow = logIn(workflowManager_, userType);
         PlrNavigationMenuFragment menu = workflow.getPlrWebAccessActions().waitForPlrNavigationMenuFragment();
 
@@ -202,18 +204,14 @@ public class SearchFacilityComplexTests implements SimpleTest {
                 "Search Facility not visible as a menu option for User Type" + userType);
 
         if (userType.equals(UserType.ADMIN))
-        {
             assertTrue(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
                     "Add Facility not visible as a menu option for Reg Admin User");
-        } else
-        {
+        else
             assertFalse(menu.grabItemVisible(PlrNavigationMenuFragment.Item.ADD_FACILITY),
                     "Add Facility unexpectedly visible as a menu option for " + userType);
-        }
 
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, userType);
-        SearchFacilityResultsFragment searchResults;
-        searchResults = searchByIdentifier(searchFacility, queryFields, false);
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, userType);
+        searchResults = searchByIdentifier(page, queryFields, false);
 
         assertTrue(searchResults.grabResultsRowCount() > 0,
                 "Search results did not return for User Type " + userType);
