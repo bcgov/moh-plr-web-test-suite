@@ -141,6 +141,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
     // F1-012. Alphabetical Sorting of Facility Search Results
     public void testAlphabeticalSorting()
     {
+        // TODO (query for specific addresses to exist, and if they don't create them)
         /* Address numbers known to include important generic cases/edge-cases
            (alphanumeric characters, case sensitivity, etc.) */
         final List<String> addressSpotCheck = Arrays.asList("1175", "1549", "119");

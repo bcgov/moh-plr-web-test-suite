@@ -498,25 +498,24 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-014. Zero Results
     public void testZeroResults()
     {
-        final String expectedMessage = "No records found.";
-
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        final List<String> fakeIdentifierFields = Arrays.asList("IFC", "ABC.123");
+        final List<String> fakeCriteriaFields = Arrays.asList("ABC.123", "1234 Fake St", "5678 Unknown Rd",
+                "City", "", "BUILDING", "SDA", "");
         SearchFacilityResultsFragment searchResults;
 
-        List<String> fakeFields;
+        // Test Start
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
         // Search by Identifier - Zero Results
-        fakeFields = Arrays.asList("IFC", "ABC.123");
-        searchResults = searchByIdentifier(searchFacility, fakeFields, false);
+        searchResults = searchByIdentifier(page, fakeIdentifierFields, false);
 
-        assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage,
+        assertEquals(searchResults.grabEmptyResultsMessage(), SearchFacilityConstants.zeroResultsMessage,
                 "Empty results message not returned when searching nonexistent facility through identifier.");
 
         // Search by Criteria - Zero Results
-        fakeFields = Arrays.asList("ABC.123", "1234 Fake St", "5678 Unknown Rd", "City", "", "BUILDING", "SDA", "");
-        searchResults = searchByCriteria(searchFacility, fakeFields, false);
+        searchResults = searchByCriteria(page, fakeCriteriaFields, false);
 
-        assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage,
+        assertEquals(searchResults.grabEmptyResultsMessage(), SearchFacilityConstants.zeroResultsMessage,
                 "Empty results message not returned when searching nonexistent facility through criteria.");
     }
 

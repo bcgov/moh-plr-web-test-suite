@@ -10,6 +10,8 @@ public class SearchFacilityConstants {
     public static final String sdaPrefix2 = sdaExpected.substring(0, 8);
     /** "Name" displayed in the search results a facility has no name */
     public static final String noNameFacility = "Link to View Facility";
+    /** Message that appears when search results return zero results */
+    public static final String zeroResultsMessage = "No records found.";
 
     /** Expected columns of table of search results  */
     public enum TableColumn
