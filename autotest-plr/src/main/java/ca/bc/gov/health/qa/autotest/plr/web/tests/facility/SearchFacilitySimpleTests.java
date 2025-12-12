@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
+import ca.bc.gov.health.qa.autotest.plr.data.SearchFacilityConstants;
 import ca.bc.gov.health.qa.autotest.plr.data.SearchFacilityConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
@@ -451,7 +452,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     }
 
     @Test
-    // F1-009: F1-009. Service Delivery Area Recognition
+    // F1-009. Service Delivery Area Recognition
     public void testServiceDeliveryArea()
     {
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
@@ -460,15 +461,14 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         assertTrue(searchFacility.isCriteriaSectionExpanded(),
                 "Search by Criteria failed to expand");
 
-        criteriaPanel.getServiceDeliveryAreaMenu().displayAutocomplete("South V", true);
+        criteriaPanel.getServiceDeliveryAreaMenu().displayAutocomplete(SearchFacilityConstants.sdaPrefix1, true);
 
         assertTrue(criteriaPanel.getServiceDeliveryAreaMenu().grabAutocompletePanelActive(),
                 "Service Delivery Area autocomplete failed to appear");
 
-        criteriaPanel.getServiceDeliveryAreaMenu().selectItemFromPanel("South Van");
+        criteriaPanel.getServiceDeliveryAreaMenu().selectItemFromPanel(SearchFacilityConstants.sdaPrefix2);
 
-        assertEquals(criteriaPanel.getServiceDeliveryAreaMenu().grabCompletedItem(),
-                "South Vancouver Island (HSDA)",
+        assertEquals(criteriaPanel.getServiceDeliveryAreaMenu().grabCompletedItem(), SearchFacilityConstants.sdaExpected,
                 "Service Delivery Area field did not populate with the expected result");
     }
 

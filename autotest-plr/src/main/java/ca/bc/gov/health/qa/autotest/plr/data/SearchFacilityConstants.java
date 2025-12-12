@@ -3,6 +3,12 @@ package ca.bc.gov.health.qa.autotest.plr.data;
 import java.util.List;
 
 public class SearchFacilityConstants {
+    /** Service Delivery Area example alongside prefixes to be used for
+     * displaying/filling the service delivery area field */
+    public static final String sdaExpected = "South Vancouver Island (HSDA)";
+    public static final String sdaPrefix1 = sdaExpected.substring(0, 6);
+    public static final String sdaPrefix2 = sdaExpected.substring(0, 8);
+
     /** Expected columns of table of search results  */
     public enum TableColumn
     {
