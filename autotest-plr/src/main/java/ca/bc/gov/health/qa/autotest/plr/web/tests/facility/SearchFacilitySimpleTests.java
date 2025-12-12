@@ -524,22 +524,30 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-017. Previous Facility Search Results Session
     public void testPreviousResultsSession()
     {
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        final SearchFacilityActions actions = workflow.getSearchFacilityActions();
+        final List<String> identifierDetails = Arrays.asList("IFC", dummyFacility.getIdentifier());
+        final List<String> criteriaDetails = Arrays.asList(
+                dummyFacility.getName(),
+                dummyFacility.getAddress().get("line1"),
+                "", "", "", "Select One", "", "");
         SearchFacilityResultsFragment searchResults;
+        SearchFacilityIdFragment identifierPanel;
+        SearchFacilityCriteriaFragment criteriaPanel;
+        List<String> previousValues;
+        List<String> previousResults;
+
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
 
         // Identifier Query
-        SearchFacilityIdFragment identifierPanel = new SearchFacilityIdFragment(workflow.getSeleniumSession());
+        identifierPanel = new SearchFacilityIdFragment(workflow.getSeleniumSession());
 
-        List<String> queryDetails = Arrays.asList("IFC", dummyFacility.getIdentifier());
-        searchResults = searchByIdentifier(searchFacility, queryDetails, false);
+        searchResults = searchByIdentifier(page, identifierDetails, false);
+        previousValues = identifierPanel.getCurrentFieldValues();
+        previousResults = searchResults.getResultsRow(0);
 
-        List<String> previousValues = identifierPanel.getCurrentFieldValues();
-        List<String> previousResults = searchResults.getResultsRow(0);
-
-        workflow.getSearchFacilityActions().openSearchResults(0);
+        actions.openSearchResults(0);
         workflow.getPlrWebAccessActions().openSearchFacility();
-
         identifierPanel = new SearchFacilityIdFragment(workflow.getSeleniumSession());
         searchResults = new SearchFacilityResultsFragment(workflow.getSeleniumSession());
 
@@ -549,18 +557,15 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 "Field values from previous session do not appear");
 
         // Criteria Query
-        SearchFacilityCriteriaFragment criteriaPanel = new SearchFacilityCriteriaFragment(workflow.getSeleniumSession());
+        criteriaPanel = new SearchFacilityCriteriaFragment(workflow.getSeleniumSession());
 
-        queryDetails = Arrays.asList(dummyFacility.getName(), dummyFacility.getAddress().get("line1"),
-                "", "", "", "Select One", "", "");
-        searchResults = searchByCriteria(searchFacility, queryDetails, false);
-
+        searchResults = searchByCriteria(page, criteriaDetails, false);
         previousValues = criteriaPanel.getCurrentFieldValues();
         previousResults = searchResults.getResultsRow(0);
 
-        workflow.getSearchFacilityActions().openSearchResults(0);
-        searchFacility = workflow.getPlrWebAccessActions().openSearchFacility();
-        searchFacility.expandSearchCriteria(true);
+        actions.openSearchResults(0);
+        page = workflow.getPlrWebAccessActions().openSearchFacility();
+        page.expandSearchCriteria(true);
 
         criteriaPanel = new SearchFacilityCriteriaFragment(workflow.getSeleniumSession());
         searchResults = new SearchFacilityResultsFragment(workflow.getSeleniumSession());
