@@ -77,10 +77,10 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         fhirController = new FHIRController(UserType.ADMIN);
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
-        dummyFacility = fhirController.createFacility(dummyCfg);
+        //dummyFacility = fhirController.createFacility(dummyCfg);
 
-        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
-        dummyAddress = dummyFacility.getAddress();
+        //dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
+        //dummyAddress = dummyFacility.getAddress();
     }
 
     @BeforeMethod
@@ -329,8 +329,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                     criteriaFacility.getIdentifier());
             ViewFacilityPage searchDetails = workflow.getSearchFacilityActions().openSearchResults(resultsIndex);
             LinkedHashMap<String,String> civicMap = searchDetails.grabCivicAddressBlockContent();
-            LinkedHashMap<String,String> otherMap = searchDetails.grabDataBlockContent(
-                    FacilitySection.OTHER_ADDRESS, 0);
+            LinkedHashMap<String,String> otherMap = searchDetails.grabOtherAddressBlockContent(0);
 
             assertTrue(searchDetails.getViewHeader().grabViewTitle().contains(criteriaFacility.getName()),
                     "Viewing facility leads to unexpected page");

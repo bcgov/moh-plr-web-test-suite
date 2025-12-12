@@ -373,7 +373,7 @@ public class ViewFacilitySimpleActions {
 		
 		assertEquals(count, idArray.length());
 		for (int i = 0; i < count; i++) {
-			LinkedHashMap<String, String> resultContent = new LinkedHashMap();
+			LinkedHashMap<String, String> resultContent;
 			if (FacilitySection.CIVIC_ADDRESSES == section) {
 				resultContent = viewFacilityPage.grabCivicAddressBlockContent(i);
 			} else if (FacilitySection.ORGANIZATION_RELATIONSHIPS == section) {

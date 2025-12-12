@@ -470,14 +470,14 @@ public class ViewFacilityPage extends BasicWebPage {
 			if (dataColumnCount == 2) {
 				addFieldDataMap(dataMap, dataEntryList, 0);
 			} else if (dataColumnCount == 5 || dataColumnCount == 6) {
-				addFieldDataMap(dataMap, dataEntryList.get(0).findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)),
+				addFieldDataMap(dataMap, dataEntryList.getFirst().findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)),
 						0);
 				if (dataColumnCount == 5) {
 					addFieldDataMap(dataMap,
-							dataEntryList.get(0).findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 2);
+							dataEntryList.getFirst().findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 2);
 				}
 			} else if (dataColumnCount == 4) {
-				addFieldDataMapSplit(dataMap, dataEntryList.get(0).findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)),
+				addFieldDataMapSplit(dataMap, dataEntryList.getFirst().findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)),
 						0);
 			}else {
 			
@@ -489,13 +489,11 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-	 * Gets the content from a Civic Addresses data block. All other facility
-	 * sections are structured differently, so grabDataBlockContent must be used
-	 * instead for any other facility section.
+	 * Gets the content from a Civic Addresses data block. All other facility sections are structured differently,
+	 * so grabDataBlockContent must be used instead for any other facility section.
 	 *
 	 * @param index the index of data block to get content from
-	 * @return a hash map mapping civic address data fields (String) to their
-	 *         associated values (String)
+	 * @return a hash map mapping civic address data fields (String) to their associated values (String)
 	 */
 	public LinkedHashMap<String, String> grabCivicAddressBlockContent(int index) {
 		LinkedHashMap<String, String> dataMap = new LinkedHashMap<>();
@@ -510,10 +508,10 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-     * TODO (KD) - doc
+     * Gets the content from an Identifiers data block.
      *
-     * @param index
-     * @return
+     * @param index	the index of data block to get content from
+     * @return		a hash map mapping identifier data fields (String) to their associated values (String)
      */
 	public LinkedHashMap<String, String> grabIdentifiersBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.IDENTIFIERS, index);
@@ -521,10 +519,10 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-     * TODO (KD) - doc
+     * Gets the content from a Names data block.
      *
-     * @param index
-     * @return
+     * @param index	the index of data block to get content from
+     * @return		a hash map mapping name fields (String) to their associated values (String)
      */
 	public LinkedHashMap<String, String> grabNamesBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.NAMES, index);
@@ -532,50 +530,50 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-     * TODO (KD) - doc
+     * Gets the content from an Other Address data block.
      *
-     * @param index
-     * @return
+     * @param index	the index of data block to get content from
+     * @return		a hash map mapping other address data fields (String) to their associated values (String)
      */
 	public LinkedHashMap<String, String> grabOtherAddressBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.OTHER_ADDRESS, index);
 	}
 
 	/**
-     * TODO (KD) - doc
+     * Gets the content from a Telecommunications data block.
      *
-     * @param index
-     * @return
+     * @param index	the index of data block to get content from
+     * @return		a hash map mapping telecommunication data fields (String) to their associated values (String)
      */
 	public LinkedHashMap<String, String> grabTelecommunicationsBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.TELECOMMUNICATIONS, index);
 	}
 
 	/**
-     * TODO (KD) - doc
+     * Gets the content from an Electronic Addresses data block.
      *
-     * @param index
-     * @return
+     * @param index	the index of data block to get content from
+     * @return		a hash map mapping electronic address data fields (String) to their associated values (String)
      */
 	public LinkedHashMap<String, String> grabElectronicAddressesBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.ELECTRONIC_ADDRESSES, index);
 	}
 
 	/**
-     * TODO (KD) - doc
+     * Gets the content from a Notes data block.
      *
-     * @param index
-     * @return
+     * @param index	the index of data block to get content from
+     * @return		a hash map mapping note data fields (String) to their associated values (String)
      */
 	public LinkedHashMap<String, String> grabNotesBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.NOTES, index);
 	}
 
     /**
-     * TODO (KD) - doc
+     * Gets the content from an Organization Relationships data block.
      *
-     * @param index
-     * @return
+     * @param index	the index of data block to get content from
+     * @return		a hash map mapping note data fields (String) to their associated values (String)
      */
 	public LinkedHashMap<String, String> grabOrgRelationshipsBlockContent(int index) {
 		LinkedHashMap<String, String> dataMap = new LinkedHashMap<>();
