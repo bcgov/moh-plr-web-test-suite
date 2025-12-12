@@ -15,6 +15,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.util.IdentifierTypeName;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.SearchFacilityActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
@@ -266,16 +267,14 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     // F1-005. Filtering Identifier Type for Query
     public void testIdentifierTypes()
     {
-        List<String> expectedIdentifierTypes = Arrays.asList("Select One", "IFC - Internal Facility Code");
-
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
-        SearchFacilityIdFragment identifierPanel = searchFacility.expandSearchIdentifier(true);
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        SearchFacilityIdFragment identifierPanel = page.expandSearchIdentifier(true);
         identifierPanel.getIdentifierTypeMenu().expandItemPanel(true);
 
-        for (String expectedType : expectedIdentifierTypes)
+        for (IdentifierTypeName expectedType : IdentifierTypeName.values())
         {
-            assertTrue(identifierPanel.getIdentifierTypeMenu().grabItemList().contains(expectedType),
-                    "Type " + expectedIdentifierTypes + "is unavailable in the identifier type menu");
+            assertTrue(identifierPanel.getIdentifierTypeMenu().grabItemList().contains(expectedType.getText()),
+                    "Type " + expectedType.getText() + "is unavailable in the identifier type menu");
         }
     }
 

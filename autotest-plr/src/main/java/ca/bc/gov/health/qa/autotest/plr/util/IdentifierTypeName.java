@@ -1,9 +1,10 @@
 package ca.bc.gov.health.qa.autotest.plr.util;
 
 public enum IdentifierTypeName {
+	SELECT_ONE("Select One"),
 	IFC("IFC - Internal Facility Code");
 
-	private String text;
+	private final String text;
 
 	IdentifierTypeName(String text) {
 		this.text = text;
