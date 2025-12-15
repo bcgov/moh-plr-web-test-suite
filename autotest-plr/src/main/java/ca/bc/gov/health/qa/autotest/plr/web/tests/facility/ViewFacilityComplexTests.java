@@ -103,41 +103,43 @@ public class ViewFacilityComplexTests implements SimpleTest {
                 "Facility is missing expected electronic address record types");
         assertEquals(page.grabCivicAddressBlockContent().get(CivicAddressField.PROVINCE_STATE.getString()),
                 "BC - British Columbia", "Civic Address is not located in British Columbia");
+
+        multiplicityFacility.ceaseOrganizationRelationships();
     }
 
     @Test
     // F2-007. Limiting Number of Records For View Facility Details Screen
     public void testLimitNumberRecords()
     {
-        final String lowNoteCountIdentifier = "IFC.00000001.BC.PRS";
-        final String highNoteCountIdentifier = "IFC.00006365.BC.PRS";
-        final String highOrgRelCountIdentifier = "IFC.00006365.BC.PRS";
+        final FacilityMaintainConfig lowNoteConfig = new FacilityMaintainConfig().withNotes(1);
+        final FacilityMaintainConfig highCountConfig = new FacilityMaintainConfig()
+                                                            .withAllAttributes(50,50);
+        final MaintainFacilityBuilder lowNoteCountFacility = fhirController.createFacility(lowNoteConfig);
+        final MaintainFacilityBuilder highCountFacility = fhirController.createFacility(highCountConfig);
         final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
-        ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
-                lowNoteCountIdentifier, UserType.ADMIN);
+        ViewFacilityPage page = viewFacilityByIdentifier(workflowManager_,
+                lowNoteCountFacility.getIdentifier(), UserType.ADMIN);
 
-        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) < 50,
+        assertTrue(page.grabDataBlockCount(FacilitySection.NOTES) < 50,
                 "Facility unexpectedly has 50 or more notes");
 
-        actions.checkDataBlockIdentifiers(viewFacility, FacilitySection.NOTES, "Note Identifier");
+        actions.checkDataBlockIdentifiers(page, FacilitySection.NOTES, NoteField.NOTE_IDENTIFIER.getString());
 
-        viewFacility = viewFacilityByIdentifier(workflowManager_,
-                highNoteCountIdentifier, UserType.ADMIN);
+        lowNoteCountFacility.ceaseOrganizationRelationships();
+        page = viewFacilityByIdentifier(workflowManager_,
+                highCountFacility.getIdentifier(), UserType.ADMIN);
 
-        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) >= 50,
+        assertTrue(page.grabDataBlockCount(FacilitySection.NOTES) >= 50,
                 "Facility unexpectedly has less than 50 notes");
-
-        actions.checkDataBlockIdentifiers(viewFacility, FacilitySection.NOTES, "Note Identifier");
-
-        viewFacility = viewFacilityByIdentifier(workflowManager_,
-                highOrgRelCountIdentifier, UserType.ADMIN);
-
-        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) >= 50,
+        assertTrue(page.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) >= 50,
                 "Facility unexpectedly has less than 50 organization relationships");
 
-        actions.checkDataBlockIdentifiers(viewFacility,
-                FacilitySection.ORGANIZATION_RELATIONSHIPS, "Relationship Identifier");
+        actions.checkDataBlockIdentifiers(page, FacilitySection.NOTES, NoteField.NOTE_IDENTIFIER.getString());
+        actions.checkDataBlockIdentifiers(page,
+                FacilitySection.ORGANIZATION_RELATIONSHIPS, OrgRelationshipField.RELATIONSHIP_IDENTIFIER.getString());
+
+        highCountFacility.ceaseOrganizationRelationships();
     }
 
     @Test

@@ -73,4 +73,46 @@ public class ViewFacilityConstants {
 
         public String getString() { return fieldString; }
     }
+
+    /** The fields available in the note data blocks. */
+    public enum NoteField
+    {
+        NOTE_IDENTIFIER("Note Identifier"),
+        NOTE_TEXT("Note Text"),
+        EFFECTIVE_FROM("Effective From"),
+        EFFECTIVE_TO("Effective To"),
+        END_REASON("End Reason"),
+        DATA_SOURCE("Data Source"),
+        DB_CREATED("DB Created"),
+        DB_EXPIRED("DB Expired"),
+        DATA_OWNER_CODE("Data Owner Code");
+
+        private final String fieldString;
+
+        NoteField(String fieldString) { this.fieldString = fieldString; }
+
+        public String getString() { return fieldString; }
+    }
+
+    /** The fields available in the organization relationship data blocks. */
+    public enum OrgRelationshipField
+    {
+        RELATIONSHIP_IDENTIFIER("Relationship Identifier"),
+        RELATIONSHIP_TYPE("Relationship Type"),
+        RELATED_ORGANIZATION_NAME("Related Organization Name"),
+        RELATED_ORGANIZATION_IDENTIFIER("Related Organization Identifier"),
+        EFFECTIVE_FROM("Effective From"),
+        EFFECTIVE_TO("Effective To"),
+        END_REASON("End Reason"),
+        DATA_SOURCE("Data Source"),
+        DB_CREATED("DB Created"),
+        DB_EXPIRED("DB Expired"),
+        DATA_OWNER_CODE("Data Owner Code");
+
+        private final String fieldString;
+
+        OrgRelationshipField(String fieldString) { this.fieldString = fieldString; }
+
+        public String getString() { return fieldString; }
+    }
 }
