@@ -51,9 +51,55 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	/*
-	 * Test F2-005 verify the expan-all button of view facility page
-	 */
+	// F2-001. View Facility Details
+	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
+	public void testViewFacilityDetails(UserType userType) {
+
+		JSONObject testFacility = PlrData.getFacility("test001");
+		JSONObject expectedFacility = PlrData.getFacility("default-test");
+
+		if(UserType.SECONDARY.equals(userType)||UserType.CONSUMER.equals(userType)) {
+			expectedFacility = PlrData.getFacility("default-test-second");
+
+		}
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, userType);
+		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
+		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
+
+		// verify all facility section blocks displayed ,both name and id are not empty
+		actions.verifyFacilitySectionsDisplayed(viewFacilityPage);
+		// verify the Expand/collapse Button
+		actions.verifyAllFacilityDataBlockExpandButtonDisplayed(viewFacilityPage);
+		// verify active displayed
+		actions.verifyAllFacilityDataBlockActiveMarkDisplayed(viewFacilityPage, userType);
+		// verify update displayed (for user type admin)
+		actions.verifyAllFacilityDataBlockUpdateButtonDisplayed(viewFacilityPage, userType);
+		// verify all summary and content
+		actions.verifyAllSectionsDataBlockAndsummary(viewFacilityPage, expectedFacility);
+
+		workflowManager_.logoutAndClose(userType);
+
+	}
+
+	// F2-003. Sort Order - View Facility Details Screen
+	@Test
+	public void testSortOrderViewFacilityDetailsScreen() {
+
+		JSONObject testFacility = PlrData.getFacility("test003");
+
+
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
+		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
+
+		actions.verifyDataBlockSortOrder(FacilitySection.ELECTRONIC_ADDRESSES, viewFacilityPage);
+		actions.verifyDataBlockSortOrder(FacilitySection.IDENTIFIERS, viewFacilityPage);
+		actions.verifyDataBlockSortOrder(FacilitySection.TELECOMMUNICATIONS, viewFacilityPage);
+		actions.verifyDataBlockSortOrder(FacilitySection.NOTES, viewFacilityPage);
+		actions.verifyDataBlockSortOrder(FacilitySection.ORGANIZATION_RELATIONSHIPS, viewFacilityPage);
+	}
+
+	// F2-005. Expand All Facility Details
 	@Test
 	public void testExpandAllFacilityDetails() {
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -83,42 +129,8 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		actions.checkDataBlocksCollapsed(viewFacilityPage, FacilitySection.NOTES, true);
 	}
 
-	/*
-	 * Test F2-001 View Facility Details
-	 */
-	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
-	public void testViewFacilityDetails(UserType userType) {
-
-		JSONObject testFacility = PlrData.getFacility("test001");
-		JSONObject expectedFacility = PlrData.getFacility("default-test");
-
-		if(UserType.SECONDARY.equals(userType)||UserType.CONSUMER.equals(userType)) {
-			expectedFacility = PlrData.getFacility("default-test-second");
-
-		}
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, userType);
-		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
-		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
-
-		// verify all facility section blocks displayed ,both name and id are not empty
-		actions.verifyFacilitySectionsDisplayed(viewFacilityPage);
-		// verify the Expand/collapse Button
-		actions.verifyAllFacilityDataBlockExpandButtonDisplayed(viewFacilityPage);
-		// verify active displayed
-		actions.verifyAllFacilityDataBlockActiveMarkDisplayed(viewFacilityPage, userType);
-		// verify update displayed (for user type admin)
-		actions.verifyAllFacilityDataBlockUpdateButtonDisplayed(viewFacilityPage, userType);
-		// verify all summary and content
-		actions.verifyAllSectionsDataBlockAndsummary(viewFacilityPage, expectedFacility);
-		
-		workflowManager_.logoutAndClose(userType);
-
-	}
-
 	
-	/*
-	 * Test F2-011 verify Provider Relationship Summary Line
-	 */
+	// F2-011. Provider Relationship Summary Line
 	@Test
 	public void testProviderRelationshipSummaryLine() {
 
@@ -158,26 +170,6 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 			}
 		}
 
-	}
-
-	/*
-	 * Test F2-003  Sort Order - View Facility Details Screen
-	 */
-	@Test
-	public void testSortOrderViewFacilityDetailsScreen() {
-
-		JSONObject testFacility = PlrData.getFacility("test003");
-		
-
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
-		ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
-		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
-
-		actions.verifyDataBlockSortOrder(FacilitySection.ELECTRONIC_ADDRESSES, viewFacilityPage);
-		actions.verifyDataBlockSortOrder(FacilitySection.IDENTIFIERS, viewFacilityPage);
-		actions.verifyDataBlockSortOrder(FacilitySection.TELECOMMUNICATIONS, viewFacilityPage);
-		actions.verifyDataBlockSortOrder(FacilitySection.NOTES, viewFacilityPage);
-		actions.verifyDataBlockSortOrder(FacilitySection.ORGANIZATION_RELATIONSHIPS, viewFacilityPage);
 	}
 
 }
