@@ -144,9 +144,9 @@ public class SearchFacilityComplexTests implements SimpleTest {
     {
         final String uniqueSuffix = generateAlphabetString(5);
         final MaintainFacilityBuilder numberFacility1 = fhirController.createFacility(
-                new FacilityMaintainConfig().withName("250 Number Facility " + uniqueSuffix));
+                new FacilityMaintainConfig().withName("Number 2 Facility " + uniqueSuffix));
         final MaintainFacilityBuilder numberFacility2 = fhirController.createFacility(
-                new FacilityMaintainConfig().withName("500 Number Facility " + uniqueSuffix));
+                new FacilityMaintainConfig().withName("Number 5 Facility " + uniqueSuffix));
         final MaintainFacilityBuilder uppercaseFacility1 = fhirController.createFacility(
                 new FacilityMaintainConfig().withName("Facility " + uniqueSuffix));
         final MaintainFacilityBuilder uppercaseFacility2 = fhirController.createFacility(
