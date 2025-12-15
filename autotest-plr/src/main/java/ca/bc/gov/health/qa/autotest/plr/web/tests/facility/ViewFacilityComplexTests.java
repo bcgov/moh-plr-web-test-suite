@@ -49,6 +49,8 @@ public class ViewFacilityComplexTests implements SimpleTest {
     public void beforeTest()
     {
         fhirController = new FHIRController(UserType.ADMIN);
+
+        // TODO identify most common / guaranteed facility needed for test cases and make that here
     }
 
     @BeforeMethod
@@ -267,42 +269,44 @@ public class ViewFacilityComplexTests implements SimpleTest {
         final List<String> maxProviderInfo = Arrays.asList("Building",
                 "maximumlengthaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 "Location of (LOCATION)", "CPS");
+        final List<String> facRelFields = Arrays.asList(
+                ViewProviderConstants.FacRelationshipField.FACILITY_TYPE.toString(),
+                ViewProviderConstants.FacRelationshipField.RELATED_FACILITY_NAME.toString(),
+                ViewProviderConstants.FacRelationshipField.RELATIONSHIP_TYPE.toString(),
+                ViewProviderConstants.FacRelationshipField.DATA_OWNER_CODE.toString());
 
-        final List<String> facRelFields = Arrays.asList("Facility Type", "Related Facility Name",
-                "Relationship Type", "Data Owner Code");
-
-        // Non-Maximum Length Case
         List<String> providerDetails = nonMaxProviderDetails;
         List<String> expectedFacInfo = nonMaxProviderInfo;
-        ViewProviderPage viewProvider = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
+        LinkedHashMap<String,String> facRelMap;
+        int facFieldIndex = 0;
 
-        LinkedHashMap<String,String> facRelMap = viewProvider.grabDataBlockContent(
-                ProviderSection.FACILITY_RELATIONSHIPS, 0);
+        // Test Start, Non-Maximum Length Case
+        ViewProviderPage page = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
 
-        assertTrue(facRelMap.get("Related Facility Name").length() < 100,
+        facRelMap = page.grabDataBlockContent(ProviderSection.FACILITY_RELATIONSHIPS, 0);
+
+        assertTrue(facRelMap.get(facRelFields.get(2)).length() < 100,
                 "Facility Name is the maximum length of 100 characters unexpectedly");
 
-        int facFieldIndex = 0;
         for (String facField : facRelFields)
         {
             assertEquals(facRelMap.get(facField), expectedFacInfo.get(facFieldIndex),
                     "Unexpected " + facField + " for facility with name <100 characters.");
             facFieldIndex++;
         }
+        facFieldIndex = 0;
 
         // Maximum Length case
         providerDetails = maxProviderDetails;
         expectedFacInfo = maxProviderInfo;
 
-        viewProvider = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
+        page = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
 
-        facRelMap = viewProvider.grabDataBlockContent(
-                ProviderSection.FACILITY_RELATIONSHIPS, 0);
+        facRelMap = page.grabDataBlockContent(ProviderSection.FACILITY_RELATIONSHIPS, 0);
 
-        assertEquals(facRelMap.get("Related Facility Name").length(), 100,
+        assertEquals(facRelMap.get(facRelFields.get(2)).length(), 100,
                 "Length of Facility Name is not the maximum of 100 characters.");
 
-        facFieldIndex = 0;
         for (String facField : facRelFields)
         {
             assertEquals(facRelMap.get(facField), expectedFacInfo.get(facFieldIndex),
