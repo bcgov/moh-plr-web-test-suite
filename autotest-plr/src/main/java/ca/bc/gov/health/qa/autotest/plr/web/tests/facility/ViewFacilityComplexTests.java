@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.facility;
 
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
@@ -15,8 +16,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
@@ -41,60 +40,13 @@ public class ViewFacilityComplexTests implements SimpleTest {
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
     }
 
-    /**
-     * Helper function to get and sort all types of data blocks for telecommunications and electronic address sections
-     *
-     * @param viewFacility          the view facility page reference
-     * @param dataBlocksSection     the facility section to get data blocks from
-     *                              (expects TELECOMMUNICATIONS or ELECTRONIC_ADDRESSES)
-     * @param expectedTypes         a sorted list of expected types of data blocks in the facility section
-     * @return                      a sorted list of the actual types of data blocks in the facility section
-     */
-    private List<String> getDataBlockTypes(ViewFacilityPage viewFacility, FacilitySection dataBlocksSection,
-                                           List<String> expectedTypes)
-    {
-        final Pattern BLOCK_TYPE_PATTERN = Pattern.compile("\\((.*)\\)");
-
-        List<String> dataBlockTypes = new ArrayList<>();
-        for (int index = 0; index < expectedTypes.size(); index++)
-        {
-            LinkedHashMap<String,String> infoMap = viewFacility.grabDataBlockContent(
-                    dataBlocksSection, index);
-            String telecomType = infoMap.get("Type");
-            Matcher resultMatcher = BLOCK_TYPE_PATTERN.matcher(telecomType);
-            if (resultMatcher.find()) dataBlockTypes.add(resultMatcher.group(1));
-        }
-        Collections.sort(dataBlockTypes);
-        return dataBlockTypes;
-    }
-
-    /**
-     * Helper function to check the existence of identifiers for each data block in a facility section
-     *
-     * @param viewFacility          the view facility page reference
-     * @param dataBlocksSection     the facility section to get data blocks from
-     * @param identifierField       the name of the identifier field within data blocks
-     */
-    private void checkDataBlockIdentifiers(ViewFacilityPage viewFacility, FacilitySection dataBlocksSection,
-                                           String identifierField)
-    {
-        for (int dataBlockIndex = 0;
-             dataBlockIndex < viewFacility.grabDataBlockCount(dataBlocksSection); dataBlockIndex++)
-        {
-            String dataIdentifier = viewFacility.grabDataBlockContent(
-                    dataBlocksSection, dataBlockIndex).get(identifierField);
-
-            assertFalse(dataIdentifier.isEmpty(),
-                    dataBlocksSection.getTitle() + " block " + dataBlockIndex + " is missing identifier");
-        }
-    }
-
     @Test
     // F2-002. Validate Facility Data Block Multiplicity
     public void testValidateBlockMultiplicity()
     {
         final List<String> expectedTelecomTypes = Arrays.asList("FAX", "M", "MB", "PG", "T");
         final List<String> expectedEAddressTypes = Arrays.asList("E", "F", "H");
+        final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
         Collections.sort(expectedTelecomTypes);
         Collections.sort(expectedEAddressTypes);
@@ -115,7 +67,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
         assertEquals(viewFacility.grabDataBlockCount(FacilitySection.TELECOMMUNICATIONS), expectedTelecomTypes.size(),
                 "Facility has an unexpected amount of telecommunications records");
 
-        List<String> telecomTypes = getDataBlockTypes(viewFacility,
+        List<String> telecomTypes = actions.getDataBlockTypes(viewFacility,
                 FacilitySection.TELECOMMUNICATIONS, expectedTelecomTypes);
 
         assertEquals(telecomTypes, expectedTelecomTypes,
@@ -124,7 +76,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
         assertEquals(viewFacility.grabDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES), expectedEAddressTypes.size(),
                 "Facility has an unexpected amount of electronic address records");
 
-        List<String> eAddressTypes = getDataBlockTypes(viewFacility,
+        List<String> eAddressTypes = actions.getDataBlockTypes(viewFacility,
                 FacilitySection.ELECTRONIC_ADDRESSES, expectedEAddressTypes);
 
         assertEquals(eAddressTypes, expectedEAddressTypes,
@@ -146,6 +98,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
         final String lowNoteCountIdentifier = "IFC.00000001.BC.PRS";
         final String highNoteCountIdentifier = "IFC.00006365.BC.PRS";
         final String highOrgRelCountIdentifier = "IFC.00006365.BC.PRS";
+        final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
         ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
                 lowNoteCountIdentifier, UserType.ADMIN);
@@ -153,7 +106,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) < 50,
                 "Facility unexpectedly has 50 or more notes");
 
-        checkDataBlockIdentifiers(viewFacility, FacilitySection.NOTES, "Note Identifier");
+        actions.checkDataBlockIdentifiers(viewFacility, FacilitySection.NOTES, "Note Identifier");
 
         viewFacility = viewFacilityByIdentifier(workflowManager_,
                 highNoteCountIdentifier, UserType.ADMIN);
@@ -161,7 +114,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) >= 50,
                 "Facility unexpectedly has less than 50 notes");
 
-        checkDataBlockIdentifiers(viewFacility, FacilitySection.NOTES, "Note Identifier");
+        actions.checkDataBlockIdentifiers(viewFacility, FacilitySection.NOTES, "Note Identifier");
 
         viewFacility = viewFacilityByIdentifier(workflowManager_,
                 highOrgRelCountIdentifier, UserType.ADMIN);
@@ -169,7 +122,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
         assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) >= 50,
                 "Facility unexpectedly has less than 50 organization relationships");
 
-        checkDataBlockIdentifiers(viewFacility,
+        actions.checkDataBlockIdentifiers(viewFacility,
                 FacilitySection.ORGANIZATION_RELATIONSHIPS, "Relationship Identifier");
     }
 
