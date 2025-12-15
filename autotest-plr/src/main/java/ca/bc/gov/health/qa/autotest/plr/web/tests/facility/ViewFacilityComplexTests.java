@@ -192,14 +192,17 @@ public class ViewFacilityComplexTests implements SimpleTest {
         final String provNameField = ViewProviderConstants.NameField.NAME.getString();
         final String provIdentifierField = ViewProviderConstants.IdentifierField.IDENTIFIER.getString();
         final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
+        final FacilityMaintainConfig orgConfig = new FacilityMaintainConfig().withOrgRelationships(2);
+        final MaintainFacilityBuilder facility = fhirController.createFacility(orgConfig);
 
         String orgIdentifier;
-        String facIdentifier = "IFC.00000061.BC.PRS";
+        String facIdentifier = facility.getIdentifier();
         String orgName = null;
         String facName;
         LinkedHashMap<String,String> orgRelMap;
         LinkedHashMap<String,String> facRelMap = null;
         ViewProviderPage orgPage;
+
         // Test Start
         ViewFacilityPage facPage = viewFacilityByIdentifier(workflowManager_,
                 facIdentifier, UserType.ADMIN);
@@ -250,6 +253,8 @@ public class ViewFacilityComplexTests implements SimpleTest {
             assertEquals(facRelMap.get(provFacNameField), facName,
                     "Related Facility Name does not match on Facility Page");
         }
+
+        facility.ceaseOrganizationRelationships();
     }
 
     @Test
