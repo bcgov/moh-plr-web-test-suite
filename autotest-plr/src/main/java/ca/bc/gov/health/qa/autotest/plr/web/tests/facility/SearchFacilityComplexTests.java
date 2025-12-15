@@ -142,31 +142,50 @@ public class SearchFacilityComplexTests implements SimpleTest {
     // F1-012. Alphabetical Sorting of Facility Search Results
     public void testAlphabeticalSorting()
     {
-        // TODO (query for specific addresses to exist, and if they don't create them)
-        /* Address numbers known to include important generic cases/edge-cases
-           (alphanumeric characters, case sensitivity, etc.) */
-        final List<String> addressSpotCheck = Arrays.asList("1175", "1549", "119");
-        final List<String> queryDetails = Arrays.asList("", "", "", "Victo", "Victoria", "Select One", "", "");
+        final String uniqueSuffix = generateAlphabetString(5);
+        final MaintainFacilityBuilder numberFacility1 = fhirController.createFacility(
+                new FacilityMaintainConfig().withName("250 Number Facility " + uniqueSuffix));
+        final MaintainFacilityBuilder numberFacility2 = fhirController.createFacility(
+                new FacilityMaintainConfig().withName("500 Number Facility " + uniqueSuffix));
+        final MaintainFacilityBuilder uppercaseFacility1 = fhirController.createFacility(
+                new FacilityMaintainConfig().withName("Facility " + uniqueSuffix));
+        final MaintainFacilityBuilder uppercaseFacility2 = fhirController.createFacility(
+                new FacilityMaintainConfig().withName("Uppercase Facility " + uniqueSuffix));
+        final MaintainFacilityBuilder lowercaseFacility1 = fhirController.createFacility(
+                new FacilityMaintainConfig().withName("facility " + uniqueSuffix));
+        final MaintainFacilityBuilder lowercaseFacility2 = fhirController.createFacility(
+                new FacilityMaintainConfig().withName("lowercase facility " + uniqueSuffix));
+        final List<String> queryDetails = Arrays.asList("*" + uniqueSuffix, "", "", "", "", "Select One", "", "");
 
-        SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
         SearchFacilityResultsFragment searchResults;
 
-        for (String queryAddress : addressSpotCheck)
-        {
-            queryDetails.set(1, queryAddress);
-            searchResults = searchByCriteria(searchFacility, queryDetails, false);
+        SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
+        searchResults = searchByCriteria(page, queryDetails, false);
 
-            List<String> facilityNameList = searchResults.getFacilityNamesList();
-            // Facilities with no name not covered by test cases - manual removal from consideration for sorting
-            while (facilityNameList.contains("Link to View Facility"))
-                facilityNameList.remove("Link to View Facility");
+        List<String> facilityNameList = searchResults.getFacilityNamesList();
 
-            List<String> sortedNameList = new ArrayList<>(facilityNameList);
-            Collections.sort(sortedNameList);
+        // Facilities with no name not covered by test cases - manual removal from consideration for sorting
+        while (facilityNameList.contains(SearchFacilityConstants.noNameFacility))
+            facilityNameList.remove(SearchFacilityConstants.noNameFacility);
 
-            assertEquals(facilityNameList, sortedNameList,
-                    "Returned search results and sorted search results do not match.");
-        }
+        List<String> sortedNameList = new ArrayList<>(facilityNameList);
+        Collections.sort(sortedNameList);
+
+        assertTrue(facilityNameList.contains(numberFacility1.getName()),
+                "Facility with number as starting character not present");
+        assertTrue(facilityNameList.contains(numberFacility2.getName()),
+                "Facility with number as starting character not present");
+        assertTrue(facilityNameList.contains(uppercaseFacility1.getName()),
+                "Facility with uppercase character as starting character not present");
+        assertTrue(facilityNameList.contains(uppercaseFacility2.getName()),
+                "Facility with uppercase character as starting character not present");
+        assertTrue(facilityNameList.contains(lowercaseFacility1.getName()),
+                "Facility with lowercase character as starting character not present");
+        assertTrue(facilityNameList.contains(lowercaseFacility2.getName()),
+                "Facility with lowercase character as starting character not present");
+
+        assertEquals(facilityNameList, sortedNameList,
+                "Returned search results and sorted search results do not match.");
     }
 
     @Test
