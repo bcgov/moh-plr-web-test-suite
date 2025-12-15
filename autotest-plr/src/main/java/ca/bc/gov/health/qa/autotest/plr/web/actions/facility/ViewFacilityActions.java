@@ -60,10 +60,9 @@ public class ViewFacilityActions {
         List<String> dataBlockTypes = new ArrayList<>();
         for (int index = 0; index < expectedTypes.size(); index++)
         {
-            LinkedHashMap<String,String> infoMap = viewFacility.grabDataBlockContent(
-                    dataBlocksSection, index);
-            String telecomType = infoMap.get("Type");
-            Matcher resultMatcher = BLOCK_TYPE_PATTERN.matcher(telecomType);
+            LinkedHashMap<String,String> infoMap = viewFacility.grabDataBlockContent(dataBlocksSection, index);
+            String dataType = infoMap.get("Type");
+            Matcher resultMatcher = BLOCK_TYPE_PATTERN.matcher(dataType);
             if (resultMatcher.find()) dataBlockTypes.add(resultMatcher.group(1));
         }
         Collections.sort(dataBlockTypes);

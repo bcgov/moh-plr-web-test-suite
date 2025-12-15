@@ -7,7 +7,7 @@ public enum TelecommunicationType {
 	FAX("FAX - Fax"),
 	MODEM("M - Modem");
 
-	private String text;
+	private final String text;
 
 	TelecommunicationType(String text) {
 		this.text = text;
@@ -16,6 +16,8 @@ public enum TelecommunicationType {
 	public String getText() {
 		return this.text;
 	}
+
+	public String getStartText() { return this.text.split(" ")[0]; }
 
 	public static TelecommunicationType fromString(String text) {
 		for (TelecommunicationType b : TelecommunicationType.values()) {

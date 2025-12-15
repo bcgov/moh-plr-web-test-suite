@@ -53,7 +53,7 @@ public class ViewFacilityConstants {
         public String getString() { return fieldString; }
     }
 
-    /** */
+    /** The fields available in the identifier data blocks. */
     public enum IdentifierField
     {
         FACILITY_TYPE("Facility Type"),

@@ -1,7 +1,14 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.facility;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.util.ElectronicAddressType;
+import ca.bc.gov.health.qa.autotest.plr.util.TelecommunicationType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
+import ca.bc.gov.health.qa.autotest.plr.data.SearchFacilityConstants.*;
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
@@ -13,6 +20,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -23,14 +31,22 @@ import static org.testng.Assert.*;
 public class ViewFacilityComplexTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
+    private static FHIRController fhirController;
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
     public ViewFacilityComplexTests() {}
 
     @AfterClass
     public void teardown() {
+        fhirController.close();
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
+    }
+
+    @BeforeTest
+    public void beforeTest()
+    {
+        fhirController = new FHIRController(UserType.ADMIN);
     }
 
     @BeforeMethod
@@ -44,51 +60,49 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-002. Validate Facility Data Block Multiplicity
     public void testValidateBlockMultiplicity()
     {
-        final List<String> expectedTelecomTypes = Arrays.asList("FAX", "M", "MB", "PG", "T");
-        final List<String> expectedEAddressTypes = Arrays.asList("E", "F", "H");
         final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
-
+        final List<String> expectedTelecomTypes = new ArrayList<>(Arrays.stream(TelecommunicationType.values())
+                                                            .map(TelecommunicationType::getStartText).toList());
+        final List<String> expectedEAddressTypes = new ArrayList<>(Arrays.stream(ElectronicAddressType.values())
+                                                            .map(ElectronicAddressType::getStartText).toList());
         Collections.sort(expectedTelecomTypes);
         Collections.sort(expectedEAddressTypes);
+        final FacilityMaintainConfig config = new FacilityMaintainConfig()
+                                                    .withAllAttributes(2,2);
+        final MaintainFacilityBuilder multiplicityFacility = fhirController.createFacility(config);
 
-        ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
-                "IFC.00006365.BC.PRS", UserType.ADMIN);
+        // Test Start
+        ViewFacilityPage page = viewFacilityByIdentifier(workflowManager_,
+                multiplicityFacility.getIdentifier(), UserType.ADMIN);
 
-        assertEquals(viewFacility.grabDataBlockCount(FacilitySection.IDENTIFIERS), 1,
-                "Facility unexpectedly has more than 1 registry identifier data block");
-        assertEquals(viewFacility.grabDataBlockCount(FacilitySection.NAMES), 1,
-                "Facility unexpectedly has more than 1 facility name data block");
-
-        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) > 1,
-                "Facility unexpectedly has less than 2 organization relationships");
-        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.NOTES) > 1,
-                "Facility unexpectedly has less than 2 notes");
-
-        assertEquals(viewFacility.grabDataBlockCount(FacilitySection.TELECOMMUNICATIONS), expectedTelecomTypes.size(),
-                "Facility has an unexpected amount of telecommunications records");
-
-        List<String> telecomTypes = actions.getDataBlockTypes(viewFacility,
+        List<String> telecomTypes = actions.getDataBlockTypes(page,
                 FacilitySection.TELECOMMUNICATIONS, expectedTelecomTypes);
-
-        assertEquals(telecomTypes, expectedTelecomTypes,
-                "Facility is missing expected telecommunications record types");
-
-        assertEquals(viewFacility.grabDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES), expectedEAddressTypes.size(),
-                "Facility has an unexpected amount of electronic address records");
-
-        List<String> eAddressTypes = actions.getDataBlockTypes(viewFacility,
+        List<String> eAddressTypes = actions.getDataBlockTypes(page,
                 FacilitySection.ELECTRONIC_ADDRESSES, expectedEAddressTypes);
 
+
+        assertEquals(page.grabDataBlockCount(FacilitySection.IDENTIFIERS), 1,
+                "Facility unexpectedly has more than 1 registry identifier data block");
+        assertEquals(page.grabDataBlockCount(FacilitySection.NAMES), 1,
+                "Facility unexpectedly has more than 1 facility name data block");
+        assertTrue(page.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) > 1,
+                "Facility unexpectedly has less than 2 organization relationships");
+        assertTrue(page.grabDataBlockCount(FacilitySection.NOTES) > 1,
+                "Facility unexpectedly has less than 2 notes");
+        assertEquals(page.grabDataBlockCount(FacilitySection.TELECOMMUNICATIONS), expectedTelecomTypes.size(),
+                "Facility has an unexpected amount of telecommunications records");
+        assertEquals(page.grabDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES), expectedEAddressTypes.size(),
+                "Facility has an unexpected amount of electronic address records");
+        assertEquals(page.grabDataBlockCount(FacilitySection.CIVIC_ADDRESSES), 1,
+                "Facility unexpectedly has more than 1 civic address data block");
+        assertEquals(page.grabDataBlockCount(FacilitySection.OTHER_ADDRESS), 1,
+                "Facility unexpectedly has more than 1 other address data block");
+        assertEquals(telecomTypes, expectedTelecomTypes,
+                "Facility is missing expected telecommunications record types");
         assertEquals(eAddressTypes, expectedEAddressTypes,
                 "Facility is missing expected electronic address record types");
-
-        assertEquals(viewFacility.grabDataBlockCount(FacilitySection.CIVIC_ADDRESSES), 1,
-                "Facility unexpectedly has more than 1 civic address data block");
-        assertEquals(viewFacility.grabCivicAddressBlockContent().get("Province / State"),
+        assertEquals(page.grabCivicAddressBlockContent().get(CivicAddressField.PROVINCE_STATE.getString()),
                 "BC - British Columbia", "Civic Address is not located in British Columbia");
-
-        assertEquals(viewFacility.grabDataBlockCount(FacilitySection.OTHER_ADDRESS), 1,
-                "Facility unexpectedly has more than 1 other address data block");
     }
 
     @Test
