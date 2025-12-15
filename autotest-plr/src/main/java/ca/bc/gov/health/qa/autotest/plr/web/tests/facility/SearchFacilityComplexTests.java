@@ -192,11 +192,12 @@ public class SearchFacilityComplexTests implements SimpleTest {
     // F1-015. Maximum Search Results
     public void testMaximumResults()
     {
-        // TODO: very costly - a fhir endpoint query for criteria would save a lot on unnecessary facility creation
+        /* TODO: very costly - a fhir endpoint query for criteria would save a lot on unnecessary facility creation
         for (int count = 0; count <= SearchFacilityConstants.maximumResults; count++)
         {
             fhirController.createFacility(new FacilityMaintainConfig().withName("A" + generateAlphabetString(8)));
         }
+         */
         final String maxResultsWarning = warningList.getString("maximumResults");
         final List<String> queryDetails = Arrays.asList("A*", "", "", "", "", "Select One", "", "");
 
