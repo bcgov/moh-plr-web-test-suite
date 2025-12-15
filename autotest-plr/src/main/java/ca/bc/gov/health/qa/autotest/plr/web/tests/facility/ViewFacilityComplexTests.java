@@ -118,6 +118,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
         final MaintainFacilityBuilder highCountFacility = fhirController.createFacility(highCountConfig);
         final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
+        // Test Start
         ViewFacilityPage page = viewFacilityByIdentifier(workflowManager_,
                 lowNoteCountFacility.getIdentifier(), UserType.ADMIN);
 
@@ -146,24 +147,26 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-008. View Facility Details Screen - Organization Relationships Block
     public void testOrgRelationshipBlock()
     {
-        final String identifierToCheck = "IFC.00000061.BC.PRS";
-
-        ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
-                identifierToCheck, UserType.ADMIN);
-
-        assertTrue(viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS) > 1,
-                "Facility unexpectedly has only one or no organization relationships");
+        final FacilityMaintainConfig orgConfig = new FacilityMaintainConfig().withOrgRelationships(2);
+        final MaintainFacilityBuilder orgFacility = fhirController.createFacility(orgConfig);
 
         List<String> orgIdentifiers = new ArrayList<>();
 
-        for (int dataBlockIndex = 0; dataBlockIndex < viewFacility.grabDataBlockCount(
-                FacilitySection.ORGANIZATION_RELATIONSHIPS); dataBlockIndex++)
+        // Test Start
+        ViewFacilityPage page = viewFacilityByIdentifier(workflowManager_, orgFacility.getIdentifier(), UserType.ADMIN);
+
+        int orgBlockCount = page.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+
+        assertTrue(orgBlockCount > 1,
+                "Facility unexpectedly has only one or no organization relationships");
+
+        for (int dataBlockIndex = 0; dataBlockIndex < orgBlockCount; dataBlockIndex++)
         {
-            String orgIdentifier = viewFacility.grabDataBlockContent(
-                    FacilitySection.ORGANIZATION_RELATIONSHIPS, dataBlockIndex).get("Related Organization Identifier");
+            String orgIdentifier = page.grabOrgRelationshipsBlockContent(dataBlockIndex)
+                    .get(OrgRelationshipField.RELATED_ORGANIZATION_IDENTIFIER.getString());
 
             assertFalse(orgIdentifier.isEmpty(),
-                    "Organization Relationship block " + dataBlockIndex + " is missing Organization Identifier");
+                    "Org Relationship block " + dataBlockIndex + " is missing Organization Identifier");
 
             orgIdentifiers.add(orgIdentifier);
         }
@@ -172,6 +175,8 @@ public class ViewFacilityComplexTests implements SimpleTest {
 
         assertEquals(orgIdentifiers, sortedOrgIdentifiers,
                 "Organization Relationships are not sorted by Related Organization Identifier");
+
+        orgFacility.ceaseOrganizationRelationships();
     }
 
     @Test
