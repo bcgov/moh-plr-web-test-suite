@@ -1,6 +1,13 @@
 package ca.bc.gov.health.qa.autotest.plr.data;
 
+import java.util.Map;
+
 public class ViewFacilityConstants {
+
+    public static final Map<String,String> orgFacMap = Map.of(
+            "Located at (LOCATED)", "Location of (LOCATION)",
+            "Location of (LOCATION)", "Located at (LOCATED)");
+
     /** The fields available in the civic address data blocks. */
     public enum CivicAddressField
     {
@@ -112,6 +119,26 @@ public class ViewFacilityConstants {
         private final String fieldString;
 
         OrgRelationshipField(String fieldString) { this.fieldString = fieldString; }
+
+        public String getString() { return fieldString; }
+    }
+
+    /** The fields available in the name data blocks. */
+    public enum NameField
+    {
+        NAME("Name"),
+        DESCRIPTION("Description"),
+        EFFECTIVE_FROM("Effective From"),
+        EFFECTIVE_TO("Effective To"),
+        END_REASON("End Reason"),
+        DATA_SOURCE("Data Source"),
+        DB_CREATED("DB Created"),
+        DB_EXPIRED("DB Expired"),
+        DATA_OWNER_CODE("Data Owner Code");
+
+        private final String fieldString;
+
+        NameField(String fieldString) { this.fieldString = fieldString; }
 
         public String getString() { return fieldString; }
     }

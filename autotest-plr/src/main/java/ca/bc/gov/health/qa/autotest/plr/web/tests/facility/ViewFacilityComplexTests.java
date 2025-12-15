@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.facility;
 
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
+import ca.bc.gov.health.qa.autotest.plr.data.ViewProviderConstants;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
@@ -183,61 +185,69 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-010. UI Display Providers Related To Facility
     public void testUIDisplayProviders()
     {
-        Map<String,String> locationMap = Map.of("Located at (LOCATED)", "Location of (LOCATION)",
-                "Location of (LOCATION)", "Located at (LOCATED)");
+        final String relIdentifierField = OrgRelationshipField.RELATIONSHIP_IDENTIFIER.getString();
+        final String relTypeField = OrgRelationshipField.RELATIONSHIP_TYPE.getString();
+        final String provFacIdField = ViewProviderConstants.FacRelationshipField.RELATED_FACILITY_IDENTIFIER.getString();
+        final String provFacNameField = ViewProviderConstants.FacRelationshipField.RELATED_FACILITY_NAME.getString();
+        final String provNameField = ViewProviderConstants.NameField.NAME.getString();
+        final String provIdentifierField = ViewProviderConstants.IdentifierField.IDENTIFIER.getString();
+        final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
+        String orgIdentifier;
         String facIdentifier = "IFC.00000061.BC.PRS";
-        ViewFacilityPage viewFacility = viewFacilityByIdentifier(workflowManager_,
+        String orgName = null;
+        String facName;
+        LinkedHashMap<String,String> orgRelMap;
+        LinkedHashMap<String,String> facRelMap = null;
+        ViewProviderPage orgPage;
+        // Test Start
+        ViewFacilityPage facPage = viewFacilityByIdentifier(workflowManager_,
                 facIdentifier, UserType.ADMIN);
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 
-        int orgRelationshipCount = viewFacility.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+        int orgRelationshipCount = facPage.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
         for (int orgRelIndex = 0; orgRelIndex < orgRelationshipCount; orgRelIndex++)
         {
-            viewFacility = viewFacilityByIdentifier(workflowManager_,
-                    facIdentifier, UserType.ADMIN);
-            LinkedHashMap<String,String> orgRelMap = viewFacility.grabDataBlockContent(
-                    FacilitySection.ORGANIZATION_RELATIONSHIPS, orgRelIndex);
-            LinkedHashMap<String,String> facNameMap = viewFacility.grabDataBlockContent(FacilitySection.NAMES, 0);
+            int identifierIndex = 0;
 
-            ViewProviderPage orgPage = workflow.getViewFacilityActions().transferToOrg(viewFacility, orgRelIndex);
-            LinkedHashMap<String,String> orgNameMap = null;
-            String relIdentifier = orgRelMap.get("Relationship Identifier");
+            facPage = viewFacilityByIdentifier(workflowManager_, facIdentifier, UserType.ADMIN);
 
-            LinkedHashMap<String,String> facRelMap = null;
+            orgRelMap = facPage.grabOrgRelationshipsBlockContent(orgRelIndex);
+            facName = facPage.grabNamesBlockContent(0).get(NameField.NAME.getString());
+            orgIdentifier = orgRelMap.get(relIdentifierField);
+
+            orgPage = actions.transferToOrg(facPage, orgRelIndex);
+
             for (int facRelIndex = 0; facRelIndex < orgPage.grabDataBlockCount(
                     ProviderSection.FACILITY_RELATIONSHIPS); facRelIndex++)
             {
                 facRelMap = orgPage.grabDataBlockContent(ProviderSection.FACILITY_RELATIONSHIPS, facRelIndex);
-                orgNameMap = orgPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
-                if (facRelMap.get("Relationship Identifier").equals(relIdentifier)) break;
+                orgName = orgPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0).get(provNameField);
+                if (facRelMap.get(relIdentifierField).equals(orgIdentifier)) break;
             }
 
             assertNotNull(facRelMap);
-            assertEquals(orgRelMap.get("Relationship Identifier"), facRelMap.get("Relationship Identifier"),
+            assertEquals(orgRelMap.get(relIdentifierField), facRelMap.get(relIdentifierField),
                     "Relationship Identifiers do not match between Organization/Facility");
-            assertEquals(orgRelMap.get("Relationship Type"), locationMap.get(facRelMap.get("Relationship Type")),
+            assertEquals(orgRelMap.get(relTypeField), ViewFacilityConstants.orgFacMap.get(facRelMap.get(relTypeField)),
                     "Provider Page Relationship Type is not reversed correctly");
-            assertEquals(facRelMap.get("Relationship Type"), locationMap.get(orgRelMap.get("Relationship Type")),
+            assertEquals(facRelMap.get(relTypeField), ViewFacilityConstants.orgFacMap.get(orgRelMap.get(relTypeField)),
                     "Facility Page Relationship Type is not reversed correctly");
 
-            int identifierIndex = 0;
-            String orgIdentifier;
             do
             {
                 orgIdentifier = orgPage.grabDataBlockContent(
-                        ProviderSection.IDENTIFIERS, identifierIndex).get("Identifier");
+                        ProviderSection.IDENTIFIERS, identifierIndex).get(provIdentifierField);
                 identifierIndex++;
             } while (!orgIdentifier.contains("IPC"));
 
-            assertEquals(facRelMap.get("Related Facility Identifier"), facIdentifier,
+            assertEquals(facRelMap.get(provFacIdField), facIdentifier,
                     "Examined relationship has facility identifiers that do not match");
-            assertEquals(orgRelMap.get("Related Organization Identifier"), orgIdentifier,
+            assertEquals(orgRelMap.get(OrgRelationshipField.RELATED_ORGANIZATION_IDENTIFIER.getString()), orgIdentifier,
                     "Examined relationship has organization identifiers that do not match");
-            assertEquals(orgRelMap.get("Related Organization Name"), orgNameMap.get("Name"),
+            assertEquals(orgRelMap.get(OrgRelationshipField.RELATED_ORGANIZATION_NAME.getString()), orgName,
                     "Related Organization Name does not match on Organization Page");
-            assertEquals(facRelMap.get("Related Facility Name"), facNameMap.get("Name"),
+            assertEquals(facRelMap.get(provFacNameField), facName,
                     "Related Facility Name does not match on Facility Page");
         }
     }
