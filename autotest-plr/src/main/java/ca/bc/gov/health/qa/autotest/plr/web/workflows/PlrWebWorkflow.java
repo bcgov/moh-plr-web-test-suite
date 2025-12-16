@@ -17,7 +17,6 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.PlrWebAccessActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.SearchProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.BannerFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -120,7 +119,7 @@ implements AutoCloseable
      */
     public ViewFacilityActions getViewFacilityActions()
     {
-        return new ViewFacilityActions(selenium_);
+        return new ViewFacilityActions(selenium_, uri_, userType_);
     }
 
     /**
@@ -158,17 +157,6 @@ implements AutoCloseable
     public ViewProviderActions getViewProviderActions()
     {
         return new ViewProviderActions(selenium_, uri_, userType_);
-    }
-    
-    
-    /**
-     * Lazily creates and returns helper actions for viewing facility pages.
-     *
-     * @return an instance of `ViewFacilitySimpleActions`
-     */
-    public ViewFacilitySimpleActions getViewFacilitySimpleActions()
-    {
-        return new ViewFacilitySimpleActions(selenium_, uri_, userType_);
     }
     
     public UpdateFacilitySimpleActions getUpdateFacilitySimpleActions()

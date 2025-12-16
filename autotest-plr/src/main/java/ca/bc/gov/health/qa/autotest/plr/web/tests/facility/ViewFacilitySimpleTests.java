@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,7 +21,6 @@ import org.testng.annotations.Test;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Relationship;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
@@ -69,7 +69,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		}
 
 		logIn(workflowManager_, userType);
-		final ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
+		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
 		// Test Start
 		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
@@ -79,11 +79,11 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		// Verify the Expand/collapse Button
 		actions.verifyAllFacilityDataBlockExpandButtonDisplayed(viewFacilityPage);
 		// Verify active displayed
-		actions.verifyAllFacilityDataBlockActiveMarkDisplayed(viewFacilityPage, userType);
+		actions.verifyAllFacilityDataBlockActiveMarkDisplayed(viewFacilityPage);
 		// Verify update displayed (for user type admin)
 		actions.verifyAllFacilityDataBlockUpdateButtonDisplayed(viewFacilityPage, userType);
 		// Verify all summary and content
-		actions.verifyAllSectionsDataBlockAndsummary(viewFacilityPage, expectedFacility);
+		actions.verifyAllSectionsDataBlockAndSummary(viewFacilityPage, expectedFacility);
 
 		workflowManager_.logoutAndClose(userType);
 	}
@@ -92,7 +92,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	@Test
 	public void testSortOrderViewFacilityDetailsScreen() {
 		JSONObject testFacility = PlrData.getFacility("test003");
-		final ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
+		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 		final List<FacilitySection> sectionsToTest = Arrays.asList(
 				FacilitySection.ELECTRONIC_ADDRESSES,
 				FacilitySection.IDENTIFIERS,
@@ -104,14 +104,14 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		// Test Start
 		ViewFacilityPage page = actions.openFacility(testFacility.getString("fauth"));
 
-		for (FacilitySection section : sectionsToTest) actions.verifyDataBlockSortOrder(section, page);
+		for (FacilitySection section : sectionsToTest) actions.verifyDataBlockSortOrder(page, section);
 	}
 
 	// F2-005. Expand All Facility Details
 	@Test
 	public void testExpandAllFacilityDetails() {
 		final JSONObject facility = PlrData.getFacility("test005");
-		final ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
+		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 		List<FacilitySection> sectionsToTest = new ArrayList<>(Arrays.asList(
 				FacilitySection.IDENTIFIERS,
 				FacilitySection.OTHER_ADDRESS,
@@ -146,7 +146,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	public void testProviderRelationshipSummaryLine() {
 		final JSONObject testFacility = PlrData.getFacility("test011");
 		final JSONArray orgArray = testFacility.getJSONArray("Organizations");
-		final ViewFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getViewFacilitySimpleActions();
+		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
 		// Test Start
 		ViewFacilityPage page = actions.openFacility(testFacility.getString("fauth"));
@@ -164,11 +164,13 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 					String orgName = organizationJson.getString("Organization Name");
 
 					if (orgName.length() <= 30)
-						assertTrue(resultSummaryLineText.contains(orgName));
+						assertTrue(resultSummaryLineText.contains(orgName), "Organization Name is missing");
 					else {
 						String orgNameFirst30 = orgName.substring(0, 30);
-						assertTrue(resultSummaryLineText.contains(orgNameFirst30));
-                        assertFalse(resultSummaryLineText.contains(orgName));
+						assertTrue(resultSummaryLineText.contains(orgNameFirst30),
+								"Organization name missing first 30 characters");
+                        assertFalse(resultSummaryLineText.contains(orgName),
+								"Organization Name includes more than 30 characters unexpectedly");
 					}
 
 					break;

@@ -142,4 +142,48 @@ public class ViewFacilityConstants {
 
         public String getString() { return fieldString; }
     }
+
+    /** The fields available in the telecommunication data blocks. */
+    public enum TelecomField
+    {
+        TYPE("Type"),
+        PURPOSE("Purpose"),
+        AREA_CODE("Area Code"),
+        NUMBER("Number"),
+        EXTENSION("Extension"),
+        EFFECTIVE_FROM("Effective From"),
+        EFFECTIVE_TO("Effective To"),
+        END_REASON("End Reason"),
+        DATA_SOURCE("Data Source"),
+        DB_CREATED("DB Created"),
+        DB_EXPIRED("DB Expired"),
+        DATA_OWNER_CODE("Data Owner Code");
+
+        private final String fieldString;
+
+        TelecomField(String fieldString) { this.fieldString = fieldString; }
+
+        public String getString() { return fieldString; }
+    }
+
+    /** The fields available in the electronic address data blocks. */
+    public enum EAddressField
+    {
+        TYPE("Type"),
+        PURPOSE("Purpose"),
+        ADDRESS("Address"),
+        EFFECTIVE_FROM("Effective From"),
+        EFFECTIVE_TO("Effective To"),
+        END_REASON("End Reason"),
+        DATA_SOURCE("Data Source"),
+        DB_CREATED("DB Created"),
+        DB_EXPIRED("DB Expired"),
+        DATA_OWNER_CODE("Data Owner Code");
+
+        private final String fieldString;
+
+        EAddressField(String fieldString) { this.fieldString = fieldString; }
+
+        public String getString() { return fieldString; }
+    }
 }
