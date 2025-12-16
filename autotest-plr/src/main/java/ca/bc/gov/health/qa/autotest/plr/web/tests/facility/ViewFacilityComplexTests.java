@@ -263,29 +263,33 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-012. Facility Relationship Summary Line
     public void testFacilityRelationshipSummary()
     {
-        final List<String> nonMaxProviderDetails = Arrays.asList("IPC", "IPC.00083115.BC.PRS");
-        final List<String> nonMaxProviderInfo = Arrays.asList("Building", "AZ F009", "Location of (LOCATION)", "CPS");
-        final List<String> maxProviderDetails = Arrays.asList("IPC", "IPC.00124877.BC.PRS");
-        final List<String> maxProviderInfo = Arrays.asList("Building",
-                "maximumlengthaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                "Location of (LOCATION)", "CPS");
         final List<String> facRelFields = Arrays.asList(
-                ViewProviderConstants.FacRelationshipField.FACILITY_TYPE.toString(),
-                ViewProviderConstants.FacRelationshipField.RELATED_FACILITY_NAME.toString(),
-                ViewProviderConstants.FacRelationshipField.RELATIONSHIP_TYPE.toString(),
-                ViewProviderConstants.FacRelationshipField.DATA_OWNER_CODE.toString());
-
-        List<String> providerDetails = nonMaxProviderDetails;
-        List<String> expectedFacInfo = nonMaxProviderInfo;
+                ViewProviderConstants.FacRelationshipField.FACILITY_TYPE.getString(),
+                ViewProviderConstants.FacRelationshipField.RELATED_FACILITY_NAME.getString(),
+                ViewProviderConstants.FacRelationshipField.RELATIONSHIP_TYPE.getString(),
+                ViewProviderConstants.FacRelationshipField.DATA_OWNER_CODE.getString());
+        FacilityMaintainConfig config = new FacilityMaintainConfig().withOrgRelationships(1);
+        MaintainFacilityBuilder facility = fhirController.createFacility(config);
+        List<String> providerDetails = Arrays.asList("IPC", facility.getOrgRelationshipList().getFirst().get("identifier"));
+        LinkedHashMap<String,String> orgRelInfo;
+        List<String> expectedFacInfo;
         LinkedHashMap<String,String> facRelMap;
         int facFieldIndex = 0;
 
-        // Test Start, Non-Maximum Length Case
-        ViewProviderPage page = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
+        // Test Start
+        ViewFacilityPage facPage = viewFacilityByIdentifier(workflowManager_, facility.getIdentifier(), UserType.ADMIN);
+        orgRelInfo = facPage.grabOrgRelationshipsBlockContent(0);
+        expectedFacInfo = Arrays.asList(
+                "Building",
+                facility.getName(),
+                ViewFacilityConstants.orgFacMap.get(orgRelInfo.get(OrgRelationshipField.RELATIONSHIP_TYPE.getString())),
+                orgRelInfo.get(OrgRelationshipField.DATA_OWNER_CODE.getString()));
 
+        // Non-Maximum Length Case
+        ViewProviderPage page = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
         facRelMap = page.grabDataBlockContent(ProviderSection.FACILITY_RELATIONSHIPS, 0);
 
-        assertTrue(facRelMap.get(facRelFields.get(2)).length() < 100,
+        assertTrue(facRelMap.get(facRelFields.get(1)).length() < 100,
                 "Facility Name is the maximum length of 100 characters unexpectedly");
 
         for (String facField : facRelFields)
@@ -295,16 +299,24 @@ public class ViewFacilityComplexTests implements SimpleTest {
             facFieldIndex++;
         }
         facFieldIndex = 0;
+        facility.ceaseOrganizationRelationships();
 
         // Maximum Length case
-        providerDetails = maxProviderDetails;
-        expectedFacInfo = maxProviderInfo;
+        config = config.withName("maximum length " + generateAlphabetString(85));
+        facility = fhirController.createFacility(config);
+        providerDetails.set(1, facility.getOrgRelationshipList().getFirst().get("identifier"));
+        facPage = viewFacilityByIdentifier(workflowManager_, facility.getIdentifier(), UserType.ADMIN);
+        orgRelInfo = facPage.grabOrgRelationshipsBlockContent(0);
+        expectedFacInfo = Arrays.asList(
+                "Building",
+                facility.getName(),
+                ViewFacilityConstants.orgFacMap.get(orgRelInfo.get(OrgRelationshipField.RELATIONSHIP_TYPE.getString())),
+                orgRelInfo.get(OrgRelationshipField.DATA_OWNER_CODE.getString()));
 
         page = viewProviderByIdentifier(workflowManager_, providerDetails, UserType.ADMIN);
-
         facRelMap = page.grabDataBlockContent(ProviderSection.FACILITY_RELATIONSHIPS, 0);
 
-        assertEquals(facRelMap.get(facRelFields.get(2)).length(), 100,
+        assertEquals(facRelMap.get(facRelFields.get(1)).length(), 100,
                 "Length of Facility Name is not the maximum of 100 characters.");
 
         for (String facField : facRelFields)
@@ -313,5 +325,6 @@ public class ViewFacilityComplexTests implements SimpleTest {
                     "Unexpected " + facField + " for facility with name 100 characters.");
             facFieldIndex++;
         }
+        facility.ceaseOrganizationRelationships();
     }
 }
