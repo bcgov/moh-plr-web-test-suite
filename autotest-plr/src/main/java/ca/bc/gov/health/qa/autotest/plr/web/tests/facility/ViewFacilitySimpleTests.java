@@ -3,18 +3,19 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.facility;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationDataGenerator;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
@@ -49,7 +50,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		dummyFacility.ceaseOrganizationRelationships();
 		fhirController.close();
 
-		workflowManager_.logoutAllAndClose();
+		// workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
@@ -59,7 +60,8 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		fhirController = new FHIRController(UserType.ADMIN);
 
 		final FacilityMaintainConfig config = new FacilityMaintainConfig()
-				.withAllAttributes(3, 2);
+				.withAllAttributes(3, 1)
+				.withOrgRelationships(List.of("organization name with over 30 characters"));
 		dummyFacility = fhirController.createFacility(config);
 	}
 
@@ -72,7 +74,6 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	// F2-001. View Facility Details
 	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
 	public void testViewFacilityDetails(UserType userType) {
-		final JSONObject testFacility = PlrData.getFacility("test001");
 		// test001: regular facility with all attributes, 2 org relationships, 3 notes
 		JSONObject expectedFacility = PlrData.getFacility("default-test");
 		// default-test: json of each field from test001 to compare
@@ -86,7 +87,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
 		// Test Start
-		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
+		ViewFacilityPage viewFacilityPage = actions.openFacility(StringUtils.getDigits(dummyFacility.getIdentifier()));
 
 		// Verify all facility section blocks displayed, both name and id are not empty
 		actions.verifyFacilitySectionsDisplayed(viewFacilityPage);
@@ -156,12 +157,10 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	// F2-011. Provider Relationship Summary Line
 	@Test
 	public void testProviderRelationshipSummaryLine() {
-		final JSONObject testFacility = PlrData.getFacility("test011");
-		final JSONArray orgArray = testFacility.getJSONArray("Organizations");
 		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
 		// Test Start
-		ViewFacilityPage page = actions.openFacility(testFacility.getString("fauth"));
+		ViewFacilityPage page = actions.openFacility(StringUtils.getDigits(dummyFacility.getIdentifier()));
 
 		int count = page.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
@@ -169,11 +168,12 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 			LinkedHashMap<String, String> resultContent = page.grabOrgRelationshipsBlockContent(i);
 			String resultSummaryLineText = page.grabDataBlockSummaryLine(FacilitySection.ORGANIZATION_RELATIONSHIPS, i);
 			Relationship reResult = new Relationship(resultContent);
-			for (Object organization : orgArray) {
-				JSONObject organizationJson = (JSONObject) organization;
-				String rlnId = organizationJson.getString("Relationship Identifier");
-				if (reResult.getRelationshipIdentifier().equals(rlnId)) {
-					String orgName = organizationJson.getString("Organization Name");
+			for (Map<String,String> organization : dummyFacility.getOrgRelationshipList()) {
+				String orgId = organization.get("identifier");
+				LOG.info(orgId);
+				if (reResult.getRelatedOrganizationIdentifier().equals(orgId)) {
+					String orgName = organization.get("name");
+					LOG.info(orgName);
 
 					if (orgName.length() <= 30)
 						assertTrue(resultSummaryLineText.contains(orgName), "Organization Name is missing");

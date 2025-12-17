@@ -1,13 +1,13 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
+
+import static org.testng.Assert.*;
 
 /**
  * TODO (KD)
@@ -53,7 +53,6 @@ public class Identifier {
 		return dataOwnerCode;
 	}
 
-	
 
 	/**
 	 * Constructs an Identifier from a JSON object.
@@ -64,11 +63,11 @@ public class Identifier {
 		super();
 		assertNotNull(jsonData);
 
-		assertTrue(!jsonData.isNull("Facility Type"));
+        assertFalse(jsonData.isNull("Facility Type"));
 		this.facilityType = jsonData.getString("Facility Type");
-		assertTrue(!jsonData.isNull("Identifier"));
+        assertFalse(jsonData.isNull("Identifier"));
 		this.identifier = jsonData.getString("Identifier");
-		assertTrue(!jsonData.isNull("Identifier Type"));
+        assertFalse(jsonData.isNull("Identifier Type"));
 		this.idType = jsonData.getString("Identifier Type");
 
 		if (!jsonData.isNull("Effective From"))

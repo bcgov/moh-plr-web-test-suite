@@ -234,11 +234,12 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
      */
     public MaintainFacilityBuilder addOrganizationRelationship(
             IdentifierType identifierType,
-            String identifier)
+            String identifier, String name)
     {
         Map<String,String> orgRelationship = new HashMap<>();
         orgRelationship.put("type",       identifierType.getSourceSystem());
         orgRelationship.put("identifier", identifier);
+        orgRelationship.put("name",       name);
         this.orgRelationshipList_.add(orgRelationship);
         return this;
     }

@@ -3,6 +3,8 @@ package ca.bc.gov.health.qa.autotest.plr.fhir.data;
 // Uses FacilityAttribute enum for scalar attribute selection
 
 
+import java.util.List;
+
 /**
  * Configuration object representing which optional MaintainFacilityFields are enabled
  * for a Facility maintain operation. Required fields are implicitly present; this class
@@ -28,9 +30,10 @@ public class FacilityMaintainConfig {
 
 
     // multi-valued counts
-    private int noteCount;            // number of notes to generate (0 => omit notes unless required)
-    private int relationshipCount;    // number of org relationships to generate (0 => omit relationships unless required)
-    private String facility_name;     // manually selected name (if applicable)
+    private int noteCount;                  // number of notes to generate (0 => omit notes unless required)
+    private int relationshipCount;          // number of org relationships to generate (0 => omit relationships unless required)
+    private String facility_name;           // manually selected name (if applicable)
+    private List<String> relationshipNames; // manually selected organization relationship names (if applicable)
 
     /**
      * Default constructor: enables all required attributes to build a valid facility based on FacilityAttribute enum.
@@ -129,6 +132,12 @@ public class FacilityMaintainConfig {
     public int getRelationshipCount() { return relationshipCount; }
 
     /**
+     * Number of manually specified organization affiliation relationships that will be generated.
+     * @return  relationship names to be used (null if nothing specific will be generated)
+     */
+    public List<String> getRelationshipNames() { return relationshipNames; }
+
+    /**
      * Name that is used for the facility if name will be manually set
      * @return  facility name (null if will be randomly generated)
      */
@@ -215,6 +224,20 @@ public class FacilityMaintainConfig {
         int minRequired = FacilityAttribute.ORG_RELATIONSHIP.isRequired() ? 1 : 0;
         if (count < minRequired) throw new IllegalArgumentException("relationship count must be >= " + minRequired);
         this.relationshipCount = count;
+        return this;
+    }
+
+    /**
+     * Set organization relationships to generate based on specific names instead of a count.
+     * @
+     */
+    public FacilityMaintainConfig withOrgRelationships(List<String> orgNames)
+    {
+        int count = orgNames.size();
+        int minRequired = FacilityAttribute.ORG_RELATIONSHIP.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("relationship count must be >= " + minRequired);
+        // TODO something involving validation of names (under maximum, etc.)
+        this.relationshipNames = orgNames;
         return this;
     }
 

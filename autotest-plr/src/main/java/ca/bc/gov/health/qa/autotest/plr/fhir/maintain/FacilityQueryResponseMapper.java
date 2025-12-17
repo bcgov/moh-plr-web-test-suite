@@ -265,8 +265,11 @@ public final class FacilityQueryResponseMapper {
 
     /*
      * Maps the OrganizationRelationships from the Location resource to the Facility builder.
+     * Does not include Org Name in the map currently, use queryOrgByIdentifier to find based on identifier if needed
+     *
      * @param affiliationArray Array containing OrganizationAffiliation resources
      * @param b MaintainFacilityBuilder to populate
+     *
      */
     private static void mapOrganizationRelationships(JSONArray affiliationArray, MaintainFacilityBuilder b) {
         if (affiliationArray == null) return;
@@ -276,12 +279,12 @@ public final class FacilityQueryResponseMapper {
             JSONObject org = aff.optJSONObject("organization");
             JSONObject identifier = org.optJSONObject("identifier");
 
-            String system = identifier.optString("system", null);
-            String value  = identifier.optString("value", null);
-            if (system == null || value == null || value.isEmpty()) continue;
+            String system    = identifier.optString("system", null);
+            String idValue   = identifier.optString("value", null);
+            if (system == null || idValue == null || idValue.isEmpty()) continue;
             IdentifierType idType = IdentifierType.resolveIdentifierType(system);
             if (idType != null) {
-                b.addOrganizationRelationship(idType, value);
+                b.addOrganizationRelationship(idType, idValue, null);
             }
         }
     }

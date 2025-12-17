@@ -440,11 +440,11 @@ public class ViewFacilityActions {
 
     }
 
-    private void checkSectionDataBlocksContentsAndSummaryLine(FacilitySection section,JSONObject expectedJson,
+    private void checkSectionDataBlocksContentsAndSummaryLine(FacilitySection section, JSONObject expectedJson,
                                                               LinkedHashMap<String, String> resultContent,
                                                               String resultSummaryLineText)
     {
-        assertTrue(expectedJson != null && resultContent!=null && resultSummaryLineText!=null );
+        assertTrue(expectedJson != null && resultContent != null && resultSummaryLineText != null);
 
         switch (section) {
             case FacilitySection.IDENTIFIERS:
@@ -562,7 +562,7 @@ public class ViewFacilityActions {
 
             assertTrue(checkSectionDataBlocksKeys(section, resultContent));
 
-            checkSectionDataBlocksContentsAndSummaryLine(section,expectedJson, resultContent,resultSummaryLineText);
+            checkSectionDataBlocksContentsAndSummaryLine(section, expectedJson, resultContent, resultSummaryLineText);
 
         }
     }
