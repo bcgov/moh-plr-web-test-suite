@@ -3,6 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -51,6 +52,27 @@ public class Identifier {
 	 */
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
+	}
+
+	/**
+	 * Constructs an Identifier based on the result of a newly generated facility from FHIR.
+	 * TODO add specifications for these fields within the builder as much as possible in future versions
+	 *
+	 * @param fhirFacility	the facility to create the identifier for
+	 */
+	public Identifier(MaintainFacilityBuilder fhirFacility) {
+		super();
+
+		this.facilityType = ViewFacilityConstants.IDENTIFIER_FACILITY_TYPE_DEFAULT;
+		this.identifier = fhirFacility.getIdentifier();
+		this.idType = ViewFacilityConstants.IDENTIFIER_IDENTIFIER_TYPE_DEFAULT;
+		this.effectiveFrom = fhirFacility.getDate();
+		this.effectiveTo = "";
+		this.endReason = "";
+		this.dataSource = ViewFacilityConstants.DATA_SOURCE_DEFAULT;
+		this.dbCreated = fhirFacility.getDate();
+		this.dbExpired = "";
+		this.dataOwnerCode = ViewFacilityConstants.DATA_OWNER_CODE_DEFAULT;
 	}
 
 

@@ -4,6 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 import static org.testng.Assert.*;
 
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.json.JSONObject;
 
 /**
@@ -164,8 +166,34 @@ public class OtherAddress {
 				&& Objects.equals(postalZipCode, other.postalZipCode) && Objects.equals(stateProv, other.stateProv)
 				&& Objects.equals(validationStatus, other.validationStatus);
 	}
-	
-	
+
+	/**
+	 * Constructs an Other Address based on the result of a newly generated facility from FHIR.
+	 * TODO add specifications for these fields within the builder as much as possible in future versions
+	 *
+	 * @param fhirFacility	the facility to create the other address for
+	 */
+	public OtherAddress(MaintainFacilityBuilder fhirFacility) {
+		super();
+
+		//this.validationStatus =
+		//this.addressType =
+		//this.addressPurpose =
+		this.addressLine1 = fhirFacility.getAddress().get("line1");
+		this.addressLine2 = "";
+		this.addressLine3 = "";
+		this.city = fhirFacility.getAddress().get("city");
+		this.stateProv = "BC";
+		this.country = "CANADA (CA)";
+		this.effectiveFrom = fhirFacility.getDate();
+		this.effectiveTo = "";
+		this.endReason = "";
+		this.dataSource = ViewFacilityConstants.DATA_SOURCE_DEFAULT;
+		this.dbCreated = fhirFacility.getDate();
+		this.dbExpired = "";
+		this.dataOwnerCode = ViewFacilityConstants.DATA_OWNER_CODE_DEFAULT;
+	}
+
 	/**
 	 * Constructs an OtherAddress from a JSON object.
 	 *

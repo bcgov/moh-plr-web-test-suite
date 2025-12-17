@@ -4,9 +4,58 @@ import java.util.Map;
 
 public class ViewFacilityConstants {
 
+    public static final String DATA_SOURCE_DEFAULT = "PLR-QA-REGADMIN@00002855";
+    public static final String DATA_OWNER_CODE_DEFAULT = "MOH";
+
+    public static final String IDENTIFIER_FACILITY_TYPE_DEFAULT = "BUILDING";
+    public static final String IDENTIFIER_IDENTIFIER_TYPE_DEFAULT = "IFC";
+
+    public static final String NAME_EFFECTIVE_FROM_DEFAULT = "2023-01-01"; //TODO verify this
+
     public static final Map<String,String> orgFacMap = Map.of(
             "Located at (LOCATED)", "Location of (LOCATION)",
             "Location of (LOCATION)", "Located at (LOCATED)");
+
+    /** The fields available in the identifier data blocks. */
+    public enum IdentifierField
+    {
+        FACILITY_TYPE("Facility Type"),
+        IDENTIFIER("Identifier"),
+        IDENTIFIER_TYPE("Identifier Type"),
+        EFFECTIVE_FROM("Effective From"),
+        EFFECTIVE_TO("Effective To"),
+        END_REASON("End Reason"),
+        DATA_SOURCE("Data Source"),
+        DB_CREATED("DB Created"),
+        DB_EXPIRED("DB Expired"),
+        DATA_OWNER_CODE("Data Owner Code");
+
+        private final String fieldString;
+
+        IdentifierField(String fieldString) { this.fieldString = fieldString; }
+
+        public String getString() { return fieldString; }
+    }
+
+    /** The fields available in the name data blocks. */
+    public enum NameField
+    {
+        NAME("Name"),
+        DESCRIPTION("Description"),
+        EFFECTIVE_FROM("Effective From"),
+        EFFECTIVE_TO("Effective To"),
+        END_REASON("End Reason"),
+        DATA_SOURCE("Data Source"),
+        DB_CREATED("DB Created"),
+        DB_EXPIRED("DB Expired"),
+        DATA_OWNER_CODE("Data Owner Code");
+
+        private final String fieldString;
+
+        NameField(String fieldString) { this.fieldString = fieldString; }
+
+        public String getString() { return fieldString; }
+    }
 
     /** The fields available in the civic address data blocks. */
     public enum CivicAddressField
@@ -60,27 +109,6 @@ public class ViewFacilityConstants {
         public String getString() { return fieldString; }
     }
 
-    /** The fields available in the identifier data blocks. */
-    public enum IdentifierField
-    {
-        FACILITY_TYPE("Facility Type"),
-        IDENTIFIER("Identifier"),
-        IDENTIFIER_TYPE("Identifier Type"),
-        EFFECTIVE_FROM("Effective From"),
-        EFFECTIVE_TO("Effective To"),
-        END_REASON("End Reason"),
-        DATA_SOURCE("Data Source"),
-        DB_CREATED("DB Created"),
-        DB_EXPIRED("DB Expired"),
-        DATA_OWNER_CODE("Data Owner Code");
-
-        private final String fieldString;
-
-        IdentifierField(String fieldString) { this.fieldString = fieldString; }
-
-        public String getString() { return fieldString; }
-    }
-
     /** The fields available in the note data blocks. */
     public enum NoteField
     {
@@ -119,26 +147,6 @@ public class ViewFacilityConstants {
         private final String fieldString;
 
         OrgRelationshipField(String fieldString) { this.fieldString = fieldString; }
-
-        public String getString() { return fieldString; }
-    }
-
-    /** The fields available in the name data blocks. */
-    public enum NameField
-    {
-        NAME("Name"),
-        DESCRIPTION("Description"),
-        EFFECTIVE_FROM("Effective From"),
-        EFFECTIVE_TO("Effective To"),
-        END_REASON("End Reason"),
-        DATA_SOURCE("Data Source"),
-        DB_CREATED("DB Created"),
-        DB_EXPIRED("DB Expired"),
-        DATA_OWNER_CODE("Data Owner Code");
-
-        private final String fieldString;
-
-        NameField(String fieldString) { this.fieldString = fieldString; }
 
         public String getString() { return fieldString; }
     }

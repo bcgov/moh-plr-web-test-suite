@@ -141,6 +141,8 @@ public final class FacilityQueryResponseMapper {
             b.name(name);
         }
 
+
+
         JSONArray alias = location.optJSONArray("alias");
         if (alias != null && alias.length() > 0) {
             String desc = alias.optString(0, null);
@@ -171,18 +173,27 @@ public final class FacilityQueryResponseMapper {
                     hsdaInfo = ext.optJSONArray("extension");
                 }
             }
-
         }
 
         if (valueAddress != null) {
             JSONArray lines = valueAddress.optJSONArray("line");
-            String line1 = lines != null && lines.length() > 0 ? lines.optString(0, null) : valueAddress.optString("text", null);
+            String line1 = lines != null && !lines.isEmpty() ? lines.optString(0, null) : valueAddress.optString("text", null);
             String city = valueAddress.optString("city", null);
             String postal = valueAddress.optString("postalCode", null);
             if (line1 != null && city != null) {
                 b.addAddress(line1, city, postal);
             }
         }
+
+        String latitudeString = "";
+        String longitudeString = "";
+        JSONObject valuePosition = location.optJSONObject("position");
+        if (valuePosition != null)
+        {
+            latitudeString = valuePosition.optString("latitude");
+            longitudeString = valuePosition.optString("longitude");
+        }
+        b.addPosition(latitudeString, longitudeString);
 
         // parse HSDA values to add to builder
         String chsaString = "";

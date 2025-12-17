@@ -62,6 +62,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		final FacilityMaintainConfig config = new FacilityMaintainConfig()
 				.withAllAttributes(3, 1)
 				.withOrgRelationships(List.of("organization name with over 30 characters"));
+		fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006905.BC.PRS");
 		dummyFacility = fhirController.createFacility(config);
 	}
 
@@ -74,6 +75,9 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	// F2-001. View Facility Details
 	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
 	public void testViewFacilityDetails(UserType userType) {
+		//final MaintainFacilityBuilder query = fhirController.queryFacilityByIdentifier(
+		//														IdentifierType.IFC, dummyFacility.getIdentifier());
+		JSONObject testFacility = PlrData.getFacility("test001");
 		// test001: regular facility with all attributes, 2 org relationships, 3 notes
 		JSONObject expectedFacility = PlrData.getFacility("default-test");
 		// default-test: json of each field from test001 to compare
@@ -87,7 +91,8 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
 		// Test Start
-		ViewFacilityPage viewFacilityPage = actions.openFacility(StringUtils.getDigits(dummyFacility.getIdentifier()));
+		ViewFacilityPage viewFacilityPage = actions.openFacility(testFacility.getString("fauth"));
+		// ViewFacilityPage viewFacilityPage = actions.openFacility(StringUtils.getDigits(dummyFacility.getIdentifier()));
 
 		// Verify all facility section blocks displayed, both name and id are not empty
 		actions.verifyFacilitySectionsDisplayed(viewFacilityPage);
