@@ -176,9 +176,9 @@ public class OtherAddress {
 	public OtherAddress(MaintainFacilityBuilder fhirFacility) {
 		super();
 
-		//this.validationStatus =
-		//this.addressType =
-		//this.addressPurpose =
+		//TODO this.validationStatus =
+		//TODO this.addressType =
+		//TODO this.addressPurpose =
 		this.addressLine1 = fhirFacility.getAddress().get("line1");
 		this.addressLine2 = "";
 		this.addressLine3 = "";

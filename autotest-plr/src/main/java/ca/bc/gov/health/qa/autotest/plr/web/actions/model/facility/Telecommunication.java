@@ -1,8 +1,13 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import static org.testng.Assert.*;
+
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.json.JSONObject;
 
 /**
@@ -132,6 +137,29 @@ public class Telecommunication {
 				&& Objects.equals(effectiveTo, other.effectiveTo) && Objects.equals(endReason, other.endReason)
 				&& Objects.equals(extension, other.extension) && Objects.equals(number, other.number)
 				&& Objects.equals(purpose, other.purpose) && Objects.equals(type, other.type);
+	}
+
+	/**
+	 * Constructs a Telecommunication based on the result of a newly generated facility from FHIR.
+	 * TODO add specifications for these fields within the builder as much as possible in future versions
+	 *
+	 * @param fhirFacility	the facility to create the telecommunication for
+	 */
+	public Telecommunication(MaintainFacilityBuilder fhirFacility, Map<String,String> telecom) {
+		super();
+
+		this.type = telecom.get("type");
+		this.purpose = telecom.get("purpose");
+		this.number = telecom.get("value").substring(3,10);
+		this.areaCode = telecom.get("value").substring(0,3);
+		this.extension = telecom.get("value").substring(10);
+		this.effectiveFrom = fhirFacility.getDate();
+		this.effectiveTo = "";
+		this.endReason = "";
+		this.dataSource = ViewFacilityConstants.DATA_SOURCE_DEFAULT;
+		this.dbCreated = fhirFacility.getDate();
+		this.dbExpired = "";
+		this.dataOwnerCode = ViewFacilityConstants.DATA_OWNER_CODE_DEFAULT;
 	}
 	
 	/**

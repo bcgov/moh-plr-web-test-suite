@@ -1,8 +1,12 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import static org.testng.Assert.*;
+
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.json.JSONObject;
 
 /**
@@ -91,6 +95,27 @@ public class ElectronicAddress {
 		this.dbCreated = dbCreated;
 		this.dbExpired = dbExpired;
 		this.dataOwnerCode = dataOwnerCode;
+	}
+
+	/**
+	 * Constructs a ElectronicAddress based on the result of a newly generated facility from FHIR.
+	 * TODO add specifications for these fields within the builder as much as possible in future versions
+	 *
+	 * @param fhirFacility	the facility to create the electronic address for
+	 */
+	public ElectronicAddress(MaintainFacilityBuilder fhirFacility, Map<String,String> eaddress) {
+		super();
+
+		this.type = eaddress.get("type");
+		this.purpose = eaddress.get("purpose");
+		this.address = eaddress.get("purpose");
+		this.effectiveFrom = fhirFacility.getDate();
+		this.effectiveTo = "";
+		this.endReason = "";
+		this.dataSource = ViewFacilityConstants.DATA_SOURCE_DEFAULT;
+		this.dbCreated = fhirFacility.getDate();
+		this.dbExpired = "";
+		this.dataOwnerCode = ViewFacilityConstants.DATA_OWNER_CODE_DEFAULT;
 	}
 	
 	/**

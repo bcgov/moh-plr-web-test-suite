@@ -50,7 +50,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		dummyFacility.ceaseOrganizationRelationships();
 		fhirController.close();
 
-		// workflowManager_.logoutAllAndClose();
+		workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
@@ -62,7 +62,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		final FacilityMaintainConfig config = new FacilityMaintainConfig()
 				.withAllAttributes(3, 1)
 				.withOrgRelationships(List.of("organization name with over 30 characters"));
-		fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006905.BC.PRS");
+		MaintainFacilityBuilder query = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006905.BC.PRS");
 		dummyFacility = fhirController.createFacility(config);
 	}
 
