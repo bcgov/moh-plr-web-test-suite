@@ -195,7 +195,7 @@ public class ViewFacilityActions {
         assertNotNull(viewFacilityPage);
         viewFacilityPage.expandAll(expand);
         try {
-            //TODO get rid of this sleep
+            //TODO convert this sleep to an explicit wait in selenium if possible
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             fail("unexpected interruption");

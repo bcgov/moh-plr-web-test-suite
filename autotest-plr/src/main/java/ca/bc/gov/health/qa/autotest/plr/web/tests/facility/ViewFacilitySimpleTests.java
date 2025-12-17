@@ -9,7 +9,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,11 +40,15 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	private static FHIRController fhirController;
 	private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
+	private MaintainFacilityBuilder dummyFacility;
+
 	public ViewFacilitySimpleTests() {}
 
 	@AfterClass
 	public void teardown() {
+		dummyFacility.ceaseOrganizationRelationships();
 		fhirController.close();
+
 		workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
@@ -50,6 +57,10 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	public void beforeTest()
 	{
 		fhirController = new FHIRController(UserType.ADMIN);
+
+		final FacilityMaintainConfig config = new FacilityMaintainConfig()
+				.withAllAttributes(3, 2);
+		dummyFacility = fhirController.createFacility(config);
 	}
 
 	@BeforeMethod
@@ -62,11 +73,14 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
 	public void testViewFacilityDetails(UserType userType) {
 		final JSONObject testFacility = PlrData.getFacility("test001");
+		// test001: regular facility with all attributes, 2 org relationships, 3 notes
 		JSONObject expectedFacility = PlrData.getFacility("default-test");
+		// default-test: json of each field from test001 to compare
 
 		if (UserType.SECONDARY.equals(userType) || UserType.CONSUMER.equals(userType)) {
 			expectedFacility = PlrData.getFacility("default-test-second");
 		}
+		// default-test-second: same thing but missing stuff admin/primary can see
 
 		logIn(workflowManager_, userType);
 		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
@@ -91,7 +105,6 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	// F2-003. Sort Order - View Facility Details Screen
 	@Test
 	public void testSortOrderViewFacilityDetailsScreen() {
-		JSONObject testFacility = PlrData.getFacility("test003");
 		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 		final List<FacilitySection> sectionsToTest = Arrays.asList(
 				FacilitySection.ELECTRONIC_ADDRESSES,
@@ -102,7 +115,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		);
 
 		// Test Start
-		ViewFacilityPage page = actions.openFacility(testFacility.getString("fauth"));
+		ViewFacilityPage page = actions.openFacility(StringUtils.getDigits(dummyFacility.getIdentifier()));
 
 		for (FacilitySection section : sectionsToTest) actions.verifyDataBlockSortOrder(page, section);
 	}
@@ -110,7 +123,6 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	// F2-005. Expand All Facility Details
 	@Test
 	public void testExpandAllFacilityDetails() {
-		final JSONObject facility = PlrData.getFacility("test005");
 		final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 		List<FacilitySection> sectionsToTest = new ArrayList<>(Arrays.asList(
 				FacilitySection.IDENTIFIERS,
@@ -124,7 +136,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 		boolean active;
 
 		// Test Start
-		ViewFacilityPage page = actions.openFacility(facility.getString("fauth"));
+		ViewFacilityPage page = actions.openFacility(StringUtils.getDigits(dummyFacility.getIdentifier()));
 		actions.expandAll(page, true);
 
 		for (FacilitySection section : sectionsToTest) actions.checkDataBlocksExpanded(page, section, true);
@@ -167,12 +179,12 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 						assertTrue(resultSummaryLineText.contains(orgName), "Organization Name is missing");
 					else {
 						String orgNameFirst30 = orgName.substring(0, 30);
+
 						assertTrue(resultSummaryLineText.contains(orgNameFirst30),
 								"Organization name missing first 30 characters");
                         assertFalse(resultSummaryLineText.contains(orgName),
 								"Organization Name includes more than 30 characters unexpectedly");
 					}
-
 					break;
 				}
 			}
