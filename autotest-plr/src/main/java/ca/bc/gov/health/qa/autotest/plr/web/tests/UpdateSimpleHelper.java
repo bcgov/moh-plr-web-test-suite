@@ -55,11 +55,9 @@ public class UpdateSimpleHelper {
 	static public String increment_year_for_effective_date(){            
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Calendar cal = Calendar.getInstance();
-		Date today = cal.getTime();
 		cal.add(Calendar.YEAR, 1);
 		Date nextYear = cal.getTime();
-		String next_year = dateFormat.format(nextYear);
-		return next_year;
+		return dateFormat.format(nextYear);
 	}
 	
 	

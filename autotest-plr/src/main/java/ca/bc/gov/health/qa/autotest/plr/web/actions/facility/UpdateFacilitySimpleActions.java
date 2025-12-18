@@ -5,6 +5,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -572,4 +573,19 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 	}
 
+	public String addTelecommunicationNumber(UpdateFacilityPage page, TelecommunicationType type,
+											 List<String> telecomNumber, boolean expectError)
+	{
+		return page.addTelecommunicationDataBlock(type.getText(),
+				telecomNumber.get(0), telecomNumber.get(1), telecomNumber.get(2),
+				UpdateSimpleHelper.effective_date(), "", expectError);
+	}
+
+	public String updateTelecommunicationNumber(UpdateFacilityPage page, TelecommunicationType type,
+												List<String> telecomNumber, int index, boolean expectError)
+	{
+		return page.updateTelecommunicationBlock(type.getText(),
+				telecomNumber.get(0), telecomNumber.get(1), telecomNumber.get(2),
+				UpdateSimpleHelper.effective_date(), "", index, expectError);
+	}
 }

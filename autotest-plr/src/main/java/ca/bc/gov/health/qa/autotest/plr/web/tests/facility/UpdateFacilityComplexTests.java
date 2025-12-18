@@ -9,13 +9,11 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.util.RelatedProviderIdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.util.RelationshipType;
-import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.util.*;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -31,10 +29,17 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Objects;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.generateAlphabetString;
+import static java.lang.Integer.TYPE;
 import static java.lang.Integer.parseInt;
 import static org.testng.Assert.*;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper.*;
+import static ca.bc.gov.health.qa.autotest.plr.data.UpdateFacilityConstants.*;
 
 public class UpdateFacilityComplexTests implements SimpleTest
 {
@@ -47,14 +52,12 @@ public class UpdateFacilityComplexTests implements SimpleTest
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     private static JSONObject errorList;
-    private static JSONObject warningList;
 
     public UpdateFacilityComplexTests()
     {
         try
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
-            warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
         }
         catch (IOException e)
         {
@@ -78,10 +81,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
     {
         fhirController = new FHIRController(UserType.ADMIN);
 
-        final FacilityMaintainConfig config = new FacilityMaintainConfig()
-                                                    .withAllAttributes(1,0);
-        //dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006905.BC.PRS");
-        dummyFacility = fhirController.createFacility(config);
+        final FacilityMaintainConfig config = new FacilityMaintainConfig();
+        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006919.BC.PRS");
+        //dummyFacility = fhirController.createFacility(config);
     }
 
     @BeforeMethod
@@ -115,6 +117,81 @@ public class UpdateFacilityComplexTests implements SimpleTest
     }
 
     @Test
+    // F4-031. Validate Telecommunication Number
+    public void validateTelecomNumber()
+    {
+        final TelecommunicationType telecomType = TelecommunicationType.MODEM;
+        final String errMsg7008 = errorList.getString("errMsg7008");
+        final String errMsg5003TelecomAreaCode = errorList.getString("errMsg5003TelecomAreaCode");
+        final String errMsg5003TelecomPhoneNumber = errorList.getString("errMsg5003TelecomPhoneNumber");
+        final String errMsg5003TelecomExtension = errorList.getString("errMsg5003TelecomExtension");
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+
+        List<List<String>> overMaximumTelecomNumbers = Arrays.asList(
+            List.of(generateNumericString(TELECOM_AREA_CODE_MAX+1), generateNumericString(7), "", errMsg5003TelecomAreaCode),
+            List.of(generateNumericString(3), generateNumericString(TELECOM_PHONE_NUMBER_MAX+1), "", errMsg5003TelecomPhoneNumber),
+            List.of(generateNumericString(3), generateNumericString(7), generateNumericString(TELECOM_EXTENSION_MAX+1), errMsg5003TelecomExtension)
+        );
+        List<List<String>> invalidCharTelecomNumbers = Arrays.asList(
+            List.of(generateAlphabetString(3), generateNumericString(7), ""),
+            List.of(generateNumericString(3), generateAlphabetString(7), ""),
+            List.of(generateNumericString(3), generateNumericString(7), generateAlphabetString(3))
+        );
+        LinkedHashMap<String,String> telecomInfo = new LinkedHashMap<>();
+
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        for (List<String> telecomNumber : overMaximumTelecomNumbers)
+        {
+            String error = actions.addTelecommunicationNumber(page, telecomType, telecomNumber, true);
+            assertEquals(error, telecomNumber.getLast(), "Error message does not match expected result");
+        }
+
+        for (List<String> telecomNumber : invalidCharTelecomNumbers)
+        {
+            String error = actions.addTelecommunicationNumber(page, telecomType, telecomNumber, true);
+            assertEquals(error, errMsg7008, "Error message does not match expected result");
+        }
+
+        page.addTelecommunicationDataBlock(telecomType.getText(),
+                generateNumericString(TELECOM_AREA_CODE_MAX),
+                generateNumericString(TELECOM_PHONE_NUMBER_MAX),
+                generateNumericString(TELECOM_EXTENSION_MAX),
+                effective_date(), "", false);
+
+        int telecomIndex = page.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);
+        for (int index = 0; index < telecomIndex; index++)
+        {
+            telecomInfo = page.grabTelecommunicationsBlockContent(index);
+            if (telecomInfo.get(TelecomField.TYPE.getString()).equals(TelecommunicationType.MODEM.getDataField())) {
+                telecomIndex = index;
+                LOG.info(index);
+                break;
+            }
+        }
+        assertEquals(telecomInfo.get(TelecomField.AREA_CODE.getString()).length(), TELECOM_AREA_CODE_MAX,
+                "Area Code is not the specified maximum allowed character count");
+        assertEquals(telecomInfo.get(TelecomField.NUMBER.getString()).length(), TELECOM_PHONE_NUMBER_MAX,
+                "Phone Number is not the specified maximum allowed character count");
+        assertEquals(telecomInfo.get(TelecomField.EXTENSION.getString()).length(), TELECOM_EXTENSION_MAX,
+                "Extension is not the specified maximum allowed character count");
+
+        for (List<String> telecomNumber : overMaximumTelecomNumbers)
+        {
+            String error = actions.updateTelecommunicationNumber(page, telecomType, telecomNumber, telecomIndex, true);
+            assertEquals(error, telecomNumber.getLast(), "Error message does not match expected result");
+        }
+
+        for (List<String> telecomNumber : invalidCharTelecomNumbers)
+        {
+            String error = actions.updateTelecommunicationNumber(page, telecomType, telecomNumber, telecomIndex, true);
+            assertEquals(error, errMsg7008, "Error message does not match expected result");
+        }
+
+        // TODO positive update test?
+    }
+
+    @Test
     // F4-045. Generating Internal Relationship Identifier (RID)
     public void generateRelationshipIdentifier()
     {
@@ -127,15 +204,15 @@ public class UpdateFacilityComplexTests implements SimpleTest
         UpdateFacilityPage page = actions.openFacility(dummyFacility);
 
         page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), org1.getIdentifier(),
-                                            RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(),
+                                            RelationshipType.LOCATION.getText(), effective_date(),
                                     "", false);
         String org1RelIdentifier = StringUtils.getDigits(page.grabOrgRelationshipsBlockContent(0)
                                         .get(OrgRelationshipField.RELATIONSHIP_IDENTIFIER.getString()));
 
         page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), org2.getIdentifier(),
-                                            RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(),
+                                            RelationshipType.LOCATION.getText(), effective_date(),
                                     "", false);
-        String org2RelIdentifier = StringUtils.getDigits(page.grabOrgRelationshipsBlockContent(1)
+        String org2RelIdentifier = StringUtils.getDigits(page.grabOrgRelationshipsBlockContent(0)
                                         .get(OrgRelationshipField.RELATIONSHIP_IDENTIFIER.getString()));
 
         assertNotEquals(org1RelIdentifier, org2RelIdentifier,
@@ -157,19 +234,38 @@ public class UpdateFacilityComplexTests implements SimpleTest
         UpdateFacilityPage page = actions.openFacility(dummyFacility);
 
         String error = page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), org.getIdentifier(),
-                "Select One", UpdateSimpleHelper.effective_date(), "", true);
+                "Select One", effective_date(), "", true);
 
         assertEquals(error, errMsg5000OrgRel, "Error message does not match expected result");
 
         for (RelationshipType relType : RelationshipType.values())
         {
             page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), org.getIdentifier(),
-                    relType.getText(), UpdateSimpleHelper.effective_date(), "", false);
+                    relType.getText(), effective_date(), "", false);
             String orgRelType = page.grabOrgRelationshipsBlockContent(0)
                     .get(OrgRelationshipField.RELATIONSHIP_TYPE.getString());
 
             assertEquals(orgRelType, relType.getBlockText(),
                     "New org relationship has unexpected relationship type");
         }
+    }
+
+    @Test
+    // F4-047. Validate Related Organization ID and Relationship Type Code Combination
+    public void relatedOrgIDTypeCodeCombo()
+    {
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+        final OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig();
+        final MaintainOrgBuilder org = fhirController.createOrganization(orgConfig.withName(generateAlphabetString(15)));
+
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        // related provider identifier + relationship type
+
+        // different org, same relationship type
+
+        // same org, different relationship type
+
+        //
     }
 }

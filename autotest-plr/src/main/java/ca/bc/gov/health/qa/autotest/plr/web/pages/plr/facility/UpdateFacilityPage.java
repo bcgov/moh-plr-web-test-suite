@@ -749,6 +749,45 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
+	public String updateTelecommunicationBlock(String type, String areaCode, String phoneNumber, String extension,
+											   String effectiveFrom, String effectiveTo, int index, boolean expectError)
+	{
+		String msgDisplay="";
+		String formName=DIALOG_MAP.get(FacilitySection.TELECOMMUNICATIONS).getFormName();
+		String dialogCss=getDialogCss(FacilitySection.TELECOMMUNICATIONS);
+
+		clickDataBlockUpdateButton(FacilitySection.TELECOMMUNICATIONS, index);
+		//waitSeconds(2);
+
+		String inputAreaCodeCss=dialogCss+" >input#"+formName+"\\:"+"AreaCode";
+		WebElement inputAreaCode=selenium_.findElement(By.cssSelector(inputAreaCodeCss));
+		inputAreaCode.clear();
+		if(!StringUtils.isEmpty(areaCode))inputAreaCode.sendKeys(areaCode);
+
+		String inputPhoneNumberCss=dialogCss+" >input#"+formName+"\\:"+"Phone_Number";
+		WebElement inputPhoneNumber=selenium_.findElement(By.cssSelector(inputPhoneNumberCss));
+		inputPhoneNumber.clear();
+		if(!StringUtils.isEmpty(phoneNumber))inputPhoneNumber.sendKeys(phoneNumber);
+
+		String inputExtensionCss=dialogCss+" >input#"+formName+"\\:"+"extension";
+		WebElement inputExtension=selenium_.findElement(By.cssSelector(inputExtensionCss));
+		inputExtension.clear();
+		if(!StringUtils.isEmpty(extension))inputExtension.sendKeys(extension);
+
+		setEndReasonByVisibleText(FacilitySection.TELECOMMUNICATIONS,EndReason.CHG.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(FacilitySection.TELECOMMUNICATIONS,effectiveFrom,effectiveTo);
+
+
+		clickDialogSubmitButton(FacilitySection.TELECOMMUNICATIONS);
+
+		if(expectError)
+			msgDisplay=waitErrorMessage(FacilitySection.TELECOMMUNICATIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
     /**
      * TODO (KD) - doc
      *
@@ -775,7 +814,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		WebElement inputAddress=selenium_.findElement(By.cssSelector(inputAddressCss));
 		inputAddress.clear();
 		if(!StringUtils.isEmpty(address))inputAddress.sendKeys(address);
-		
+
 		
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ELECTRONIC_ADDRESSES,effectiveFrom,effectiveTo);
 		
