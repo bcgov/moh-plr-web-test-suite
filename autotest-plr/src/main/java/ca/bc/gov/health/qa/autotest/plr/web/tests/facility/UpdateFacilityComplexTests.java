@@ -117,6 +117,56 @@ public class UpdateFacilityComplexTests implements SimpleTest
     }
 
     @Test
+    // F4-030. Optional Telecommunication Attributes
+    public void optionalTelecomAttribute()
+    {
+        final TelecommunicationType telecomType1 = TelecommunicationType.PAGER;
+        final TelecommunicationType telecomType2 = TelecommunicationType.FAX;
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        page.addTelecommunicationDataBlock(telecomType1.getText(),
+                generateNumericString(3), generateNumericString(7), "",
+                effective_date(), increment_month_for_effective_date(), false);
+
+        LinkedHashMap<String,String> telecomInfo = actions.getTelecomInfo(page, telecomType1);
+        int telecomIndex = Integer.parseInt(telecomInfo.get("index"));
+
+        assertEquals(telecomInfo.get(TelecomField.EFFECTIVE_TO.getString()), increment_month_for_effective_date(),
+                "Effective To Date add failed to fill as expected");
+
+        page.updateTelecommunicationBlock(telecomType1.getText(),
+                generateNumericString(3), generateNumericString(7), "",
+                effective_date(), increment_year_for_effective_date(), telecomIndex, false);
+
+        telecomInfo = page.grabTelecommunicationsBlockContent(telecomIndex);
+
+        assertEquals(telecomInfo.get(TelecomField.EFFECTIVE_TO.getString()), increment_year_for_effective_date(),
+                "Effective To date update failed to fill as expected");
+
+        String expectedExtension = generateNumericString(3);
+        page.addTelecommunicationDataBlock(telecomType2.getText(), generateNumericString(3),
+                generateNumericString(7), expectedExtension, effective_date(), "", false);
+
+        telecomInfo = actions.getTelecomInfo(page, telecomType2);
+        telecomIndex = Integer.parseInt(telecomInfo.get("index"));
+
+        assertEquals(telecomInfo.get(TelecomField.EXTENSION.getString()), expectedExtension,
+                "Extension add failed to fill as expected");
+
+        expectedExtension = generateNumericString(3);
+        page.updateTelecommunicationBlock(telecomType2.getText(), generateNumericString(3),
+                generateNumericString(7), expectedExtension,effective_date(),
+                "", telecomIndex, false);
+
+        telecomInfo = page.grabTelecommunicationsBlockContent(telecomIndex);
+
+        assertEquals(telecomInfo.get(TelecomField.EXTENSION.getString()), expectedExtension,
+                "Extension update failed to fill as expected");
+    }
+
+    @Test
     // F4-031. Validate Telecommunication Number
     public void validateTelecomNumber()
     {
@@ -159,16 +209,8 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 generateNumericString(TELECOM_EXTENSION_MAX),
                 effective_date(), "", false);
 
-        int telecomIndex = page.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);
-        for (int index = 0; index < telecomIndex; index++)
-        {
-            telecomInfo = page.grabTelecommunicationsBlockContent(index);
-            if (telecomInfo.get(TelecomField.TYPE.getString()).equals(TelecommunicationType.MODEM.getDataField())) {
-                telecomIndex = index;
-                LOG.info(index);
-                break;
-            }
-        }
+        telecomInfo = actions.getTelecomInfo(page, telecomType);
+        int telecomIndex = Integer.parseInt(telecomInfo.get("index"));
         assertEquals(telecomInfo.get(TelecomField.AREA_CODE.getString()).length(), TELECOM_AREA_CODE_MAX,
                 "Area Code is not the specified maximum allowed character count");
         assertEquals(telecomInfo.get(TelecomField.NUMBER.getString()).length(), TELECOM_PHONE_NUMBER_MAX,
@@ -178,13 +220,13 @@ public class UpdateFacilityComplexTests implements SimpleTest
 
         for (List<String> telecomNumber : overMaximumTelecomNumbers)
         {
-            String error = actions.updateTelecommunicationNumber(page, telecomType, telecomNumber, telecomIndex, true);
+            String error = actions.updateTelecommunicationNumber(page, telecomType, telecomNumber, true);
             assertEquals(error, telecomNumber.getLast(), "Error message does not match expected result");
         }
 
         for (List<String> telecomNumber : invalidCharTelecomNumbers)
         {
-            String error = actions.updateTelecommunicationNumber(page, telecomType, telecomNumber, telecomIndex, true);
+            String error = actions.updateTelecommunicationNumber(page, telecomType, telecomNumber,true);
             assertEquals(error, errMsg7008, "Error message does not match expected result");
         }
 

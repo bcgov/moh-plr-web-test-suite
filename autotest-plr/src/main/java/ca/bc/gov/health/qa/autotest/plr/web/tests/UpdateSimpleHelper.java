@@ -51,6 +51,14 @@ public class UpdateSimpleHelper {
 		String dateformatted = dateFormat.format(date);
 		return dateformatted;
 	}
+
+	static public String increment_month_for_effective_date(){
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.MONTH, 1);
+		Date nextYear = cal.getTime();
+		return dateFormat.format(nextYear);
+	}
 	
 	static public String increment_year_for_effective_date(){            
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");

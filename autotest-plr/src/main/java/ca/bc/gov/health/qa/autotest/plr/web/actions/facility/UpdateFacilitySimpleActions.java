@@ -9,6 +9,7 @@ import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
@@ -573,6 +574,16 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 	}
 
+	/**
+	 * Adds a telecommunication data block to a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page				the update facility page reference
+	 * @param type				the telecommunication type to create a data block for
+	 * @param telecomNumber		telecom number: list of strings should be formatted [area code, phone number, extension]
+	 * @param expectError		whether an error is expected or not
+	 * @return					the error message if an error is expected to occur
+	 */
 	public String addTelecommunicationNumber(UpdateFacilityPage page, TelecommunicationType type,
 											 List<String> telecomNumber, boolean expectError)
 	{
@@ -581,11 +592,46 @@ public class UpdateFacilitySimpleActions {
 				UpdateSimpleHelper.effective_date(), "", expectError);
 	}
 
+	/**
+	 * Updates a telecommunication data block in a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page				the update facility page reference
+	 * @param type				the telecommunication type to update
+	 * @param telecomNumber		telecom number: list of strings should be formatted [area code, phone number, extension]
+	 * @param expectError		whether an error is expected or not
+	 * @return					the error message if an error is expected to occur
+	 */
 	public String updateTelecommunicationNumber(UpdateFacilityPage page, TelecommunicationType type,
-												List<String> telecomNumber, int index, boolean expectError)
+												List<String> telecomNumber, boolean expectError)
 	{
 		return page.updateTelecommunicationBlock(type.getText(),
 				telecomNumber.get(0), telecomNumber.get(1), telecomNumber.get(2),
-				UpdateSimpleHelper.effective_date(), "", index, expectError);
+				UpdateSimpleHelper.effective_date(), "",
+				Integer.parseInt(getTelecomInfo(page, type).get("index")), expectError);
+	}
+
+	/**
+	 * Gets the info of a data block for the telecommunication type
+	 *
+	 * @param page			the update facility page reference
+	 * @param telecomType	the telecommunication type to get content for
+	 * @return				a map of strings for the data block corresponding to the desired telecommunication type
+	 */
+	public LinkedHashMap<String,String> getTelecomInfo(UpdateFacilityPage page, TelecommunicationType telecomType)
+	{
+		LinkedHashMap<String,String> telecomInfo = new LinkedHashMap<>();
+
+		int telecomIndex = page.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);
+		for (int index = 0; index < telecomIndex; index++)
+		{
+			telecomInfo = page.grabTelecommunicationsBlockContent(index);
+			if (telecomInfo.get(TelecomField.TYPE.getString()).equals(telecomType.getDataField())) {
+				telecomInfo.put("index", Integer.toString(index));
+				break;
+			}
+		}
+
+		return telecomInfo;
 	}
 }
