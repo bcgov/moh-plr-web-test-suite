@@ -121,12 +121,14 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
      * Adds a free-form note that will be rendered as an extension element in the outgoing FHIR payload.
      *
      * @param text human readable note text (ignored if null)
+     * @param identifier (null if ignored)
      * @return this builder for fluent chaining
      */
-    public MaintainFacilityBuilder addNote(String text)
+    public MaintainFacilityBuilder addNote(String text, String identifier)
     {
         Map<String,String> info = new HashMap<>();
         info.put("text", text);
+        if (identifier != null) info.put("identifier", identifier);
         noteList_.add(info);
         return this;
     }

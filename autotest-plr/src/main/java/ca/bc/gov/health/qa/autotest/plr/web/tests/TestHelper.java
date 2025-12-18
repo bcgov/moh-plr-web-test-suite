@@ -46,7 +46,7 @@ public final class TestHelper {
      */
     public static PlrWebWorkflow logIn(PlrWebWorkflowManager workflowManager, UserType userType)
     {
-        PlrWebWorkflow workflow = workflowManager.selectWorkflow(userType);
+        PlrWebWorkflow workflow = workflowManager.selectWorkflow(userType, false);
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
         return workflow;
     }
@@ -156,7 +156,7 @@ public final class TestHelper {
     public static ViewFacilityPage viewFacilityByIdentifier(
             PlrWebWorkflowManager workflowManager, String identifier, UserType userType)
     {
-        PlrWebWorkflow workflow = workflowManager.selectWorkflow(userType);
+        PlrWebWorkflow workflow = workflowManager.selectWorkflow(userType, false);
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager, userType);
         searchByIdentifier(searchFacility, List.of("IFC", identifier), false);
 
@@ -224,7 +224,7 @@ public final class TestHelper {
     public static ViewProviderPage viewProviderByIdentifier(
             PlrWebWorkflowManager workflowManager, List<String> queryFields, UserType userType)
     {
-        PlrWebWorkflow workflow = workflowManager.selectWorkflow(userType);
+        PlrWebWorkflow workflow = workflowManager.selectWorkflow(userType, false);
         SearchProviderPage searchProvider = navigateToSearchProviderPage(workflowManager, userType);
         searchProviderByIdentifier(searchProvider, queryFields);
 

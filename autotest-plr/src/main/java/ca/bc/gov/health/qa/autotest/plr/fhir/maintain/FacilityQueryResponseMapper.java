@@ -260,15 +260,20 @@ public final class FacilityQueryResponseMapper {
             if (NOTE_EXTENSION_URL.equals(ext.optString("url"))) {
                 JSONArray nested = ext.optJSONArray("extension");
                 if (nested == null) continue;
+                String noteText = null;
+                String noteIdentifier = null;
                 for (int j = 0; j < nested.length(); j++) {
                     JSONObject inner = nested.optJSONObject(j);
                     if (inner == null) continue;
                     if ("text".equals(inner.optString("url"))) {
-                        String noteText = inner.optString("valueString", null);
-                        if (noteText != null && !noteText.isEmpty()) {
-                            b.addNote(noteText);
-                        }
+                        noteText = inner.optString("valueString", null);
                     }
+                    if ("identifier".equals(inner.optString("url"))) {
+                        noteIdentifier = inner.optString("valueIdentifier", null);
+                    }
+                }
+                if (noteText != null && !noteText.isEmpty()) {
+                    b.addNote(noteText, noteIdentifier);
                 }
             }
         }

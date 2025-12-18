@@ -157,7 +157,6 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 			actions.checkDataBlocksCollapsed(page, section, active);
 		}
 	}
-
 	
 	// F2-011. Provider Relationship Summary Line
 	@Test
