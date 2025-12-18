@@ -188,7 +188,18 @@ public class UpdateFacilityComplexTests implements SimpleTest
             assertEquals(error, errMsg7008, "Error message does not match expected result");
         }
 
-        // TODO positive update test?
+        page.updateTelecommunicationBlock(telecomType.getText(),
+                generateNumericString(15), generateNumericString(30), generateNumericString(15),
+                effective_date(), "", telecomIndex, false);
+
+        telecomInfo = page.grabTelecommunicationsBlockContent(telecomIndex);
+
+        assertEquals(telecomInfo.get(TelecomField.AREA_CODE.getString()).length(), TELECOM_AREA_CODE_MAX,
+                "Area Code is not the specified maximum allowed character count");
+        assertEquals(telecomInfo.get(TelecomField.NUMBER.getString()).length(), TELECOM_PHONE_NUMBER_MAX,
+                "Phone Number is not the specified maximum allowed character count");
+        assertEquals(telecomInfo.get(TelecomField.EXTENSION.getString()).length(), TELECOM_EXTENSION_MAX,
+                "Extension is not the specified maximum allowed character count");
     }
 
     @Test
