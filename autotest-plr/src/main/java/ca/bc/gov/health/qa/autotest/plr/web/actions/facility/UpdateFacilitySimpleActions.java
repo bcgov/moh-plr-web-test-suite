@@ -32,6 +32,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.json.JSONObject;
 
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper.effective_date;
 import static org.testng.Assert.*;
 
 public class UpdateFacilitySimpleActions {
@@ -579,17 +580,15 @@ public class UpdateFacilitySimpleActions {
 	 * Based in a list of strings representing the number instead of separate fields.
 	 *
 	 * @param page				the update facility page reference
-	 * @param type				the telecommunication type to create a data block for
-	 * @param telecomNumber		telecom number: list of strings should be formatted [area code, phone number, extension]
+	 * @param telecomNumber		telecom number: list of strings: should be formatted [type, area code, phone number, extension, effective from, effective to]
 	 * @param expectError		whether an error is expected or not
 	 * @return					the error message if an error is expected to occur
 	 */
-	public String addTelecommunicationNumber(UpdateFacilityPage page, TelecommunicationType type,
-											 List<String> telecomNumber, boolean expectError)
+	public String addTelecommunicationNumber(UpdateFacilityPage page, List<String> telecomNumber, boolean expectError)
 	{
-		return page.addTelecommunicationDataBlock(type.getText(),
-				telecomNumber.get(0), telecomNumber.get(1), telecomNumber.get(2),
-				UpdateSimpleHelper.effective_date(), "", expectError);
+		return page.addTelecommunicationDataBlock(telecomNumber.get(0),
+				telecomNumber.get(1), telecomNumber.get(2), telecomNumber.get(3),
+				telecomNumber.get(4), telecomNumber.get(5), expectError);
 	}
 
 	/**
@@ -606,8 +605,8 @@ public class UpdateFacilitySimpleActions {
 												List<String> telecomNumber, boolean expectError)
 	{
 		return page.updateTelecommunicationBlock(type.getText(),
-				telecomNumber.get(0), telecomNumber.get(1), telecomNumber.get(2),
-				UpdateSimpleHelper.effective_date(), "",
+				telecomNumber.get(1), telecomNumber.get(2), telecomNumber.get(3),
+				telecomNumber.get(4), telecomNumber.get(5),
 				Integer.parseInt(getTelecomInfo(page, type).get("index")), expectError);
 	}
 
@@ -633,5 +632,28 @@ public class UpdateFacilitySimpleActions {
 		}
 
 		return telecomInfo;
+	}
+
+	/**
+	 * Verifies the mandatory telecommunication attributes have been changed and match as expected
+	 *
+	 * @param page			the update facility page reference
+	 * @param telecomType	the telecommunication type to get content for
+	 * @param areaCode		the area code to assert the telecom area code has been changed to
+	 * @param phoneNumber	the phone number to assert the telecom phone number has been changed to
+	 */
+	public void verifyMandatoryAttributesPositive(UpdateFacilityPage page, TelecommunicationType telecomType,
+												  String areaCode, String phoneNumber)
+	{
+		LinkedHashMap<String,String> telecomInfo = getTelecomInfo(page, telecomType);
+
+		assertEquals(telecomInfo.get(TelecomField.TYPE.getString()), telecomType.getDataField(),
+				"Unexpected telecommunication type");
+		assertEquals(telecomInfo.get(TelecomField.AREA_CODE.getString()), areaCode,
+				"Unexpected area code field result");
+		assertEquals(telecomInfo.get(TelecomField.NUMBER.getString()), phoneNumber,
+				"Unexpected phone number field result");
+		assertEquals(telecomInfo.get(TelecomField.EFFECTIVE_FROM.getString()), effective_date(),
+				"Unexpected effective from data field result");
 	}
 }

@@ -21,6 +21,8 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
@@ -29,10 +31,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.generateAlphabetString;
 import static java.lang.Integer.TYPE;
@@ -117,8 +116,70 @@ public class UpdateFacilityComplexTests implements SimpleTest
     }
 
     @Test
+    // F4-029. Mandatory Facility Telecommunication Attributes
+    public void mandatoryTelecomAttributes()
+    {
+        final String errMsg5000EndReason = errorList.getString("errMsg5000EndReason");
+        final String errMsg5000TelecomType = errorList.getString("errMsg5000TelecomType");
+        final String errMsg5000TelecomAreaCode = errorList.getString("errMsg5000TelecomAreaCode");
+        final String errMsg5000TelecomPhoneNumber = errorList.getString("errMsg5000TelecomPhoneNumber");
+        final String missingEffectiveFrom = errorList.getString("missingEffectiveFrom");
+
+        final TelecommunicationType telecomType = TelecommunicationType.MOBILE;
+        List<String> expectedPhoneNumber = List.of(generateNumericString(3), generateNumericString(7));
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+
+        final List<List<String>> errorDetails = new ArrayList<>(Arrays.asList(
+                List.of("Select One", generateNumericString(3), generateNumericString(7), "", effective_date(), "", errMsg5000TelecomType),
+                List.of(telecomType.getText(), "", generateNumericString(7), "", effective_date(), "", errMsg5000TelecomAreaCode),
+                List.of(telecomType.getText(), generateNumericString(3), "", "", effective_date(), "", errMsg5000TelecomPhoneNumber),
+                List.of(telecomType.getText(), generateNumericString(3), generateNumericString(7), "", "", "", missingEffectiveFrom)
+        ));
+
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        for (List<String> detail : errorDetails)
+        {
+            String error = actions.addTelecommunicationNumber(page, detail, true);
+
+            assertEquals(error, detail.getLast(), "Error message does not match or did not appear as expected");
+        }
+
+        page.addTelecommunicationDataBlock(telecomType.getText(),
+                expectedPhoneNumber.get(0), expectedPhoneNumber.get(1), "",
+                effective_date(), "", false);
+
+        actions.verifyMandatoryAttributesPositive(page, telecomType, expectedPhoneNumber.get(0), expectedPhoneNumber.get(1));
+
+        errorDetails.removeFirst(); // Type error not testable in update flow
+
+        for (List<String> detail : errorDetails)
+        {
+            String error = actions.updateTelecommunicationNumber(page, telecomType, detail, true);
+
+            assertEquals(error, detail.getLast(), "Error message does not match or did not appear as expected");
+        }
+
+        int telecomIndex = Integer.parseInt(actions.getTelecomInfo(page, telecomType).get("index"));
+
+        page.clickDataBlockUpdateButton(FacilitySection.TELECOMMUNICATIONS, telecomIndex);
+        page.clickDialogSubmitButton(FacilitySection.TELECOMMUNICATIONS);
+        String error = page.waitErrorMessage(FacilitySection.TELECOMMUNICATIONS);
+
+        assertEquals(error, errMsg5000EndReason, "End Reason error message did not appear as expected");
+
+        expectedPhoneNumber = List.of(generateNumericString(3), generateNumericString(7));
+
+        page.updateTelecommunicationBlock(telecomType.getText(),
+                expectedPhoneNumber.get(0), expectedPhoneNumber.get(1), "",
+                effective_date(), "", telecomIndex, false);
+
+        actions.verifyMandatoryAttributesPositive(page, telecomType, expectedPhoneNumber.get(0), expectedPhoneNumber.get(1));
+    }
+
+    @Test
     // F4-030. Optional Telecommunication Attributes
-    public void optionalTelecomAttribute()
+    public void optionalTelecomAttributes()
     {
         final TelecommunicationType telecomType1 = TelecommunicationType.PAGER;
         final TelecommunicationType telecomType2 = TelecommunicationType.FAX;
@@ -178,28 +239,28 @@ public class UpdateFacilityComplexTests implements SimpleTest
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 
         List<List<String>> overMaximumTelecomNumbers = Arrays.asList(
-            List.of(generateNumericString(TELECOM_AREA_CODE_MAX+1), generateNumericString(7), "", errMsg5003TelecomAreaCode),
-            List.of(generateNumericString(3), generateNumericString(TELECOM_PHONE_NUMBER_MAX+1), "", errMsg5003TelecomPhoneNumber),
-            List.of(generateNumericString(3), generateNumericString(7), generateNumericString(TELECOM_EXTENSION_MAX+1), errMsg5003TelecomExtension)
+            List.of(telecomType.getText(), generateNumericString(TELECOM_AREA_CODE_MAX+1), generateNumericString(7), "", effective_date(), "", errMsg5003TelecomAreaCode),
+            List.of(telecomType.getText(), generateNumericString(3), generateNumericString(TELECOM_PHONE_NUMBER_MAX+1), "", effective_date(), "", errMsg5003TelecomPhoneNumber),
+            List.of(telecomType.getText(), generateNumericString(3), generateNumericString(7), generateNumericString(TELECOM_EXTENSION_MAX+1), effective_date(), "", errMsg5003TelecomExtension)
         );
         List<List<String>> invalidCharTelecomNumbers = Arrays.asList(
-            List.of(generateAlphabetString(3), generateNumericString(7), ""),
-            List.of(generateNumericString(3), generateAlphabetString(7), ""),
-            List.of(generateNumericString(3), generateNumericString(7), generateAlphabetString(3))
+            List.of(telecomType.getText(), generateAlphabetString(3), generateNumericString(7), "", effective_date(), ""),
+            List.of(telecomType.getText(), generateNumericString(3), generateAlphabetString(7), "", effective_date(), ""),
+            List.of(telecomType.getText(), generateNumericString(3), generateNumericString(7), generateAlphabetString(3), effective_date(), "")
         );
-        LinkedHashMap<String,String> telecomInfo = new LinkedHashMap<>();
+        LinkedHashMap<String,String> telecomInfo;
 
         UpdateFacilityPage page = actions.openFacility(dummyFacility);
 
         for (List<String> telecomNumber : overMaximumTelecomNumbers)
         {
-            String error = actions.addTelecommunicationNumber(page, telecomType, telecomNumber, true);
+            String error = actions.addTelecommunicationNumber(page, telecomNumber, true);
             assertEquals(error, telecomNumber.getLast(), "Error message does not match expected result");
         }
 
         for (List<String> telecomNumber : invalidCharTelecomNumbers)
         {
-            String error = actions.addTelecommunicationNumber(page, telecomType, telecomNumber, true);
+            String error = actions.addTelecommunicationNumber(page, telecomNumber, true);
             assertEquals(error, errMsg7008, "Error message does not match expected result");
         }
 
@@ -301,24 +362,5 @@ public class UpdateFacilityComplexTests implements SimpleTest
             assertEquals(orgRelType, relType.getBlockText(),
                     "New org relationship has unexpected relationship type");
         }
-    }
-
-    @Test
-    // F4-047. Validate Related Organization ID and Relationship Type Code Combination
-    public void relatedOrgIDTypeCodeCombo()
-    {
-        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-        final OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig();
-        final MaintainOrgBuilder org = fhirController.createOrganization(orgConfig.withName(generateAlphabetString(15)));
-
-        UpdateFacilityPage page = actions.openFacility(dummyFacility);
-
-        // related provider identifier + relationship type
-
-        // different org, same relationship type
-
-        // same org, different relationship type
-
-        //
     }
 }

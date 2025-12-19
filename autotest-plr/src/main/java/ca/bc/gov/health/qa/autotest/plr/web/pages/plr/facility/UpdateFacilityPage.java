@@ -232,7 +232,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
         dropdownMenu.selectItem(visibleText);
 	}
 	
-	private void clickDialogSubmitButton(FacilitySection section) {
+	public void clickDialogSubmitButton(FacilitySection section) {
 		clickDialogSubmitButton(section, false);
 	}
 
@@ -252,7 +252,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		}
 	}
 	
-	private String waitErrorMessage(FacilitySection section) {
+	public String waitErrorMessage(FacilitySection section) {
 
 		String msgDisplay = "";
 		
@@ -777,7 +777,6 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		setEndReasonByVisibleText(FacilitySection.TELECOMMUNICATIONS,EndReason.CHG.getText());
 
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.TELECOMMUNICATIONS,effectiveFrom,effectiveTo);
-
 
 		clickDialogSubmitButton(FacilitySection.TELECOMMUNICATIONS);
 
