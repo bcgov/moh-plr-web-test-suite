@@ -749,7 +749,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
-	public String updateTelecommunicationBlock(String type, String areaCode, String phoneNumber, String extension,
+	public String updateTelecommunicationBlock(String areaCode, String phoneNumber, String extension,
 											   String effectiveFrom, String effectiveTo, int index, boolean expectError)
 	{
 		String msgDisplay="";
@@ -829,11 +829,39 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
+	/**
+	 * TODO (KD) - doc
+	 *
+	 * @param address
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param expectError
+	 * @return
+	 */
+	public String updateElectronicAddressDataBlock(String address, String effectiveFrom, String effectiveTo,
+												   int index, boolean expectError) {
+		String msgDisplay="";
+		String formName=DIALOG_MAP.get(FacilitySection.ELECTRONIC_ADDRESSES).getFormName();
+		String dialogCss=getDialogCss(FacilitySection.ELECTRONIC_ADDRESSES);
 
+		clickDataBlockUpdateButton(FacilitySection.ELECTRONIC_ADDRESSES, index);
+		//waitSeconds(2);
 
-	
+		String inputAddressCss=dialogCss+" >input#"+formName+"\\:"+"electronicAddress";
+		WebElement inputAddress=selenium_.findElement(By.cssSelector(inputAddressCss));
+		inputAddress.clear();
+		if(!StringUtils.isEmpty(address))inputAddress.sendKeys(address);
 
+		setEndReasonByVisibleText(FacilitySection.ELECTRONIC_ADDRESSES, EndReason.CHG.getText());
 
+		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ELECTRONIC_ADDRESSES,effectiveFrom,effectiveTo);
 
+		clickDialogSubmitButton(FacilitySection.ELECTRONIC_ADDRESSES);
 
+		if(expectError)
+			msgDisplay=waitErrorMessage(FacilitySection.ELECTRONIC_ADDRESSES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
 }

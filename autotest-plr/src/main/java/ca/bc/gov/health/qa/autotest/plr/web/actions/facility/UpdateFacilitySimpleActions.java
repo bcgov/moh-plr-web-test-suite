@@ -580,7 +580,8 @@ public class UpdateFacilitySimpleActions {
 	 * Based in a list of strings representing the number instead of separate fields.
 	 *
 	 * @param page				the update facility page reference
-	 * @param telecomNumber		telecom number: list of strings: should be formatted [type, area code, phone number, extension, effective from, effective to]
+	 * @param telecomNumber		telecom number: list of strings: should be formatted
+	 *                             [type, area code, phone number, extension, effective from, effective to]
 	 * @param expectError		whether an error is expected or not
 	 * @return					the error message if an error is expected to occur
 	 */
@@ -589,6 +590,22 @@ public class UpdateFacilitySimpleActions {
 		return page.addTelecommunicationDataBlock(telecomNumber.get(0),
 				telecomNumber.get(1), telecomNumber.get(2), telecomNumber.get(3),
 				telecomNumber.get(4), telecomNumber.get(5), expectError);
+	}
+
+	/**
+	 * Adds an electronic address data block to a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page			the update facility page reference
+	 * @param eAddress		e-address: list of strings, should be formatted
+	 *                         [type, address, effective from, effective to]
+	 * @param expectError	whether an error is expected or not
+	 * @return				the error message if an error is expected to occur
+	 */
+	public String addEAddress(UpdateFacilityPage page, List<String> eAddress, boolean expectError)
+	{
+		return page.addElectronicAddressDataBlock(eAddress.get(0),
+				eAddress.get(1), eAddress.get(2), eAddress.get(3), expectError);
 	}
 
 	/**
@@ -604,10 +621,27 @@ public class UpdateFacilitySimpleActions {
 	public String updateTelecommunicationNumber(UpdateFacilityPage page, TelecommunicationType type,
 												List<String> telecomNumber, boolean expectError)
 	{
-		return page.updateTelecommunicationBlock(type.getText(),
-				telecomNumber.get(1), telecomNumber.get(2), telecomNumber.get(3),
+		return page.updateTelecommunicationBlock(telecomNumber.get(1), telecomNumber.get(2), telecomNumber.get(3),
 				telecomNumber.get(4), telecomNumber.get(5),
 				Integer.parseInt(getTelecomInfo(page, type).get("index")), expectError);
+	}
+
+	/**
+	 * Updates an electronic address data block to a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page			the update facility page reference
+	 * @param type			the e-address type to update
+	 * @param eAddress		e-address: list of strings, should be formatted
+	 *                         [type, address, effective from, effective to]
+	 * @param expectError	whether an error is expected or not
+	 * @return				the error message if an error is expected to occur
+	 */
+	public String updateEAddress(UpdateFacilityPage page, ElectronicAddressType type,
+								 List<String> eAddress, boolean expectError)
+	{
+		return page.updateElectronicAddressDataBlock(eAddress.get(1), eAddress.get(2), eAddress.get(3),
+				Integer.parseInt(getEAddressInfo(page, type).get("index")), expectError);
 	}
 
 	/**
@@ -642,7 +676,7 @@ public class UpdateFacilitySimpleActions {
 	 * @param areaCode		the area code to assert the telecom area code has been changed to
 	 * @param phoneNumber	the phone number to assert the telecom phone number has been changed to
 	 */
-	public void verifyMandatoryAttributesPositive(UpdateFacilityPage page, TelecommunicationType telecomType,
+	public void verifyMandatoryAttributesTelecom(UpdateFacilityPage page, TelecommunicationType telecomType,
 												  String areaCode, String phoneNumber)
 	{
 		LinkedHashMap<String,String> telecomInfo = getTelecomInfo(page, telecomType);
@@ -654,6 +688,49 @@ public class UpdateFacilitySimpleActions {
 		assertEquals(telecomInfo.get(TelecomField.NUMBER.getString()), phoneNumber,
 				"Unexpected phone number field result");
 		assertEquals(telecomInfo.get(TelecomField.EFFECTIVE_FROM.getString()), effective_date(),
+				"Unexpected effective from data field result");
+	}
+
+	/**
+	 * Gets the info of a data block for the electronic address type
+	 *
+	 * @param page			the update facility page reference
+	 * @param eaType		the electronic address type to get content for
+	 * @return				a map of strings for the data block corresponding to the desired e-address type
+	 */
+	public LinkedHashMap<String,String> getEAddressInfo(UpdateFacilityPage page, ElectronicAddressType eaType)
+	{
+		LinkedHashMap<String,String> eAddressInfo = new LinkedHashMap<>();
+
+		int telecomIndex = page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true);
+		for (int index = 0; index < telecomIndex; index++)
+		{
+			eAddressInfo = page.grabElectronicAddressesBlockContent(index);
+			if (eAddressInfo.get(EAddressField.TYPE.getString()).equals(eaType.getDataField())) {
+				eAddressInfo.put("index", Integer.toString(index));
+				break;
+			}
+		}
+
+		return eAddressInfo;
+	}
+
+	/**
+	 * Verifies the mandatory e-address attributes have been changed and match as expected
+	 *
+	 * @param page			the update facility page reference
+	 * @param eaType		the electronic address type to get content for
+	 * @param address		the address to assert the electronic address field has been changed to
+	 */
+	public void verifyMandatoryAttributesEAddress(UpdateFacilityPage page, ElectronicAddressType eaType, String address)
+	{
+		LinkedHashMap<String,String> eaInfo = getEAddressInfo(page, eaType);
+
+		assertEquals(eaInfo.get(EAddressField.TYPE.getString()), eaType.getDataField(),
+				"Unexpected telecommunication type");
+		assertEquals(eaInfo.get(EAddressField.ADDRESS.getString()), address,
+				"Unexpected area code field result");
+		assertEquals(eaInfo.get(EAddressField.EFFECTIVE_FROM.getString()), effective_date(),
 				"Unexpected effective from data field result");
 	}
 }

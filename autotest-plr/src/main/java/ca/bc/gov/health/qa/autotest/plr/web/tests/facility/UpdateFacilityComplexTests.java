@@ -21,8 +21,6 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
@@ -34,7 +32,6 @@ import java.nio.file.Path;
 import java.util.*;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.generateAlphabetString;
-import static java.lang.Integer.TYPE;
 import static java.lang.Integer.parseInt;
 import static org.testng.Assert.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper.*;
@@ -120,7 +117,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
     public void mandatoryTelecomAttributes()
     {
         final String errMsg5000EndReason = errorList.getString("errMsg5000EndReason");
-        final String errMsg5000TelecomType = errorList.getString("errMsg5000TelecomType");
+        final String errMsg5000Type = errorList.getString("errMsg5000Type");
         final String errMsg5000TelecomAreaCode = errorList.getString("errMsg5000TelecomAreaCode");
         final String errMsg5000TelecomPhoneNumber = errorList.getString("errMsg5000TelecomPhoneNumber");
         final String missingEffectiveFrom = errorList.getString("missingEffectiveFrom");
@@ -130,7 +127,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 
         final List<List<String>> errorDetails = new ArrayList<>(Arrays.asList(
-                List.of("Select One", generateNumericString(3), generateNumericString(7), "", effective_date(), "", errMsg5000TelecomType),
+                List.of("Select One", generateNumericString(3), generateNumericString(7), "", effective_date(), "", errMsg5000Type),
                 List.of(telecomType.getText(), "", generateNumericString(7), "", effective_date(), "", errMsg5000TelecomAreaCode),
                 List.of(telecomType.getText(), generateNumericString(3), "", "", effective_date(), "", errMsg5000TelecomPhoneNumber),
                 List.of(telecomType.getText(), generateNumericString(3), generateNumericString(7), "", "", "", missingEffectiveFrom)
@@ -149,7 +146,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 expectedPhoneNumber.get(0), expectedPhoneNumber.get(1), "",
                 effective_date(), "", false);
 
-        actions.verifyMandatoryAttributesPositive(page, telecomType, expectedPhoneNumber.get(0), expectedPhoneNumber.get(1));
+        actions.verifyMandatoryAttributesTelecom(page, telecomType, expectedPhoneNumber.get(0), expectedPhoneNumber.get(1));
 
         errorDetails.removeFirst(); // Type error not testable in update flow
 
@@ -170,11 +167,10 @@ public class UpdateFacilityComplexTests implements SimpleTest
 
         expectedPhoneNumber = List.of(generateNumericString(3), generateNumericString(7));
 
-        page.updateTelecommunicationBlock(telecomType.getText(),
-                expectedPhoneNumber.get(0), expectedPhoneNumber.get(1), "",
+        page.updateTelecommunicationBlock(expectedPhoneNumber.get(0), expectedPhoneNumber.get(1), "",
                 effective_date(), "", telecomIndex, false);
 
-        actions.verifyMandatoryAttributesPositive(page, telecomType, expectedPhoneNumber.get(0), expectedPhoneNumber.get(1));
+        actions.verifyMandatoryAttributesTelecom(page, telecomType, expectedPhoneNumber.get(0), expectedPhoneNumber.get(1));
     }
 
     @Test
@@ -197,8 +193,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         assertEquals(telecomInfo.get(TelecomField.EFFECTIVE_TO.getString()), increment_month_for_effective_date(),
                 "Effective To Date add failed to fill as expected");
 
-        page.updateTelecommunicationBlock(telecomType1.getText(),
-                generateNumericString(3), generateNumericString(7), "",
+        page.updateTelecommunicationBlock(generateNumericString(3), generateNumericString(7), "",
                 effective_date(), increment_year_for_effective_date(), telecomIndex, false);
 
         telecomInfo = page.grabTelecommunicationsBlockContent(telecomIndex);
@@ -217,9 +212,8 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Extension add failed to fill as expected");
 
         expectedExtension = generateNumericString(3);
-        page.updateTelecommunicationBlock(telecomType2.getText(), generateNumericString(3),
-                generateNumericString(7), expectedExtension,effective_date(),
-                "", telecomIndex, false);
+        page.updateTelecommunicationBlock(generateNumericString(3), generateNumericString(7),
+                expectedExtension, effective_date(), "", telecomIndex, false);
 
         telecomInfo = page.grabTelecommunicationsBlockContent(telecomIndex);
 
@@ -291,9 +285,8 @@ public class UpdateFacilityComplexTests implements SimpleTest
             assertEquals(error, errMsg7008, "Error message does not match expected result");
         }
 
-        page.updateTelecommunicationBlock(telecomType.getText(),
-                generateNumericString(15), generateNumericString(30), generateNumericString(15),
-                effective_date(), "", telecomIndex, false);
+        page.updateTelecommunicationBlock(generateNumericString(15), generateNumericString(30),
+                generateNumericString(15), effective_date(), "", telecomIndex, false);
 
         telecomInfo = page.grabTelecommunicationsBlockContent(telecomIndex);
 
@@ -303,6 +296,63 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Phone Number is not the specified maximum allowed character count");
         assertEquals(telecomInfo.get(TelecomField.EXTENSION.getString()).length(), TELECOM_EXTENSION_MAX,
                 "Extension is not the specified maximum allowed character count");
+    }
+
+    @Test
+    // F4-035. Mandatory Facility Electronic Address Attributes
+    public void mandatoryEAddressAttributes()
+    {
+        final String errMsg5000EndReason = errorList.getString("errMsg5000EndReason");
+        final String errMsg5000Type = errorList.getString("errMsg5000Type");
+        final String errMsg5000EAddress = errorList.getString("errMsg5000EAddress");
+        final String missingEffectiveFrom = errorList.getString("missingEffectiveFrom");
+
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+        final ElectronicAddressType eaType = ElectronicAddressType.EMAIL;
+
+        List<List<String>> errorDetails = new ArrayList<>(Arrays.asList(
+                List.of("Select One", generateEmail(), effective_date(), "", errMsg5000Type),
+                List.of(eaType.getText(), "", effective_date(), "", errMsg5000EAddress),
+                List.of(eaType.getText(), generateEmail(), "", "", missingEffectiveFrom)
+        ));
+
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        for (List<String> detail : errorDetails)
+        {
+            String error = actions.addEAddress(page, detail, true);
+
+            assertEquals(error, detail.getLast(), "Error message does not match or did not appear as expected");
+        }
+
+        String expectedEmail = generateEmail();
+        page.addElectronicAddressDataBlock(eaType.getText(), expectedEmail,
+                effective_date(), "", false);
+
+        actions.verifyMandatoryAttributesEAddress(page, eaType, expectedEmail);
+
+        errorDetails.removeFirst(); // Type error not testable in update flow
+
+        for (List<String> detail : errorDetails)
+        {
+            String error = actions.updateEAddress(page, eaType, detail, true);
+
+            assertEquals(error, detail.getLast(), "Error message does not match or did not appear as expected");
+        }
+
+        int eaIndex = Integer.parseInt(actions.getEAddressInfo(page, eaType).get("index"));
+
+        page.clickDataBlockUpdateButton(FacilitySection.ELECTRONIC_ADDRESSES, eaIndex);
+        page.clickDialogSubmitButton(FacilitySection.ELECTRONIC_ADDRESSES);
+        String error = page.waitErrorMessage(FacilitySection.ELECTRONIC_ADDRESSES);
+
+        assertEquals(error, errMsg5000EndReason, "End Reason error message did not appear as expected");
+
+        expectedEmail = generateEmail();
+
+        page.updateElectronicAddressDataBlock(expectedEmail, effective_date(), "", eaIndex,false);
+
+        actions.verifyMandatoryAttributesEAddress(page, eaType, expectedEmail);
     }
 
     @Test
