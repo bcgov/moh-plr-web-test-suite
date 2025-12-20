@@ -66,9 +66,10 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
     /**
-     * TODO (KD) - doc
+     * Tries to wait some number of seconds. Will fail the test used in if interrupted.
+	 * TODO this should be used as little as possible in favour of selenium implicit waits.
      *
-     * @param second
+     * @param second					the number of seconds to wait.
      */
 	public void waitSeconds(int second) {
 		try {
@@ -80,15 +81,11 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 
 	}
 	
-	public void refreshPage() {
-		selenium_.getDriver().navigate().refresh();
-
-	}
+	public void refreshPage() { selenium_.getDriver().navigate().refresh(); }
 
 	public void maxWindow() {
 		selenium_.getDriver().manage().window().maximize();
 	}
-
 
 	private String getSectionSelector(FacilitySection section) {
 		return "div#" + section.getPanelId_();
@@ -124,11 +121,11 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
     /**
-     * TODO (KD) - doc
+     * Gets whether a specified data block is active.
      *
-     * @param section
-     * @param index
-     * @return
+     * @param section	the facility section to look inside
+     * @param index		the index of the data block within the data section
+     * @return			whether the specified data block is active (true) or not (false)
      */
 	public boolean grabDataBlockActive(FacilitySection section, int index) {
 		By locator = By.cssSelector(getDataBlockHeaderActiveSelector(section, index));
@@ -142,11 +139,11 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
     /**
-     * TODO (KD) - doc
+     * Gets a facility section's active/inactive data block count.
      *
-     * @param section
-     * @param active
-     * @return
+     * @param section		the facility section to count active data blocks within.
+     * @param active		whether to check for active (true) or inactive (false) data blocks.
+     * @return				the number of active/inactive data blocks depending on the value of active
      */
 	public int grabActiveDataBlockCount(FacilitySection section, boolean active) {
 		int count = 0;
@@ -176,10 +173,10 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
     /**
-     * TODO (KD) - doc
+     * Attempts to click the update button on a specified data block
      *
-     * @param section
-     * @param index
+     * @param section		the facility section to find the data block's update button within
+     * @param index			the specific index of the data block to find and click the update button for
      */
 	public void clickDataBlockUpdateButton(FacilitySection section, int index) {
 		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
@@ -430,13 +427,13 @@ public class UpdateFacilityPage extends ViewFacilityPage {
     }
 
     /**
-     * TODO (KD) - doc
+     * Attempts to add a name data block with provided values
      *
-     * @param name
-     * @param desc
-     * @param effectiveFrom
-     * @param effectiveTo
-     * @return
+     * @param name				the name to fill the name field with for the new data block
+     * @param desc				the description to fill the description field with for the new data block
+     * @param effectiveFrom		the effective from date to fill the effective from field with for the new data block
+     * @param effectiveTo		the effective to date to fill the effective to field with for the new data block
+     * @return					the full message dialog of errors, if any exist. otherwise an empty string
      */
 	public String addNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo) {
 		String msgDisplay="";
@@ -454,7 +451,6 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.NAMES,effectiveFrom,effectiveTo);
 		
-		
 		clickDialogSubmitButton(FacilitySection.NAMES);
 		
 		msgDisplay=getDialogMessages(FacilitySection.NAMES);
@@ -465,20 +461,19 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 			cancelButton.click();
 		}
 		
-		
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
 
     /**
-     * TODO (KD) - doc
+     * Attempts to update a name data block with provided values
      *
-     * @param name
-     * @param desc
-     * @param effectiveFrom
-     * @param effectiveTo
-     * @param index
-     * @return
+     * @param name				the name to update the data block with
+     * @param desc				the description to update the data block with
+     * @param effectiveFrom		the effective from date to update the data block with
+     * @param effectiveTo		the effective to date to update the data block with
+     * @param index				the index of name data block to update
+     * @return					a string of the full message dialog of errors, if any exist. otherwise an empty string
      */
 	public String updateNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo,int index) {
 		String msgDisplay="";
@@ -513,14 +508,14 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
     /**
-     * TODO (KD) - doc
+     * Attempts to add an identifier data block with provided values
      *
-     * @param idType
-     * @param id
-     * @param effectiveFrom
-     * @param effectiveTo
-     * @param expectError
-     * @return
+     * @param idType			the type of identifier to fill the identifier type field with in the data block
+     * @param id				the identifier to fill the identifier field with in the data block
+     * @param effectiveFrom		the effective from date to fill the effective from field with in the data block
+     * @param effectiveTo		the effective to date to fill the effective to field with in the data block
+     * @param expectError		whether to anticipate an error (true) or not (false)
+     * @return					a string of the error message, if expectedError is true. otherwise an empty string
      */
 	public String addIdentifierDataBlock(String idType, String id, String effectiveFrom, String effectiveTo,boolean expectError) {
 		String msgDisplay="";
@@ -595,14 +590,14 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
     /**
-     * TODO (KD) - doc
+     * Attempts to update a note data block with provided values
      *
-     * @param text
-     * @param effectiveFrom
-     * @param effectiveTo
-     * @param index
-     * @param expectError
-     * @return
+     * @param text				the note text to update the note text field with
+     * @param effectiveFrom		the effective from date to update the effective from field with
+     * @param effectiveTo		the effective to date to update the effective to field with
+     * @param index				the index of note data block to update
+     * @param expectError		whether an error is anticipated (true) or not (false)
+     * @return					a string of the error message, if expectError is true. otherwise an empty string
      */
 	public String updateNoteDataBlock( String text, String effectiveFrom, String effectiveTo,
 			int index,boolean expectError) {
@@ -652,8 +647,8 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		
 		clickHeaderAddDateBlockButtonOrgID(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 		//waitSeconds(2);
-		
-		
+
+
 		selectDropdownListByClick(FacilitySection.ORGANIZATION_RELATIONSHIPS,"providerType",idType);
 		
 		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"rpi";
@@ -699,16 +694,16 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
     /**
-     * TODO (KD) - doc
+     * Attempts to add a telecommunication data block with provided values
      *
-     * @param type
-     * @param areaCode
-     * @param phoneNumber
-     * @param extension
-     * @param effectiveFrom
-     * @param effectiveTo
-     * @param expectError
-     * @return
+     * @param type				the type of telecommunication to add a data block for
+     * @param areaCode			the area code to fill the area code field for in the data block
+     * @param phoneNumber		the phone number to fill the number field for in the data block
+     * @param extension			the extension to fill the extension field for in the data block
+     * @param effectiveFrom		the effective from date to fill the effective from field for in the data block
+     * @param effectiveTo		the effective to date to fill the effective to field for in the data block
+     * @param expectError		whether an error is anticipated (true) or not (false)
+     * @return					a string of the error message, if expectError is true. otherwise an empty string
      */
 	public String addTelecommunicationDataBlock(String type, String areaCode, String phoneNumber,String extension,
 			String effectiveFrom,String effectiveTo, boolean expectError) {
@@ -749,6 +744,18 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
+	/**
+	 * Attempts to update a telecommunication data block with provided values
+	 *
+	 * @param areaCode			the area code to update the data block with
+	 * @param phoneNumber		the phone number to update the data block with
+	 * @param extension			the extension to update the data block with
+	 * @param effectiveFrom		the effective from date to update the data block with
+	 * @param effectiveTo		the effective to date to update the data block with
+	 * @param index				the index of the telecom data block to update
+	 * @param expectError		whether an error is anticipated (true) or not (false)
+	 * @return					a string of the error message, if expectError is true. otherwise an empty string
+	 */
 	public String updateTelecommunicationBlock(String areaCode, String phoneNumber, String extension,
 											   String effectiveFrom, String effectiveTo, int index, boolean expectError)
 	{
@@ -788,14 +795,14 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
     /**
-     * TODO (KD) - doc
+     * Attempts to add an electronic address data block with provided values
      *
-     * @param type
-     * @param address
-     * @param effectiveFrom
-     * @param effectiveTo
-     * @param expectError
-     * @return
+     * @param type				the type of electronic address to create a data block for
+     * @param address			the address to fill the address field for in the data block
+     * @param effectiveFrom		the effective from date to fill the effective from field for in the data block
+     * @param effectiveTo		the effective to date to fill the effective to field for in the data block
+     * @param expectError		whether an error is anticipated (true) or not (false)
+     * @return					a string of the error message, if expectError is true. otherwise an empty string
      */
 	public String addElectronicAddressDataBlock(String type, String address,
 			String effectiveFrom,String effectiveTo,boolean expectError) {
@@ -830,13 +837,13 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * Attempts to update an electronic address data block with provided values.
 	 *
-	 * @param address
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param expectError
-	 * @return
+	 * @param address			the address to update the data block with
+	 * @param effectiveFrom		the effective from date to update the data block with
+	 * @param effectiveTo		the effective to date to update the data block with
+	 * @param expectError		whether an error is anticipated (true) or not (false)
+	 * @return					a string of the error message, if expectError is true. otherwise an empty string
 	 */
 	public String updateElectronicAddressDataBlock(String address, String effectiveFrom, String effectiveTo,
 												   int index, boolean expectError) {

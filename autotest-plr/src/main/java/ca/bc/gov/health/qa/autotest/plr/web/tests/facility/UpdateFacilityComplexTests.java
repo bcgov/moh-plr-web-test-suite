@@ -10,7 +10,6 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.*;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -86,26 +85,6 @@ public class UpdateFacilityComplexTests implements SimpleTest
         {
             workflow.login().openPlr();
         }
-    }
-
-    @Test
-    // F4-022. Rejection of Non-Acceptable Characters
-    public void rejectionNonAcceptableCharacters()
-    {
-        final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
-        actions.openFacility("6905");
-        // attempt to add identifier
-        // attempt to update identifier
-        // attempt to add name
-        // attempt to update name
-        // attempt to update civic address
-        // attempt to update other address
-        // attempt to add new telecom
-        // attempt to update telecom
-        // attempt to add e-address
-        // attempt to update e-address
-        // attempt to add note
-        // attempt to update note
     }
 
     @Test
