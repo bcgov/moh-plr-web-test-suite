@@ -8,7 +8,6 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.*;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
@@ -62,7 +61,6 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
     }
 
-    /*
     @AfterClass
     public void teardown()
     {
@@ -70,7 +68,6 @@ public class UpdateFacilityComplexTests implements SimpleTest
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
-     */
 
     @BeforeTest
     public void beforeTest()
@@ -78,8 +75,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         fhirController = new FHIRController(UserType.ADMIN);
 
         final FacilityMaintainConfig config = new FacilityMaintainConfig();
-        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006919.BC.PRS");
-        //dummyFacility = fhirController.createFacility(config);
+        dummyFacility = fhirController.createFacility(config);
     }
 
     @BeforeMethod
@@ -353,6 +349,33 @@ public class UpdateFacilityComplexTests implements SimpleTest
         page.updateElectronicAddressDataBlock(expectedEmail, effective_date(), "", eaIndex,false);
 
         actions.verifyMandatoryAttributesEAddress(page, eaType, expectedEmail);
+    }
+
+    @Test
+    // F4-036. Optional Electronic Address Attributes
+    public void optionalEAddressAttributes()
+    {
+        final ElectronicAddressType eaType = ElectronicAddressType.FTP;
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        page.addElectronicAddressDataBlock(eaType.getText(), generateHTTP(),
+                effective_date(), increment_month_for_effective_date(), false);
+
+        LinkedHashMap<String,String> eaInfo = actions.getEAddressInfo(page, eaType);
+        int eaIndex = Integer.parseInt(eaInfo.get("index"));
+
+        assertEquals(eaInfo.get(EAddressField.EFFECTIVE_TO.getString()), increment_month_for_effective_date(),
+                "Effective To field failed to add as expected");
+
+        page.updateElectronicAddressDataBlock(generateHTTP(),
+                effective_date(), increment_year_for_effective_date(), eaIndex, false);
+
+        eaInfo = actions.getEAddressInfo(page, eaType);
+
+        assertEquals(eaInfo.get(EAddressField.EFFECTIVE_TO.getString()), increment_year_for_effective_date(),
+                "Effective To field failed to update as expected");
     }
 
     @Test
