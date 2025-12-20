@@ -34,12 +34,14 @@ public class ViewFacilityComplexTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private static FHIRController fhirController;
+    private static MaintainFacilityBuilder dummyFacility;
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
     public ViewFacilityComplexTests() {}
 
     @AfterClass
     public void teardown() {
+        dummyFacility.ceaseOrganizationRelationships();
         fhirController.close();
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
@@ -50,7 +52,8 @@ public class ViewFacilityComplexTests implements SimpleTest {
     {
         fhirController = new FHIRController(UserType.ADMIN);
 
-        // TODO identify most common / guaranteed facility needed for test cases and make that here
+        FacilityMaintainConfig config = new FacilityMaintainConfig().withAllAttributes(2,2);
+        dummyFacility = fhirController.createFacility(config);
     }
 
     @BeforeMethod
@@ -71,13 +74,10 @@ public class ViewFacilityComplexTests implements SimpleTest {
                                                             .map(ElectronicAddressType::getStartText).toList());
         Collections.sort(expectedTelecomTypes);
         Collections.sort(expectedEAddressTypes);
-        final FacilityMaintainConfig config = new FacilityMaintainConfig()
-                                                    .withAllAttributes(2,2);
-        final MaintainFacilityBuilder multiplicityFacility = fhirController.createFacility(config);
 
         // Test Start
         ViewFacilityPage page = viewFacilityByIdentifier(workflowManager_,
-                multiplicityFacility.getIdentifier(), UserType.ADMIN);
+                dummyFacility.getIdentifier(), UserType.ADMIN);
 
         List<String> telecomTypes = actions.getDataBlockTypes(page,
                 FacilitySection.TELECOMMUNICATIONS, expectedTelecomTypes);
@@ -107,31 +107,26 @@ public class ViewFacilityComplexTests implements SimpleTest {
                 "Facility is missing expected electronic address record types");
         assertEquals(page.grabCivicAddressBlockContent().get(CivicAddressField.PROVINCE_STATE.getString()),
                 "BC - British Columbia", "Civic Address is not located in British Columbia");
-
-        multiplicityFacility.ceaseOrganizationRelationships();
     }
 
     @Test
     // F2-007. Limiting Number of Records For View Facility Details Screen
     public void testLimitNumberRecords()
     {
-        final FacilityMaintainConfig lowNoteConfig = new FacilityMaintainConfig().withNotes(1);
         final FacilityMaintainConfig highCountConfig = new FacilityMaintainConfig()
                                                             .withAllAttributes(50,50);
-        final MaintainFacilityBuilder lowNoteCountFacility = fhirController.createFacility(lowNoteConfig);
         final MaintainFacilityBuilder highCountFacility = fhirController.createFacility(highCountConfig);
         final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
 
         // Test Start
         ViewFacilityPage page = viewFacilityByIdentifier(workflowManager_,
-                lowNoteCountFacility.getIdentifier(), UserType.ADMIN);
+                dummyFacility.getIdentifier(), UserType.ADMIN);
 
         assertTrue(page.grabDataBlockCount(FacilitySection.NOTES) < 50,
                 "Facility unexpectedly has 50 or more notes");
 
         actions.checkDataBlockIdentifiers(page, FacilitySection.NOTES, NoteField.NOTE_IDENTIFIER.getString());
 
-        lowNoteCountFacility.ceaseOrganizationRelationships();
         page = viewFacilityByIdentifier(workflowManager_,
                 highCountFacility.getIdentifier(), UserType.ADMIN);
 
@@ -151,13 +146,10 @@ public class ViewFacilityComplexTests implements SimpleTest {
     // F2-008. View Facility Details Screen - Organization Relationships Block
     public void testOrgRelationshipBlock()
     {
-        final FacilityMaintainConfig orgConfig = new FacilityMaintainConfig().withOrgRelationships(2);
-        final MaintainFacilityBuilder orgFacility = fhirController.createFacility(orgConfig);
-
         List<String> orgIdentifiers = new ArrayList<>();
 
         // Test Start
-        ViewFacilityPage page = viewFacilityByIdentifier(workflowManager_, orgFacility.getIdentifier(), UserType.ADMIN);
+        ViewFacilityPage page = viewFacilityByIdentifier(workflowManager_, dummyFacility.getIdentifier(), UserType.ADMIN);
 
         int orgBlockCount = page.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
@@ -179,8 +171,6 @@ public class ViewFacilityComplexTests implements SimpleTest {
 
         assertEquals(orgIdentifiers, sortedOrgIdentifiers,
                 "Organization Relationships are not sorted by Related Organization Identifier");
-
-        orgFacility.ceaseOrganizationRelationships();
     }
 
     @Test
@@ -194,11 +184,9 @@ public class ViewFacilityComplexTests implements SimpleTest {
         final String provNameField = ViewProviderConstants.NameField.NAME.getString();
         final String provIdentifierField = ViewProviderConstants.IdentifierField.IDENTIFIER.getString();
         final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
-        final FacilityMaintainConfig orgConfig = new FacilityMaintainConfig().withOrgRelationships(2);
-        final MaintainFacilityBuilder facility = fhirController.createFacility(orgConfig);
 
         String orgIdentifier;
-        String facIdentifier = facility.getIdentifier();
+        String facIdentifier = dummyFacility.getIdentifier();
         String orgName = null;
         String facName;
         LinkedHashMap<String,String> orgRelMap;
@@ -255,8 +243,6 @@ public class ViewFacilityComplexTests implements SimpleTest {
             assertEquals(facRelMap.get(provFacNameField), facName,
                     "Related Facility Name does not match on Facility Page");
         }
-
-        facility.ceaseOrganizationRelationships();
     }
 
     @Test
