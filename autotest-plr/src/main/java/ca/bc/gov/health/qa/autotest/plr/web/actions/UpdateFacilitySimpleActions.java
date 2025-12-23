@@ -54,8 +54,11 @@ public class UpdateFacilitySimpleActions {
 	private static JSONObject errorList;
 	private static JSONObject warningList;
 
+	private static final String ID_SPECIAL_CHAR = "IFC.0012479#.BC.PRS";
+	private static final String ID_FOREIGN_CHAR = "IFC.0012479À.BC.PRS";
+
 	/**
-	 * TODO (KD) - doc
+	 * Initializes class and SeleniumSession.
 	 *
 	 * @param selenium
 	 * @param uri
@@ -74,24 +77,39 @@ public class UpdateFacilitySimpleActions {
 			throw new IllegalStateException(msg, e);
 		}
 	}
-
+	/**
+	 * Gets the selenium_ value.
+	 *
+	 * @return the selenium_
+	 */
 	public SeleniumSession getSelenium_() {
 		return selenium_;
 	}
 
+	/**
+	 * Gets the uri_ value.
+	 *
+	 * @return the uri_
+	 */
 	public URI getUri_() {
 		return uri_;
 	}
 
+	/**
+	 * Gets the userType_ value.
+	 *
+	 * @return the userType_
+	 */
 	public UserType getUserType_() {
 		return userType_;
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * Opens an organization (View Provider) page from a Facility to Organization Relationship block
+	 * Update operations ar performed on view organization(provider) page
 	 *
 	 * @param facility
-	 * @return
+	 * @return UpdateFacilityPagea reference to the opened organization page
 	 */
 	public UpdateFacilityPage openFacility(MaintainFacilityBuilder facility) {
 		String fauthId = UpdateSimpleHelper.getFaultId(facility.getIdentifier());
@@ -105,14 +123,12 @@ public class UpdateFacilitySimpleActions {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * validate Facility Identifiers
 	 *
 	 * @param updatePage
 	 */
 	public void validateFacilityIdentifiers(UpdateFacilityPage updatePage) {
 		String errMsg = "";
-		String ID_SPECIAL_CHAR = "IFC.0012479#.BC.PRS";
-		String ID_FOREIGN_CHAR = "IFC.0012479À.BC.PRS";
 
 		errMsg = updatePage.addIdentifierDataBlock("", "IFC." + UpdateSimpleHelper.generateNumericString(8) + ".BC.PRS",
 				UpdateSimpleHelper.effective_date(), "", true);
@@ -149,7 +165,7 @@ public class UpdateFacilitySimpleActions {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * validate Facility Name
 	 *
 	 * @param updatePage
 	 */
@@ -190,7 +206,7 @@ public class UpdateFacilitySimpleActions {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * validate Facility Description
 	 *
 	 * @param updatePage
 	 */
@@ -260,7 +276,7 @@ public class UpdateFacilitySimpleActions {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * validate Facility Mailing AddressType
 	 *
 	 * @param updatePage
 	 */
@@ -275,7 +291,7 @@ public class UpdateFacilitySimpleActions {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * validate Facility Mailing Address Type
 	 *
 	 * @param updatePage
 	 */
@@ -290,7 +306,7 @@ public class UpdateFacilitySimpleActions {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * validate Facility Data Block Multiplicity
 	 *
 	 * @param updatePage
 	 * @param ID_ORG01
@@ -436,6 +452,12 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 	}
 
+	/**
+	 * cease Note Data Block By Id
+	 *
+	 * @param updatePage
+	 * @param noteId
+	 */
 	private void ceaseNoteDataBlockById(UpdateFacilityPage updatePage, String noteId) {
 		int index = updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);
 
@@ -451,6 +473,12 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * cease Related Organization Data Block By RelatedId
+	 *
+	 * @param updatePage
+	 * @param key
+	 */
 	private void ceaseRelatedOrganizationDataBlockByRelatedId(UpdateFacilityPage updatePage, String key) {
 
 		int index = updatePage.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true);
@@ -467,6 +495,11 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * cease Electronic Address By Type
+	 *
+	 * @param updatePage
+	 */
 	private void ceaseElectronicAddressByType(UpdateFacilityPage updatePage) {
 		String key = "Email ";
 		int index = updatePage.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true);
@@ -483,6 +516,11 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * cease Telecommunication By Type
+	 *
+	 * @param updatePage
+	 */
 	private void ceaseTelecommunicationByType(UpdateFacilityPage updatePage) {
 		String key = "Telephone";
 		int index = updatePage.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);
@@ -500,7 +538,7 @@ public class UpdateFacilitySimpleActions {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * validate Facility Notes Texts
 	 *
 	 * @param updatePage
 	 */
@@ -559,7 +597,7 @@ public class UpdateFacilitySimpleActions {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * validate Facility Notes Texts
 	 *
 	 * @param updatePage
 	 * @param ID_ORG
@@ -609,6 +647,12 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 	}
 
+	/**
+	 * validate Updating Facility
+	 *
+	 * @param updatePage
+	 * @param endReason
+	 */
 	public void validateUpdatingFacility(UpdateFacilityPage updatePage, EndReason endReason) {
 		String errMsg = "";
 		// identifier- Not able to be updated
@@ -771,6 +815,13 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * validate Facility Access by User Role
+	 *
+	 * @param updatePage
+	 * @param endReason
+	 * @param userType
+	 */
 	public void validateFacilityAccessbyUserRole(UpdateFacilityPage updatePage, EndReason endReason,
 			UserType userType) {
 		String errMsg = "";
@@ -863,6 +914,12 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * validate Adding Facility ID
+	 *
+	 * @param updatePage
+	 * @param chg
+	 */
 	public void validateAddingFacilityID(UpdateFacilityPage updatePage, EndReason chg) {
 		// identifier- Not able to be added(duplicated identifier type
 		// identifier- Not able to be updated( Update is not enabled)
@@ -875,6 +932,12 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * validate Updating Facility Address
+	 *
+	 * @param updatePage
+	 * @param chg
+	 */
 	public void validateUpdatingFacilityAddress(UpdateFacilityPage updatePage, EndReason chg) {
 		// not able to update address
 		assertFalse(updatePage.isDataBlockUpdateButtonDisplayed(FacilitySection.CIVIC_ADDRESSES, 0));
@@ -882,12 +945,24 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * validate Updating Facility Address
+	 *
+	 * @param updatePage
+	 * @param chg
+	 */
 	public void validateFacilityAddressRecognition(UpdateFacilityPage updatePage, EndReason chg) {
 		// not able to update address.
 		assertFalse(updatePage.isDataBlockUpdateButtonDisplayed(FacilitySection.OTHER_ADDRESS, 0));
 	}
 
-	public void validateFacilityCivicAddressLatitudeLongitude(UpdateFacilityPage updatePage, EndReason chg) {
+	/**
+	 * validate Facility Civic Address Latitude and Longitude
+	 *
+	 * @param updatePage
+	 * @param chg
+	 */
+	public static void validateFacilityCivicAddressLatitudeLongitude(UpdateFacilityPage updatePage, EndReason chg) {
 		LinkedHashMap<String, String> resultContent = updatePage.grabCivicAddressBlockContent();
 		CivicAddress address = new CivicAddress(resultContent);
 		updatePage.clickCHSAButton();
@@ -897,13 +972,25 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(address.getLongitude().equals(addressAfter.getLongitude()));
 	}
 
-	public void validateHealthBoundaryUpdate(UpdateFacilityPage updatePage, EndReason chg) {
-		// not able to update address.
+	/**
+	 * validate civic address Health Boundary Update
+	 *
+	 * @param updatePage
+	 * @param chg
+	 */
+	public void validateHealthBoundaryUpdate(UpdateFacilityPage updatePage) {
+		// not able to update civic address.
 		assertFalse(updatePage.isDataBlockUpdateButtonDisplayed(FacilitySection.CIVIC_ADDRESSES, 0));
 
 	}
 
-	public void validateDataBlockUniqueKeys(UpdateFacilityPage updatePage, EndReason chg) {
+	/**
+	 * validate Data Block Unique Keys
+	 *
+	 * @param updatePage
+	 * @param chg
+	 */
+	public void validateDataBlockUniqueKeys(UpdateFacilityPage updatePage) {
 		// Identifier- 'duplicate record' error message
 		String errMsg = updatePage.addIdentifierDataBlock(IdentifierTypeName.IFC.getText(),
 				"IFC." + UpdateSimpleHelper.generateNumericString(8) + ".BC.PRS", UpdateSimpleHelper.effective_date(),
@@ -965,6 +1052,12 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * validate Data Owner Code
+	 *
+	 * @param updatePage
+	 * @param ownerCode
+	 */
 	public void validateDataOwnerCode(UpdateFacilityPage updatePage, String ownerCode) {
 		// Identifier
 		LinkedHashMap<String, String> resultContent = updatePage.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
@@ -1025,6 +1118,11 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(note.getDataOwnerCode().equals(ownerCode));
 	}
 
+	/**
+	 * validate Updating Facility Telecommunication
+	 *
+	 * @param updatePage
+	 */
 	public void validateUpdatingFacilityTelecommunication(UpdateFacilityPage updatePage) {
 		String messageGRS5000 = errorList.getString("messageGRS5000");
 
@@ -1049,6 +1147,11 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * validate Updating Facility Electronic Address
+	 *
+	 * @param updatePage
+	 */
 	public void validateUpdatingFacilityElectronicAddress(UpdateFacilityPage updatePage) {
 		String messageGRS5000 = errorList.getString("messageGRS5000");
 
@@ -1069,6 +1172,11 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * validate Generating Default Note ID
+	 *
+	 * @param updatePage
+	 */
 	public void validateGeneratingDefaultNoteID(UpdateFacilityPage updatePage) {
 		String errMsg = updatePage.addNoteDataBlock("", UpdateSimpleHelper.generateAlphabetString(5),
 				UpdateSimpleHelper.effective_date(), "", false);
@@ -1083,6 +1191,11 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(UpdateSimpleHelper.isStringPositiveInteger(trimmed));
 	}
 
+	/**
+	 * validate Create Facility Organization Relationship
+	 *
+	 * @param updatePage
+	 */
 	public void validateCreateFacilityOrganizationRelationship(UpdateFacilityPage updatePage) {
 
 		String messageGRS7036 = errorList.getString("messageGRS7036");
@@ -1104,6 +1217,11 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * validate Facility Organization Relationship Validation
+	 *
+	 * @param updatePage
+	 */
 	public void validateFacilityOrganizationRelationshipValidation(UpdateFacilityPage updatePage) {
 		String erromMessageGRS5000IdType = errorList.getString("erromMessageGRS5000IdType");
 		String erromMessageGRS5000Id = errorList.getString("erromMessageGRS5000Id");
@@ -1164,6 +1282,11 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 * validate Organization Name Auto CompleteSelection
+	 *
+	 * @param updatePage
+	 */
 	public void validateOrganizationNameAutoCompleteSelection(UpdateFacilityPage updatePage) {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		MaintainOrgBuilder org = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
@@ -1181,8 +1304,15 @@ public class UpdateFacilitySimpleActions {
 
 	}
 
+	/**
+	 *validate Retrieve Related Organization
+	 *
+	 *(TODO: update test case, since the validation target "verify" button is not applicable)
+	 *
+	 * @param updatePage
+	 */
 	public void validateRetrieveRelatedOrganization(UpdateFacilityPage updatePage) {
-		// TODO Auto-generated method stub
+		// TODO: update test case, since the validation target "verify" button is not applicable
 
 	}
 

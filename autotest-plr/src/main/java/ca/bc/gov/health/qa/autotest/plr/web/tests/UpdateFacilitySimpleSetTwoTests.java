@@ -47,16 +47,19 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 			workflow.login().openPlr();
 		}
 		if (facility == null) {
-			//FHIRController fhirController = new FHIRController(UserType.ADMIN);
-			//FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-			//facility = fhirController.createFacility(cfg);
-			//fhirController.close();
+			// FHIRController fhirController = new FHIRController(UserType.ADMIN);
+			// FacilityMaintainConfig cfg = new
+			// FacilityMaintainConfig().withPhone().withEmail();
+			// facility = fhirController.createFacility(cfg);
+			// fhirController.close();
 		}
 
 	}
 
-	// F4-001. Update Facility Simple Set 2
-	// @Test
+	/*
+	 * F4-001. Update Facility Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testUpdateFacility() {
 
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -67,28 +70,35 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-002. Restrict Facility Access by User Role Simple Set 2
-	// @Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
+	/*
+	 * F4-002. Restrict Facility Access by User Role Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility",
+			"UpdateFacilitySetTwo" }, dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
 	public void testFacilityAccessbyUserRole(UserType userType) {
-		 FHIRController fhirController = new FHIRController(UserType.ADMIN);
-			FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-			MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
-			fhirController.close();
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
+		fhirController.close();
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, userType);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
 
-		actions.validateFacilityAccessbyUserRole(updatePage, EndReason.CHG,userType);
+		actions.validateFacilityAccessbyUserRole(updatePage, EndReason.CHG, userType);
 
 		workflowManager_.logoutAndClose(userType);
 	}
 
-	// F4-003. Adding a Facility ID Simple Set 2
-	// @Test
+	/*
+	 * F4-003. Adding a Facility ID Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testAddingFacilityID() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -98,12 +108,15 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-007. Updating Facility Address Simpe Set 2
-	//@Test
+	/*
+	 * F4-007. Updating Facility Address Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testUpdatingFacilityAddress() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -113,12 +126,15 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-008. Facility Address Recognition Simple Set 2
-	// @Test
+	/*
+	 * F4-008. Facility Address Recognition Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testFacilityAddressRecognition() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -128,38 +144,48 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-011. Facility Civic Address Latitude and Longitude Simple Set 2
-	//@Test
+	/*
+	 * F4-011. Facility Civic Address Latitude and Longitude Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testFacilityCivicAddressLatitudeLongitude() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		//FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+		// FacilityMaintainConfig cfg = new
+		// FacilityMaintainConfig().withPhone().withEmail();
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
 
-		actions.validateFacilityCivicAddressLatitudeLongitude(updatePage, EndReason.CHG);
+		UpdateFacilitySimpleActions.validateFacilityCivicAddressLatitudeLongitude(updatePage, EndReason.CHG);
 
 	}
 
-	// F4-012. Health Boundary Update Simple Set 2
-	//@Test
+	/*
+	 * F4-012. Health Boundary Update Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testHealthBoundaryUpdate() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
 
-		actions.validateHealthBoundaryUpdate(updatePage, EndReason.CHG);
+		actions.validateHealthBoundaryUpdate(updatePage);
 
 	}
 
-	// F4-024. Data Block Unique Keys Can Not Be Changed Simple Set 2 (not allowed)
-	//@Test
+	/*
+	 * F4-024. Data Block Unique Keys Can Not Be Changed Simple Set 2
+	 *
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testDataBlockUniqueKeys() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 
@@ -172,16 +198,19 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
 
-		actions.validateDataBlockUniqueKeys(updatePage, EndReason.CHG);
+		actions.validateDataBlockUniqueKeys(updatePage);
 
 	}
 
-	// F4-025. Data Owner Code for Facility Simple Set 2( not true for relationship)
-	//@Test
+	/*
+	 * F4-025. Data Owner Code for Facility( MOH) Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testDataOwnerCode() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -191,11 +220,14 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-026. Updating Facility Telecommunication Simple Set 2
-	//@Test
+	/*
+	 * F4-026. Updating Facility Telecommunication Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testUpdatingFacilityTelecommunication() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -205,12 +237,15 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-032. Updating Facility Electronic Address Simple Set 2
-	//@Test
+	/*
+	 * F4-032. Updating Facility Electronic Address Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testUpdatingFacilityElectronicAddress() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -220,12 +255,15 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-039. Generating a Default Note ID SImple Set 2
-	//@Test
+	/*
+	 * F4-039. Generating a Default Note ID SImple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testGeneratingDefaultNoteID() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -235,12 +273,15 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-040. Create Facility to Organization Relationship - ORGID Simple Set 2
-	//@Test
+	/*
+	 * F4-040. Create Facility to Organization Relationship - ORGID Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testCreateFacilityOrganizationRelationship() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
 		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -250,9 +291,11 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-042. Facility to Organization Relationship Validation Simple Set 2
-	// provider id type not editable
-	@Test
+	/*
+	 * F4-042. Facility to Organization Relationship Validation Simple Set 2
+	 *
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testFacilityOrganizationRelationshipValidation() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
@@ -266,13 +309,16 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-043. Organization Name Auto Complete Selection Mapping Simple Set 2
-//@Test
+	/*
+	 * F4-043. Organization Name Auto Complete Selection Mapping Simple Set 2
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testOrganizationNameAutoCompleteSelection() {
-	FHIRController fhirController = new FHIRController(UserType.ADMIN);
-	FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-	MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00006933.BC.PRS");
-	fhirController.close();
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
+		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
+				"IFC.00006933.BC.PRS");
+		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
@@ -281,7 +327,13 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 
 	}
 
-	// F4-044. Retrieve Related Organization Simple Set 2 (verify button not applicable)
+	/*
+	 * F4-044. Retrieve Related Organization Simple Set 2
+	 * (TODO: update test case, since the validation target "verify" button is not applicable)
+	 * (comments in BCMOHAD-30665)
+	 *
+	 *
+	 */
 	public void testRetrieveRelatedOrganization() {
 
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
