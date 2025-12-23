@@ -19,10 +19,10 @@ import java.util.regex.Pattern;
  * A page object class for the View Facility page.
  */
 public class ViewFacilityPage extends BasicWebPage {
-    private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
-    private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile(" \\(.*\\)");
-    private static final Pattern DATA_KEY_STAR_PATTERN = Pattern.compile("\\*$");
-    private static final String TABLE_ROWS_SELECTOR = " > table > tbody > tr";
+	private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
+	private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile(" \\(.*\\)");
+	private static final Pattern DATA_KEY_STAR_PATTERN = Pattern.compile("\\*$");
+	private static final String TABLE_ROWS_SELECTOR = " > table > tbody > tr";
 
 	private final ViewHeaderFragment viewHeader_;
 
@@ -47,11 +47,11 @@ public class ViewFacilityPage extends BasicWebPage {
 		viewHeader_ = new ViewHeaderFragment(selenium);
 	}
 
-    /**
-     * TODO (KD) - doc
-     *
-     * @param expand
-     */
+	/**
+	 * TODO (KD) - doc
+	 *
+	 * @param expand
+	 */
 	public void expandAll(boolean expand) {
 		viewHeader_.expandAll(expand);
 	}
@@ -126,8 +126,6 @@ public class ViewFacilityPage extends BasicWebPage {
 		return getDataBlockSelector(section, index) + "> div.ui-panel-content";
 	}
 
-	
-
 	/**
 	 * Finds the content panel for a specific "data block" in a facility section
 	 *
@@ -140,7 +138,6 @@ public class ViewFacilityPage extends BasicWebPage {
 		return selenium_.findElementByCss(getDataBlockContentSelector(section, index));
 	}
 
-	
 	/**
 	 * Determines whether a specific "data block"'s content panel in a facility
 	 * section is displayed or not
@@ -206,12 +203,13 @@ public class ViewFacilityPage extends BasicWebPage {
 		}
 	}
 
-    /** TODO (KD) - doc
-     *
-     * @param section
-     * @param index
-     * @return
-     */
+	/**
+	 * TODO (KD) - doc
+	 *
+	 * @param section
+	 * @param index
+	 * @return
+	 */
 	public boolean isDataBlockExpandButtonDisplayed(FacilitySection section, int index) {
 		WebElement expandCollapseButton = selenium_
 				.findElement(By.cssSelector(getDataBlockHeaderExpandSelector(section, index)));
@@ -231,13 +229,13 @@ public class ViewFacilityPage extends BasicWebPage {
 
 	}
 
-    /**
-     * TODO (KD) - doc
-     *
-     * @param section
-     * @param index
-     * @return
-     */
+	/**
+	 * TODO (KD) - doc
+	 *
+	 * @param section
+	 * @param index
+	 * @return
+	 */
 	public boolean isDataBlockActiveMarkDisplayed(FacilitySection section, int index) {
 		WebElement activeMark = selenium_
 				.findElement(By.cssSelector(getDataBlockHeaderActiveMarkSelector(section, index)));
@@ -245,13 +243,13 @@ public class ViewFacilityPage extends BasicWebPage {
 		return activeMark.isDisplayed();
 	}
 
-    /**
-     * TODO (KD) - doc
-     *
-     * @param section
-     * @param index
-     * @return
-     */
+	/**
+	 * TODO (KD) - doc
+	 *
+	 * @param section
+	 * @param index
+	 * @return
+	 */
 	public boolean isDataBlockUpdateButtonDisplayed(FacilitySection section, int index) {
 		// String cssString = getDataBlockHeaderSelector(section, index)+ " >
 		// div.ui-panel-actions " + " > span >a >img[title^='Update']" ;
@@ -262,17 +260,17 @@ public class ViewFacilityPage extends BasicWebPage {
 		} catch (org.openqa.selenium.NoSuchElementException e) {
 			return false;
 		}
-        selenium_.scrollIntoView(updateButton);
-        return updateButton.isDisplayed();
+		selenium_.scrollIntoView(updateButton);
+		return updateButton.isDisplayed();
 	}
 
-    /**
-     * TODO (KD) - doc
-     *
-     * @param section
-     * @param index
-     * @return
-     */
+	/**
+	 * TODO (KD) - doc
+	 *
+	 * @param section
+	 * @param index
+	 * @return
+	 */
 	public String grabDataBlockSummaryLine(FacilitySection section, int index) {
 		String cssString = getDataBlockHeaderSelector(section, index);
 		cssString = cssString + " > span.ui-panel-title";
@@ -281,54 +279,57 @@ public class ViewFacilityPage extends BasicWebPage {
 		return headerTitle.getText();
 	}
 
-	
+	/**
+	 * Removes the colon and parentheses from data fields for easier reference
+	 *
+	 * @param key the key to be formatted and subsequently used in a hash map
+	 * @return the formatted key as a string
+	 */
+	private static String formatDataKey(String key) {
+		String formattedKey = DATA_KEY_STAR_PATTERN.matcher(key).replaceAll("");
+		formattedKey = DATA_KEY_PARENS_PATTERN.matcher(formattedKey).replaceAll("");
+		formattedKey = DATA_KEY_SUFFIX_PATTERN.matcher(formattedKey).replaceAll("");
+		return formattedKey;
+	}
 
-    /**
-     * Removes the colon and parentheses from data fields for easier reference
-     *
-     * @param key   the key to be formatted and subsequently used in a hash map
-     * @return  the formatted key as a string
-     */
-    private static String formatDataKey(String key)
-    {
-        String formattedKey = DATA_KEY_STAR_PATTERN.matcher(key).replaceAll("");
-        formattedKey = DATA_KEY_PARENS_PATTERN.matcher(formattedKey).replaceAll("");
-        formattedKey = DATA_KEY_SUFFIX_PATTERN.matcher(formattedKey).replaceAll("");
-        return formattedKey;
-    }
+	/**
+	 * Gets the content from a specific data block within a facility section The
+	 * Civic Address field has a different structure, so
+	 * grabCivicAddressBlockContent must be used instead to obtain civic address
+	 * details.
+	 *
+	 * @param section the facility section to get content from
+	 * @param index   the index of data block within the facility section to get
+	 *                content from
+	 * @return a hash map mapping data block fields (String) to its associated
+	 *         values (String)
+	 * @throws IllegalStateException If a specific row of data in the block is
+	 *                               formatted unexpectedly
+	 */
+	public LinkedHashMap<String, String> grabDataBlockContent(FacilitySection section, int index) {
+		LinkedHashMap<String, String> dataMap = new LinkedHashMap<>();
+		expandDataBlock(section, index, true);
+		String dataBlockContentSelector = getDataBlockContentSelector(section, index);
+		if (section == FacilitySection.ORGANIZATION_RELATIONSHIPS)
+			dataBlockContentSelector += " > form";
+		dataBlockContentSelector += TABLE_ROWS_SELECTOR;
+		List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(dataBlockContentSelector));
 
-    /**
-     * Gets the content from a specific data block within a facility section
-     * The Civic Address field has a different structure,
-     * so grabCivicAddressBlockContent must be used instead to obtain civic address details.
-     *
-     * @param section   the facility section to get content from
-     * @param index     the index of data block within the facility section to get content from
-     * @return  a hash map mapping data block fields (String) to its associated values (String)
-     * @throws IllegalStateException    If a specific row of data in the block is formatted unexpectedly
-     */
-    public LinkedHashMap<String,String> grabDataBlockContent(FacilitySection section, int index)
-    {
-    	 LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
-         expandDataBlock(section, index, true);
-         String dataBlockContentSelector = getDataBlockContentSelector(section, index);
-         if (section == FacilitySection.ORGANIZATION_RELATIONSHIPS) dataBlockContentSelector += " > form";
-         dataBlockContentSelector += TABLE_ROWS_SELECTOR;
-         List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(dataBlockContentSelector));
+		return grabBlockContent(section, index, dataMap, dataRowElementList);
+	}
 
-         return grabBlockContent(section, index, dataMap, dataRowElementList);
-    }
-
-
-    /**
-     * TODO (KD) - doc
-     *
-     * @param section               the facility section to get content from
-     * @param index                 the index of block within the facility section to get content from
-     * @param dataMap               the hash map to fill with data block fields/associated values
-     * @param dataRowElementList
-     * @return                      a hash map mapping data block fields (String) to its associated values (String)
-     */
+	/**
+	 * TODO (KD) - doc
+	 *
+	 * @param section            the facility section to get content from
+	 * @param index              the index of block within the facility section to
+	 *                           get content from
+	 * @param dataMap            the hash map to fill with data block
+	 *                           fields/associated values
+	 * @param dataRowElementList
+	 * @return a hash map mapping data block fields (String) to its associated
+	 *         values (String)
+	 */
 	public LinkedHashMap<String, String> grabBlockContent(FacilitySection section, int index,
 			LinkedHashMap<String, String> dataMap, List<WebElement> dataRowElementList) {
 		if (!dataRowElementList.isEmpty()) {
@@ -361,13 +362,13 @@ public class ViewFacilityPage extends BasicWebPage {
 		dataMap.put(formatDataKey(dataEntryList.get(index).findElement(By.cssSelector("td")).getText()),
 				dataEntryList.get(index + 1).findElement(By.cssSelector("td")).getText());
 	}
-	
-	private void addFieldDataMapSplit(LinkedHashMap<String, String> dataMap, List<WebElement> dataEntryList, int index) {
-		String[] provParts=dataEntryList.get(index).findElement(By.cssSelector("td")).getText().split(":");
-		String[] countyParts=dataEntryList.get(index + 1).findElement(By.cssSelector("td")).getText().split(":");
-		dataMap.put(provParts[0],provParts[1].replaceAll("^[^A-Z]*", ""));
-		dataMap.put(countyParts[0],
-				dataEntryList.get(index + 2).findElement(By.cssSelector("td")).getText());
+
+	private void addFieldDataMapSplit(LinkedHashMap<String, String> dataMap, List<WebElement> dataEntryList,
+			int index) {
+		String[] provParts = dataEntryList.get(index).findElement(By.cssSelector("td")).getText().split(":");
+		String[] countyParts = dataEntryList.get(index + 1).findElement(By.cssSelector("td")).getText().split(":");
+		dataMap.put(provParts[0], provParts[1].replaceAll("^[^A-Z]*", ""));
+		dataMap.put(countyParts[0], dataEntryList.get(index + 2).findElement(By.cssSelector("td")).getText());
 	}
 
 	/**
@@ -396,8 +397,6 @@ public class ViewFacilityPage extends BasicWebPage {
 
 		selenium_.scrollIntoView(selenium_.findElementByCss(getSectionSelector(section)));
 	}
-
-	
 
 	/**
 	 * get section displayed
@@ -432,7 +431,6 @@ public class ViewFacilityPage extends BasicWebPage {
 		return count;
 	}
 
-	
 	/**
 	 * check data block active or not *
 	 * 
@@ -457,8 +455,6 @@ public class ViewFacilityPage extends BasicWebPage {
 		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions > span > img[title='Active']";
 	}
 
-	
-
 	private LinkedHashMap<String, String> grabCivicAddressBlockContent(LinkedHashMap<String, String> dataMap,
 			List<WebElement> dataRowElementList) {
 		if (!dataRowElementList.isEmpty()) {
@@ -477,10 +473,10 @@ public class ViewFacilityPage extends BasicWebPage {
 							dataEntryList.get(0).findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 2);
 				}
 			} else if (dataColumnCount == 4) {
-				addFieldDataMapSplit(dataMap, dataEntryList.get(0).findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)),
-						0);
-			}else {
-			
+				addFieldDataMapSplit(dataMap,
+						dataEntryList.get(0).findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)), 0);
+			} else {
+
 				String msg = String.format("Invalid data row (%d: %s).", dataColumnCount, dataRow.getText());
 				throw new IllegalStateException(msg);
 			}
@@ -503,80 +499,80 @@ public class ViewFacilityPage extends BasicWebPage {
 		List<WebElement> dataRowElementList = selenium_
 				.findElements(By.cssSelector(getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, index)
 						+ " > div.ui-outputpanel" + TABLE_ROWS_SELECTOR));
-		dataMap= grabCivicAddressBlockContent(dataMap, dataRowElementList);
+		dataMap = grabCivicAddressBlockContent(dataMap, dataRowElementList);
 		expandDataBlock(FacilitySection.CIVIC_ADDRESSES, index, false);
 		return dataMap;
 
 	}
 
 	/**
-     * TODO (KD) - doc
-     *
-     * @param index
-     * @return
-     */
+	 * TODO (KD) - doc
+	 *
+	 * @param index
+	 * @return
+	 */
 	public LinkedHashMap<String, String> grabIdentifiersBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.IDENTIFIERS, index);
 
 	}
 
 	/**
-     * TODO (KD) - doc
-     *
-     * @param index
-     * @return
-     */
+	 * TODO (KD) - doc
+	 *
+	 * @param index
+	 * @return
+	 */
 	public LinkedHashMap<String, String> grabNamesBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.NAMES, index);
 
 	}
 
 	/**
-     * TODO (KD) - doc
-     *
-     * @param index
-     * @return
-     */
+	 * TODO (KD) - doc
+	 *
+	 * @param index
+	 * @return
+	 */
 	public LinkedHashMap<String, String> grabOtherAddressBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.OTHER_ADDRESS, index);
 	}
 
 	/**
-     * TODO (KD) - doc
-     *
-     * @param index
-     * @return
-     */
+	 * TODO (KD) - doc
+	 *
+	 * @param index
+	 * @return
+	 */
 	public LinkedHashMap<String, String> grabTelecommunicationsBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.TELECOMMUNICATIONS, index);
 	}
 
 	/**
-     * TODO (KD) - doc
-     *
-     * @param index
-     * @return
-     */
+	 * TODO (KD) - doc
+	 *
+	 * @param index
+	 * @return
+	 */
 	public LinkedHashMap<String, String> grabElectronicAddressesBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.ELECTRONIC_ADDRESSES, index);
 	}
 
 	/**
-     * TODO (KD) - doc
-     *
-     * @param index
-     * @return
-     */
+	 * TODO (KD) - doc
+	 *
+	 * @param index
+	 * @return
+	 */
 	public LinkedHashMap<String, String> grabNotesBlockContent(int index) {
 		return grabDataBlockContent(FacilitySection.NOTES, index);
 	}
 
-    /**
-     * TODO (KD) - doc
-     *
-     * @param index
-     * @return
-     */
+	/**
+	 * TODO (KD) - doc
+	 *
+	 * @param index
+	 * @return
+	 */
 	public LinkedHashMap<String, String> grabOrgRelationshipsBlockContent(int index) {
 		LinkedHashMap<String, String> dataMap = new LinkedHashMap<>();
 		expandDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS, index, true);
@@ -588,86 +584,82 @@ public class ViewFacilityPage extends BasicWebPage {
 		return grabBlockContent(FacilitySection.ORGANIZATION_RELATIONSHIPS, index, dataMap, dataRowElementList);
 	}
 
+	/**
+	 * Gets the content from a Civic Addresses data block. All other facility
+	 * sections are structured differently, so grabDataBlockContent must be used
+	 * instead for any other facility section.
+	 *
+	 * @return a hash map mapping civic address data fields (String) to their
+	 *         associated values (String)
+	 */
+	@SuppressWarnings("fallthrough")
+	public LinkedHashMap<String, String> grabCivicAddressBlockContent() {
+		LinkedHashMap<String, String> dataMap = new LinkedHashMap<>();
+		expandDataBlock(FacilitySection.CIVIC_ADDRESSES, 0, true);
+		List<WebElement> dataRowElementList = selenium_
+				.findElements(By.cssSelector(getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, 0)
+						+ " > div.ui-outputpanel" + TABLE_ROWS_SELECTOR));
+		By tableSelect = By.cssSelector("td" + TABLE_ROWS_SELECTOR);
 
-    /**
-     * Gets the content from a Civic Addresses data block.
-     * All other facility sections are structured differently,
-     * so grabDataBlockContent must be used instead for any other facility section.
-     *
-     * @return  a hash map mapping civic address data fields (String) to their associated values (String)
-     */
-    @SuppressWarnings("fallthrough")
-    public LinkedHashMap<String,String> grabCivicAddressBlockContent()
-    {
-        LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
-        expandDataBlock(FacilitySection.CIVIC_ADDRESSES, 0, true);
-        List<WebElement> dataRowElementList = selenium_.findElements(By.cssSelector(
-                getDataBlockContentSelector(FacilitySection.CIVIC_ADDRESSES, 0)
-                + " > div.ui-outputpanel" + TABLE_ROWS_SELECTOR));
-        By tableSelect = By.cssSelector("td" + TABLE_ROWS_SELECTOR);
+		if (!dataRowElementList.isEmpty()) {
+			selenium_.scrollIntoView(dataRowElementList.getFirst());
+		}
+		for (WebElement dataRow : dataRowElementList) {
+			List<WebElement> dataEntryList = dataRow.findElements(tableSelect);
+			int dataColumnCount = dataEntryList.size();
+			if (dataColumnCount == 2)
+				addFieldDataMap(dataMap, dataEntryList, 0);
+			else {
+				List<WebElement> extraFields = dataEntryList.getFirst().findElements(tableSelect);
+				switch (dataColumnCount) {
+				case 4:
+					dataMap.put(
+							formatDataKey(extraFields.getFirst().findElement(By.cssSelector("div.frmDialogLbl > label"))
+									.getText()),
+							extraFields.getFirst().findElement(By.cssSelector("div[role] > label")).getText());
+					addFieldDataMap(dataMap, extraFields, 1);
+					break;
+				case 5:
+					addFieldDataMap(dataMap, extraFields, 2);
+					// fall through
+				case 6:
+					addFieldDataMap(dataMap, extraFields, 0);
+					break;
+				default:
+					String msg = String.format("Invalid data row (%d: %s).", dataColumnCount, dataRow.getText());
+					throw new IllegalStateException(msg);
+				}
+			}
 
-        if (!dataRowElementList.isEmpty())
-        {
-            selenium_.scrollIntoView(dataRowElementList.getFirst());
-        }
-        for (WebElement dataRow : dataRowElementList)
-        {
-            List<WebElement> dataEntryList = dataRow.findElements(tableSelect);
-            int dataColumnCount = dataEntryList.size();
-            if (dataColumnCount == 2) addFieldDataMap(dataMap, dataEntryList, 0);
-            else
-            {
-                List<WebElement> extraFields = dataEntryList.getFirst().findElements(tableSelect);
-                switch (dataColumnCount)
-                {
-                    case 4:
-                        dataMap.put(formatDataKey(extraFields.getFirst().findElement(
-                                By.cssSelector("div.frmDialogLbl > label")).getText()),
-                                extraFields.getFirst().findElement(
-                                        By.cssSelector("div[role] > label")).getText());
-                        addFieldDataMap(dataMap, extraFields, 1);
-                        break;
-                    case 5:
-                        addFieldDataMap(dataMap, extraFields, 2);
-                        // fall through
-                    case 6:
-                        addFieldDataMap(dataMap, extraFields, 0);
-                        break;
-                    default:
-                        String msg = String.format("Invalid data row (%d: %s).", dataColumnCount, dataRow.getText());
-                        throw new IllegalStateException(msg);
-                }
-            }
+		}
+		return dataMap;
+	}
 
-        }
-        return dataMap;
-    }
+	/**
+	 * Determines the number of data blocks in a specific facility section.
+	 *
+	 * @param section the facility section to find the number of records for.
+	 * @return an integer of the number of records for a particular facility
+	 *         section.
+	 */
+	public int grabDataBlockCount(FacilitySection section) {
+		List<WebElement> dataBlockList = selenium_.findElements(By.cssSelector(getDataBlocksSelector(section)));
+		return dataBlockList.size();
+	}
 
-    /**
-     * Determines the number of data blocks in a specific facility section.
-     *
-     * @param section   the facility section to find the number of records for.
-     * @return          an integer of the number of records for a particular facility section.
-     */
-    public int grabDataBlockCount(FacilitySection section)
-    {
-        List<WebElement> dataBlockList = selenium_.findElements(By.cssSelector(
-                getDataBlocksSelector(section)));
-        return dataBlockList.size();
-    }
+	/**
+	 * Opens an organization (provider) page in the Organization Relationships
+	 * section.
+	 *
+	 * @param dataBlockIndex the index of organization relationship to open and
+	 *                       click into
+	 */
+	public void openOrg(int dataBlockIndex) {
+		String linkSelector = getDataBlockContentSelector(FacilitySection.ORGANIZATION_RELATIONSHIPS, dataBlockIndex);
+		linkSelector += " > form" + TABLE_ROWS_SELECTOR + " > td > a";
 
-    /**
-     * Opens an organization (provider) page in the Organization Relationships section.
-     *
-     * @param dataBlockIndex    the index of organization relationship to open and click into
-     */
-    public void openOrg(int dataBlockIndex)
-    {
-        String linkSelector = getDataBlockContentSelector(FacilitySection.ORGANIZATION_RELATIONSHIPS, dataBlockIndex);
-        linkSelector += " > form" + TABLE_ROWS_SELECTOR + " > td > a";
-
-        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector(linkSelector)));
-        selenium_.findElement(By.cssSelector(linkSelector)).click();
-    }
+		selenium_.scrollIntoView(selenium_.findElement(By.cssSelector(linkSelector)));
+		selenium_.findElement(By.cssSelector(linkSelector)).click();
+	}
 
 }

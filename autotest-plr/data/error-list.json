@@ -30,7 +30,14 @@
     "errMsg7033Dup": "GRS.SYS.UNK.UNK.1.0.7033: Cannot create duplicate record. Check the following field: facility relationship",
     "errMsg7033DupNote": "GRS.SYS.UNK.UNK.1.0.7033: Cannot create duplicate record. Check the following field: note",
     "errMsg7036": "GRS.SYS.IDE.UNK.1.0.7036: Identifier does not uniquely identify a Provider. Cannot create relationship.",
-    "errMsg9026": "PRS.FAC.REL.MTN.1.0.9026: The Facility relationship with the Organization cannot be created as the Provider Identifier is not an Organization Identifier."
+    "errMsg9026": "PRS.FAC.REL.MTN.1.0.9026: The Facility relationship with the Organization cannot be created as the Provider Identifier is not an Organization Identifier.",
+    "messageGRS5000": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'End Reason'. Your transaction has not been processed. Correct and resubmit.",
+    "messageGRS7036": "GRS.SYS.IDE.UNK.1.0.7036: Identifier does not uniquely identify a Provider. Cannot create relationship.",
+    "erromMessageGRS5000IdType":"GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Related Provider Identifier Type'. Your transaction has not been processed. Correct and resubmit.",
+	"erromMessageGRS5000Id":"GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Related Provider Identifier'. Your transaction has not been processed. Correct and resubmit.",
+	"erromMessageGRS5000RelationType":"GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Relationship Type'. Your transaction has not been processed. Correct and resubmit.",
+	"erromMessageGRS5000EffectiveFrom":"GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Effective From'. Your transaction has not been processed. Correct and resubmit.",
+	"erromMessageGRS5000EndReason":"GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'End Reason'. Your transaction has not been processed. Correct and resubmit."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",

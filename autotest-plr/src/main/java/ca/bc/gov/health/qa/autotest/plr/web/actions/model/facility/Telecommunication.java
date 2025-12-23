@@ -6,7 +6,7 @@ import static org.testng.Assert.*;
 import org.json.JSONObject;
 
 /**
- * TODO (KD)
+ * Telecommunication data block content
  */
 public class Telecommunication {
 	private String type;
@@ -42,7 +42,11 @@ public class Telecommunication {
 		return purpose.split("\\(")[0].stripTrailing();
 	}
 	
-	
+	/**
+	 * Gets the type.
+	 *
+	 * @return the type or null
+	 */
 	public String getType() {
 		return type;
 	}

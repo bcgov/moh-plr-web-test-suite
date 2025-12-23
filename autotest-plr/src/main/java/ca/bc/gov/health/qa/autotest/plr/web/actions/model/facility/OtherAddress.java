@@ -7,7 +7,7 @@ import static org.testng.Assert.*;
 import org.json.JSONObject;
 
 /**
- * TODO (KD)
+ * OtherAddress data block content
  */
 public class OtherAddress {
 	private String validationStatus;
@@ -28,11 +28,19 @@ public class OtherAddress {
 	private String dbExpired;
 	private String dataOwnerCode;
 	
-	
+	/**
+	 * Gets AddressType.
+	 *
+	 * @return the AddressType value or null
+	 */
 	public String getAddressType() {
 		return addressType;
 	}
-
+	/**
+	 * Gets AddressPurpose.
+	 *
+	 * @return the AddressPurpose or null
+	 */
 	public String getAddressPurpose() {
 		return addressPurpose;
 	}

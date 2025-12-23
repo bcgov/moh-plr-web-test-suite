@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import static org.testng.Assert.*;
 
 /**
- * TODO (KD)
+ * Note data block content
  */
 public class Note {
 	private String noteIdentifier;
@@ -19,7 +19,7 @@ public class Note {
 	private String dbCreated;
 	private String dbExpired;
 	private String dataOwnerCode;
-	
+
 	/**
 	 * Gets the note identifier.
 	 *
@@ -28,6 +28,7 @@ public class Note {
 	public String getNoteIdentifier() {
 		return noteIdentifier;
 	}
+
 	/**
 	 * Gets the data owner code.
 	 *
@@ -36,37 +37,26 @@ public class Note {
 	public String getDataOwnerCode() {
 		return dataOwnerCode;
 	}
-	
+
 	/**
- * TODO (KD)
- 	*/
+	 * Gets the dnoteText.
+	 */
 	public String getNoteText() {
 		return noteText;
 	}
-	/**
-	 * TODO (KD)
-	 */
-	public void setNoteText(String noteText) {
-		this.noteText = noteText;
-	}
-	/**
-	 * TODO (KD)
-	 */
-	public void setNoteIdentifier(String noteIdentifier) { this.noteIdentifier = noteIdentifier; }
 
-	
 	/**
 	 * Constructs a Note using explicit values.
 	 *
 	 * @param noteIdentifier the note identifier
-	 * @param noteText the note text content
-	 * @param effectiveFrom effective from date
-	 * @param effectiveTo effective to date
-	 * @param endReason end reason
-	 * @param dataSource data source
-	 * @param dbCreated database created timestamp
-	 * @param dbExpired database expired timestamp
-	 * @param dataOwnerCode data owner code
+	 * @param noteText       the note text content
+	 * @param effectiveFrom  effective from date
+	 * @param effectiveTo    effective to date
+	 * @param endReason      end reason
+	 * @param dataSource     data source
+	 * @param dbCreated      database created timestamp
+	 * @param dbExpired      database expired timestamp
+	 * @param dataOwnerCode  data owner code
 	 */
 	public Note(String noteIdentifier, String noteText, String effectiveFrom, String effectiveTo, String endReason,
 			String dataSource, String dbCreated, String dbExpired, String dataOwnerCode) {
@@ -81,11 +71,13 @@ public class Note {
 		this.dbExpired = dbExpired;
 		this.dataOwnerCode = dataOwnerCode;
 	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(dataOwnerCode, dataSource, dbCreated, dbExpired, effectiveFrom, effectiveTo, endReason,
 				noteIdentifier, noteText);
 	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -101,7 +93,7 @@ public class Note {
 				&& Objects.equals(endReason, other.endReason) && Objects.equals(noteIdentifier, other.noteIdentifier)
 				&& Objects.equals(noteText, other.noteText);
 	}
-	
+
 	/**
 	 * Constructs a Note from a JSON object.
 	 *
@@ -111,11 +103,11 @@ public class Note {
 		super();
 		assertNotNull(jsonData);
 
-        assertFalse(jsonData.isNull("Note Identifier"));
+		assertFalse(jsonData.isNull("Note Identifier"));
 		this.noteIdentifier = jsonData.getString("Note Identifier");
-        assertFalse(jsonData.isNull("Note Text"));
+		assertFalse(jsonData.isNull("Note Text"));
 		this.noteText = jsonData.getString("Note Text");
-		
+
 		if (!jsonData.isNull("Effective From"))
 			this.effectiveFrom = jsonData.getString("Effective From");
 		if (!jsonData.isNull("Effective To"))
@@ -124,9 +116,9 @@ public class Note {
 			this.endReason = jsonData.getString("End Reason");
 		if (!jsonData.isNull("Data Source"))
 			this.dataSource = jsonData.getString("Data Source");
-		if (!jsonData.isNull("DB Created") )
+		if (!jsonData.isNull("DB Created"))
 			this.dbCreated = jsonData.getString("DB Created");
-		if (!jsonData.isNull("DB Expired") )
+		if (!jsonData.isNull("DB Expired"))
 			this.dbExpired = jsonData.getString("DB Expired");
 		if (!jsonData.isNull("Data Owner Code"))
 			this.dataOwnerCode = jsonData.getString("Data Owner Code");
@@ -145,7 +137,7 @@ public class Note {
 		this.noteIdentifier = map.get("Note Identifier");
 		assertNotNull(map.get("Note Text"));
 		this.noteText = map.get("Note Text");
-	
+
 		this.effectiveFrom = map.get("Effective From") == null ? null : map.get("Effective From");
 		this.effectiveTo = map.get("Effective To") == null ? null : map.get("Effective To");
 		this.endReason = map.get("End Reason") == null ? null : map.get("End Reason");
