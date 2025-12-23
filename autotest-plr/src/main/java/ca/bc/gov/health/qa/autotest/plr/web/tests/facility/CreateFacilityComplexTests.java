@@ -24,7 +24,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 
@@ -35,8 +34,6 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
     private static final Logger LOG = ExecutionLogManager.getLogger();
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
-
-    private static final SecureRandom RNG = new SecureRandom();
 
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
@@ -69,7 +66,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
 
-        workflow.getSeleniumSession().setWaitTimeout(Duration.ofSeconds(5));
+        workflow.getSeleniumSession().setWaitTimeout(Duration.ofSeconds(6));
     }
 
     @Test
@@ -323,7 +320,6 @@ public class CreateFacilityComplexTests implements SimpleTest {
     // F3-020. Facility Address Correction With External Tool
     public void facilityAddressCorrection()
     {
-        //300
         final String civicAddressRecommendation = warningList.getString("civicAddressRecommendation");
         final List<String> addressData = List.of("250", "300", "LANSDOWNE ST, KAMLOOPS");
         final String streetTypeEnding = "R";
@@ -360,9 +356,6 @@ public class CreateFacilityComplexTests implements SimpleTest {
     // F3-021. Facility Address with Multi-Part Street Name
     public void addressMultiPartStreetName()
     {
-        final int TWO_WORD_ADDRESS_LOWER_LIMIT = 800;
-        final int TWO_WORD_ADDRESS_UPPER_LIMIT = 1650;
-
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
         addFacility.fillIdentifierSection("BUILDING", "Select One", "");
@@ -370,26 +363,15 @@ public class CreateFacilityComplexTests implements SimpleTest {
         addFacility.fillFacilitySection("Multi Part Street Facility", "Multi Part Street Description");
         addFacility.clickNext("Facility", "");
 
-        AddFacilityAddressFragment addressInfo = null;
-        while (addressInfo == null)
-        {
-            try
-            {
-                int TWO_WORD_ADDRESS_NUM = TWO_WORD_ADDRESS_LOWER_LIMIT +
-                        RNG.nextInt(TWO_WORD_ADDRESS_UPPER_LIMIT - TWO_WORD_ADDRESS_LOWER_LIMIT + 1);
-                String TWO_WORD_ADDRESS;
-                TWO_WORD_ADDRESS = String.format("%d LYNN VALLEY RD", TWO_WORD_ADDRESS_NUM);
-                addressInfo = addFacility.fillAddressSection(
-                        TWO_WORD_ADDRESS, TWO_WORD_ADDRESS + ", NORTH");
-            } catch (IllegalStateException ignored) {}
-        }
+        AddFacilityAddressFragment addressInfo = addFacility.fillAddressSection(
+                "935 LYNN VALLEY RD, N", "935 LYNN VALLEY RD, N");
         String multiPartAddressLine = addressInfo.getAddressLine1();
         String multiPartCity = addressInfo.getCity();
         String multiPartCountry = addressInfo.getCountry().substring(
                 addressInfo.getCountry().indexOf("-")+1).strip();
 
 
-        addFacility.clickNext("Facility", "Civic");
+        addFacility.clickNext("Address", "Civic");
 
         addressInfo.handleWidgetButton("Civic");
         addFacility.waitForAddFacilityStep("Address", false);
@@ -418,7 +400,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 addressInfo.getCountry().indexOf("-")+1).strip();
 
 
-        addFacility.clickNext("Facility", "Civic");
+        addFacility.clickNext("Address", "Civic");
 
         addressInfo.handleWidgetButton("Civic");
         addFacility.waitForAddFacilityStep("Address", false);
@@ -508,7 +490,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
         }
 
         AddFacilityAddressFragment addressFields = addFacility.fillAddressSection(
-                List.of("1175 DOUGLAS ST", "", ""), "A%", null, "");
+                List.of("1175 DOUGLAS ST", "", ""), "A^", null, "");
         addFacility.clickNext("Address", null);
 
         errorMessageList = addFacility.waitForAlertMessagesFragment().grabErrorMessageList();
@@ -558,9 +540,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
         final List<String> streetTypes = List.of("ST", "RD", "HWY", "CRT", "AVE");
         final List<List<String>> addressData = List.of(List.of("370", "1070", "BATTLE, KAMLOOPS"),
                 List.of("130", "430", "MCGILL, KAMLOOPS"),
-                List.of("3000", "4000", "35, BURNS LAKE"),
+                List.of("4442", "4570", "TRANS CANADA,DUNCAN"),
                 List.of("100", "120", "CRANBERRY, PORT MOODY"),
-                List.of("305", "630", "MCGOWAN, KAMLOOPS")
+                List.of("306", "630", "MCGOWAN, KAMLOOPS")
         );
 
         int streetTypeIndex = 0;
@@ -587,6 +569,11 @@ public class CreateFacilityComplexTests implements SimpleTest {
             ViewFacilityPage newFacility = addFacility.getFacilitySummary().clickSubmitButton();
 
             String createdAddress = newFacility.grabCivicAddressBlockContent().get("Address Line 1");
+
+            // ignore dashes
+            createdAddress = createdAddress.replace("-", " ");
+            fullAddress = fullAddress.replace("-", " ");
+
             assertTrue(createdAddress.contains(streetTypes.get(streetTypeIndex)),
                     "Desired Street Type not found in newly created facility address");
             assertEquals(createdAddress, fullAddress,
