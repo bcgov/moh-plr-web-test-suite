@@ -8,6 +8,8 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.*;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
@@ -357,6 +359,8 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Effective To field failed to update as expected");
     }
 
+
+
     @Test
     // F4-045. Generating Internal Relationship Identifier (RID)
     public void generateRelationshipIdentifier()
@@ -414,5 +418,91 @@ public class UpdateFacilityComplexTests implements SimpleTest
             assertEquals(orgRelType, relType.getBlockText(),
                     "New org relationship has unexpected relationship type");
         }
+    }
+
+    @Test
+    // F4-047. Validate Related Organization ID and Relationship Type Code Combination
+    public void validateRelatedOrganizationIdAndRelationshipTypeCodeCombination()
+    {
+         //Step 1 - Open facility details screen
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        //Step 2 - Create a new organization relationship using a related provider identifier and a relationship type.
+        final OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig()
+                .withName();
+
+        MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
+
+        page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), org.getIdentifier(),
+                RelationshipType.LOCATION.getText(), effective_date(), "", false);
+
+        String orgRelIdentifier = page.grabOrgRelationshipsBlockContent(0)
+                                        .get(OrgRelationshipField.RELATED_ORGANIZATION_IDENTIFIER.getString());
+
+        String orgRelType = page.grabOrgRelationshipsBlockContent(0)
+                                        .get(OrgRelationshipField.RELATIONSHIP_TYPE.getString());
+
+        assertTrue(org.getIdentifier().contains(orgRelIdentifier), 
+        "Relationship Identifier does not match the Organization Identifier used to create");
+
+        assertEquals(orgRelType, RelationshipType.LOCATION.getBlockText(), 
+        "Relationship Type does not match the used to create");
+
+        //Step 3 - Create a new organization relationship using a different organization and the same relationship type.
+        MaintainOrgBuilder org2 = fhirController.createOrganization(orgConfig);
+
+        page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), org2.getIdentifier(),
+                RelationshipType.LOCATION.getText(), effective_date(), "", false);
+
+        String org2RelIdentifier = page.grabOrgRelationshipsBlockContent(1)
+                                        .get(OrgRelationshipField.RELATED_ORGANIZATION_IDENTIFIER.getString());
+
+        String org2RelType = page.grabOrgRelationshipsBlockContent(1)
+                                        .get(OrgRelationshipField.RELATIONSHIP_TYPE.getString());
+
+        assertTrue(org2.getIdentifier().contains(org2RelIdentifier), 
+        "Relationship Identifier does not match the Organization Identifier used to create");
+
+        assertEquals(org2RelType, RelationshipType.LOCATION.getBlockText(), 
+        "Relationship Type does not match the used to create");
+
+        //Step 4 - Create a new organization relationship using the same organization and a different relationship type.
+        page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), org2.getIdentifier(),
+                RelationshipType.LOCATED.getText(), effective_date(), "", false);
+
+        String org2Rel2Identifier = page.grabOrgRelationshipsBlockContent(0)
+                                        .get(OrgRelationshipField.RELATED_ORGANIZATION_IDENTIFIER.getString());
+
+        String org2Rel2Type = page.grabOrgRelationshipsBlockContent(0)
+                                        .get(OrgRelationshipField.RELATIONSHIP_TYPE.getString());
+
+        assertTrue(org2.getIdentifier().contains(org2Rel2Identifier), 
+        "Relationship Identifier does not match the Organization Identifier used to create");
+
+        assertEquals(org2Rel2Type, RelationshipType.LOCATED.getBlockText(), 
+        "Relationship Type does not match the used to create");
+
+        //Step 5 - Attempt to create another organization relationship using the same organization and the same relationship type.
+        final String errMsg7033DupRelIdentifier = errorList.getString("errMsg7033Dup");
+
+        String error = page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), org2.getIdentifier(),
+                RelationshipType.LOCATED.getText(), effective_date(), "", true);
+
+        assertEquals(error, errMsg7033DupRelIdentifier, 
+                "Error message does not match expected result. Should not be possible to add duplicate F2O relationships.");
+        
+        //Step 6 - Attempt to create another organization relationship using a different related provider identifier type (e.g. ORGID vs. IPC) but for the same organization, and the same relationship type as in the previous step.
+        
+        //Orgs will have autogenerated an IPC and a CPM by default. The difference is the inital format i.e IPC.########.BC.PRS to CPN.########.BC.PRS
+        String org2CPN = org2.getIdentifier().replace("IPC", "CPN");
+
+        error = page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.CPN.getText(), org2CPN,
+                RelationshipType.LOCATED.getText(), effective_date(), "", true);
+
+        assertEquals(error, errMsg7033DupRelIdentifier, 
+                "Error message does not match expected result. Should not be possible to add duplicate F2O relationships.");
+
     }
 }
