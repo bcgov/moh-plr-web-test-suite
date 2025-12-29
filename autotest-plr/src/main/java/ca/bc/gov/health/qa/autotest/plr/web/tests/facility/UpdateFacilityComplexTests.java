@@ -12,6 +12,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.*;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Note;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -19,6 +20,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
@@ -88,6 +90,126 @@ public class UpdateFacilityComplexTests implements SimpleTest
             workflow.login().openPlr();
         }
     }
+
+    @Test
+    // F4-022. Rejection of Non-Acceptable Characters
+    public void rejectNonAcceptableCharacters(){
+        //Step 1 - Open facility details screen
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+        
+        final String errMsgForeignFacilityText = errorList.getString("foreignCharacterFacility");
+
+        //Step 2 - n/a
+
+        //Step 3 - n/a
+
+        //Step 4 - Attempt to add a new name data block using characters that are not accepted in the following fields: Name, Description
+        if (page.grabActiveDataBlockCount(FacilitySection.NAMES, true) > 0) {
+            page.ceaseDataBlock(FacilitySection.NAMES, 0);
+        }
+        
+        String err = page.addNameDataBlock("NÀME-" + generateAlphabetString(5),
+                "", effective_date(), "");
+        assertEquals(err, errMsgForeignFacilityText,
+                "Expected error message for invalid characters in Name field did not appear");
+
+        err = page.addNameDataBlock(dummyFacility.getName(),
+                "DÈSC-" + generateAlphabetString(5), effective_date(), "");
+        assertEquals(err, errMsgForeignFacilityText);
+
+        //Step 5 - Attempt to update an existing name data block using characters that are not accepted in the following fields: Name, Description
+        if (page.grabActiveDataBlockCount(FacilitySection.NAMES, true) == 0) {
+            err = page.addNameDataBlock("NAME-VALID", "DESC-VALID", effective_date(), "");
+            assertTrue(StringUtils.isEmpty(err), "Precondition failed: could not create valid name block");
+        }
+
+        int nameIndex = 0;
+        err = page.updateNameDataBlock("NÀME-INVALID", "DESC-OK", effective_date(), "", nameIndex);
+        assertEquals(err, errMsgForeignFacilityText,
+                "Expected error message for invalid characters in Name field did not appear");
+
+        err = page.updateNameDataBlock("NAME-OK", "DÈSC-INVALID", effective_date(), "", nameIndex);
+        assertEquals(err, errMsgForeignFacilityText, 
+                "Expected error message for invalid characters in Description field did not appear");
+
+        //Step 6 - n/a
+
+        //Step 7 - n/a
+
+        //Step 8 - Attempt to add a new telecommunication data block using characters that are not accepted in the following fields: Area Code, Phone Number, Extension
+
+        final String errMsg7008 = errorList.getString("errMsg7008");
+        final TelecommunicationType telecomType = TelecommunicationType.MOBILE;
+        List<List<String>> invalidTelecomAdds = Arrays.asList(
+                List.of(telecomType.getText(), generateAlphabetString(3), generateNumericString(7), "", effective_date(), ""),
+                List.of(telecomType.getText(), generateNumericString(3), generateAlphabetString(7), "", effective_date(), ""),
+                List.of(telecomType.getText(), generateNumericString(3), generateNumericString(7), generateAlphabetString(3), effective_date(), "")
+        );
+
+        for (List<String> detail : invalidTelecomAdds){
+        
+                String error = actions.addTelecommunicationNumber(page, detail, true);
+                assertEquals(error, errMsg7008);
+        }
+        
+
+        //Step 9 - Attempt to update an existing telecommunication data block using characters that are not accepted in the following fields: Area Code, Phone Number, Extension
+        String preErr = page.addTelecommunicationDataBlock(telecomType.getText(),
+                        generateNumericString(3), generateNumericString(7), "",
+                        effective_date(), "", false);
+        
+        assertTrue(StringUtils.isEmpty(preErr));
+
+        List<List<String>> invalidTelecomUpdates = Arrays.asList(
+                List.of(telecomType.getText(), generateAlphabetString(3), generateNumericString(7), "", effective_date(), ""),
+                List.of(telecomType.getText(), generateNumericString(3), generateAlphabetString(7), "", effective_date(), ""),
+                List.of(telecomType.getText(), generateNumericString(3), generateNumericString(7), generateAlphabetString(3), effective_date(), "")
+        );
+
+        for (List<String> detail : invalidTelecomUpdates)
+        {
+                String error = actions.updateTelecommunicationNumber(page, telecomType, detail, true);
+                assertEquals(error, errMsg7008);
+        }
+
+        //Step 10 - Attempt to add a new electronic address data block using characters that are not accepted in the following fields: Electronic Address
+        final ElectronicAddressType eaType = ElectronicAddressType.EMAIL;
+        String error = page.addElectronicAddressDataBlock(eaType.getText(), "invàlid-" + generateAlphabetString(10),
+                effective_date(), "", true);
+
+        assertTrue(error.equals(TODO ADD MISSING ERROR),
+            "Expected error for invalid characters in Electronic Address did not appear");
+        
+
+        //Step 11 - Attempt to update an existing electronic address data block using characters that are not accepted in the following fields: Electronic Address
+        error = page.updateElectronicAddressDataBlock(generateEmail(),
+                effective_date(), "", 0, true);
+        
+
+        assertTrue(error.equals(TODO ADD MISSING ERROR),
+                    "Expected error for invalid characters in Electronic Address update did not appear");
+
+        //Step 12 - Attempt to add a new notes data block using characters that are not accepted in the following fields: Note Identifier, Note Text
+        if (page.grabActiveDataBlockCount(FacilitySection.NOTES, true) > 0) {
+            page.ceaseDataBlock(FacilitySection.NOTES, 0);
+        }
+
+        error = page.addNoteDataBlock("ID-INVÀLID", "TEXT-OK", effective_date(), "", true);
+        assertTrue(error.equals(TODO ADD MISSING ERROR),
+                "Expected error for invalid characters in Note Identifier did not appear");
+
+        error = page.addNoteDataBlock("ID-OK", "TÈXT-INVALID", effective_date(), "", true);
+        assertTrue(error.equals(TODO ADD MISSING ERROR),
+                "Expected error for invalid characters in Note Text did not appear");
+
+        //Step 13 - Attempt to update an existing notes data block using characters that are not accepted in the following fields: Note Text
+        String updNoteErr = page.updateNoteDataBlock("TÈXT-INVALID", effective_date(), "", 0, true);
+        assertTrue(error.equals(TODO ADD MISSING ERROR),
+                "Expected error for invalid characters in Note Text update did not appear");
+
+    }
+    
 
     @Test
     // F4-029. Mandatory Facility Telecommunication Attributes
@@ -359,7 +481,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Effective To field failed to update as expected");
     }
 
-
+    
 
     @Test
     // F4-045. Generating Internal Relationship Identifier (RID)
