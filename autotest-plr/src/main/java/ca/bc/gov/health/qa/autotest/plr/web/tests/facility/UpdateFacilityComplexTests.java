@@ -8,11 +8,8 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.*;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Note;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -20,7 +17,6 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
@@ -174,42 +170,47 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
 
         //Step 10 - Attempt to add a new electronic address data block using characters that are not accepted in the following fields: Electronic Address
-        final ElectronicAddressType eaType = ElectronicAddressType.EMAIL;
-        String error = page.addElectronicAddressDataBlock(eaType.getText(), "invàlid-" + generateAlphabetString(10),
+        final String errMsg7013 = errorList.getString("errMsg7013");
+        final ElectronicAddressType eaType = ElectronicAddressType.HTTP;
+        String error = page.addElectronicAddressDataBlock(eaType.getText(), "invàlid-" + generateAlphabetString(6) + ".com",
                 effective_date(), "", true);
 
-        assertTrue(error.equals(TODO ADD MISSING ERROR),
-            "Expected error for invalid characters in Electronic Address did not appear");
+        assertEquals(errMsg7013, error, "Expected error for invalid characters in Electronic Address did not appear");
         
 
         //Step 11 - Attempt to update an existing electronic address data block using characters that are not accepted in the following fields: Electronic Address
-        error = page.updateElectronicAddressDataBlock(generateEmail(),
+        if (page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true) == 0) {
+            err = page.addElectronicAddressDataBlock(eaType.getText(), generateHTTP(), effective_date(), "", false);
+            assertTrue(StringUtils.isEmpty(err), "Precondition failed: could not create valid electronic address block");
+        }
+        error = page.updateElectronicAddressDataBlock("invàlid-" + generateAlphabetString(6) + ".com",
                 effective_date(), "", 0, true);
-        
 
-        assertTrue(error.equals(TODO ADD MISSING ERROR),
-                    "Expected error for invalid characters in Electronic Address update did not appear");
+
+        assertEquals(errMsg7013, error, "Expected error for invalid characters in Electronic Address update did not appear");
 
         //Step 12 - Attempt to add a new notes data block using characters that are not accepted in the following fields: Note Identifier, Note Text
+        final String errMsg7004NoteIdentifier = errorList.getString("errMsg7004NoteIdentifier");
+        final String errMsg7004NoteText = errorList.getString("errMsg7004NoteText");
         if (page.grabActiveDataBlockCount(FacilitySection.NOTES, true) > 0) {
             page.ceaseDataBlock(FacilitySection.NOTES, 0);
         }
 
-        error = page.addNoteDataBlock("ID-INVÀLID", "TEXT-OK", effective_date(), "", true);
-        assertTrue(error.equals(TODO ADD MISSING ERROR),
-                "Expected error for invalid characters in Note Identifier did not appear");
+        error = page.addNoteDataBlock("ID-INVÀLID###", "TEXT-OK", effective_date(), "", true);
+        assertEquals(errMsg7004NoteIdentifier, error, "Expected error for invalid characters in Note Identifier did not appear");
 
-        error = page.addNoteDataBlock("ID-OK", "TÈXT-INVALID", effective_date(), "", true);
-        assertTrue(error.equals(TODO ADD MISSING ERROR),
-                "Expected error for invalid characters in Note Text did not appear");
+        error = page.addNoteDataBlock("ID-OK", "TÈXT-INVALID###", effective_date(), "", true);
+        assertEquals(errMsg7004NoteText, error, "Expected error for invalid characters in Note Text did not appear");
 
         //Step 13 - Attempt to update an existing notes data block using characters that are not accepted in the following fields: Note Text
-        String updNoteErr = page.updateNoteDataBlock("TÈXT-INVALID", effective_date(), "", 0, true);
-        assertTrue(error.equals(TODO ADD MISSING ERROR),
-                "Expected error for invalid characters in Note Text update did not appear");
+        if (page.grabActiveDataBlockCount(FacilitySection.NOTES, true) == 0) {
+            err = page.addNoteDataBlock("ID-OK", "TEXT-OK", effective_date(), "", false);
+            assertTrue(StringUtils.isEmpty(err), "Precondition failed: could not create valid note block");
+        }
 
+        String updNoteErr = page.updateNoteDataBlock("TÈXT-INVALID###", effective_date(), "", 0, true);
+        assertEquals(errMsg7004NoteText, updNoteErr, "Expected error for invalid characters in Note Text update did not appear");
     }
-    
 
     @Test
     // F4-029. Mandatory Facility Telecommunication Attributes
@@ -480,8 +481,6 @@ public class UpdateFacilityComplexTests implements SimpleTest
         assertEquals(eaInfo.get(EAddressField.EFFECTIVE_TO.getString()), increment_year_for_effective_date(),
                 "Effective To field failed to update as expected");
     }
-
-    
 
     @Test
     // F4-045. Generating Internal Relationship Identifier (RID)
