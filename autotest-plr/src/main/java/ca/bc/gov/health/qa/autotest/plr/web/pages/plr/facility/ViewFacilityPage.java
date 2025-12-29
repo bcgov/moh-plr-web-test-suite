@@ -48,12 +48,27 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * Expand or collapse
 	 *
-	 * @param expand
+	 * @param expand: True to expand, false to collapse
 	 */
 	public void expandAll(boolean expand) {
 		viewHeader_.expandAll(expand);
+	}
+	/**
+	 *Refresh Page
+	 *
+	 */
+	public void refreshPage() {
+		selenium_.getDriver().navigate().refresh();
+
+	}
+	/**
+	 * Maximize Window
+	 *
+	 */
+	public void maxWindow() {
+		selenium_.getDriver().manage().window().maximize();
 	}
 
 	/**
@@ -71,7 +86,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param section the Facility Section to select
 	 * @return a CSS selector string for the facility section's div panel
 	 */
-	private String getSectionSelector(FacilitySection section) {
+	protected String getSectionSelector(FacilitySection section) {
 		return "div#" + section.getPanelId_();
 	}
 
@@ -82,7 +97,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param section the Facility Section to select
 	 * @return a CSS selector string for the facility section's div content panel
 	 */
-	private String getSectionContentSelector(FacilitySection section) {
+	protected String getSectionContentSelector(FacilitySection section) {
 		return getSectionSelector(section) + "_content";
 	}
 
@@ -94,7 +109,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param section the Facility Section to select
 	 * @return a CSS selector string for the facility section's data blocks
 	 */
-	private String getDataBlocksSelector(FacilitySection section) {
+	protected String getDataBlocksSelector(FacilitySection section) {
 		return getSectionContentSelector(section) + " > table.recordDetailsPanels > tbody > tr > td > div.ui-panel";
 	}
 
@@ -106,7 +121,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param index   the index of data block to specifically select
 	 * @return a CSS selector string for a specific data block in a facility section
 	 */
-	private String getDataBlockSelector(FacilitySection section, int index) {
+	protected String getDataBlockSelector(FacilitySection section, int index) {
 		if (index < 0) {
 			String msg = String.format("Negative index (%d).", index);
 			throw new IllegalArgumentException(msg);
@@ -158,7 +173,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param index   the index of data block to specifically select
 	 * @return a CSS selector string to select the header panel of a data block
 	 */
-	private String getDataBlockHeaderSelector(FacilitySection section, int index) {
+	protected String getDataBlockHeaderSelector(FacilitySection section, int index) {
 		return getDataBlockSelector(section, index) + " > div.ui-panel-titlebar";
 	}
 
@@ -204,11 +219,11 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * check if Data Block Expand Button is Displayed
 	 *
 	 * @param section
 	 * @param index
-	 * @return
+	 * @return True if the Data Block Expand Button is displayed, otherwise false
 	 */
 	public boolean isDataBlockExpandButtonDisplayed(FacilitySection section, int index) {
 		WebElement expandCollapseButton = selenium_
@@ -451,11 +466,11 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * 
 	 */
 
-	private String getDataBlockHeaderActiveSelector(FacilitySection section, int index) {
+	protected String getDataBlockHeaderActiveSelector(FacilitySection section, int index) {
 		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions > span > img[title='Active']";
 	}
 
-	private LinkedHashMap<String, String> grabCivicAddressBlockContent(LinkedHashMap<String, String> dataMap,
+	protected LinkedHashMap<String, String> grabCivicAddressBlockContent(LinkedHashMap<String, String> dataMap,
 			List<WebElement> dataRowElementList) {
 		if (!dataRowElementList.isEmpty()) {
 			selenium_.scrollIntoView(dataRowElementList.getFirst());
@@ -506,69 +521,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-	 * TODO (KD) - doc
-	 *
-	 * @param index
-	 * @return
-	 */
-	public LinkedHashMap<String, String> grabIdentifiersBlockContent(int index) {
-		return grabDataBlockContent(FacilitySection.IDENTIFIERS, index);
-
-	}
-
-	/**
-	 * TODO (KD) - doc
-	 *
-	 * @param index
-	 * @return
-	 */
-	public LinkedHashMap<String, String> grabNamesBlockContent(int index) {
-		return grabDataBlockContent(FacilitySection.NAMES, index);
-
-	}
-
-	/**
-	 * TODO (KD) - doc
-	 *
-	 * @param index
-	 * @return
-	 */
-	public LinkedHashMap<String, String> grabOtherAddressBlockContent(int index) {
-		return grabDataBlockContent(FacilitySection.OTHER_ADDRESS, index);
-	}
-
-	/**
-	 * TODO (KD) - doc
-	 *
-	 * @param index
-	 * @return
-	 */
-	public LinkedHashMap<String, String> grabTelecommunicationsBlockContent(int index) {
-		return grabDataBlockContent(FacilitySection.TELECOMMUNICATIONS, index);
-	}
-
-	/**
-	 * TODO (KD) - doc
-	 *
-	 * @param index
-	 * @return
-	 */
-	public LinkedHashMap<String, String> grabElectronicAddressesBlockContent(int index) {
-		return grabDataBlockContent(FacilitySection.ELECTRONIC_ADDRESSES, index);
-	}
-
-	/**
-	 * TODO (KD) - doc
-	 *
-	 * @param index
-	 * @return
-	 */
-	public LinkedHashMap<String, String> grabNotesBlockContent(int index) {
-		return grabDataBlockContent(FacilitySection.NOTES, index);
-	}
-
-	/**
-	 * TODO (KD) - doc
+	 * grab OrgRelationships Block Content
 	 *
 	 * @param index
 	 * @return

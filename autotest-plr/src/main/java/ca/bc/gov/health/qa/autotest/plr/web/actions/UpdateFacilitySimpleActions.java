@@ -56,6 +56,8 @@ public class UpdateFacilitySimpleActions {
 
 	private static final String ID_SPECIAL_CHAR = "IFC.0012479#.BC.PRS";
 	private static final String ID_FOREIGN_CHAR = "IFC.0012479À.BC.PRS";
+	private static final String ID_NONEXIST = "IPC.00999999.BC.PRS";
+	private static final String ID_PERSON = "IPC.00124841.BC.PRS";
 
 	/**
 	 * Initializes class and SeleniumSession.
@@ -312,7 +314,7 @@ public class UpdateFacilitySimpleActions {
 	 * @param ID_ORG01
 	 * @param ID_ORG02
 	 */
-	public void validateFacilityDataBlockMultiplicity(UpdateFacilityPage updatePage, String ID_ORG01, String ID_ORG02) {
+	public void validateFacilityDataBlockMultiplicity(UpdateFacilityPage updatePage, String idOrgOne, String idOrgSecond) {
 		String errMsg = "";
 		String errMsg2201Tel = errorList.getString("errMsg2201Tel");
 		String errMsg2201EAddr = errorList.getString("errMsg2201EAddr");
@@ -429,25 +431,25 @@ public class UpdateFacilitySimpleActions {
 			updatePage.waitSeconds(5);
 		}
 
-		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), idOrgOne,
 				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 
-		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), idOrgOne,
 				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", true);
 		assertEquals(errMsg, errMsg7033Dup);
 
-		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage, ID_ORG01);
+		ceaseRelatedOrganizationDataBlockByRelatedId(updatePage, idOrgOne);
 
-		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), idOrgOne,
 				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 
-		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG01,
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), idOrgOne,
 				RelationshipType.LOCATED.getText(), UpdateSimpleHelper.effective_date(), "", false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 
-		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), ID_ORG02,
+		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), idOrgSecond,
 				RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 	}
@@ -606,10 +608,6 @@ public class UpdateFacilitySimpleActions {
 		String errMsg = "";
 		int maxRelatedId = 50;
 
-		String ID_SPECIAL_CHAR = "IPC.0012479#.BC.PRS";
-		String ID_NONEXIST = "IPC.00999999.BC.PRS";
-		String ID_PERSON = "IPC.00124841.BC.PRS";
-
 		String errMessage5000 = errorList.getString("errMsg5000RelatedProviderIdentifier");
 		String errMessage5003 = errorList.getString("errMsg5003ProviderIdentifier");
 		String errMessage7036 = errorList.getString("errMsg7036");
@@ -653,7 +651,7 @@ public class UpdateFacilitySimpleActions {
 	 * @param updatePage
 	 * @param endReason
 	 */
-	public void validateUpdatingFacility(UpdateFacilityPage updatePage, EndReason endReason) {
+	public void validateUpdatingFacility(UpdateFacilityPage updatePage, EndReason endReason,MaintainOrgBuilder org) {
 		String errMsg = "";
 		// identifier- Not able to be updated
 		errMsg = updatePage.addIdentifierDataBlock(IdentifierTypeName.IFC.getText(),
@@ -785,10 +783,6 @@ public class UpdateFacilitySimpleActions {
 
 		// relationship- cease, add, update, cease
 		// relation type - Location, Located
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
-		fhirController.close();
-
 		updatePage.ceaseAllDataBlockUnderSection(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
 		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),
@@ -918,9 +912,9 @@ public class UpdateFacilitySimpleActions {
 	 * validate Adding Facility ID
 	 *
 	 * @param updatePage
-	 * @param chg
+	 *
 	 */
-	public void validateAddingFacilityID(UpdateFacilityPage updatePage, EndReason chg) {
+	public void validateAddingFacilityID(UpdateFacilityPage updatePage) {
 		// identifier- Not able to be added(duplicated identifier type
 		// identifier- Not able to be updated( Update is not enabled)
 		String errMsg = "";
@@ -936,9 +930,9 @@ public class UpdateFacilitySimpleActions {
 	 * validate Updating Facility Address
 	 *
 	 * @param updatePage
-	 * @param chg
+	 *
 	 */
-	public void validateUpdatingFacilityAddress(UpdateFacilityPage updatePage, EndReason chg) {
+	public void validateUpdatingFacilityAddress(UpdateFacilityPage updatePage) {
 		// not able to update address
 		assertFalse(updatePage.isDataBlockUpdateButtonDisplayed(FacilitySection.CIVIC_ADDRESSES, 0));
 		assertFalse(updatePage.isDataBlockUpdateButtonDisplayed(FacilitySection.OTHER_ADDRESS, 0));
@@ -951,7 +945,7 @@ public class UpdateFacilitySimpleActions {
 	 * @param updatePage
 	 * @param chg
 	 */
-	public void validateFacilityAddressRecognition(UpdateFacilityPage updatePage, EndReason chg) {
+	public void validateFacilityAddressRecognition(UpdateFacilityPage updatePage) {
 		// not able to update address.
 		assertFalse(updatePage.isDataBlockUpdateButtonDisplayed(FacilitySection.OTHER_ADDRESS, 0));
 	}
@@ -960,9 +954,9 @@ public class UpdateFacilitySimpleActions {
 	 * validate Facility Civic Address Latitude and Longitude
 	 *
 	 * @param updatePage
-	 * @param chg
+	 *
 	 */
-	public static void validateFacilityCivicAddressLatitudeLongitude(UpdateFacilityPage updatePage, EndReason chg) {
+	public static void validateFacilityCivicAddressLatitudeLongitude(UpdateFacilityPage updatePage) {
 		LinkedHashMap<String, String> resultContent = updatePage.grabCivicAddressBlockContent();
 		CivicAddress address = new CivicAddress(resultContent);
 		updatePage.clickCHSAButton();
@@ -976,7 +970,7 @@ public class UpdateFacilitySimpleActions {
 	 * validate civic address Health Boundary Update
 	 *
 	 * @param updatePage
-	 * @param chg
+	 *
 	 */
 	public void validateHealthBoundaryUpdate(UpdateFacilityPage updatePage) {
 		// not able to update civic address.
@@ -988,7 +982,7 @@ public class UpdateFacilitySimpleActions {
 	 * validate Data Block Unique Keys
 	 *
 	 * @param updatePage
-	 * @param chg
+	 *
 	 */
 	public void validateDataBlockUniqueKeys(UpdateFacilityPage updatePage) {
 		// Identifier- 'duplicate record' error message
@@ -1003,36 +997,17 @@ public class UpdateFacilitySimpleActions {
 
 		// telecommunication
 		int count = updatePage.grabDataBlockCount(FacilitySection.TELECOMMUNICATIONS);
-		if (count == 0) {
-			errMsg = updatePage.addTelecommunicationDataBlock(TelecommunicationType.PHONE.getText(),
-					UpdateSimpleHelper.generateNumericString(3), UpdateSimpleHelper.generateNumericString(7),
-					UpdateSimpleHelper.generateNumericString(4), UpdateSimpleHelper.effective_date(), "", false);
-			assertTrue(StringUtils.isEmpty(errMsg));
-		}
+		assertTrue(count>0);
 		boolean find = updatePage.findUpdateDialogDorpdownList(FacilitySection.TELECOMMUNICATIONS, 0, "telecomType");
 		assertFalse(find);
 		// e-address
 		count = updatePage.grabDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES);
-		if (count == 0) {
-			errMsg = updatePage.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),
-					UpdateSimpleHelper.generateEmail(), UpdateSimpleHelper.effective_date(), "", false);
-			assertTrue(StringUtils.isEmpty(errMsg));
-		}
-
+		assertTrue(count>0);
 		find = updatePage.findUpdateDialogDorpdownList(FacilitySection.ELECTRONIC_ADDRESSES, 0, "type");
 		assertFalse(find);
 		// relationship
 		count = updatePage.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
-		if (count == 0) {
-			FHIRController fhirController = new FHIRController(UserType.ADMIN);
-			MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
-			fhirController.close();
-
-			errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),
-					org.getIdentifier(), RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "",
-					false);
-			assertTrue(StringUtils.isEmpty(errMsg));
-		}
+		assertTrue(count>0);
 		find = updatePage.findUpdateDialogDorpdownList(FacilitySection.ORGANIZATION_RELATIONSHIPS, 0, "providerType");
 		assertFalse(find);
 		find = updatePage.findUpdateDialogInput(FacilitySection.ORGANIZATION_RELATIONSHIPS, 0, "rpi");
@@ -1040,13 +1015,7 @@ public class UpdateFacilitySimpleActions {
 
 		// note
 		count = updatePage.grabDataBlockCount(FacilitySection.NOTES);
-		if (count == 0) {
-
-			errMsg = updatePage.addNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(5),
-					UpdateSimpleHelper.generateAlphabetString(5), UpdateSimpleHelper.effective_date(), "", false);
-			assertTrue(StringUtils.isEmpty(errMsg));
-		}
-
+		assertTrue(count>0);
 		find = updatePage.findUpdateDialogInput(FacilitySection.NOTES, 0, "identifier");
 		assertFalse(find);
 
@@ -1057,8 +1026,10 @@ public class UpdateFacilitySimpleActions {
 	 *
 	 * @param updatePage
 	 * @param ownerCode
+	 * @param org
+	 *
 	 */
-	public void validateDataOwnerCode(UpdateFacilityPage updatePage, String ownerCode) {
+	public void validateDataOwnerCode(UpdateFacilityPage updatePage, String ownerCode,MaintainOrgBuilder org) {
 		// Identifier
 		LinkedHashMap<String, String> resultContent = updatePage.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
 		Identifier identifier = new Identifier(resultContent);
@@ -1091,10 +1062,6 @@ public class UpdateFacilitySimpleActions {
 		ElectronicAddress electronicAddress = new ElectronicAddress(resultContent);
 		assertTrue(electronicAddress.getDataOwnerCode().equals(ownerCode));
 		// relationship
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
-		fhirController.close();
-
 		updatePage.ceaseAllDataBlockUnderSection(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
 		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),
@@ -1196,15 +1163,10 @@ public class UpdateFacilitySimpleActions {
 	 *
 	 * @param updatePage
 	 */
-	public void validateCreateFacilityOrganizationRelationship(UpdateFacilityPage updatePage) {
+	public void validateCreateFacilityOrganizationRelationship(UpdateFacilityPage updatePage,MaintainOrgBuilder orgQueried) {
 
 		String messageGRS7036 = errorList.getString("messageGRS7036");
 
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
-		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
-				org.getIdentifier());
-		fhirController.close();
 		String randomOrgId = UpdateSimpleHelper.generateNumericString(orgQueried.getOrgIdentifier().length());
 
 		String errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.ORGID.getText(),
@@ -1222,18 +1184,13 @@ public class UpdateFacilitySimpleActions {
 	 *
 	 * @param updatePage
 	 */
-	public void validateFacilityOrganizationRelationshipValidation(UpdateFacilityPage updatePage) {
+	public void validateFacilityOrganizationRelationshipValidation(UpdateFacilityPage updatePage,MaintainOrgBuilder orgQueried) {
 		String erromMessageGRS5000IdType = errorList.getString("erromMessageGRS5000IdType");
 		String erromMessageGRS5000Id = errorList.getString("erromMessageGRS5000Id");
 		String erromMessageGRS5000RelationType = errorList.getString("erromMessageGRS5000RelationType");
 		String erromMessageGRS5000EffectiveFrom = errorList.getString("erromMessageGRS5000EffectiveFrom");
 		String erromMessageGRS5000EndReason = errorList.getString("erromMessageGRS5000EndReason");
 
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		MaintainOrgBuilder orgbuild = fhirController.createOrganization(OrgRoleType.HDS);
-		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
-				orgbuild.getIdentifier());
-		fhirController.close();
 		// Add
 		// empty ID type
 		String errMsg = updatePage.addRelatedOrganizationDataBlock("", orgQueried.getIdentifier(),
@@ -1287,14 +1244,9 @@ public class UpdateFacilitySimpleActions {
 	 *
 	 * @param updatePage
 	 */
-	public void validateOrganizationNameAutoCompleteSelection(UpdateFacilityPage updatePage) {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		MaintainOrgBuilder org = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
-				"IPC.00125085.BC.PRS");
-		fhirController.close();
-
+	public void validateOrganizationNameAutoCompleteSelection(UpdateFacilityPage updatePage,MaintainOrgBuilder org) {
 		String errMsg = updatePage.addRelationshipByAutoCompletion(org, RelationshipType.LOCATION.getText(),
-				UpdateSimpleHelper.effective_date(), "", false);
+		UpdateSimpleHelper.effective_date(), "", false);
 		assertTrue(StringUtils.isEmpty(errMsg));
 		int count = updatePage.grabDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 		LinkedHashMap<String, String> resultContent = updatePage

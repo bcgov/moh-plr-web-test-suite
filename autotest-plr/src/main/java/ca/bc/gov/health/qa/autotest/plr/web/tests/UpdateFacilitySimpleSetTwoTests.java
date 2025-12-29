@@ -11,7 +11,9 @@ import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.UpdateFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewFacilitySimpleActions;
@@ -47,11 +49,10 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 			workflow.login().openPlr();
 		}
 		if (facility == null) {
-			// FHIRController fhirController = new FHIRController(UserType.ADMIN);
-			// FacilityMaintainConfig cfg = new
-			// FacilityMaintainConfig().withPhone().withEmail();
-			// facility = fhirController.createFacility(cfg);
-			// fhirController.close();
+			 FHIRController fhirController = new FHIRController(UserType.ADMIN);
+			 FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail().withNotes(1);
+			 facility = fhirController.createFacility(cfg);
+			 fhirController.close();
 		}
 
 	}
@@ -66,7 +67,11 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		actions.validateUpdatingFacility(updatePage, EndReason.CHG);
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
+		fhirController.close();
+
+		actions.validateUpdatingFacility(updatePage, EndReason.CHG,org);
 
 	}
 
@@ -76,14 +81,10 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	@Test(groups = { "UpdateFacility",
 			"UpdateFacilitySetTwo" }, dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
 	public void testFacilityAccessbyUserRole(UserType userType) {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
+
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, userType);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
 		actions.validateFacilityAccessbyUserRole(updatePage, EndReason.CHG, userType);
 
@@ -95,16 +96,12 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testAddingFacilityID() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
+
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		actions.validateAddingFacilityID(updatePage, EndReason.CHG);
+		actions.validateAddingFacilityID(updatePage);
 
 	}
 
@@ -113,16 +110,11 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testUpdatingFacilityAddress() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		actions.validateUpdatingFacilityAddress(updatePage, EndReason.CHG);
+		actions.validateUpdatingFacilityAddress(updatePage);
 
 	}
 
@@ -131,16 +123,11 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testFacilityAddressRecognition() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		actions.validateFacilityAddressRecognition(updatePage, EndReason.CHG);
+		actions.validateFacilityAddressRecognition(updatePage);
 
 	}
 
@@ -149,17 +136,12 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testFacilityCivicAddressLatitudeLongitude() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		// FacilityMaintainConfig cfg = new
-		// FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
+
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		UpdateFacilitySimpleActions.validateFacilityCivicAddressLatitudeLongitude(updatePage, EndReason.CHG);
+		UpdateFacilitySimpleActions.validateFacilityCivicAddressLatitudeLongitude(updatePage);
 
 	}
 
@@ -168,14 +150,10 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testHealthBoundaryUpdate() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
+
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
 		actions.validateHealthBoundaryUpdate(updatePage);
 
@@ -207,16 +185,14 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testDataOwnerCode() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
+
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
-
-		actions.validateDataOwnerCode(updatePage, "MOH");
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
+		fhirController.close();
+		actions.validateDataOwnerCode(updatePage, "MOH",org);
 
 	}
 
@@ -225,13 +201,10 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testUpdatingFacilityTelecommunication() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
+
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
 		actions.validateUpdatingFacilityTelecommunication(updatePage);
 
@@ -242,14 +215,10 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testUpdatingFacilityElectronicAddress() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
 		actions.validateUpdatingFacilityElectronicAddress(updatePage);
 
@@ -260,14 +229,10 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testGeneratingDefaultNoteID() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
+
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
 		actions.validateGeneratingDefaultNoteID(updatePage);
 
@@ -278,16 +243,18 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testCreateFacilityOrganizationRelationship() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
+
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		actions.validateCreateFacilityOrganizationRelationship(updatePage);
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
+		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
+				org.getIdentifier());
+		fhirController.close();
+
+		actions.validateCreateFacilityOrganizationRelationship(updatePage,orgQueried);
 
 	}
 
@@ -297,15 +264,18 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testFacilityOrganizationRelationshipValidation() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.createFacility(cfg);
-		fhirController.close();
+
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		actions.validateFacilityOrganizationRelationshipValidation(updatePage);
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		MaintainOrgBuilder orgbuild = fhirController.createOrganization(OrgRoleType.HDS);
+		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
+				orgbuild.getIdentifier());
+		fhirController.close();
+
+		actions.validateFacilityOrganizationRelationshipValidation(updatePage,orgQueried);
 
 	}
 
@@ -314,16 +284,15 @@ public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	 */
 	@Test(groups = { "UpdateFacility", "UpdateFacilitySetTwo" })
 	public void testOrganizationNameAutoCompleteSelection() {
-		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		FacilityMaintainConfig cfg = new FacilityMaintainConfig().withPhone().withEmail();
-		MaintainFacilityBuilder facilitytest = fhirController.queryFacilityByIdentifier(IdentifierType.IFC,
-				"IFC.00006933.BC.PRS");
-		fhirController.close();
+
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
-		UpdateFacilityPage updatePage = actions.openFacility(facilitytest);
+		UpdateFacilityPage updatePage = actions.openFacility(facility);
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
+		fhirController.close();
 
-		actions.validateOrganizationNameAutoCompleteSelection(updatePage);
+		actions.validateOrganizationNameAutoCompleteSelection(updatePage,org);
 
 	}
 
