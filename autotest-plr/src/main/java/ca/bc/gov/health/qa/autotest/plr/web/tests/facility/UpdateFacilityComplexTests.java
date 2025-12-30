@@ -8,6 +8,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.*;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
@@ -74,7 +75,8 @@ public class UpdateFacilityComplexTests implements SimpleTest
         fhirController = new FHIRController(UserType.ADMIN);
 
         final FacilityMaintainConfig config = new FacilityMaintainConfig();
-        dummyFacility = fhirController.createFacility(config);
+        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00007027.BC.PRS");
+        // dummyFacility = fhirController.createFacility(config);
     }
 
     @BeforeMethod
@@ -88,8 +90,201 @@ public class UpdateFacilityComplexTests implements SimpleTest
     }
 
     @Test
+    // F4-021. Validate Effective Start and End Date Format
+    public void validateStartEndDateFormat()
+    {
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        final String errMsg5000 = errorList.getString("errMsg5000EffectiveFrom");
+        final String errMsg5004EffectiveFrom = errorList.getString("errMsg5004EffectiveFrom");
+        final String errMsg5004EffectiveTo = errorList.getString("errMsg5004EffectiveTo");
+        final String dmyDateFrom = "0" + generateNumericString(1) + "-0" + generateNumericString(1) + "-19" + generateNumericString(2);
+        final String dmyDateTo = "0" + generateNumericString(1) + "-0" + generateNumericString(1) + "-205" + generateNumericString(1);
+
+        // Names Add
+        if (page.grabActiveDataBlockCount(FacilitySection.NAMES, true) > 0) {
+            page.ceaseDataBlock(FacilitySection.NAMES, 0);
+        }
+        String err = page.addNameDataBlock("Test Name", "Test Desc", "", "");
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when adding name block");
+
+        err = page.addNameDataBlock("Test Name", "Test Desc", dmyDateFrom, "");
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.addNameDataBlock("Test Name", "Test Desc", effective_date(), dmyDateTo);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.addNameDataBlock("Test Name", "Test Desc", effective_date(), increment_year_for_effective_date());
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new name block failed to be created");
+
+        // Names Update
+
+        err = page.updateNameDataBlock("Test Name", "Test Desc", "", increment_year_for_effective_date(), 0);
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating name block");
+
+        err = page.updateNameDataBlock("Test Name", "Test Desc", dmyDateFrom, increment_year_for_effective_date(), 0);
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.updateNameDataBlock("Test Name", "Test Desc", effective_date(), dmyDateTo, 0);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.updateNameDataBlock("Test Name2", "Test Desc2", effective_date(), increment_year_for_effective_date(), 0);
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new name block failed to be updated");
+
+        // Other Address Add / Update is N/A
+
+        // Telecommunication Add
+        while (page.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true) > 0)
+        {
+            page.ceaseDataBlock(FacilitySection.TELECOMMUNICATIONS, 0);
+        }
+        final TelecommunicationType telecomType = TelecommunicationType.MOBILE;
+
+        err = page.addTelecommunicationDataBlock(telecomType.getText(),
+                generateNumericString(3), generateNumericString(7), "", "", "", true);
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when adding telecommunication block");
+
+        err = page.addTelecommunicationDataBlock(telecomType.getText(),
+                generateNumericString(3), generateNumericString(7), "", dmyDateFrom, "", true);
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.addTelecommunicationDataBlock(telecomType.getText(),
+                generateNumericString(3), generateNumericString(7), "", effective_date(), dmyDateTo, true);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.addTelecommunicationDataBlock(telecomType.getText(),
+                generateNumericString(3), generateNumericString(7), "", effective_date(), increment_year_for_effective_date(), false);
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new telecommunication block failed to be added");
+
+        // Telecommunication Update
+        err = page.updateTelecommunicationBlock(
+                generateNumericString(3), generateNumericString(7), "", "", "", 0, true);
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating telecommunication block");
+
+        err = page.updateTelecommunicationBlock(
+                generateNumericString(3), generateNumericString(7), "", dmyDateFrom, "", 0, true);
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.updateTelecommunicationBlock(
+                generateNumericString(3), generateNumericString(7), "", effective_date(), dmyDateTo, 0, true);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.updateTelecommunicationBlock(
+                generateNumericString(3), generateNumericString(7), "", effective_date(), increment_year_for_effective_date(), 0, false);
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new telecommunication block failed to be updated");
+
+        LOG.info("made it here");
+
+        // E-Address Add
+        while (page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true) > 0)
+        {
+            LOG.info(page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true));
+            page.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES, 0);
+        }
+        final ElectronicAddressType eaType = ElectronicAddressType.HTTP;
+
+        LOG.info("made it here too");
+
+        err = page.addElectronicAddressDataBlock(eaType.getText(), generateHTTP(), "", "", true);
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when adding e-address block");
+
+        err = page.addElectronicAddressDataBlock(eaType.getText(), generateHTTP(), dmyDateFrom, "", true);
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.addElectronicAddressDataBlock(eaType.getText(), generateHTTP(), effective_date(), dmyDateTo, true);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.addElectronicAddressDataBlock(eaType.getText(), generateHTTP(), effective_date(), increment_year_for_effective_date(), false);
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new e-address block failed to be added");
+
+        // E-Address Update
+
+        err = page.updateElectronicAddressDataBlock(generateHTTP(), "", "", 0, true);
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating e-address block");
+
+        err = page.updateElectronicAddressDataBlock(generateHTTP(), dmyDateFrom, "", 0, true);
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.updateElectronicAddressDataBlock(generateHTTP(), effective_date(), dmyDateTo, 0, true);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.updateElectronicAddressDataBlock(generateHTTP(), effective_date(), increment_year_for_effective_date(), 0, false);
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new e-address block failed to be updated");
+
+        // Org Relationship Add
+        final MaintainOrgBuilder org = fhirController.createOrganization(new OrganizationMaintainConfig());
+        while (page.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true) > 0)
+        {
+            page.ceaseDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS, 0);
+        }
+
+        err = page.addRelatedOrganizationDataBlock(
+                RelatedProviderIdentifierType.IPC.getText(), org.getIdentifier(), RelationshipType.LOCATION.getText(), "", "", true);
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when adding org relationship block");
+
+        err = page.addRelatedOrganizationDataBlock(
+                RelatedProviderIdentifierType.IPC.getText(), org.getIdentifier(), RelationshipType.LOCATION.getText(), dmyDateFrom, "", true);
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.addRelatedOrganizationDataBlock(
+                RelatedProviderIdentifierType.IPC.getText(), org.getIdentifier(), RelationshipType.LOCATION.getText(), effective_date(), dmyDateTo, true);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.addRelatedOrganizationDataBlock(
+                RelatedProviderIdentifierType.IPC.getText(), org.getIdentifier(), RelationshipType.LOCATION.getText(), effective_date(), increment_year_for_effective_date(), false);
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new org relationship block failed to be added");
+
+        // Org Relationship Update
+
+        err = page.updateRelationshipOrgBlock("", "", 0, true);
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating org relationship block");
+
+        err = page.updateRelationshipOrgBlock(dmyDateFrom, "", 0, true);
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.updateRelationshipOrgBlock(effective_date(), dmyDateTo, 0, true);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.updateRelationshipOrgBlock(effective_date(), increment_year_for_effective_date(), 0, false);
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new org relationship block failed to be updated");
+
+        // Note Add
+        while (page.grabActiveDataBlockCount(FacilitySection.NOTES, true) > 0)
+        {
+            page.ceaseDataBlock(FacilitySection.NOTES, 0);
+        }
+
+        err = page.addNoteDataBlock("NOTE-ID", "NOTE-TEXT", "", "", true);
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when adding note block");
+
+        err = page.addNoteDataBlock("NOTE-ID", "NOTE-TEXT", dmyDateFrom, "", true);
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.addNoteDataBlock("NOTE-ID", "NOTE-TEXT", effective_date(), dmyDateTo, true);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.addNoteDataBlock("NOTE-ID", "NOTE-TEXT", effective_date(), increment_year_for_effective_date(), false);
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new e-address block failed to be added");
+
+        // Note Update
+        err = page.updateNoteDataBlock("NOTE-TEXT", "", "", 0, true);
+        assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating note block");
+
+        err = page.updateNoteDataBlock("NOTE-TEXT", dmyDateFrom, "", 0, true);
+        assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
+
+        err = page.updateNoteDataBlock("NOTE-TEXT", effective_date(), dmyDateTo, 0, true);
+        assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
+
+        err = page.updateNoteDataBlock("NOTE-TEXT", effective_date(), increment_year_for_effective_date(), 0, false);
+        assertTrue(StringUtils.isEmpty(err), "Precondition failed: new e-address block failed to be updated");
+    }
+
+    @Test
     // F4-022. Rejection of Non-Acceptable Characters
-    public void rejectNonAcceptableCharacters(){
+    public void rejectNonAcceptableCharacters()
+    {
         //Step 1 - Open facility details screen
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
         UpdateFacilityPage page = actions.openFacility(dummyFacility);

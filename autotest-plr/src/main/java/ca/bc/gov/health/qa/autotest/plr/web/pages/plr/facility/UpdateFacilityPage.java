@@ -693,6 +693,37 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
+	/**
+	 * TODO (AMV) - doc
+	 *
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param index
+	 * @param expectError
+	 * @return
+	 */
+	public String updateRelationshipOrgBlock(String effectiveFrom, String effectiveTo, int index, boolean expectError)
+	{
+		String msgDisplay="";
+		String formName=DIALOG_MAP.get(FacilitySection.ORGANIZATION_RELATIONSHIPS).getFormName();
+		String dialogCss=getDialogCss(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+
+		clickDataBlockUpdateButton(FacilitySection.ORGANIZATION_RELATIONSHIPS, index);
+		//waitSeconds(2);
+
+		setEndReasonByVisibleText(FacilitySection.ORGANIZATION_RELATIONSHIPS,EndReason.CHG.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ORGANIZATION_RELATIONSHIPS,effectiveFrom,effectiveTo);
+
+		clickDialogSubmitButton(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+
+		if(expectError)
+			msgDisplay=waitErrorMessage(FacilitySection.ORGANIZATION_RELATIONSHIPS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
     /**
      * Attempts to add a telecommunication data block with provided values
      *
