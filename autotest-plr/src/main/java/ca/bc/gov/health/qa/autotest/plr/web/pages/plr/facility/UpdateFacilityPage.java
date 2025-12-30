@@ -473,9 +473,10 @@ public class UpdateFacilityPage extends ViewFacilityPage {
      * @param effectiveFrom		the effective from date to update the data block with
      * @param effectiveTo		the effective to date to update the data block with
      * @param index				the index of name data block to update
+	 * @param endReason			the end reason to specify when updating the data block
      * @return					a string of the full message dialog of errors, if any exist. otherwise an empty string
      */
-	public String updateNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo,int index) {
+	public String updateNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo, int index, String endReason) {
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.NAMES).getFormName();
 		String dialogCss=getDialogCss(FacilitySection.NAMES);
@@ -489,7 +490,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		//<input id="maintainFacilityNameForm:description"
         findAndFillField(dialogCss,formName,desc,"description");
 		
-		setEndReasonByVisibleText(FacilitySection.NAMES,EndReason.CHG.getText());
+		setEndReasonByVisibleText(FacilitySection.NAMES,endReason);
 		
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.NAMES,effectiveFrom,effectiveTo);
 		
@@ -597,10 +598,11 @@ public class UpdateFacilityPage extends ViewFacilityPage {
      * @param effectiveTo		the effective to date to update the effective to field with
      * @param index				the index of note data block to update
      * @param expectError		whether an error is anticipated (true) or not (false)
+	 * @param endReason			the end reason field to fill the end reason code field with
      * @return					a string of the error message, if expectError is true. otherwise an empty string
      */
 	public String updateNoteDataBlock( String text, String effectiveFrom, String effectiveTo,
-			int index,boolean expectError) {
+			int index, boolean expectError, String endReason) {
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.NOTES).getFormName();
 		String dialogCss=getDialogCss(FacilitySection.NOTES);
@@ -614,7 +616,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		if(!StringUtils.isEmpty(text))inputText.sendKeys(text);
 		
 		
-		setEndReasonByVisibleText(FacilitySection.NOTES,EndReason.CHG.getText());
+		setEndReasonByVisibleText(FacilitySection.NOTES,endReason);
 		
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.NOTES,effectiveFrom,effectiveTo);
 		
@@ -700,9 +702,10 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	 * @param effectiveTo
 	 * @param index
 	 * @param expectError
+	 * @param endReason
 	 * @return
 	 */
-	public String updateRelationshipOrgBlock(String effectiveFrom, String effectiveTo, int index, boolean expectError)
+	public String updateRelationshipOrgBlock(String effectiveFrom, String effectiveTo, int index, boolean expectError, String endReason)
 	{
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.ORGANIZATION_RELATIONSHIPS).getFormName();
@@ -711,7 +714,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		clickDataBlockUpdateButton(FacilitySection.ORGANIZATION_RELATIONSHIPS, index);
 		//waitSeconds(2);
 
-		setEndReasonByVisibleText(FacilitySection.ORGANIZATION_RELATIONSHIPS,EndReason.CHG.getText());
+		setEndReasonByVisibleText(FacilitySection.ORGANIZATION_RELATIONSHIPS,endReason);
 
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ORGANIZATION_RELATIONSHIPS,effectiveFrom,effectiveTo);
 
@@ -785,10 +788,11 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	 * @param effectiveTo		the effective to date to update the data block with
 	 * @param index				the index of the telecom data block to update
 	 * @param expectError		whether an error is anticipated (true) or not (false)
+	 * @param endReason			the end reason to fill the end reason code field with
 	 * @return					a string of the error message, if expectError is true. otherwise an empty string
 	 */
 	public String updateTelecommunicationBlock(String areaCode, String phoneNumber, String extension,
-											   String effectiveFrom, String effectiveTo, int index, boolean expectError)
+											   String effectiveFrom, String effectiveTo, int index, boolean expectError, String endReason)
 	{
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.TELECOMMUNICATIONS).getFormName();
@@ -812,7 +816,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		inputExtension.clear();
 		if(!StringUtils.isEmpty(extension))inputExtension.sendKeys(extension);
 
-		setEndReasonByVisibleText(FacilitySection.TELECOMMUNICATIONS,EndReason.CHG.getText());
+		setEndReasonByVisibleText(FacilitySection.TELECOMMUNICATIONS, endReason);
 
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.TELECOMMUNICATIONS,effectiveFrom,effectiveTo);
 
@@ -874,10 +878,11 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	 * @param effectiveFrom		the effective from date to update the data block with
 	 * @param effectiveTo		the effective to date to update the data block with
 	 * @param expectError		whether an error is anticipated (true) or not (false)
+	 * @param endReason			the end reason string to fill in the End Reason code field
 	 * @return					a string of the error message, if expectError is true. otherwise an empty string
 	 */
 	public String updateElectronicAddressDataBlock(String address, String effectiveFrom, String effectiveTo,
-												   int index, boolean expectError) {
+												   int index, boolean expectError, String endReason) {
 		String msgDisplay="";
 		String formName=DIALOG_MAP.get(FacilitySection.ELECTRONIC_ADDRESSES).getFormName();
 		String dialogCss=getDialogCss(FacilitySection.ELECTRONIC_ADDRESSES);
@@ -890,7 +895,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		inputAddress.clear();
 		if(!StringUtils.isEmpty(address))inputAddress.sendKeys(address);
 
-		setEndReasonByVisibleText(FacilitySection.ELECTRONIC_ADDRESSES, EndReason.CHG.getText());
+		setEndReasonByVisibleText(FacilitySection.ELECTRONIC_ADDRESSES, endReason);
 
 		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ELECTRONIC_ADDRESSES,effectiveFrom,effectiveTo);
 

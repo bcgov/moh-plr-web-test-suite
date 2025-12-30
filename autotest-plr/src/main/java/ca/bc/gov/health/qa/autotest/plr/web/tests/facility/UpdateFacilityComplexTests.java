@@ -90,6 +90,126 @@ public class UpdateFacilityComplexTests implements SimpleTest
     }
 
     @Test
+    // F4-020. Validate End Reason Code
+    public void validateEndReasonCode()
+    {
+        final String errMsg5000EndReason = errorList.getString("errMsg5000EndReason");
+
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        // Identifier is N/A
+
+        // Names
+        String err = page.updateNameDataBlock("Test Name Error", "Test Name Desc", effective_date(), "", 0, "Select One");
+        assertEquals(err, errMsg5000EndReason, "End Reason error did not appear when no end reason code specified");
+
+        page.updateNameDataBlock("Test Name Correct", "Test Name Desc", effective_date(), "", 0, EndReason.CORR.getText());
+
+        String name = page.grabDataBlockContent(FacilitySection.NAMES, 0).get("Name");
+        assertEquals(name, "Test Name Correct", "Name was not changed after Correction update");
+
+        page.updateNameDataBlock("Test Name Change", "Test Name Desc", effective_date(), "", 0, EndReason.CHG.getText());
+
+        name = page.grabDataBlockContent(FacilitySection.NAMES, 0).get("Name");
+        assertEquals(name, "Test Name Change", "Name was not changed after Change update");
+
+        page.ceaseDataBlock(FacilitySection.NAMES, 0);
+        assertEquals(page.grabActiveDataBlockCount(FacilitySection.NAMES, true), 0, "Name data block was not ceased as expected");
+
+        // Civic Address is N/A
+
+        // Other Address is N/A
+
+        // Telecoms
+        final TelecommunicationType telecomType = TelecommunicationType.FAX;
+        final List<String> phoneNumber = List.of(generateNumericString(3), generateNumericString(7), generateNumericString(3));
+        if (page.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true) == 0)
+        {
+            page.addTelecommunicationDataBlock(telecomType.getText(),
+                    generateNumericString(3), generateNumericString(7), "", effective_date(), "", false);
+        }
+
+        err = page.updateTelecommunicationBlock(phoneNumber.get(0), phoneNumber.get(1), "", effective_date(), "", 0, true, "Select One");
+        assertEquals(err, errMsg5000EndReason, "End Reason error did not appear when no end reason code specified");
+
+        page.updateTelecommunicationBlock(phoneNumber.get(0), phoneNumber.get(1), "", effective_date(), "", 0, false, EndReason.CORR.getText());
+        name = page.grabDataBlockContent(FacilitySection.TELECOMMUNICATIONS, 0).get("Area Code");
+        assertEquals(name, phoneNumber.get(0), "Telecommunication Area Code was not changed after Correction update");
+
+        page.updateTelecommunicationBlock(phoneNumber.get(2), phoneNumber.get(1), "", effective_date(), "", 0, false, EndReason.CHG.getText());
+        name = page.grabDataBlockContent(FacilitySection.TELECOMMUNICATIONS, 0).get("Area Code");
+        assertEquals(name, phoneNumber.get(2), "Telecommunication Area Code was not changed after Change update");
+
+        page.ceaseDataBlock(FacilitySection.TELECOMMUNICATIONS, 0);
+        assertEquals(page.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true), 0, "Telecommunication data block was not ceased as expected");
+
+        // E-Addresses
+        final ElectronicAddressType eaType = ElectronicAddressType.HTTP;
+        final List<String> https = List.of(generateHTTP(), generateHTTP());
+        if (page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true) == 0)
+        {
+            page.addElectronicAddressDataBlock(eaType.getText(), https.getFirst(), effective_date(), "", false);
+        }
+
+        err = page.updateElectronicAddressDataBlock(https.getFirst(), effective_date(), "", 0, true, "Select One");
+        assertEquals(err, errMsg5000EndReason, "End Reason error did not appear when no end reason code specified");
+
+        page.updateElectronicAddressDataBlock(https.getFirst(), effective_date(), "", 0, false, EndReason.CORR.getText());
+        name = page.grabDataBlockContent(FacilitySection.ELECTRONIC_ADDRESSES, 0).get("Address");
+        assertEquals(name, https.getFirst(), "Electronic Address was not changed after correction update");
+
+        page.updateElectronicAddressDataBlock(https.get(1), effective_date(), "", 0, false, EndReason.CHG.getText());
+        name = page.grabDataBlockContent(FacilitySection.ELECTRONIC_ADDRESSES, 0).get("Address");
+        assertEquals(name, https.get(1), "Electronic Address was not changed after change update");
+
+        page.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES, 0);
+        assertEquals(page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true), 0, "Electronic address data block was not ceased as expected");
+
+        // Organization Relationships
+        if (page.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true) == 0)
+        {
+            MaintainOrgBuilder org = fhirController.createOrganization(new OrganizationMaintainConfig());
+            page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.CPN.getText(),
+                    org.getIdentifier(), RelationshipType.LOCATION.getText(), effective_date(), "", false);
+        }
+
+        err = page.updateRelationshipOrgBlock(effective_date(), "", 0, true, "Select One");
+        assertEquals(err, errMsg5000EndReason, "End Reason error did not appear when no end reason code specified");
+
+        page.updateRelationshipOrgBlock(effective_date(), increment_month_for_effective_date(), 0, false, EndReason.CORR.getText());
+        name = page.grabDataBlockContent(FacilitySection.ORGANIZATION_RELATIONSHIPS, 0).get("Effective To");
+        assertEquals(name, increment_month_for_effective_date(), "Organization Relationship was not changed after correction update");
+
+        page.updateRelationshipOrgBlock(effective_date(), increment_year_for_effective_date(), 0, false, EndReason.CHG.getText());
+        name = page.grabDataBlockContent(FacilitySection.ORGANIZATION_RELATIONSHIPS, 0).get("Effective To");
+        assertEquals(name, increment_year_for_effective_date(), "Organization Relationship was not changed after change update");
+
+        page.ceaseDataBlock(FacilitySection.ORGANIZATION_RELATIONSHIPS, 0);
+        assertEquals(page.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true), 0, "Organization Relationship data block was not ceased as expected.");
+
+        // Notes
+        if (page.grabActiveDataBlockCount(FacilitySection.NOTES, true) == 0)
+        {
+            page.addNoteDataBlock("NOTE-ID", "NOTE-TEXT", effective_date(), "", false);
+        }
+
+        err = page.updateNoteDataBlock("NOTE-TEXT",  effective_date(), "", 0, true, "Select One");
+        assertEquals(err, errMsg5000EndReason, "End Reason error did not appear when no end reason code specified");
+
+        page.updateNoteDataBlock("NOTE-CORR", effective_date(), "", 0, false, EndReason.CORR.getText());
+        name = page.grabDataBlockContent(FacilitySection.NOTES, 0).get("Note Text");
+        assertEquals(name, "NOTE-CORR", "Note Text was not changed after correction update");
+
+        page.updateNoteDataBlock("NOTE-CHG", effective_date(), "", 0, false, EndReason.CHG.getText());
+        name = page.grabDataBlockContent(FacilitySection.NOTES, 0).get("Note Text");
+        assertEquals(name, "NOTE-CHG", "Note Text was not changed after change update");
+
+        page.ceaseDataBlock(FacilitySection.NOTES, 0);
+        assertEquals(page.grabActiveDataBlockCount(FacilitySection.NOTES, true), 0, "Note data block was not ceased as expected.");
+    }
+
+    @Test
     // F4-021. Validate Effective Start and End Date Format
     public void validateStartEndDateFormat()
     {
@@ -101,6 +221,8 @@ public class UpdateFacilityComplexTests implements SimpleTest
         final String errMsg5004EffectiveTo = errorList.getString("errMsg5004EffectiveTo");
         final String dmyDateFrom = "0" + generateNumericString(1) + "-0" + generateNumericString(1) + "-19" + generateNumericString(2);
         final String dmyDateTo = "0" + generateNumericString(1) + "-0" + generateNumericString(1) + "-205" + generateNumericString(1);
+
+        // Identifiers Add / Update is N/A
 
         // Names Add
         if (page.grabActiveDataBlockCount(FacilitySection.NAMES, true) > 0) {
@@ -120,16 +242,16 @@ public class UpdateFacilityComplexTests implements SimpleTest
 
         // Names Update
 
-        err = page.updateNameDataBlock("Test Name", "Test Desc", "", increment_year_for_effective_date(), 0);
+        err = page.updateNameDataBlock("Test Name", "Test Desc", "", increment_year_for_effective_date(), 0, EndReason.CHG.getText());
         assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating name block");
 
-        err = page.updateNameDataBlock("Test Name", "Test Desc", dmyDateFrom, increment_year_for_effective_date(), 0);
+        err = page.updateNameDataBlock("Test Name", "Test Desc", dmyDateFrom, increment_year_for_effective_date(), 0, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
 
-        err = page.updateNameDataBlock("Test Name", "Test Desc", effective_date(), dmyDateTo, 0);
+        err = page.updateNameDataBlock("Test Name", "Test Desc", effective_date(), dmyDateTo, 0, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
 
-        err = page.updateNameDataBlock("Test Name2", "Test Desc2", effective_date(), increment_year_for_effective_date(), 0);
+        err = page.updateNameDataBlock("Test Name2", "Test Desc2", effective_date(), increment_year_for_effective_date(), 0, EndReason.CHG.getText());
         assertTrue(StringUtils.isEmpty(err), "Precondition failed: new name block failed to be updated");
 
         // Other Address Add / Update is N/A
@@ -159,19 +281,19 @@ public class UpdateFacilityComplexTests implements SimpleTest
 
         // Telecommunication Update
         err = page.updateTelecommunicationBlock(
-                generateNumericString(3), generateNumericString(7), "", "", "", 0, true);
+                generateNumericString(3), generateNumericString(7), "", "", "", 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating telecommunication block");
 
         err = page.updateTelecommunicationBlock(
-                generateNumericString(3), generateNumericString(7), "", dmyDateFrom, "", 0, true);
+                generateNumericString(3), generateNumericString(7), "", dmyDateFrom, "", 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
 
         err = page.updateTelecommunicationBlock(
-                generateNumericString(3), generateNumericString(7), "", effective_date(), dmyDateTo, 0, true);
+                generateNumericString(3), generateNumericString(7), "", effective_date(), dmyDateTo, 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
 
         err = page.updateTelecommunicationBlock(
-                generateNumericString(3), generateNumericString(7), "", effective_date(), increment_year_for_effective_date(), 0, false);
+                generateNumericString(3), generateNumericString(7), "", effective_date(), increment_year_for_effective_date(), 0, false, EndReason.CHG.getText());
         assertTrue(StringUtils.isEmpty(err), "Precondition failed: new telecommunication block failed to be updated");
 
         LOG.info("made it here");
@@ -200,16 +322,16 @@ public class UpdateFacilityComplexTests implements SimpleTest
 
         // E-Address Update
 
-        err = page.updateElectronicAddressDataBlock(generateHTTP(), "", "", 0, true);
+        err = page.updateElectronicAddressDataBlock(generateHTTP(), "", "", 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating e-address block");
 
-        err = page.updateElectronicAddressDataBlock(generateHTTP(), dmyDateFrom, "", 0, true);
+        err = page.updateElectronicAddressDataBlock(generateHTTP(), dmyDateFrom, "", 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
 
-        err = page.updateElectronicAddressDataBlock(generateHTTP(), effective_date(), dmyDateTo, 0, true);
+        err = page.updateElectronicAddressDataBlock(generateHTTP(), effective_date(), dmyDateTo, 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
 
-        err = page.updateElectronicAddressDataBlock(generateHTTP(), effective_date(), increment_year_for_effective_date(), 0, false);
+        err = page.updateElectronicAddressDataBlock(generateHTTP(), effective_date(), increment_year_for_effective_date(), 0, false, EndReason.CHG.getText());
         assertTrue(StringUtils.isEmpty(err), "Precondition failed: new e-address block failed to be updated");
 
         // Org Relationship Add
@@ -237,16 +359,16 @@ public class UpdateFacilityComplexTests implements SimpleTest
 
         // Org Relationship Update
 
-        err = page.updateRelationshipOrgBlock("", "", 0, true);
+        err = page.updateRelationshipOrgBlock("", "", 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating org relationship block");
 
-        err = page.updateRelationshipOrgBlock(dmyDateFrom, "", 0, true);
+        err = page.updateRelationshipOrgBlock(dmyDateFrom, "", 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
 
-        err = page.updateRelationshipOrgBlock(effective_date(), dmyDateTo, 0, true);
+        err = page.updateRelationshipOrgBlock(effective_date(), dmyDateTo, 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
 
-        err = page.updateRelationshipOrgBlock(effective_date(), increment_year_for_effective_date(), 0, false);
+        err = page.updateRelationshipOrgBlock(effective_date(), increment_year_for_effective_date(), 0, false, EndReason.CHG.getText());
         assertTrue(StringUtils.isEmpty(err), "Precondition failed: new org relationship block failed to be updated");
 
         // Note Add
@@ -268,16 +390,16 @@ public class UpdateFacilityComplexTests implements SimpleTest
         assertTrue(StringUtils.isEmpty(err), "Precondition failed: new e-address block failed to be added");
 
         // Note Update
-        err = page.updateNoteDataBlock("NOTE-TEXT", "", "", 0, true);
+        err = page.updateNoteDataBlock("NOTE-TEXT", "", "", 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when updating note block");
 
-        err = page.updateNoteDataBlock("NOTE-TEXT", dmyDateFrom, "", 0, true);
+        err = page.updateNoteDataBlock("NOTE-TEXT", dmyDateFrom, "", 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveFrom, "Error when specifying incorrect date format for Effective From did not appear");
 
-        err = page.updateNoteDataBlock("NOTE-TEXT", effective_date(), dmyDateTo, 0, true);
+        err = page.updateNoteDataBlock("NOTE-TEXT", effective_date(), dmyDateTo, 0, true, EndReason.CHG.getText());
         assertEquals(err, errMsg5004EffectiveTo, "Error when specifying incorrect date format for Effective To did not appear");
 
-        err = page.updateNoteDataBlock("NOTE-TEXT", effective_date(), increment_year_for_effective_date(), 0, false);
+        err = page.updateNoteDataBlock("NOTE-TEXT", effective_date(), increment_year_for_effective_date(), 0, false, EndReason.CHG.getText());
         assertTrue(StringUtils.isEmpty(err), "Precondition failed: new e-address block failed to be updated");
     }
 
@@ -316,11 +438,11 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
 
         int nameIndex = 0;
-        err = page.updateNameDataBlock("NÀME-INVALID", "DESC-OK", effective_date(), "", nameIndex);
+        err = page.updateNameDataBlock("NÀME-INVALID", "DESC-OK", effective_date(), "", nameIndex, EndReason.CHG.getText());
         assertEquals(err, errMsgForeignFacilityText,
                 "Expected error message for invalid characters in Name field did not appear");
 
-        err = page.updateNameDataBlock("NAME-OK", "DÈSC-INVALID", effective_date(), "", nameIndex);
+        err = page.updateNameDataBlock("NAME-OK", "DÈSC-INVALID", effective_date(), "", nameIndex, EndReason.CHG.getText());
         assertEquals(err, errMsgForeignFacilityText, 
                 "Expected error message for invalid characters in Description field did not appear");
 
@@ -379,7 +501,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
             assertTrue(StringUtils.isEmpty(err), "Precondition failed: could not create valid electronic address block");
         }
         error = page.updateElectronicAddressDataBlock("invàlid-" + generateAlphabetString(6) + ".com",
-                effective_date(), "", 0, true);
+                effective_date(), "", 0, true, EndReason.CHG.getText());
 
 
         assertEquals(errMsg7013, error, "Expected error for invalid characters in Electronic Address update did not appear");
@@ -403,7 +525,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
             assertTrue(StringUtils.isEmpty(err), "Precondition failed: could not create valid note block");
         }
 
-        String updNoteErr = page.updateNoteDataBlock("TÈXT-INVALID###", effective_date(), "", 0, true);
+        String updNoteErr = page.updateNoteDataBlock("TÈXT-INVALID###", effective_date(), "", 0, true, EndReason.CHG.getText());
         assertEquals(errMsg7004NoteText, updNoteErr, "Expected error for invalid characters in Note Text update did not appear");
     }
 
@@ -463,7 +585,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         expectedPhoneNumber = List.of(generateNumericString(3), generateNumericString(7));
 
         page.updateTelecommunicationBlock(expectedPhoneNumber.get(0), expectedPhoneNumber.get(1), "",
-                effective_date(), "", telecomIndex, false);
+                effective_date(), "", telecomIndex, false, EndReason.CHG.getText());
 
         actions.verifyMandatoryAttributesTelecom(page, telecomType, expectedPhoneNumber.get(0), expectedPhoneNumber.get(1));
     }
@@ -489,7 +611,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Effective To Date add failed to fill as expected");
 
         page.updateTelecommunicationBlock(generateNumericString(3), generateNumericString(7), "",
-                effective_date(), increment_year_for_effective_date(), telecomIndex, false);
+                effective_date(), increment_year_for_effective_date(), telecomIndex, false, EndReason.CHG.getText());
 
         telecomInfo = page.grabTelecommunicationsBlockContent(telecomIndex);
 
@@ -508,7 +630,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
 
         expectedExtension = generateNumericString(3);
         page.updateTelecommunicationBlock(generateNumericString(3), generateNumericString(7),
-                expectedExtension, effective_date(), "", telecomIndex, false);
+                expectedExtension, effective_date(), "", telecomIndex, false, EndReason.CHG.getText());
 
         telecomInfo = page.grabTelecommunicationsBlockContent(telecomIndex);
 
@@ -581,7 +703,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
 
         page.updateTelecommunicationBlock(generateNumericString(15), generateNumericString(30),
-                generateNumericString(15), effective_date(), "", telecomIndex, false);
+                generateNumericString(15), effective_date(), "", telecomIndex, false, EndReason.CHG.getText());
 
         telecomInfo = page.grabTelecommunicationsBlockContent(telecomIndex);
 
@@ -645,7 +767,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
 
         expectedEmail = generateEmail();
 
-        page.updateElectronicAddressDataBlock(expectedEmail, effective_date(), "", eaIndex,false);
+        page.updateElectronicAddressDataBlock(expectedEmail, effective_date(), "", eaIndex,false, EndReason.CHG.getText());
 
         actions.verifyMandatoryAttributesEAddress(page, eaType, expectedEmail);
     }
@@ -669,7 +791,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Effective To field failed to add as expected");
 
         page.updateElectronicAddressDataBlock(generateHTTP(),
-                effective_date(), increment_year_for_effective_date(), eaIndex, false);
+                effective_date(), increment_year_for_effective_date(), eaIndex, false, EndReason.CHG.getText());
 
         eaInfo = actions.getEAddressInfo(page, eaType);
 
