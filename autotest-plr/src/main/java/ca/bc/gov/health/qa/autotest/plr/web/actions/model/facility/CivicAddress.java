@@ -1,15 +1,12 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
-import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.json.JSONObject;
-import org.openqa.selenium.devtools.v140.network.model.TrustTokenOperationDone;
 
 /**
  * TODO (KD)
