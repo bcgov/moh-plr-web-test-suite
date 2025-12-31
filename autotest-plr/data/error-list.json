@@ -34,6 +34,7 @@
     "errMsg5003TelecomAreaCode": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Area Code' length must be between 0 and 15. Your transaction has not been processed. Correct and resubmit.",
     "errMsg5003TelecomPhoneNumber": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Phone Number' length must be between 1 and 30. Your transaction has not been processed. Correct and resubmit.",
     "errMsg5003TelecomExtension": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Extension' length must be between 0 and 15. Your transaction has not been processed. Correct and resubmit.",
+    "errMsg5003ElectronicAddress": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Electronic Address' length must be between 0 and 500. Your transaction has not been processed. Correct and resubmit.",
     "errMsg5003NoteIdentifier": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Note Identifier' length must be between 0 and 30. Your transaction has not been processed. Correct and resubmit.",
     "errMsg5003NoteText": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Note Text' length must be between 0 and 255. Your transaction has not been processed. Correct and resubmit.",
     "errMsg5003ProviderIdentifier": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Provider Identifier' length must be between 0 and 50. Your transaction has not been processed. Correct and resubmit.",

@@ -75,8 +75,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         fhirController = new FHIRController(UserType.ADMIN);
 
         final FacilityMaintainConfig config = new FacilityMaintainConfig();
-        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, "IFC.00007027.BC.PRS");
-        // dummyFacility = fhirController.createFacility(config);
+        dummyFacility = fhirController.createFacility(config);
     }
 
     @BeforeMethod
@@ -797,6 +796,65 @@ public class UpdateFacilityComplexTests implements SimpleTest
 
         assertEquals(eaInfo.get(EAddressField.EFFECTIVE_TO.getString()), increment_year_for_effective_date(),
                 "Effective To field failed to update as expected");
+    }
+
+    @Test
+    // F4-037. Validate Electronic Address Text
+    public void validateEAddressText()
+    {
+        final int maximumLength = 500;
+
+        final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
+        final String errMsg5003ElectronicAddress = errorList.getString("errMsg5003ElectronicAddress");
+        final String errMsg7013 = errorList.getString("errMsg7013");
+
+        UpdateFacilityPage page = actions.openFacility(dummyFacility);
+
+        while (page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true) > 0)
+        {
+            page.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES, 0);
+        }
+
+        // Email
+        String err = page.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),
+                generateAlphabetString(maximumLength) + generateEmail(), effective_date(), "", true);
+        assertEquals(err, errMsg5003ElectronicAddress, "Error upon attempting to add an email over the maximum length did not appear");
+
+        err = page.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),
+                generateAlphabetString(maximumLength-15) + generateEmail(), effective_date(), "", false);
+        assertTrue(StringUtils.isEmpty(err), "Error occurred when attempting to add an email with exactly the maximum length");
+
+        err = page.updateElectronicAddressDataBlock(generateAlphabetString(maximumLength) + generateEmail(), effective_date(), "", 0, true, EndReason.CHG.getText());
+        assertEquals(err, errMsg5003ElectronicAddress, "Error upon attempting to update an email over the maximum length did not appear");
+
+        err = page.updateElectronicAddressDataBlock(generateAlphabetString(maximumLength-15) + generateEmail(), effective_date(), "", 0, false, EndReason.CHG.getText());
+        assertTrue(StringUtils.isEmpty(err), "Error occurred when attempting to update an email with exactly the maximum length");
+
+        page.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES, 0);
+
+        // FTP/HTTP
+        for (ElectronicAddressType eaType : List.of(ElectronicAddressType.FTP, ElectronicAddressType.HTTP))
+        {
+            err = page.addElectronicAddressDataBlock(eaType.getText(), generateAlphabetString(12) + ';', effective_date(), "", true);
+            assertEquals(err, errMsg7013, "Error upon attempting to add an FTP/HTTP with an incorrect format did not appear");
+
+            err = page.addElectronicAddressDataBlock(eaType.getText(), generateAlphabetString(maximumLength+5), effective_date(), "", true);
+            assertEquals(err, errMsg5003ElectronicAddress, "Error upon attempting to add an FTP/HTTP over the maximum length did not appear");
+
+            err = page.addElectronicAddressDataBlock(eaType.getText(), generateAlphabetString(maximumLength), effective_date(), "", false);
+            assertTrue(StringUtils.isEmpty(err), "Error occurred when attempting to add an FTP/HTTP with exactly the maximum length");
+
+            err = page.updateElectronicAddressDataBlock(generateAlphabetString(12) + ';', effective_date(), "", 0, true, EndReason.CHG.getText());
+            assertEquals(err, errMsg7013, "Error upon attempting to update an FTP/HTTP with an incorrect format did not appear");
+
+            err = page.updateElectronicAddressDataBlock(generateAlphabetString(maximumLength+5), effective_date(), "", 0,true, EndReason.CHG.getText());
+            assertEquals(err, errMsg5003ElectronicAddress, "Error upon attempting to update an FTP/HTTP over the maximum length did not appear");
+
+            err = page.updateElectronicAddressDataBlock(generateAlphabetString(maximumLength), effective_date(), "", 0, false, EndReason.CHG.getText());
+            assertTrue(StringUtils.isEmpty(err), "Error occurred when attempting to update an FTP/HTTP with exactly the maximum length");
+
+            page.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES, 0);
+        }
     }
 
     @Test
