@@ -815,7 +815,10 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
 
         // Email
-        String err = page.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),
+        String err = page.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(), generateAlphabetString(12), effective_date(), "", true);
+        assertEquals(err, errMsg7013, "Error upon attempting to add an Email with an incorrect format did not appear");
+
+        err = page.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),
                 generateAlphabetString(maximumLength) + generateEmail(), effective_date(), "", true);
         assertEquals(err, errMsg5003ElectronicAddress, "Error upon attempting to add an email over the maximum length did not appear");
 
