@@ -1,10 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
-import static java.util.Objects.requireNonNull;
 import static org.testng.Assert.fail;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
@@ -14,14 +12,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
 
-import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -760,13 +754,13 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	/**
 	 * Add Telecommunication Data Block
 	 *
-	 * @param type-         Telecommunication Type
+	 * @param telecomType         Telecommunication Type
 	 * @param areaCode      - area code
 	 * @param phoneNumber   - phone number
 	 * @param extension     - extension
 	 * @param effectiveFrom - effective from date
-	 * @param effectiveTo-  effective to date
-	 * @param expectError-  expected error messages of not
+	 * @param effectiveTo  effective to date
+	 * @param expectError  expected error messages of not
 	 *
 	 * @return If a predicted exception occurs, it will capture and return the
 	 *         associated error message; otherwise, it waits for the dialog to

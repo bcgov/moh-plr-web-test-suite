@@ -1,13 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
-import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
@@ -16,9 +14,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.UpdateFacilitySimpleActions;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -28,7 +24,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
-	private PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
+	private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 	private MaintainFacilityBuilder facility;
 
 	public UpdateFacilitySimpleSetTwoTests() {

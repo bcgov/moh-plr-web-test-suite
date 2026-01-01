@@ -11,12 +11,8 @@ import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.CivicAddress;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.ElectronicAddress;
@@ -26,7 +22,6 @@ import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Note;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.OtherAddress;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Relationship;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Telecommunication;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.RelatedProviderIdentifierType;
@@ -39,7 +34,6 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.json.JSONObject;
-import org.openqa.selenium.By;
 
 import static org.testng.Assert.*;
 
@@ -111,7 +105,7 @@ public class UpdateFacilitySimpleActions {
 	 * Update operations ar performed on view organization(provider) page
 	 *
 	 * @param facility
-	 * @return UpdateFacilityPagea reference to the opened organization page
+	 * @return an UpdateFacilityPage reference to the opened organization page
 	 */
 	public UpdateFacilityPage openFacility(MaintainFacilityBuilder facility) {
 		String fauthId = UpdateSimpleHelper.getFaultId(facility.getIdentifier());
@@ -127,7 +121,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Identifiers
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateFacilityIdentifiers(UpdateFacilityPage updatePage) {
 		String errMsg = "";
@@ -169,7 +163,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Name
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateFacilityName(UpdateFacilityPage updatePage, EndReason endReason) {
 		String errMsg = "";
@@ -210,7 +204,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Description
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateFacilityDescription(UpdateFacilityPage updatePage, EndReason endReason) {
 		String errMsg = "";
@@ -280,7 +274,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Mailing AddressType
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateFacilityMailingAddressType(UpdateFacilityPage updatePage) {
 		String expectType = "Physical location (P)";
@@ -295,7 +289,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Mailing Address Type
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateFacilityMailingAddressPurpose(UpdateFacilityPage updatePage) {
 		String expectPurpose = "Facility Contact (FC)";
@@ -310,9 +304,9 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Data Block Multiplicity
 	 *
-	 * @param updatePage
-	 * @param ID_ORG01
-	 * @param ID_ORG02
+	 * @param updatePage the facility view/update page already opened and ready
+	 * @param idOrgOne
+	 * @param idOrgSecond
 	 */
 	public void validateFacilityDataBlockMultiplicity(UpdateFacilityPage updatePage, String idOrgOne, String idOrgSecond) {
 		String errMsg = "";
@@ -457,8 +451,8 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * cease Note Data Block By Id
 	 *
-	 * @param updatePage
-	 * @param noteId
+	 * @param updatePage the facility view/update page already opened and ready
+	 * @param noteId	 the ID of the note data block to cease
 	 */
 	private void ceaseNoteDataBlockById(UpdateFacilityPage updatePage, String noteId) {
 		int index = updatePage.grabActiveDataBlockCount(FacilitySection.NOTES, true);
@@ -478,7 +472,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * cease Related Organization Data Block By RelatedId
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 * @param key
 	 */
 	private void ceaseRelatedOrganizationDataBlockByRelatedId(UpdateFacilityPage updatePage, String key) {
@@ -500,7 +494,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * cease Electronic Address By Type
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	private void ceaseElectronicAddressByType(UpdateFacilityPage updatePage) {
 		String key = "Email ";
@@ -521,7 +515,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * cease Telecommunication By Type
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	private void ceaseTelecommunicationByType(UpdateFacilityPage updatePage) {
 		String key = "Telephone";
@@ -542,7 +536,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Notes Texts
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateFacilityNotesTexts(UpdateFacilityPage updatePage, EndReason endReason) {
 		String errMsg = "";
@@ -601,7 +595,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Notes Texts
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 * @param ID_ORG
 	 */
 	public void ValidateRelatedOrganizationID(UpdateFacilityPage updatePage, String ID_ORG) {
@@ -648,8 +642,8 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Updating Facility
 	 *
-	 * @param updatePage
-	 * @param endReason
+	 * @param updatePage the facility view/update page already opened and ready
+	 * @param endReason	 the end reason code to fill the update fields with
 	 */
 	public void validateUpdatingFacility(UpdateFacilityPage updatePage, EndReason endReason,MaintainOrgBuilder org) {
 		String errMsg = "";
@@ -812,8 +806,8 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Access by User Role
 	 *
-	 * @param updatePage
-	 * @param endReason
+	 * @param updatePage 	the facility view/update page already opened and ready
+	 * @param endReason 	the end reason code to fill the update fields with
 	 * @param userType
 	 */
 	public void validateFacilityAccessbyUserRole(UpdateFacilityPage updatePage, EndReason endReason,
@@ -911,7 +905,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Adding Facility ID
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 *
 	 */
 	public void validateAddingFacilityID(UpdateFacilityPage updatePage) {
@@ -929,7 +923,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Updating Facility Address
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 *
 	 */
 	public void validateUpdatingFacilityAddress(UpdateFacilityPage updatePage) {
@@ -942,8 +936,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Updating Facility Address
 	 *
-	 * @param updatePage
-	 * @param chg
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateFacilityAddressRecognition(UpdateFacilityPage updatePage) {
 		// not able to update address.
@@ -953,7 +946,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Civic Address Latitude and Longitude
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 *
 	 */
 	public static void validateFacilityCivicAddressLatitudeLongitude(UpdateFacilityPage updatePage) {
@@ -962,14 +955,14 @@ public class UpdateFacilitySimpleActions {
 		updatePage.clickCHSAButton();
 		resultContent = updatePage.grabCivicAddressBlockContent();
 		CivicAddress addressAfter = new CivicAddress(resultContent);
-		assertTrue(address.getLatitude().equals(addressAfter.getLatitude()));
-		assertTrue(address.getLongitude().equals(addressAfter.getLongitude()));
+        assertEquals(addressAfter.getLatitude(), address.getLatitude());
+        assertEquals(addressAfter.getLongitude(), address.getLongitude());
 	}
 
 	/**
 	 * validate civic address Health Boundary Update
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 *
 	 */
 	public void validateHealthBoundaryUpdate(UpdateFacilityPage updatePage) {
@@ -981,7 +974,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Data Block Unique Keys
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 *
 	 */
 	public void validateDataBlockUniqueKeys(UpdateFacilityPage updatePage) {
@@ -991,7 +984,7 @@ public class UpdateFacilitySimpleActions {
 				"", true);
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.7033")
 				&& errMsg.contains("Cannot create duplicate record. Check the following field: Facility Identifier"));
-		// civic address- not editable
+		// civic address - not editable
 
 		// other address - not editable
 
@@ -1024,7 +1017,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Data Owner Code
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 * @param ownerCode
 	 * @param org
 	 *
@@ -1033,7 +1026,7 @@ public class UpdateFacilitySimpleActions {
 		// Identifier
 		LinkedHashMap<String, String> resultContent = updatePage.grabDataBlockContent(FacilitySection.IDENTIFIERS, 0);
 		Identifier identifier = new Identifier(resultContent);
-		assertTrue(identifier.getDataOwnerCode().equals(ownerCode));
+        assertEquals(ownerCode, identifier.getDataOwnerCode());
 		// name
 		updatePage.ceaseAllDataBlockUnderSection(FacilitySection.NAMES);
 
@@ -1043,7 +1036,7 @@ public class UpdateFacilitySimpleActions {
 
 		resultContent = updatePage.grabDataBlockContent(FacilitySection.NAMES, 0);
 		Name facilityName = new Name(resultContent);
-		assertTrue(facilityName.getDataOwnerCode().equals(ownerCode));
+        assertEquals(ownerCode, facilityName.getDataOwnerCode());
 		// telecommunication
 		updatePage.ceaseAllDataBlockUnderSection(FacilitySection.TELECOMMUNICATIONS);
 		errMsg = updatePage.addTelecommunicationDataBlock(TelecommunicationType.PHONE.getText(),
@@ -1052,7 +1045,7 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 		resultContent = updatePage.grabDataBlockContent(FacilitySection.TELECOMMUNICATIONS, 0);
 		Telecommunication telecommunication = new Telecommunication(resultContent);
-		assertTrue(telecommunication.getDataOwnerCode().equals(ownerCode));
+        assertEquals(ownerCode, telecommunication.getDataOwnerCode());
 		// e-address
 		updatePage.ceaseAllDataBlockUnderSection(FacilitySection.ELECTRONIC_ADDRESSES);
 		errMsg = updatePage.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),
@@ -1060,7 +1053,7 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 		resultContent = updatePage.grabDataBlockContent(FacilitySection.ELECTRONIC_ADDRESSES, 0);
 		ElectronicAddress electronicAddress = new ElectronicAddress(resultContent);
-		assertTrue(electronicAddress.getDataOwnerCode().equals(ownerCode));
+        assertEquals(ownerCode, electronicAddress.getDataOwnerCode());
 		// relationship
 		updatePage.ceaseAllDataBlockUnderSection(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
@@ -1072,7 +1065,7 @@ public class UpdateFacilitySimpleActions {
 		resultContent = updatePage.grabDataBlockContent(FacilitySection.ORGANIZATION_RELATIONSHIPS, 0);
 		Relationship relationship = new Relationship(resultContent);
 
-		assertTrue(relationship.getDataOwnerCode().equals(ownerCode));
+        assertEquals(ownerCode, relationship.getDataOwnerCode());
 		// note
 		updatePage.ceaseAllDataBlockUnderSection(FacilitySection.NOTES);
 
@@ -1082,13 +1075,13 @@ public class UpdateFacilitySimpleActions {
 
 		resultContent = updatePage.grabDataBlockContent(FacilitySection.NOTES, 0);
 		Note note = new Note(resultContent);
-		assertTrue(note.getDataOwnerCode().equals(ownerCode));
+        assertEquals(ownerCode, note.getDataOwnerCode());
 	}
 
 	/**
 	 * validate Updating Facility Telecommunication
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateUpdatingFacilityTelecommunication(UpdateFacilityPage updatePage) {
 		String messageGRS5000 = errorList.getString("messageGRS5000");
@@ -1117,7 +1110,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Updating Facility Electronic Address
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateUpdatingFacilityElectronicAddress(UpdateFacilityPage updatePage) {
 		String messageGRS5000 = errorList.getString("messageGRS5000");
@@ -1142,7 +1135,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Generating Default Note ID
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateGeneratingDefaultNoteID(UpdateFacilityPage updatePage) {
 		String errMsg = updatePage.addNoteDataBlock("", UpdateSimpleHelper.generateAlphabetString(5),
@@ -1161,7 +1154,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Create Facility Organization Relationship
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateCreateFacilityOrganizationRelationship(UpdateFacilityPage updatePage,MaintainOrgBuilder orgQueried) {
 
@@ -1182,7 +1175,7 @@ public class UpdateFacilitySimpleActions {
 	/**
 	 * validate Facility Organization Relationship Validation
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateFacilityOrganizationRelationshipValidation(UpdateFacilityPage updatePage,MaintainOrgBuilder orgQueried) {
 		String erromMessageGRS5000IdType = errorList.getString("erromMessageGRS5000IdType");
@@ -1217,7 +1210,7 @@ public class UpdateFacilitySimpleActions {
 		LinkedHashMap<String, String> resultContent = updatePage
 				.grabDataBlockContent(FacilitySection.ORGANIZATION_RELATIONSHIPS, count - 1);
 		Relationship relationship = new Relationship(resultContent);
-		assertTrue(relationship.getRelatedOrganizationIdentifier().equals(orgQueried.getIdentifier()));
+        assertEquals(orgQueried.getIdentifier(), relationship.getRelatedOrganizationIdentifier());
 		// Update
 		String effectiveFrom = UpdateSimpleHelper.effective_date();
 		// empty end reason
@@ -1235,14 +1228,14 @@ public class UpdateFacilitySimpleActions {
 
 		resultContent = updatePage.grabDataBlockContent(FacilitySection.ORGANIZATION_RELATIONSHIPS, count - 1);
 		relationship = new Relationship(resultContent);
-		assertTrue(relationship.getEffectiveFrom().equals(effectiveFrom));
+        assertEquals(effectiveFrom, relationship.getEffectiveFrom());
 
 	}
 
 	/**
 	 * validate Organization Name Auto CompleteSelection
 	 *
-	 * @param updatePage
+	 * @param updatePage the facility view/update page already opened and ready
 	 */
 	public void validateOrganizationNameAutoCompleteSelection(UpdateFacilityPage updatePage,MaintainOrgBuilder org) {
 		String errMsg = updatePage.addRelationshipByAutoCompletion(org, RelationshipType.LOCATION.getText(),
@@ -1252,7 +1245,7 @@ public class UpdateFacilitySimpleActions {
 		LinkedHashMap<String, String> resultContent = updatePage
 				.grabDataBlockContent(FacilitySection.ORGANIZATION_RELATIONSHIPS, count - 1);
 		Relationship relationship = new Relationship(resultContent);
-		assertTrue(relationship.getRelatedOrganizationName().equals(org.getName()));
+        assertEquals(org.getName(), relationship.getRelatedOrganizationName());
 
 	}
 
