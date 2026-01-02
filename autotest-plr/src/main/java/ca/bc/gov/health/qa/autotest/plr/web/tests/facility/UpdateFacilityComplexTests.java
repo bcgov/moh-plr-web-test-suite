@@ -71,10 +71,11 @@ public class UpdateFacilityComplexTests implements SimpleTest
     @BeforeTest
     public void beforeTest()
     {
-        fhirController = new FHIRController(UserType.ADMIN);
+			fhirController = new FHIRController(UserType.ADMIN);
 
-        final FacilityMaintainConfig config = new FacilityMaintainConfig();
-        dummyFacility = fhirController.createFacility(config);
+			final FacilityMaintainConfig config = new FacilityMaintainConfig();
+			dummyFacility = fhirController.createFacility(config);
+
     }
 
     @BeforeMethod
@@ -87,7 +88,8 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
+
     // F4-020. Validate End Reason Code
     public void validateEndReasonCode()
     {
@@ -207,7 +209,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         assertEquals(page.grabActiveDataBlockCount(FacilitySection.NOTES, true), 0, "Note data block was not ceased as expected.");
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-021. Validate Effective Start and End Date Format
     public void validateStartEndDateFormat()
     {
@@ -401,7 +403,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         assertTrue(StringUtils.isEmpty(err), "Precondition failed: new e-address block failed to be updated");
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-022. Rejection of Non-Acceptable Characters
     public void rejectNonAcceptableCharacters()
     {
@@ -527,7 +529,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         assertEquals(errMsg7004NoteText, updNoteErr, "Expected error for invalid characters in Note Text update did not appear");
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-029. Mandatory Facility Telecommunication Attributes
     public void mandatoryTelecomAttributes()
     {
@@ -588,7 +590,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         actions.verifyMandatoryAttributesTelecom(page, telecomType, expectedPhoneNumber.get(0), expectedPhoneNumber.get(1));
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-030. Optional Telecommunication Attributes
     public void optionalTelecomAttributes()
     {
@@ -636,7 +638,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Extension update failed to fill as expected");
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-031. Validate Telecommunication Number
     public void validateTelecomNumber()
     {
@@ -713,7 +715,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Extension is not the specified maximum allowed character count");
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-035. Mandatory Facility Electronic Address Attributes
     public void mandatoryEAddressAttributes()
     {
@@ -770,7 +772,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         actions.verifyMandatoryAttributesEAddress(page, eaType, expectedEmail);
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-036. Optional Electronic Address Attributes
     public void optionalEAddressAttributes()
     {
@@ -797,7 +799,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Effective To field failed to update as expected");
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-037. Validate Electronic Address Text
     public void validateEAddressText()
     {
@@ -859,7 +861,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-045. Generating Internal Relationship Identifier (RID)
     public void generateRelationshipIdentifier()
     {
@@ -880,7 +882,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(), org2.getIdentifier(),
                                             RelationshipType.LOCATION.getText(), effective_date(),
                                     "", false);
-        String org2RelIdentifier = StringUtils.getDigits(page.grabOrgRelationshipsBlockContent(0)
+        String org2RelIdentifier = StringUtils.getDigits(page.grabOrgRelationshipsBlockContent(1)
                                         .get(OrgRelationshipField.RELATIONSHIP_IDENTIFIER.getString()));
 
         assertNotEquals(org1RelIdentifier, org2RelIdentifier,
@@ -889,7 +891,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Second relationship identifier is not immediately after the first");
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-046. Validate Facility Relationship Type Code
     public void validateRelationshipTypeCode()
     {
@@ -918,7 +920,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
     }
 
-    @Test
+    @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     // F4-047. Validate Related Organization ID and Relationship Type Code Combination
     public void validateRelatedOrganizationIdAndRelationshipTypeCodeCombination()
     {
