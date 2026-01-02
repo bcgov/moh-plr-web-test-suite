@@ -275,6 +275,8 @@ public final class TestHelper {
             assertEquals(addressInfo.getEffectiveFrom(), today,
                     "Effective From Date in Address was not set to the current date as expected");
 
+            ADDRESS = addressInfo.getAddressLine1() + ", " + addressInfo.getCity();
+
             try
             {
                 addFacility.clickNext("Address", "Civic");
