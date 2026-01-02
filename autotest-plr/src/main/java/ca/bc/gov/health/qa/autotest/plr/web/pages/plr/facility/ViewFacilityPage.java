@@ -410,11 +410,11 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-	 * get section active data block count
+	 * Gets a facility section's active/inactive data block count.
 	 *
-	 * @param section
-	 * @param active
-	 * 
+	 * @param section		the facility section to count active data blocks within.
+	 * @param active		whether to check for active (true) or inactive (false) data blocks.
+	 * @return				the number of active/inactive data blocks depending on the value of active
 	 */
 	public int grabActiveDataBlockCount(FacilitySection section, boolean active) {
 		int count = 0;

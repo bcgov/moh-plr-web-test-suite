@@ -5,14 +5,16 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.*;
+import ca.bc.gov.health.qa.autotest.plr.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
-import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.ElectronicAddress;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Note;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.OtherAddress;
@@ -20,16 +22,12 @@ import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Relationship;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Telecommunication;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.util.ElectronicAddressType;
-import ca.bc.gov.health.qa.autotest.plr.util.IdentifierTypeName;
-import ca.bc.gov.health.qa.autotest.plr.util.RelatedProviderIdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.util.RelationshipType;
-import ca.bc.gov.health.qa.autotest.plr.util.TelecommunicationType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.json.JSONObject;
 
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper.effective_date;
 import static org.testng.Assert.*;
 
 public class UpdateFacilitySimpleActions {
@@ -156,13 +154,13 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 
 		errMsg=updatePage.updateNameDataBlock("NAME-"+UpdateSimpleHelper.generateAlphabetString(5),
-				"DESC-"+UpdateSimpleHelper.generateAlphabetString(5),"","",index);
+				"DESC-"+UpdateSimpleHelper.generateAlphabetString(5),"","",index, EndReason.CHG.getText());
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000") && errMsg.contains("The following fields must be supplied: 'Effective From'."));
 		errMsg=updatePage.updateNameDataBlock("NAME-"+UpdateSimpleHelper.generateAlphabetString(maxName),
-				"DESC-"+UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.effective_date(),"",index);
+				"DESC-"+UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.effective_date(),"",index, EndReason.CHG.getText());
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5003") && errMsg.contains("'Facility Name' length must be between 0 and 100"));
 		errMsg=updatePage.updateNameDataBlock(UpdateSimpleHelper.generateAlphabetString(maxName),
-				"DESC-"+UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.effective_date(),"",index);
+				"DESC-"+UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.effective_date(),"",index, EndReason.CHG.getText());
 		assertTrue(StringUtils.isEmpty(errMsg));
 	}
 
@@ -183,7 +181,7 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 
 		errMsg=updatePage.updateNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),
-				"",UpdateSimpleHelper.effective_date(),"",index);
+				"",UpdateSimpleHelper.effective_date(),"",index, EndReason.CHG.getText());
 		assertTrue(StringUtils.isEmpty(errMsg));
 
 		updatePage.ceaseDataBlock(FacilitySection.NAMES,0);
@@ -212,16 +210,16 @@ public class UpdateFacilitySimpleActions {
 				UpdateSimpleHelper.generateAlphabetString(maxDesc),UpdateSimpleHelper.effective_date(),"");
 		assertTrue(StringUtils.isEmpty(errMsg));
 
-		errMsg=updatePage.updateNameDataBlock("",UpdateSimpleHelper.generateAlphabetString(10),UpdateSimpleHelper.effective_date(),"",index);
+		errMsg=updatePage.updateNameDataBlock("",UpdateSimpleHelper.generateAlphabetString(10),UpdateSimpleHelper.effective_date(),"",index, EndReason.CHG.getText());
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000") && errMsg.contains(" The following fields must be supplied: 'Name'"));
 
-		errMsg=updatePage.updateNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.generateAlphabetString(10),"","",index);
+		errMsg=updatePage.updateNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.generateAlphabetString(10),"","",index, EndReason.CHG.getText());
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000") && errMsg.contains("The following fields must be supplied: 'Effective From'."));
 
-		errMsg=updatePage.updateNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.generateAlphabetString(maxDesc+1),UpdateSimpleHelper.effective_date(),"",index);
+		errMsg=updatePage.updateNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.generateAlphabetString(maxDesc+1),UpdateSimpleHelper.effective_date(),"",index, EndReason.CHG.getText());
 		assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5003") && errMsg.contains("'Facility Description' length must be between 0 and 200"));
 
-		errMsg=updatePage.updateNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.generateAlphabetString(maxDesc),UpdateSimpleHelper.effective_date(),"",index);
+		errMsg=updatePage.updateNameDataBlock(UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.generateAlphabetString(maxDesc),UpdateSimpleHelper.effective_date(),"",index, EndReason.CHG.getText());
 		assertTrue(StringUtils.isEmpty(errMsg));
 
 
@@ -493,7 +491,7 @@ public class UpdateFacilitySimpleActions {
         assertEquals(errMsg, errMessage5000);
 
 		errMsg=updatePage.updateNoteDataBlock("",
-				UpdateSimpleHelper.effective_date(),"",index-1,true);
+				UpdateSimpleHelper.effective_date(),"",index-1,true, EndReason.CHG.getText());
         assertEquals(errMsg, errMessage5000);
 
 		errMsg=updatePage.addNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(3),UpdateSimpleHelper.generateAlphabetString(maxNoteText+1),
@@ -501,7 +499,7 @@ public class UpdateFacilitySimpleActions {
         assertEquals(errMsg, errMessage5003NoteText);
 
 		errMsg=updatePage.updateNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(maxNoteText+1),
-				UpdateSimpleHelper.effective_date(),"",index-1,true);
+				UpdateSimpleHelper.effective_date(),"",index-1,true,EndReason.CHG.getText());
         assertEquals(errMsg, errMessage5003NoteText);
 
 		errMsg=updatePage.addNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(5),UpdateSimpleHelper.generateAlphabetString(maxNoteText),
@@ -514,7 +512,7 @@ public class UpdateFacilitySimpleActions {
 		index++;
 
 		errMsg=updatePage.updateNoteDataBlock(UpdateSimpleHelper.generateAlphabetString(maxNoteText),
-				UpdateSimpleHelper.effective_date(),"",index-1,false);
+				UpdateSimpleHelper.effective_date(),"",index-1,false, EndReason.CHG.getText());
 		assertTrue(StringUtils.isEmpty(errMsg));
 
 		//cease test data
@@ -572,4 +570,162 @@ public class UpdateFacilitySimpleActions {
 		assertTrue(StringUtils.isEmpty(errMsg));
 	}
 
+	/**
+	 * Adds a telecommunication data block to a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page				the update facility page reference
+	 * @param telecomNumber		telecom number: list of strings: should be formatted
+	 *                             [type, area code, phone number, extension, effective from, effective to]
+	 * @param expectError		whether an error is expected or not
+	 * @return					the error message if an error is expected to occur
+	 */
+	public String addTelecommunicationNumber(UpdateFacilityPage page, List<String> telecomNumber, boolean expectError)
+	{
+		return page.addTelecommunicationDataBlock(telecomNumber.get(0),
+				telecomNumber.get(1), telecomNumber.get(2), telecomNumber.get(3),
+				telecomNumber.get(4), telecomNumber.get(5), expectError);
+	}
+
+	/**
+	 * Adds an electronic address data block to a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page			the update facility page reference
+	 * @param eAddress		e-address: list of strings, should be formatted
+	 *                         [type, address, effective from, effective to]
+	 * @param expectError	whether an error is expected or not
+	 * @return				the error message if an error is expected to occur
+	 */
+	public String addEAddress(UpdateFacilityPage page, List<String> eAddress, boolean expectError)
+	{
+		return page.addElectronicAddressDataBlock(eAddress.get(0),
+				eAddress.get(1), eAddress.get(2), eAddress.get(3), expectError);
+	}
+
+	/**
+	 * Updates a telecommunication data block in a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page				the update facility page reference
+	 * @param type				the telecommunication type to update
+	 * @param telecomNumber		telecom number: list of strings should be formatted [area code, phone number, extension]
+	 * @param expectError		whether an error is expected or not
+	 * @return					the error message if an error is expected to occur
+	 */
+	public String updateTelecommunicationNumber(UpdateFacilityPage page, TelecommunicationType type,
+												List<String> telecomNumber, boolean expectError)
+	{
+		return page.updateTelecommunicationBlock(telecomNumber.get(1), telecomNumber.get(2), telecomNumber.get(3),
+				telecomNumber.get(4), telecomNumber.get(5),
+				Integer.parseInt(getTelecomInfo(page, type).get("index")), expectError, EndReason.CHG.getText());
+	}
+
+	/**
+	 * Updates an electronic address data block to a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page			the update facility page reference
+	 * @param type			the e-address type to update
+	 * @param eAddress		e-address: list of strings, should be formatted
+	 *                         [type, address, effective from, effective to]
+	 * @param expectError	whether an error is expected or not
+	 * @return				the error message if an error is expected to occur
+	 */
+	public String updateEAddress(UpdateFacilityPage page, ElectronicAddressType type,
+								 List<String> eAddress, boolean expectError)
+	{
+		return page.updateElectronicAddressDataBlock(eAddress.get(1), eAddress.get(2), eAddress.get(3),
+				Integer.parseInt(getEAddressInfo(page, type).get("index")), expectError, EndReason.CHG.getText());
+	}
+
+	/**
+	 * Gets the info of a data block for the telecommunication type
+	 *
+	 * @param page			the update facility page reference
+	 * @param telecomType	the telecommunication type to get content for
+	 * @return				a map of strings for the data block corresponding to the desired telecommunication type
+	 */
+	public LinkedHashMap<String,String> getTelecomInfo(UpdateFacilityPage page, TelecommunicationType telecomType)
+	{
+		LinkedHashMap<String,String> telecomInfo = new LinkedHashMap<>();
+
+		int telecomIndex = page.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);
+		for (int index = 0; index < telecomIndex; index++)
+		{
+			telecomInfo = page.grabTelecommunicationsBlockContent(index);
+			if (telecomInfo.get(TelecomField.TYPE.getString()).equals(telecomType.getDataField())) {
+				telecomInfo.put("index", Integer.toString(index));
+				break;
+			}
+		}
+
+		return telecomInfo;
+	}
+
+	/**
+	 * Verifies the mandatory telecommunication attributes have been changed and match as expected
+	 *
+	 * @param page			the update facility page reference
+	 * @param telecomType	the telecommunication type to get content for
+	 * @param areaCode		the area code to assert the telecom area code has been changed to
+	 * @param phoneNumber	the phone number to assert the telecom phone number has been changed to
+	 */
+	public void verifyMandatoryAttributesTelecom(UpdateFacilityPage page, TelecommunicationType telecomType,
+												  String areaCode, String phoneNumber)
+	{
+		LinkedHashMap<String,String> telecomInfo = getTelecomInfo(page, telecomType);
+
+		assertEquals(telecomInfo.get(TelecomField.TYPE.getString()), telecomType.getDataField(),
+				"Unexpected telecommunication type");
+		assertEquals(telecomInfo.get(TelecomField.AREA_CODE.getString()), areaCode,
+				"Unexpected area code field result");
+		assertEquals(telecomInfo.get(TelecomField.NUMBER.getString()), phoneNumber,
+				"Unexpected phone number field result");
+		assertEquals(telecomInfo.get(TelecomField.EFFECTIVE_FROM.getString()), effective_date(),
+				"Unexpected effective from data field result");
+	}
+
+	/**
+	 * Gets the info of a data block for the electronic address type
+	 *
+	 * @param page			the update facility page reference
+	 * @param eaType		the electronic address type to get content for
+	 * @return				a map of strings for the data block corresponding to the desired e-address type
+	 */
+	public LinkedHashMap<String,String> getEAddressInfo(UpdateFacilityPage page, ElectronicAddressType eaType)
+	{
+		LinkedHashMap<String,String> eAddressInfo = new LinkedHashMap<>();
+
+		int telecomIndex = page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true);
+		for (int index = 0; index < telecomIndex; index++)
+		{
+			eAddressInfo = page.grabElectronicAddressesBlockContent(index);
+			if (eAddressInfo.get(EAddressField.TYPE.getString()).equals(eaType.getDataField())) {
+				eAddressInfo.put("index", Integer.toString(index));
+				break;
+			}
+		}
+
+		return eAddressInfo;
+	}
+
+	/**
+	 * Verifies the mandatory e-address attributes have been changed and match as expected
+	 *
+	 * @param page			the update facility page reference
+	 * @param eaType		the electronic address type to get content for
+	 * @param address		the address to assert the electronic address field has been changed to
+	 */
+	public void verifyMandatoryAttributesEAddress(UpdateFacilityPage page, ElectronicAddressType eaType, String address)
+	{
+		LinkedHashMap<String,String> eaInfo = getEAddressInfo(page, eaType);
+
+		assertEquals(eaInfo.get(EAddressField.TYPE.getString()), eaType.getDataField(),
+				"Unexpected telecommunication type");
+		assertEquals(eaInfo.get(EAddressField.ADDRESS.getString()), address,
+				"Unexpected area code field result");
+		assertEquals(eaInfo.get(EAddressField.EFFECTIVE_FROM.getString()), effective_date(),
+				"Unexpected effective from data field result");
+	}
 }

@@ -26,15 +26,14 @@ public class UpdateSimpleHelper {
         return sb.toString();
     }
 
-	static public String  generateAlphabetNumericString(int length) {
-		String allowedChars = 
-		        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	static public String generateAlphabetNumericString(int length) {
+		String allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
         return generateRandomString(length, allowedChars);
 	}
 	
-	static public String  generateAlphabetString(int length) {
-		String allowedChars =    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	static public String generateAlphabetString(int length) {
+		String allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 		
 		return generateRandomString(length, allowedChars);
 	}
@@ -48,18 +47,23 @@ public class UpdateSimpleHelper {
 	static public String effective_date() {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = new Date();
-		String dateformatted = dateFormat.format(date);
-		return dateformatted;
+		return dateFormat.format(date);
+	}
+
+	static public String increment_month_for_effective_date(){
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.MONTH, 1);
+		Date nextYear = cal.getTime();
+		return dateFormat.format(nextYear);
 	}
 	
 	static public String increment_year_for_effective_date(){            
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Calendar cal = Calendar.getInstance();
-		Date today = cal.getTime();
 		cal.add(Calendar.YEAR, 1);
 		Date nextYear = cal.getTime();
-		String next_year = dateFormat.format(nextYear);
-		return next_year;
+		return dateFormat.format(nextYear);
 	}
 	
 	

@@ -229,7 +229,10 @@ public class FacilityMaintainConfig {
 
     /**
      * Set organization relationships to generate based on specific names instead of a count.
-     * @
+     *
+     * @param orgNames list of organization names to create relationships for
+     * @return this config for fluent chaining
+     * @throws IllegalArgumentException if provided list size is below required minimum
      */
     public FacilityMaintainConfig withOrgRelationships(List<String> orgNames)
     {

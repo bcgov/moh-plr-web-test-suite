@@ -19,6 +19,10 @@ public enum TelecommunicationType {
 
 	public String getStartText() { return this.text.split(" ")[0]; }
 
+	public String getEndText() { return this.text.split(" ")[2]; }
+
+	public String getDataField() { return this.getEndText() + " (" + this.getStartText() + ")"; }
+
 	public static TelecommunicationType fromString(String text) {
 		for (TelecommunicationType b : TelecommunicationType.values()) {
 			if (b.text.equalsIgnoreCase(text)) {
