@@ -80,7 +80,7 @@ public class FacilityBuilderFactory {
 
         int noteCount = config.getNoteCount();
         for (int i = 0; i < noteCount; i++) {
-            builder.addNote(dataGen.generateNote());
+            builder.addNote(dataGen.generateNote(), null);
         }
         
         return builder;
