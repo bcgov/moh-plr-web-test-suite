@@ -13,6 +13,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.UpdateFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -50,11 +51,12 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	@Test
-    // F4-004. Validate Facility Identifiers
-	public void testValidateFacilityIdentifiers() {
 
-		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+	/*
+	 *  F4-004. Validate Facility Identifiers
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetOne" })
+	public void testValidateFacilityIdentifiers() {
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility);
@@ -63,35 +65,38 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	@Test
-    // F4-005. Validate Facility Name
+	/*
+	 *  F4-005. Validate Facility Name
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetOne" })
 	public void testValidateFacilityName() {
-		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		actions.validateFacilityName(updatePage);
+		actions.validateFacilityName(updatePage,EndReason.CHG);
 
 	}
 
-	@Test
-    // F4-006. Validate Facility Description
+	/*
+	 *  F4-006. Validate Facility Description
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetOne" })
 	public void testValidateFacilityDescription() {
-		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		actions.validateFacilityDescription(updatePage);
+		actions.validateFacilityDescription(updatePage,EndReason.CHG);
 
 	}
 
-	@Test
-    // F4-014. Validate Facility Mailing Address Type
+	/*
+	 * F4-014. Validate Facility Mailing Address Type
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetOne" })
 	public void testValidateFacilityMailingAddressType() {
 
-		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility);
@@ -99,11 +104,12 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 		actions.validateFacilityMailingAddressType(updatePage);
 	}
 
-	@Test
-    // F4-015. Validate Facility Mailing Address Purpose
+	/*
+	 * F4-015. Validate Facility Mailing Address Purpose
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetOne" })
 	public void testValidateFacilityMailingAddressPurpose() {
 
-		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility);
@@ -111,12 +117,14 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 		actions.validateFacilityMailingAddressPurpose(updatePage);
 	}
 
-	@Test
-    // F4-023. Validate Facility Data Block Multiplicity
+	/*
+	 * F4-023. Validate Facility Data Block Multiplicity
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetOne" })
 	public void testValidateFacilityDataBlockMultiplicity() {
 
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig();
-		// create facility for testing
+
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		MaintainFacilityBuilder facilityTest = fhirController.createFacility(cfg);
 		OrgRoleType roleType = OrganizationDataGenerator.getInstance().randomOrgRoleType();
@@ -124,7 +132,6 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 		String orgIPCId02 = fhirController.createOrganization(roleType).getIdentifier();
 		fhirController.close();
 
-		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facilityTest);
@@ -133,30 +140,32 @@ public class UpdateFacilitySimpleTests implements SimpleTest {
 
 	}
 
-	@Test
-    // F4-038. Validate Facility Notes Text
+	/*
+	 *  F4-038. Validate Facility Notes Text
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetOne" })
 	public void testValidateFacilityNotesTexts() {
 
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility);
 
-		actions.validateFacilityNotesTexts(updatePage);
+		actions.validateFacilityNotesTexts(updatePage,EndReason.CHG);
 
 	}
 
-	@Test
-    // F4-041. Validate Related Organization ID
+	/*
+	 * F4-041. Validate Related Organization ID
+	 */
+	@Test(groups = { "UpdateFacility", "UpdateFacilitySetOne" })
 	public void testValidateRelatedOrganizationID() {
 
 		FacilityMaintainConfig cfg = new FacilityMaintainConfig();
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		// MaintainFacilityBuilder facilityTest = fhirController.createFacility(cfg);
 		OrgRoleType roleType = OrganizationDataGenerator.getInstance().randomOrgRoleType();
 		String orgIPCId01 = fhirController.createOrganization(roleType).getIdentifier();
 		fhirController.close();
 
-		// PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 		UpdateFacilityPage updatePage = actions.openFacility(facility);

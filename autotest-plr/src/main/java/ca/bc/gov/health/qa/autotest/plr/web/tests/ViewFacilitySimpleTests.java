@@ -55,12 +55,6 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 
 	@BeforeMethod
 	public void before(Object[] parameters) {
-
-		/*
-		 * PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters,
-		 * UserType.ADMIN); if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
-		 */
-
 	}
 
 	/*

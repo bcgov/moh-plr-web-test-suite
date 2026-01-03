@@ -191,6 +191,76 @@ public class AutocompleteMenu extends BasicWebPageFragment {
     }
 
     /**
+	 * Fills the autocomplete field with perfix, find and select the first item that contains a
+	 * certain string from the list
+	 *
+	 * @param prefix the first few characters to match when selecting an
+	 *               autocomplete option. Leave null to fill the field directly with
+	 *               autocompleteField.
+	 * @param match  a string that used to find matched item from the list
+	 *
+	 * @return a string of the completed item in the autocomplete field, ot empty string if not find matched item
+	 */
+	public String selectItemFromPanelMatch(String prefix, String match) {
+		selenium_.fillField(mainLocator_, prefix);
+		WebElement item = findItemMatch(prefix, match);
+		if (item == null) {
+			return "";
+		}
+		selenium_.scrollIntoView(item);
+		String itemLabel = item.getText();
+		item.click();
+		String completedItem = grabCompletedItem();
+		if (!completedItem.equals(itemLabel)) {
+			String msg = String.format("Failed to select autocomplete item (actual: \"%s\", expected: \"%s\").",
+					completedItem, itemLabel);
+			throw new IllegalStateException(msg);
+		}
+		return completedItem;
+	}
+
+	/**
+	 * Fills the autocomplete field with perfix, find the web element having certain string from the list
+	 *
+	 * @param prefix the first few characters to match when selecting an
+	 *               autocomplete option. Leave null to fill the field directly with
+	 *               autocompleteField.
+	 * @param match  a string that used to find matched item from the list
+	 *
+	 * @return a WebElement of the completed item in the autocomplete field, or null if not find
+	 */
+	private WebElement findItemMatch(String prefix, String match) {
+		requireNonNull(prefix, "Null item prefix.");
+		requireNonNull(match, "Null item match.");
+		verifyAutocompletePanelActive(true);
+
+		By autocompleteListCss = By.cssSelector(new StringBuilder("li.ui-autocomplete-item[data-item-label^=\"")
+				.append(prefix).append("\"]").toString());
+
+		WebElement item = null;
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(autocompleteListCss));
+		List<WebElement> itemList = selenium_.findElements(autocompleteListCss);
+		if (itemList.size() == 1) {
+			item = itemList.getFirst();
+			if (item.getText().equals("No results")) {
+				String msg = String.format("Autocomplete item not found (%S).", prefix);
+				throw new IllegalStateException(msg);
+			}
+		} else if (itemList.isEmpty()) {
+			String msg = String.format("Autocomplete item not found (%s).", prefix);
+			throw new IllegalStateException(msg);
+		} else {
+			for (WebElement element : itemList) {
+				if (element.getText().contains(match)) {
+					item = element;
+					break;
+				}
+			}
+		}
+		return item;
+	}
+
+    /**
      * Fills the autocomplete field, either directly or by selecting an autocomplete option.
      *
      * @param autocompleteField     the initial string to fill the autocomplete field with

@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 /**
- * TODO (KD)
+ * Identifier data block content
  */
 public class Identifier {
 	private String facilityType;

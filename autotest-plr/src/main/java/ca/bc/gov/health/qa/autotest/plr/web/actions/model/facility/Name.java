@@ -9,7 +9,7 @@ import java.util.Objects;
 import org.json.JSONObject;
 
 /**
- * TODO (KD)
+ * Name data block content)
  */
 public class Name {
 	private String name;
@@ -56,6 +56,15 @@ public class Name {
 	 */
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * Gets the facility name.
+	 *
+	 * @return the Data Owner Code string
+	 */
+	public String getDataOwnerCode() {
+		return dataOwnerCode;
 	}
 
 	/**

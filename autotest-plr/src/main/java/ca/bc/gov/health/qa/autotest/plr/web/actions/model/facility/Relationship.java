@@ -9,7 +9,7 @@ import java.util.Objects;
 import org.json.JSONObject;
 
 /**
- * TODO (KD)
+ * Relationship data block content
  */
 public class Relationship {
 	private String relationshipIdentifier;
@@ -42,7 +42,7 @@ public class Relationship {
 		return relatedOrganizationIdentifier;
 	}
 	/**
-	 * Gets a simplified Relationship Type value (text before parenthesis).
+	 * Gets a simplified Relationship Type value .
 	 *
 	 * @return the relationship type summary or the original value if null
 	 */
@@ -50,6 +50,14 @@ public class Relationship {
 		if(relationshipType==null)return relationshipType;
 		return relationshipType.split("\\(")[0].stripTrailing();
         
+	}
+	/**
+	 * Gets the effectiveFrom value
+	 *
+	 * @return the effectiveFrom or null
+	 */
+	public String getEffectiveFrom() {
+		return effectiveFrom;
 	}
 	/**
 	 * Gets the related organization name.

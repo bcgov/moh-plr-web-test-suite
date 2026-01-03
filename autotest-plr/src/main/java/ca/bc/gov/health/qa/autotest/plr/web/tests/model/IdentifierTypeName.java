@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.tests;
+package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 
 public enum IdentifierTypeName {
 	IFC("IFC - Internal Facility Code");

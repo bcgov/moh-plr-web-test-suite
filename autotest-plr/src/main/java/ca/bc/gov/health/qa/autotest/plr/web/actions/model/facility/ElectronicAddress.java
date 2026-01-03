@@ -6,7 +6,7 @@ import static org.testng.Assert.*;
 import org.json.JSONObject;
 
 /**
- * TODO (KD)
+ *  ElectronicAddress data block content
  */
 public class ElectronicAddress {
 	private String type;
@@ -40,7 +40,11 @@ public class ElectronicAddress {
 		return purpose.split("\\(")[0].stripTrailing();
 	}
 	
-	
+	/**
+	 * Gets the type value.
+	 *
+	 * @return the address
+	 */
 
 	public String getType() {
 		return type;
