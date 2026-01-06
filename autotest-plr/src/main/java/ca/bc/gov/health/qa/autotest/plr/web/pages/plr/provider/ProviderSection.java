@@ -190,9 +190,8 @@ public enum ProviderSection
                 ProviderType.OOP_PRACTITIONER,
                 practitionerSectionSet,
                 ProviderType.ORGANIZATION,
-                organizationSectionSet,
-                ProviderType.FACILITY,
-                facilitySectionSet);
+                organizationSectionSet
+        );
     }
 
     private static final Set<ProviderSection> REQUIRED_PROVIDER_SECTION_SET =

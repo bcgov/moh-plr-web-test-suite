@@ -19,9 +19,5 @@ public enum ProviderType
      * Organization provider.
      */
     ORGANIZATION,
-    /**
-     * facility
-     */
-    FACILITY
 
 }

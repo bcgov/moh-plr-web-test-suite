@@ -64,6 +64,9 @@ public class ProviderDataFields
                 "DB Created",
                 "DB Expired",
                 "Data Owner Code"));
+        map.put(ProviderSection.ROLE_TYPE, List.of(
+           "Role Type"
+        ));
         map.put(ProviderSection.STATUSES, List.of(
                 "Type",
                 "Class",

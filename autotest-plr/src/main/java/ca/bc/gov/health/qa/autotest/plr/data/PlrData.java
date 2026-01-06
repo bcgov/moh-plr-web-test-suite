@@ -139,14 +139,14 @@ public class PlrData
      */
     public static JSONObject getFacility(String key) {
     	JSONObject provider;
-        JSONObject providers = readProviderData(ProviderType.FACILITY);
+        JSONObject providers = readProviderData("facilities-" + ENV_NAME + ".json");
         if (providers.has(key))
         {
             provider = providers.getJSONObject(key);
         }
         else
         {
-            String msg = String.format("Provider data not found (%s:%s).", ProviderType.FACILITY, key);
+            String msg = String.format("Provider data not found (%s).", key);
             throw new IllegalStateException(msg);
         }
         return provider;
@@ -167,8 +167,11 @@ public class PlrData
     {
         String fileName = providerType.toString().toLowerCase(Locale.ROOT).replace("_", "-")
                 + "s-" + ENV_NAME + ".json";
-        if(ProviderType.FACILITY.equals(providerType))
-        	fileName = fileName.replace("facilitys","facilities");
+        return readProviderData(fileName);
+    }
+
+    private static JSONObject readProviderData(String fileName)
+    {
         Path filePath = PROVIDERS_DIR.resolve(fileName);
         String data;
         try
