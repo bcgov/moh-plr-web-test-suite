@@ -78,10 +78,10 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         fhirController = new FHIRController(UserType.ADMIN);
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
-        dummyFacility = fhirController.createFacility(dummyCfg);
+        // dummyFacility = fhirController.createFacility(dummyCfg);
 
-        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
-        dummyAddress = dummyFacility.getAddress();
+        // dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
+        // dummyAddress = dummyFacility.getAddress();
     }
 
     @BeforeMethod
@@ -285,7 +285,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     public void testFacilitySearchCriteria()
     {
         final String uniqueNamePrefix = generateAlphabetString(5); // reasonably likely to be unique
-        final List<MaintainFacilityBuilder> criteriaFacilities = Arrays.asList(
+        List<MaintainFacilityBuilder> criteriaFacilities = Arrays.asList(
                 fhirController.createFacility(
                         new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(3))),
                 fhirController.createFacility(
@@ -293,6 +293,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 fhirController.createFacility(
                         new FacilityMaintainConfig().withName(uniqueNamePrefix + generateAlphabetString(3)))
         );
+        criteriaFacilities.sort(Comparator.comparing(MaintainFacilityBuilder::getName));
         final List<String> queryDetails = Arrays.asList(uniqueNamePrefix + "*", "", "", "", "", "BUILDING", "", "");
 
         // Test Start
