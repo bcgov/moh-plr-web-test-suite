@@ -75,13 +75,13 @@ implements SimpleTest
         //Note that the saved organization identifier is an IPC identifier.
         MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
 
-        LOG.info("Created organization id {}, name {}.", org.getIdentifier(), org.getName());
+        LOG.info("Created organization id {}, name {}.", org.getIdentifiers(), org.getName());
 
         //Query an organization by its IPC identifier.
         //Resulting MaintainOrgBuilder contains the queried organization data.
         MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier());
 
-        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, address {}, telecoms {}, notes {}.", orgQueried.getIdentifier(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList());
+        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, address {}, telecoms {}, notes {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList());
 
         //Close the FHIR session
         fhirController.close();

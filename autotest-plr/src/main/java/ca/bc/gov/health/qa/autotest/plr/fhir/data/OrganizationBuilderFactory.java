@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 
 /**
@@ -36,7 +37,7 @@ public class OrganizationBuilderFactory {
         MaintainOrgBuilder builder = new MaintainOrgBuilder();
 
         if (config.isIdentifierEnabled()) {
-            builder.identifier(dataGen.generateNumericId());
+            builder.addIdentifier(IdentifierType.ORGID, dataGen.generateNumericId());
         }
         if (config.isNameEnabled()) {
             builder.name(dataGen.generateName());

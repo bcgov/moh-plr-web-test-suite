@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationAttribute;
@@ -28,14 +29,13 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private List<Map<String,String>>  addressList_     = new ArrayList<>();
     private String                    alias_           = null;
     private Boolean                   confidentiality_ = null;
-    private String                    identifier_      = null;
+    private Map<IdentifierType,String> identifiers_    = new HashMap<>();
     private String                    name_            = null;
-    private  List<Map<String,String>> noteList_        = new ArrayList<>();
+    private List<Map<String,String>> noteList_        = new ArrayList<>();
     private OrgRoleType               roleType_        = null; // must be explicitly set
     private List<Map<String,String>>  statusList_      = new ArrayList<>();
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
     private HdsType                   hdsType_         = null;
-    private String                    OrgIdentifier_      = null;
     //TODO: ORG PROPERTIES
     //TODO: O2I relationships
     //TODO: 02F relationships
@@ -156,7 +156,10 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
             requireNonNull(hdsType_, "HDS type required when roleType is HDS");
             orgJson.put("_type", MaintainUtils.createHdsType(hdsType_));
         }
-        accessor.getOrgIdentifierJson(0).put("value", identifier_);
+
+        String orgid = identifiers_.get(IdentifierType.ORGID);
+        accessor.getOrgIdentifierJson(0).put("value", orgid);
+
         orgJson.put("name", name_);
         if (alias_ != null)
         {
@@ -219,26 +222,18 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     }
 
     /**
-     * Sets the organization identifier value.
-     * @param identifier identifier string
+     * Sets an identifier value for a specific identifier type.
+     * @param identifierType type of identifier (e.g., IPC, ORGID)
+     * @param identifierValue identifier string
      * @return this builder
      */
-    public MaintainOrgBuilder identifier(String identifier)
+    public MaintainOrgBuilder addIdentifier(IdentifierType identifierType, String identifierValue)
     {
-        identifier_ = identifier;
+        if (identifierType != null && identifierValue != null) {
+            identifiers_.put(identifierType, identifierValue);
+        }
         return this;
     }
-
-    /**
-     * Sets the organization identifier value.
-     * @param identifier identifier string
-     * @return this builder
-     */
-	public MaintainOrgBuilder OrgIdentifier(String orgidentifier) {
-		OrgIdentifier_ = orgidentifier;
-		return this;
-	}
-
 
     /**
      * Sets the organization name.
@@ -309,7 +304,9 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private void validateRequiredField(OrganizationAttribute attr) {
         switch (attr) {
             case IDENTIFIER:
-                requireNonNull(identifier_, "Missing organization identifier.");
+                if (identifiers_.isEmpty()) {
+                    requireNonNull(null, "Missing organization identifier.");
+                }
                 break;
             case NAME:
                 requireNonNull(name_, "Missing organization name.");
@@ -350,14 +347,37 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     }
 
     /**
-     * Organization identifier configured.
-     * @return organization identifier value (may be null until set)
+     * Returns the preferred identifier value (IPC if present, else null).
+     * Backwards compatibility method use getIdentifier(IdentifierType.IPC) instead
+     * @return IPC identifier value.
      */
-    public String getIdentifier() { return identifier_; }
+    @Deprecated
+    public String getIdentifier() {
+        return getIdentifier(IdentifierType.IPC);
+    }
 
+    /**
+     * Returns the identifier value for the specified identifier type (or null if not present).
+     * @param type identifier type enum
+     * @return identifier string or null
+     */
+    public String getIdentifier(IdentifierType type){
+        return identifiers_.get(type);
+    }
+
+    /**
+     * Returns the ORGID value if present, else null.
+     * Backwards compatibility method use getIdentifier(IdentifierType.ORGID) instead
+     */
+    @Deprecated
     public String getOrgIdentifier() {
-		return OrgIdentifier_;
-	}
+        return identifiers_.get(IdentifierType.ORGID);
+    }
+
+    /**
+     * Returns an immutable snapshot of all identifiers.
+     */
+    public Map<IdentifierType,String> getIdentifiers() { return Map.copyOf(identifiers_); }
 
 	/**
      * Organization name configured.

@@ -116,7 +116,7 @@ public class FHIRController implements AutoCloseable {
         LOG.info("Created organization (id={})", id);
 
         //Set the actual id created by the service (should be an IPC identifier)
-        builder.identifier(id);
+        builder.addIdentifier(IdentifierType.IPC, id);
         return builder;
     }
 
