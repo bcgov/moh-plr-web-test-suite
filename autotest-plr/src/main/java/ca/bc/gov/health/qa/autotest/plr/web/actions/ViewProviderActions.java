@@ -26,6 +26,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewMode;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
+import org.json.JSONObject;
 
 /**
  * TODO (AZ) - doc
@@ -240,6 +241,40 @@ public class ViewProviderActions
                         String.format("Data field name list (%s)", section));
             }
         }
+    }
+
+    /**
+     * TODO (AMV) - doc
+     *
+     * @param providerType
+     * @param provider
+     * @return
+     */
+    public String getViewTitle(ProviderType providerType, JSONObject provider)
+    {
+        return switch (providerType) {
+            case BC_PRACTITIONER, OOP_PRACTITIONER -> {
+                JSONObject name = provider.getJSONObject("name");
+                yield name.getString("last") +
+                        ", " +
+                        name.getString("first") +
+                        " - " +
+                        provider.getString("cpn") +
+                        "(" +
+                        provider.getString("owner") +
+                        ") - " +
+                        provider.getString("status");
+            }
+            case ORGANIZATION -> provider.getString("name") +
+                    "(" +
+                    provider.getString("owner") +
+                    ") - " +
+                    provider.getString("status");
+            default -> {
+                String msg = String.format("Unsupported provider type (%s).", providerType);
+                throw new IllegalStateException(msg);
+            }
+        };
     }
 
     /**

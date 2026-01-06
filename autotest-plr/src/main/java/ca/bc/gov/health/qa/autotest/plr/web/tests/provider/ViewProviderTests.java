@@ -1,13 +1,17 @@
-package ca.bc.gov.health.qa.autotest.plr.web.tests;
+package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
@@ -31,7 +35,9 @@ implements SimpleTest
 
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
-    private PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
+    private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
+    private FHIRController fhirController;
+    private MaintainOrgBuilder dummyOrg;
 
     public ViewProviderTests()
     {}
@@ -43,6 +49,15 @@ implements SimpleTest
         LOG.info("Done.");
     }
 
+    /*
+    @BeforeTest
+    public void beforeTest()
+    {
+        dummyOrg = fhirController.createOrganization(OrgRoleType.ORG);
+    }
+
+     */
+
     @BeforeMethod
     public void before(Object[] parameters)
     {
@@ -51,6 +66,7 @@ implements SimpleTest
         {
             workflow.login().openPlr();
         }
+        fhirController = new FHIRController(UserType.ADMIN);
     }
 
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
@@ -133,20 +149,18 @@ implements SimpleTest
     // View Provider : Viewing Provider Details
     public void testViewingProviderDetails(ProviderType providerType)
     {
+        final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
+
         // NOTE: Step 7 (click "Print") will not be automated.
         JSONObject provider = PlrData.getProvider(providerType, "default");
-        ViewProviderActions actions =
-                workflowManager_.getSelectedWorkflow().getViewProviderActions();
-        ViewHeaderFragment viewHeader = actions
-                .openProvider(provider.getString("pauth"))
-                .getViewHeader();
-        assertEquals(
-                viewHeader.grabViewTitle(),
-                getViewTitle(providerType, provider),
-                "Provider View Title");
-        assertEquals(viewHeader.grabViewMode(), ViewMode.CURRENT, "Current View");
-        assertFalse(viewHeader.grabExpandedAll(), "Collapsed All");
-        assertTrue(viewHeader.grabPrintButtonDisplayed(), "Print button displayed");
+        ViewHeaderFragment viewHeader = actions.openProvider(provider.getString("pauth")).getViewHeader();
+
+        assertEquals(viewHeader.grabViewTitle(), actions.getViewTitle(providerType, provider),
+                "Provider View Title does not match expected result");
+        assertEquals(viewHeader.grabViewMode(), ViewMode.CURRENT, "Current View is not displayed as expected");
+        assertFalse(viewHeader.grabExpandedAll(), "Collapse All button is visible when it should be Expand All");
+        assertTrue(viewHeader.grabPrintButtonDisplayed(), "Print button not displayed as expected");
+
         actions.verifySectionTitles(providerType);
         actions.verifyDataBlocksExpanded(providerType, false);
         viewHeader.expandAll(true);
@@ -155,43 +169,5 @@ implements SimpleTest
         actions.verifySectionDataFieldNames(providerType);
         viewHeader.expandAll(false);
         actions.verifyDataBlocksExpanded(providerType, false);
-    }
-
-    private String getViewTitle(ProviderType providerType, JSONObject provider)
-    {
-        String title;
-        switch(providerType)
-        {
-            case BC_PRACTITIONER:
-            case OOP_PRACTITIONER:
-                JSONObject name = provider.getJSONObject("name");
-                title = new StringBuilder()
-                        .append(name.getString("last"))
-                        .append(", ")
-                        .append(name.getString("first"))
-                        .append(" - ")
-                        .append(provider.getString("cpn"))
-                        .append("(")
-                        .append(provider.getString("owner"))
-                        .append(") - ")
-                        .append(provider.getString("status"))
-                        .toString();
-                break;
-
-            case ORGANIZATION:
-                title = new StringBuilder()
-                        .append(provider.getString("name"))
-                        .append("(")
-                        .append(provider.getString("owner"))
-                        .append(") - ")
-                        .append(provider.getString("status"))
-                        .toString();
-                break;
-
-            default:
-                String msg = String.format("Unsupported provider type (%s).", providerType);
-                throw new IllegalStateException(msg);
-        }
-        return title;
     }
 }

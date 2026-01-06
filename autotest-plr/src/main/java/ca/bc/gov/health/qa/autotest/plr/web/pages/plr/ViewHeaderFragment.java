@@ -81,9 +81,9 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets whether some data blocks are expanded (true) or all are collapsed (false)
      *
-     * @return ???
+     * @return a boolean whether the collapse all button is visible (true) or not (false)
      */
     public boolean grabExpandedAll()
     {
