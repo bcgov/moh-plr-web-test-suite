@@ -13,7 +13,7 @@ import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpClient;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpRequest;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpRequestBuilder;
 import ca.bc.gov.health.qa.autotest.core.util.net.http.SimpleHttpResponse;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainAccessor;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainAccessor;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.keycloak.actions.KeycloakActions;

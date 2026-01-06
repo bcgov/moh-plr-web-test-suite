@@ -1,8 +1,7 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
+package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual;
 
 import static java.util.Objects.requireNonNull;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +10,9 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainAccessor;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 
@@ -313,9 +314,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
     public JSONObject build()
     {
         verifyParameters();
-        String template = ResourceUtils.readResource(
-                MethodHandles.lookup().lookupClass(), "maintain-practitioner.json");
-        JSONObject json = new JSONObject(template);
+        JSONObject json = MaintainUtils.readJsonTemplate("maintain-practitioner.json");
 
         MaintainAccessor accessor = new MaintainAccessor(json);
         JSONObject nameJson     = accessor.getPracNameJson(0);

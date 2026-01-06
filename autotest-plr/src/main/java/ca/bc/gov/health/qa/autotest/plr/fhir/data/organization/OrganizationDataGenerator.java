@@ -1,7 +1,8 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.data;
+package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
 import java.util.List;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.AbstractDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
 
 /**

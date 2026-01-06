@@ -1,5 +1,6 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.data;
+package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 
 /**

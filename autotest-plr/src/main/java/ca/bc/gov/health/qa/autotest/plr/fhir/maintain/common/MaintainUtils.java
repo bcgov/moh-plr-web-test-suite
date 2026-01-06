@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
+package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common;
 
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
@@ -363,8 +363,10 @@ public class MaintainUtils
      */
     public static JSONObject readJsonTemplate(String templateName)
     {
+        // Templates are located under resources at ca/bc/gov/health/qa/autotest/plr/fhir/maintain/
+        String path = "/ca/bc/gov/health/qa/autotest/plr/fhir/maintain/" + templateName;
         return new JSONObject(ResourceUtils.readResource(
-                MethodHandles.lookup().lookupClass(), templateName));
+                MethodHandles.lookup().lookupClass(), path));
     }
 
         /**
