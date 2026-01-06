@@ -17,7 +17,6 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.util.IdentifierTypeName;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.SearchFacilityActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
@@ -25,6 +24,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFaci
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.IdentifierTypeName;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;

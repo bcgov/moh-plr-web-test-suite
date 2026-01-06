@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.util;
+package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 
 public enum RelationshipType {
 	

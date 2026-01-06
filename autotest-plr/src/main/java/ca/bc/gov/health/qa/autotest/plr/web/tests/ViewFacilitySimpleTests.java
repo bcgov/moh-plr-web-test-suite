@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.tests.facility;
+package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;

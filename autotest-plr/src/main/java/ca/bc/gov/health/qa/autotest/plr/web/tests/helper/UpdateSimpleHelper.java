@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.tests;
+package ca.bc.gov.health.qa.autotest.plr.web.tests.helper;
 
 import java.util.Random;
 

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
+
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
@@ -19,7 +21,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
-import ca.bc.gov.health.qa.autotest.plr.util.EndReason;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 

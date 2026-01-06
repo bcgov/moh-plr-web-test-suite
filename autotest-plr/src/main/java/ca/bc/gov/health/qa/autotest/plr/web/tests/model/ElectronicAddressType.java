@@ -1,15 +1,13 @@
-package ca.bc.gov.health.qa.autotest.plr.util;
+package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 
-public enum TelecommunicationType {
-	PHONE("T - Telephone"), 
-	MOBILE("MB - Mobile"),
-	PAGER("PG - Pager"),
-	FAX("FAX - Fax"),
-	MODEM("M - Modem");
+public enum ElectronicAddressType {
+	EMAIL("E - Email"), 
+	FTP("F - FTP"),
+	HTTP("H - HTTP");
 
 	private final String text;
 
-	TelecommunicationType(String text) {
+	ElectronicAddressType(String text) {
 		this.text = text;
 	}
 
@@ -23,8 +21,8 @@ public enum TelecommunicationType {
 
 	public String getDataField() { return this.getEndText() + " (" + this.getStartText() + ")"; }
 
-	public static TelecommunicationType fromString(String text) {
-		for (TelecommunicationType b : TelecommunicationType.values()) {
+	public static ElectronicAddressType fromString(String text) {
+		for (ElectronicAddressType b : ElectronicAddressType.values()) {
 			if (b.text.equalsIgnoreCase(text)) {
 				return b;
 			}

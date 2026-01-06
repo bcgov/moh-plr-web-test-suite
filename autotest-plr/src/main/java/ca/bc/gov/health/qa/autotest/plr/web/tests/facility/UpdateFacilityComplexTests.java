@@ -12,6 +12,10 @@ import ca.bc.gov.health.qa.autotest.plr.util.*;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.RelationshipType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -30,9 +34,9 @@ import java.nio.file.Path;
 import java.util.*;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.generateAlphabetString;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.*;
 import static java.lang.Integer.parseInt;
 import static org.testng.Assert.*;
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.data.UpdateFacilityConstants.*;
 
 public class UpdateFacilityComplexTests implements SimpleTest

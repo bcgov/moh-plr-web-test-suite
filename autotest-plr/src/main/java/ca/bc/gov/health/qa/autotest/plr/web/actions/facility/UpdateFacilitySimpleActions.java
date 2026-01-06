@@ -22,12 +22,17 @@ import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Relationship;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Telecommunication;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.IdentifierTypeName;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.RelationshipType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.json.JSONObject;
 
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.UpdateSimpleHelper.effective_date;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.effective_date;
 import static org.testng.Assert.*;
 
 public class UpdateFacilitySimpleActions {
