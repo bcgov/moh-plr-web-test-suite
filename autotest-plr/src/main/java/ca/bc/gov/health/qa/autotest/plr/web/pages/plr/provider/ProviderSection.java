@@ -23,6 +23,11 @@ public enum ProviderSection
     IDENTIFIERS("identifiersPanel", "Identifiers"),
 
     /**
+     * Role Types
+     */
+    ROLE_TYPE("roleTypesPanel", "Role Type"),
+
+    /**
      * Statuses
      */
     STATUSES("statusesPanel", "Statuses"),

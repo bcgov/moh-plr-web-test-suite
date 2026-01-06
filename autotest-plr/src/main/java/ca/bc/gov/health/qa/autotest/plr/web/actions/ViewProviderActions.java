@@ -235,9 +235,7 @@ public class ViewProviderActions
                     expectedFieldNameList = new ArrayList<>(expectedFieldNameList);
                     expectedFieldNameList.remove("Hds Type");
                 }
-                assertEquals(
-                        fieldNameList,
-                        expectedFieldNameList,
+                assertEquals(fieldNameList, expectedFieldNameList,
                         String.format("Data field name list (%s)", section));
             }
         }

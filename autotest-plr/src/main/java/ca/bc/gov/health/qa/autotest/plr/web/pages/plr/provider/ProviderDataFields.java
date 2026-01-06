@@ -16,6 +16,7 @@ public class ProviderDataFields
         Map<ProviderSection,List<String>> map = new EnumMap<>(ProviderSection.class);
         map.put(ProviderSection.REGISTRY_IDENTIFIERS,        List.of("Type"));
         map.put(ProviderSection.IDENTIFIERS,                 List.of("Type"));
+        map.put(ProviderSection.ROLE_TYPE,                   List.of());
         map.put(ProviderSection.STATUSES,                    List.of());
         map.put(ProviderSection.EXPERTISE,                   List.of("Type"));
         map.put(ProviderSection.CREDENTIALS,                 List.of("Credential Type"));
@@ -55,7 +56,6 @@ public class ProviderDataFields
         map.put(ProviderSection.IDENTIFIERS, List.of(
                 "Identifier",
                 "Type",
-                "Role Type",
                 "Hds Type",
                 "Effective From",
                 "Effective To",

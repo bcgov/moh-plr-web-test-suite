@@ -164,9 +164,12 @@ implements SimpleTest
         actions.verifySectionTitles(providerType);
         actions.verifyDataBlocksExpanded(providerType, false);
         viewHeader.expandAll(true);
+
         viewHeader.selectViewMode(ViewMode.AUDIT);
         actions.verifyDataBlocksExpanded(providerType, true);
+
         actions.verifySectionDataFieldNames(providerType);
+
         viewHeader.expandAll(false);
         actions.verifyDataBlocksExpanded(providerType, false);
     }
