@@ -71,7 +71,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param section the Facility Section to select
 	 * @return a CSS selector string for the facility section's div panel
 	 */
-	private String getSectionSelector(FacilitySection section) {
+	protected String getSectionSelector(FacilitySection section) {
 		return "div#" + section.getPanelId_();
 	}
 
@@ -161,7 +161,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param index   the index of data block to specifically select
 	 * @return a CSS selector string to select the header panel of a data block
 	 */
-	private String getDataBlockHeaderSelector(FacilitySection section, int index) {
+	protected String getDataBlockHeaderSelector(FacilitySection section, int index) {
 		return getDataBlockSelector(section, index) + " > div.ui-panel-titlebar";
 	}
 

@@ -88,9 +88,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		selenium_.getDriver().manage().window().maximize();
 	}
 
-	private String getSectionSelector(FacilitySection section) {
-		return "div#" + section.getPanelId_();
-	}
+
 	
 	private String getSectionContentSelector(FacilitySection section) {
 		return getSectionSelector(section) + "_content";
@@ -105,9 +103,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return selenium_.findElements(By.cssSelector(getDataBlocksSelector(section))).size();
 	}
 	
-	private String getDataBlockHeaderActiveSelector(FacilitySection section, int index) {
-		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions > span > img[title='Active']";
-	}
+	
 	
 	private String getDataBlockSelector(FacilitySection section, int index) {
 		if (index < 0) {
@@ -117,9 +113,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return getDataBlocksSelector(section) + ":nth-of-type(" + (index + 1) + ")";
 	}
 	
-	private String getDataBlockHeaderSelector(FacilitySection section, int index) {
-		return getDataBlockSelector(section, index) + " > div.ui-panel-titlebar";
-	}
+	
 
     /**
      * Gets whether a specified data block is active.

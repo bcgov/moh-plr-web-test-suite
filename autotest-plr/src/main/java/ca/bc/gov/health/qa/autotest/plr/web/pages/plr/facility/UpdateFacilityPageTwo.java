@@ -48,7 +48,7 @@ public class UpdateFacilityPageTwo extends ViewFacilityPage {
 	 * @param selenium
 	 * @param uri
 	 */
-	public UpdateFacilityPage(SeleniumSession selenium, URI uri) {
+	public UpdateFacilityPageTwo(SeleniumSession selenium, URI uri) {
 		super(selenium, uri);
 
 	}
