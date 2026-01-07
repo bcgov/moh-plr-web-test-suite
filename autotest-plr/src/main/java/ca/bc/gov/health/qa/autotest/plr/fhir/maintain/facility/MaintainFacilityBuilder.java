@@ -4,7 +4,9 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityAttribute;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainAccessor;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainUtils;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.EndReasonCode;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.EndReasonCode;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
 
 import static java.util.Objects.requireNonNull;
 
@@ -15,9 +17,6 @@ import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 
 /**
  * Builder for Facility  maintain requests.

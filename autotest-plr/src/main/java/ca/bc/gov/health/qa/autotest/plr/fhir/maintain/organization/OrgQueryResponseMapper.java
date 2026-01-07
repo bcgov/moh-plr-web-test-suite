@@ -3,9 +3,9 @@ package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 
 /**
  * Maps a organization query JSON response into a {@link MaintainOrgBuilder}.

@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.model;
+package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model;
 
 /**
  * Supported FHIR resource types for simplified query/maintain helpers.

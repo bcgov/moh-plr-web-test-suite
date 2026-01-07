@@ -1,8 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 
 /**
  * Factory responsible for creating and configuring {@link MaintainOrgBuilder}

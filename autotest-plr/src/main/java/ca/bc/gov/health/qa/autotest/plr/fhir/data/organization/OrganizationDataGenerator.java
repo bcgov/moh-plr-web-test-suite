@@ -1,9 +1,10 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
 import java.util.List;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.AbstractDataGenerator;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 
 /**
  * Organization-specific data generator providing distinct name and address pools

@@ -3,7 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 
 /**
  * Maps a facility query JSON response into a {@link MaintainFacilityBuilder}.

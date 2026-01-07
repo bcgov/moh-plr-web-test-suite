@@ -10,14 +10,14 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationAttribute;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainAccessor;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainUtils;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 
 /**
  * Builder for Organization maintain requests. Supports configuration of multi-valued

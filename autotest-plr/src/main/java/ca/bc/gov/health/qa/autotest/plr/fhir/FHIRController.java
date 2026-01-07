@@ -10,13 +10,13 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfi
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.FacilityQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.OrgQueryResponseMapper;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 

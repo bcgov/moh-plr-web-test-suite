@@ -1,7 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 
 /**
  * Configuration object representing which Organization attributes and list counts
