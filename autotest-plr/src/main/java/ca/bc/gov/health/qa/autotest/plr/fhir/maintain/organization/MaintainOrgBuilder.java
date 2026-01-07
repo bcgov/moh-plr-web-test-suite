@@ -27,16 +27,16 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
  */
 public class MaintainOrgBuilder implements MaintainRequestBuilder
 {
-    private List<Map<String,String>>  addressList_     = new ArrayList<>();
-    private String                    alias_           = null;
-    private Boolean                   confidentiality_ = null;
+    private List<Map<String,String>>   addressList_     = new ArrayList<>();
+    private String                     alias_           = null;
+    private Boolean                    confidentiality_ = null;
     private Map<IdentifierType,String> identifiers_    = new HashMap<>();
-    private String                    name_            = null;
-    private List<Map<String,String>> noteList_        = new ArrayList<>();
-    private OrgRoleType               roleType_        = null; // must be explicitly set
-    private List<Map<String,String>>  statusList_      = new ArrayList<>();
-    private List<Map<String,String>>  telecomList_     = new ArrayList<>();
-    private HdsType                   hdsType_         = null;
+    private String                     name_            = null;
+    private List<Map<String,String>>   noteList_        = new ArrayList<>();
+    private OrgRoleType                roleType_        = null; // must be explicitly set
+    private List<Map<String,String>>   statusList_      = new ArrayList<>();
+    private List<Map<String,String>>   telecomList_     = new ArrayList<>();
+    private HdsType                    hdsType_         = null;
     //TODO: ORG PROPERTIES
     //TODO: O2I relationships
     //TODO: 02F relationships
