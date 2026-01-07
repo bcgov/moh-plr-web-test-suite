@@ -35,6 +35,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private List<Map<String,String>>  statusList_      = new ArrayList<>();
     private List<Map<String,String>>  telecomList_     = new ArrayList<>();
     private HdsType                   hdsType_         = null;
+    private String                    OrgIdentifier_      = null;
     //TODO: ORG PROPERTIES
     //TODO: O2I relationships
     //TODO: 02F relationships
@@ -229,6 +230,17 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     }
 
     /**
+     * Sets the organization identifier value.
+     * @param identifier identifier string
+     * @return this builder
+     */
+	public MaintainOrgBuilder OrgIdentifier(String orgidentifier) {
+		OrgIdentifier_ = orgidentifier;
+		return this;
+	}
+
+
+    /**
      * Sets the organization name.
      * @param name display name
      * @return this builder
@@ -343,7 +355,11 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      */
     public String getIdentifier() { return identifier_; }
 
-    /**
+    public String getOrgIdentifier() {
+		return OrgIdentifier_;
+	}
+
+	/**
      * Organization name configured.
      * @return name value or null if not provided
      */

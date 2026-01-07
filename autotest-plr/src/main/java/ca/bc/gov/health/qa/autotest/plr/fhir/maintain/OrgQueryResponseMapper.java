@@ -74,6 +74,7 @@ public final class OrgQueryResponseMapper {
 
 		MaintainOrgBuilder builder = new MaintainOrgBuilder();
 		mapIdentifier(orgResource, builder);
+		mapOrgIdentifier(orgResource, builder);
 		mapNameAndAlias(orgResource, builder);
 		mapRoleType(orgResource, builder);
 		if (builder.getRoleType() == OrgRoleType.HDS) {
@@ -113,6 +114,36 @@ public final class OrgQueryResponseMapper {
 		}
 		String chosen = ipcValue != null ? ipcValue : fallbackValue;
 		if (chosen != null) b.identifier(chosen);
+	}
+
+    /*
+     * Maps the Organization identifier from the Organization resource to the Organization builder.
+     * @param org resource JSON
+     * @param b MaintainOrgBuilder to populate
+     */
+	private static void mapOrgIdentifier(JSONObject org, MaintainOrgBuilder b) {
+		JSONArray identifiers = org.optJSONArray("identifier");
+
+		if (identifiers == null || identifiers.length() == 0)
+			return;
+
+		String orgidValue = null;
+
+		for (int i = 0; i < identifiers.length(); i++) {
+			JSONObject id = identifiers.optJSONObject(i);
+
+			String system = id.optString("system", null);
+			String value = id.optString("value", null);
+
+			if (IdentifierType.ORGID.getSourceSystem().equals(system)) {
+				orgidValue = value;
+				break; // prefer first IPC encountered to match logic in FHIRController
+			}
+
+		}
+
+		if (orgidValue != null)
+			b.OrgIdentifier(orgidValue);
 	}
 
     /*

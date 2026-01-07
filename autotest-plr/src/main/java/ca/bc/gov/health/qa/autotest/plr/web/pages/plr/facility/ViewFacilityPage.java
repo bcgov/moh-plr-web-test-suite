@@ -453,7 +453,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * 
 	 */
 
-	private String getDataBlockHeaderActiveSelector(FacilitySection section, int index) {
+	protected String getDataBlockHeaderActiveSelector(FacilitySection section, int index) {
 		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions > span > img[title='Active']";
 	}
 

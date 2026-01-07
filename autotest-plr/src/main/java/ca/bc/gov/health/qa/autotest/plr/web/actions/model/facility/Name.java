@@ -10,7 +10,7 @@ import org.json.JSONObject;
 import static org.testng.Assert.*;
 
 /**
- * TODO (KD)
+ * Name data block content)
  */
 public class Name {
 	private String name;
@@ -77,6 +77,14 @@ public class Name {
 		this.dbCreated = fhirFacility.getDate();
 		this.dbExpired = "";
 		this.dataOwnerCode = ViewFacilityConstants.DATA_OWNER_CODE_DEFAULT;
+	}
+	/*
+	 * Gets the facility name.
+	 *
+	 * @return the Data Owner Code string
+	 */
+	public String getDataOwnerCode() {
+		return dataOwnerCode;
 	}
 
 	/**

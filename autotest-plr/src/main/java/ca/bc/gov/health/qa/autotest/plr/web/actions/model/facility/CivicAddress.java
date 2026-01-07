@@ -9,7 +9,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.json.JSONObject;
 
 /**
- * TODO (KD)
+ * CivicAddress , data block content
  */
 public class CivicAddress {
 	private String latitude;
@@ -25,7 +25,7 @@ public class CivicAddress {
 	private String localHealthArea;
 	private String primaryCareNetwork;
 	private String communityHealthServiceArea;
-	
+
 	/**
 	 * Gets Address Line 1.
 	 *
@@ -40,18 +40,39 @@ public class CivicAddress {
 	 *
 	 * @return the city value or null
 	 */
+
 	public String getCity() {
 		return city;
 	}
 
 	/**
-	 * Gets a simplified Province/State value (drops non-letters from the second token).
+	 * Gets Latitude.
+	 *
+	 * @return the Latitude or null
+	 */
+	public String getLatitude() {
+		return latitude;
+	}
+
+	/**
+	 * Gets Longitude.
+	 *
+	 * @return the Longitude or null
+	 */
+	public String getLongitude() {
+		return longitude;
+	}
+
+	/**
+	 * Gets a simplified Province/State value (drops non-letters from the second
+	 * token).
 	 *
 	 * @return a cleaned summary of Province/State or null
 	 */
 	public String getProvinceStateSummary() {
-		if (provinceState==null)return null;
-		String[] parts=provinceState.split("-");
+		if (provinceState == null)
+			return null;
+		String[] parts = provinceState.split("-");
 		return parts[1].replaceAll("^[^A-Z]*", "");
 	}
 
@@ -67,18 +88,18 @@ public class CivicAddress {
 	/**
 	 * Constructs a CivicAddress using explicit values.
 	 *
-	 * @param latitude the latitude value
-	 * @param longitude the longitude value
-	 * @param addressLine1 Address Line 1
-	 * @param addressLine2 Address Line 2
-	 * @param addressLine3 Address Line 3
-	 * @param city the city name
-	 * @param provinceState province/state text
-	 * @param country the country name
-	 * @param healthAuthority health authority name/code
-	 * @param healthServiceDeliveryArea health service delivery area
-	 * @param localHealthArea local health area
-	 * @param primaryCareNetwork primary care network
+	 * @param latitude                   the latitude value
+	 * @param longitude                  the longitude value
+	 * @param addressLine1               Address Line 1
+	 * @param addressLine2               Address Line 2
+	 * @param addressLine3               Address Line 3
+	 * @param city                       the city name
+	 * @param provinceState              province/state text
+	 * @param country                    the country name
+	 * @param healthAuthority            health authority name/code
+	 * @param healthServiceDeliveryArea  health service delivery area
+	 * @param localHealthArea            local health area
+	 * @param primaryCareNetwork         primary care network
 	 * @param communityHealthServiceArea community health service area
 	 */
 	public CivicAddress(String latitude, String longitude, String addressLine1, String addressLine2,
@@ -100,8 +121,6 @@ public class CivicAddress {
 		this.primaryCareNetwork = primaryCareNetwork;
 		this.communityHealthServiceArea = communityHealthServiceArea;
 	}
-	
-	
 
 	@Override
 	public int hashCode() {
@@ -109,8 +128,6 @@ public class CivicAddress {
 				healthAuthority, healthServiceDeliveryArea, latitude, localHealthArea, longitude, primaryCareNetwork,
 				provinceState);
 	}
-
-
 
 	@Override
 	public boolean equals(Object obj) {
@@ -155,7 +172,6 @@ public class CivicAddress {
 		this.primaryCareNetwork = fhirFacility.getHsda().get("PCN");
 		this.communityHealthServiceArea = fhirFacility.getHsda().get("CHSA");
 	}
-
 	/**
 	 * Constructs a CivicAddress from a JSON object.
 	 *
@@ -169,8 +185,7 @@ public class CivicAddress {
 			this.latitude = jsonData.getString("Latitude");
 		if (!jsonData.isNull("Longitude"))
 			this.longitude = jsonData.getString("Longitude");
-		
-		
+
 		if (!jsonData.isNull("Address Line 1"))
 			this.addressLine1 = jsonData.getString("Address Line 1");
 		if (!jsonData.isNull("Address Line 2"))
@@ -184,7 +199,6 @@ public class CivicAddress {
 		if (!jsonData.isNull("Country"))
 			this.country = jsonData.getString("Country");
 
-
 		if (!jsonData.isNull("Health Authority"))
 			this.healthAuthority = jsonData.getString("Health Authority");
 		if (!jsonData.isNull("Health Service Delivery Area"))
@@ -193,9 +207,8 @@ public class CivicAddress {
 			this.localHealthArea = jsonData.getString("Local Health Area");
 		if (!jsonData.isNull("Primary Care Network"))
 			this.primaryCareNetwork = jsonData.getString("Primary Care Network");
-		if (!jsonData.isNull("Community Health Service Area") )
+		if (!jsonData.isNull("Community Health Service Area"))
 			this.communityHealthServiceArea = jsonData.getString("Community Health Service Area");
-		
 
 	}
 
@@ -207,24 +220,25 @@ public class CivicAddress {
 	public CivicAddress(LinkedHashMap<String, String> map) {
 		super();
 		assertNotNull(map);
-		
+
 		this.latitude = map.get("Latitude") == null ? null : map.get("Latitude");
 		this.longitude = map.get("Longitude") == null ? null : map.get("Longitude");
-		
-			
+
 		this.addressLine1 = map.get("Address Line 1") == null ? null : map.get("Address Line 1");
 		this.addressLine2 = map.get("Address Line 2") == null ? null : map.get("Address Line 2");
 		this.addressLine3 = map.get("Address Line 3") == null ? null : map.get("Address Line 3");
 		this.city = map.get("City") == null ? null : map.get("City");
 		this.provinceState = map.get("Province / State") == null ? null : map.get("Province / State");
 		this.country = map.get("Country") == null ? null : map.get("Country");
-		
+
 		this.healthAuthority = map.get("Health Authority") == null ? null : map.get("Health Authority");
-		this.healthServiceDeliveryArea = map.get("Health Service Delivery Area") == null ? null : map.get("Health Service Delivery Area");
+		this.healthServiceDeliveryArea = map.get("Health Service Delivery Area") == null ? null
+				: map.get("Health Service Delivery Area");
 		this.localHealthArea = map.get("Local Health Area") == null ? null : map.get("Local Health Area");
 		this.primaryCareNetwork = map.get("Primary Care Network") == null ? null : map.get("Primary Care Network");
-		this.communityHealthServiceArea = map.get("Community Health Service Area") == null ? null : map.get("Community Health Service Area");
-	
+		this.communityHealthServiceArea = map.get("Community Health Service Area") == null ? null
+				: map.get("Community Health Service Area");
+
 	}
 
 }
