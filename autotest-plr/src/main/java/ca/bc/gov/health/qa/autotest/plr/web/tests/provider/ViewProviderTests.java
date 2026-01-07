@@ -4,14 +4,12 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
@@ -36,8 +34,8 @@ implements SimpleTest
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
-    private FHIRController fhirController;
-    private MaintainOrgBuilder dummyOrg;
+    // private FHIRController fhirController;
+    // private MaintainOrgBuilder dummyOrg;
 
     public ViewProviderTests()
     {}
@@ -49,15 +47,6 @@ implements SimpleTest
         LOG.info("Done.");
     }
 
-    /*
-    @BeforeTest
-    public void beforeTest()
-    {
-        dummyOrg = fhirController.createOrganization(OrgRoleType.ORG);
-    }
-
-     */
-
     @BeforeMethod
     public void before(Object[] parameters)
     {
@@ -66,7 +55,7 @@ implements SimpleTest
         {
             workflow.login().openPlr();
         }
-        fhirController = new FHIRController(UserType.ADMIN);
+        // fhirController = new FHIRController(UserType.ADMIN);
     }
 
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
@@ -137,40 +126,61 @@ implements SimpleTest
     // View Provider : Viewing Empty Data Objects
     public void testViewingEmptyData(ProviderType providerType)
     {
+        ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
+
         JSONObject provider = PlrData.getProvider(providerType, "minimum");
-        ViewProviderActions actions =
-                workflowManager_.getSelectedWorkflow().getViewProviderActions();
         actions.openProvider(provider.getString("pauth"));
         actions.verifyRequiredSections(providerType);
-        // TODO (AZ) - Elaborate on the no-permission sections.
+
+        workflowManager_.close(UserType.ADMIN);
+        workflowManager_.selectWorkflow(UserType.SECONDARY).login().openPlr();
+        actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
+        actions.openProvider(provider.getString("pauth"));
+
+        actions.verifyNoPermissionSections(providerType);
     }
 
-    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     // View Provider : Viewing Provider Details
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testViewingProviderDetails(ProviderType providerType)
     {
-        final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
+        final JSONObject provider = PlrData.getProvider(providerType, "default");
+        final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 
-        // NOTE: Step 7 (click "Print") will not be automated.
-        JSONObject provider = PlrData.getProvider(providerType, "default");
-        ViewHeaderFragment viewHeader = actions.openProvider(provider.getString("pauth")).getViewHeader();
+        // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier("IPC", provider.getString("ipc"));
+        search.openResults(0);
 
+        ViewProviderPage page = new ViewProviderPage(workflow.getSeleniumSession());
+        final ViewProviderActions actions = workflow.getViewProviderActions();
+
+        // Step 2: Verify Title
+        ViewHeaderFragment viewHeader = page.getViewHeader();
         assertEquals(viewHeader.grabViewTitle(), actions.getViewTitle(providerType, provider),
                 "Provider View Title does not match expected result");
-        assertEquals(viewHeader.grabViewMode(), ViewMode.CURRENT, "Current View is not displayed as expected");
-        assertFalse(viewHeader.grabExpandedAll(), "Collapse All button is visible when it should be Expand All");
-        assertTrue(viewHeader.grabPrintButtonDisplayed(), "Print button not displayed as expected");
 
+        // Step 3: Verify Links
+        assertTrue(actions.verifyLinks(), "One of Expand All, Print, or View Mode buttons is not visible");
+
+        // Step 4: Verify all Provider details are displayed
         actions.verifySectionTitles(providerType);
         actions.verifyDataBlocksExpanded(providerType, false);
-        viewHeader.expandAll(true);
-
-        viewHeader.selectViewMode(ViewMode.AUDIT);
-        actions.verifyDataBlocksExpanded(providerType, true);
-
         actions.verifySectionDataFieldNames(providerType);
+
+        // Step 5: Click "Expand All"
+        assertFalse(viewHeader.grabExpandedAll(), "Collapse All button is visible when it should be Expand All");
+        viewHeader.expandAll(true);
+        actions.verifyDataBlocksExpanded(providerType, true);
 
         viewHeader.expandAll(false);
         actions.verifyDataBlocksExpanded(providerType, false);
+
+        // Step 6: Click on "Show audit"
+        assertEquals(viewHeader.grabViewMode(), ViewMode.CURRENT, "Current View is not displayed as expected");
+        viewHeader.selectViewMode(ViewMode.AUDIT);
+        assertEquals(viewHeader.grabViewMode(), ViewMode.AUDIT, "Audit View is not displayed as expected");
+
+        // Step 7: Print (will not be automated)
     }
 }

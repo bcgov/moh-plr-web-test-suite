@@ -156,6 +156,20 @@ extends BasicWebPageFragment
     }
 
     /**
+     * TODO (AMV) - doc
+     *
+     * @return
+     */
+    public boolean grabExpandAllDisplayed() { return selenium_.grabElementVisible(By.cssSelector(EXPAND_ALL_CSS)); }
+
+    /**
+     * TODO (AMV) - doc
+     *
+     * @return
+     */
+    public boolean grabViewModeButtonDisplayed() { return selenium_.grabElementVisible(By.cssSelector(VIEW_MODE_BUTTON_CSS)); }
+
+    /**
      * TODO (AZ) - doc
      *
      * @param viewMode

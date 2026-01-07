@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.text.TextUtils;
@@ -214,6 +215,21 @@ public class ViewProviderActions
     }
 
     /**
+     * TODO (AMV) - doc
+     *
+     * @param providerType
+     */
+    public void verifyNoPermissionSections(ProviderType providerType)
+    {
+        ViewProviderPage viewProvider = waitForViewProviderPage();
+        for (ProviderSection section : getProviderSectionSet(providerType, userType_))
+        {
+            String noPermissionNotice = viewProvider.grabSectionNoRecordsNotice(section);
+            assertEquals(noPermissionNotice, "No permissions to view this record.");
+        }
+    }
+
+    /**
      * TODO (AZ) - doc
      *
      * @param providerType
@@ -319,8 +335,7 @@ public class ViewProviderActions
                     String.format("Presence of active data blocks (%s)", section));
             if (!expectedInactive)
             {
-                assertTrue(
-                        viewProvider.grabActiveDataBlockCount(section, false) == 0,
+                assertEquals(viewProvider.grabActiveDataBlockCount(section, false), 0,
                         String.format("Absence of inactive data blocks (%s)", section));
             }
             else
@@ -329,8 +344,7 @@ public class ViewProviderActions
                     && section.equals(ProviderSection.CONFIDENTIALITY))
                 {
                     // NOTE: Special case
-                    assertTrue(
-                            viewProvider.grabActiveDataBlockCount(section, false) == 0,
+                    assertEquals(viewProvider.grabActiveDataBlockCount(section, false), 0,
                             String.format("Absence of inactive data blocks (%s)", section));
                 }
                 else
@@ -341,6 +355,20 @@ public class ViewProviderActions
                 }
             }
         }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean verifyLinks()
+    {
+        ViewProviderPage viewProvider = waitForViewProviderPage();
+        ViewHeaderFragment header = viewProvider.getViewHeader();
+
+        return header.grabPrintButtonDisplayed() &&
+                header.grabViewModeButtonDisplayed() &&
+                header.grabExpandAllDisplayed();
     }
 
     private static List<String> extractDataValueList(

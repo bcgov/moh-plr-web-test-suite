@@ -145,6 +145,7 @@ public enum ProviderSection
         final Set<ProviderSection> practitionerSectionSet = Collections.unmodifiableSet(EnumSet.of(
                 REGISTRY_IDENTIFIERS,
                 IDENTIFIERS,
+                ROLE_TYPE,
                 STATUSES,
                 EXPERTISE,
                 CREDENTIALS,
@@ -164,6 +165,7 @@ public enum ProviderSection
         final Set<ProviderSection> organizationSectionSet = Collections.unmodifiableSet(EnumSet.of(
                 REGISTRY_IDENTIFIERS,
                 IDENTIFIERS,
+                ROLE_TYPE,
                 STATUSES,
                 ORGANIZATION_NAMES,
                 ADDRESSES,
@@ -174,16 +176,6 @@ public enum ProviderSection
                 FACILITY_RELATIONSHIPS,
                 NOTES,
                 ORGANIZATION_PROPERTIES));
-        final Set<ProviderSection> facilitySectionSet=  Collections.unmodifiableSet(EnumSet.of(
-        		IDENTIFIERS,
-                NAMES,
-                CIVIC_ADDRESSES,
-                OTHER_ADDRESSES,
-                TELECOMMUNICATIONS,
-                ELECTRONIC_ADDRESSES,
-                ORGANIZATION_RELATIONSHIPS,
-                NOTES
-                ));
         PROVIDER_TYPE_SECTION_MAP = Map.of(
                 ProviderType.BC_PRACTITIONER,
                 practitionerSectionSet,
@@ -198,6 +190,7 @@ public enum ProviderSection
             Collections.unmodifiableSet(EnumSet.of(
                     REGISTRY_IDENTIFIERS,
                     IDENTIFIERS,
+                    ROLE_TYPE,
                     STATUSES,
                     ORGANIZATION_NAMES,
                     PRACTITIONER_NAMES,
@@ -207,7 +200,7 @@ public enum ProviderSection
     private final String panelId_;
     private final String title_;
 
-    private ProviderSection(String panelId, String title)
+    ProviderSection(String panelId, String title)
     {
         panelId_ = panelId;
         title_   = title;
