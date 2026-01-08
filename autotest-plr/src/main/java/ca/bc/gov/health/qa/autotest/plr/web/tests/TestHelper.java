@@ -1,6 +1,9 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
+import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
+import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
@@ -397,5 +400,18 @@ public final class TestHelper {
         String allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
         return generateRandomString(length, allowedChars);
+    }
+
+    public static ViewProviderPage viewByIdentifier(ProviderType providerType, JSONObject provider,
+                                                    PlrWebWorkflowManager workflowManager)
+    {
+        final PlrWebWorkflow workflow = workflowManager.getSelectedWorkflow();
+
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier(
+                "IPC", provider.getString("ipc"));
+        search.openResults(0);
+
+        return new ViewProviderPage(workflow.getSeleniumSession());
     }
 }

@@ -139,11 +139,13 @@ public class ViewProviderActions
         List<String> sortKeyList = ProviderDataFields.getSortKey(section);
         List<String> dateKeyList = new ArrayList<>();
         boolean useActive = section.equals(ProviderSection.STATUSES);
-        if (!section.equals(ProviderSection.WORK_LOCATIONS))
+        if (!section.equals(ProviderSection.ROLE_TYPE))
         {
-            dateKeyList.add(IdentifierField.EFFECTIVE_FROM.getString());
+            if (!section.equals(ProviderSection.WORK_LOCATIONS))
+                dateKeyList.add(IdentifierField.EFFECTIVE_FROM.getString());
+
+            dateKeyList.add(IdentifierField.DB_CREATED.getString());
         }
-        dateKeyList.add(IdentifierField.DB_CREATED.getString());
         List<String> previousValueList = null;
         List<String> previousDateList  = null;
         ViewProviderPage viewProvider = waitForViewProviderPage();

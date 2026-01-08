@@ -4,14 +4,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
@@ -101,28 +100,35 @@ implements SimpleTest
         actions.verifySectionsWithActiveDataBlocks(providerType, false);
     }
 
+    // View Provider : Sort Order On View Provider Details Screen
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
-    // View Provider : Sort Order On View Provider
     public void testSortOrder(ProviderType providerType)
     {
-        JSONObject provider = PlrData.getProvider(providerType, "default");
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        ViewProviderActions actions = workflow.getViewProviderActions();
-        ViewProviderPage viewProvider = actions.openProvider(provider.getString("pauth"));
-        ViewHeaderFragment viewHeader = viewProvider.getViewHeader();
+        final JSONObject provider = PlrData.getProvider(providerType, "default");
+
+        // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
+        ViewProviderPage page = viewByIdentifier(providerType, provider, workflowManager_);
+        final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
+
+        // Step 3: Current View
+        ViewHeaderFragment viewHeader = page.getViewHeader();
         viewHeader.expandAll(true);
         actions.verifyDataBlockSortOrder(providerType);
+
+        // Step 4: History View
         viewHeader.selectViewMode(ViewMode.HISTORY);
         actions.verifyDataBlockSortOrder(providerType);
-        if (!workflow.getUserType().equals(UserType.CONSUMER))
+
+        // Step 5: Audit View
+        if (!workflowManager_.getSelectedWorkflow().getUserType().equals(UserType.CONSUMER))
         {
             viewHeader.selectViewMode(ViewMode.AUDIT);
             actions.verifyDataBlockSortOrder(providerType);
         }
     }
 
-    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     // View Provider : Viewing Empty Data Objects
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testViewingEmptyData(ProviderType providerType)
     {
         /* Step 15 is **not** automated, ensure reg admin DPS is set to CGITEST_WRITE for:
@@ -133,15 +139,10 @@ implements SimpleTest
          * After running, ensure these DPS are returned to their original values
          * (likely CGITEST_READWRITE_ALL)
          */
-
         final JSONObject provider = PlrData.getProvider(providerType, "minimum");
-        final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 
         // Step 1: Navigate to the View Providers Details Screen by submitting a search
-        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
-        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier("IPC", provider.getString("ipc"));
-        search.openResults(0);
-
+        viewByIdentifier(providerType, provider, workflowManager_);
         final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
 
         // Step 15: Setup DPS to check no permissions to view (not automated, ensure admin is set to CGI_WRITE)
@@ -154,15 +155,10 @@ implements SimpleTest
     public void testViewingProviderDetails(ProviderType providerType)
     {
         final JSONObject provider = PlrData.getProvider(providerType, "default");
-        final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
-        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
-        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier("IPC", provider.getString("ipc"));
-        search.openResults(0);
-
-        ViewProviderPage page = new ViewProviderPage(workflow.getSeleniumSession());
-        final ViewProviderActions actions = workflow.getViewProviderActions();
+        ViewProviderPage page = viewByIdentifier(providerType, provider, workflowManager_);
+        final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
 
         // Step 2: Verify Title
         ViewHeaderFragment viewHeader = page.getViewHeader();
@@ -178,7 +174,7 @@ implements SimpleTest
         actions.verifySectionDataFieldNames(providerType);
 
         // Step 5: Click "Expand All"
-        assertFalse(viewHeader.grabExpandedAll(), "Collapse All button is visible when it should be Expand All");
+        assertFalse(viewHeader.grabExpandedAll(), "Collapse All button visible when it should be Expand All");
         viewHeader.expandAll(true);
         actions.verifyDataBlocksExpanded(providerType, true);
 
