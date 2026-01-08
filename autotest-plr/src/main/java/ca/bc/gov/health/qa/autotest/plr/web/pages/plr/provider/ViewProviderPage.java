@@ -135,15 +135,13 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets whether a data block is active (true) or inactive (false)
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to check
      *
-     * @param index
-     *        ???
+     * @param index     the index of data block to check
      *
-     * @return ???
+     * @return          whether the specified index and section of data block is active (true) or inactive (false)
      */
     public boolean grabDataBlockActive(ProviderSection section, int index)
     {
@@ -227,15 +225,13 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the title of a data block
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to check
      *
-     * @param index
-     *        ???
+     * @param index     the index of data block within the section to retrieve the data block title from
      *
-     * @return ???
+     * @return          a string of the title of the data block at the specified index within the provider section
      */
     public String grabDataBlockTitle(ProviderSection section, int index)
     {
@@ -246,12 +242,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets a list of the titles of each data block within a section
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to collect data block titles from
      *
-     * @return ???
+     * @return          a list of data block titles from the specified provider section
      */
     public List<String> grabDataBlockTitleList(ProviderSection section)
     {
@@ -278,12 +273,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the text within the notice that typically details that no records are available
      *
-     * @param section
-     *        ???
+     * @param section   the section to check for the no records notice within
      *
-     * @return ???
+     * @return          a string of the notice (typically either no records found or no permission to view)
      */
     public String grabSectionNoRecordsNotice(ProviderSection section)
     {
@@ -304,12 +298,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the title of a provider section
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to get the title of
      *
-     * @return ???
+     * @return          a string of the provider section title
      */
     public String grabSectionTitle(ProviderSection section)
     {
@@ -319,20 +312,18 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Opens a provider given its internal provider ID
      *
-     * @param pauthId
-     *        internal provider ID
+     * @param authId                internal provider ID
      *
-     * @throws NullPointerException
-     *         if {@code pauthId} is {@code null}
+     * @throws NullPointerException if {@code pauthId} is {@code null}
      */
-    public void openProvider(String pauthId)
+    public void openProvider(String authId)
     {
-        requireNonNull(pauthId);
+        requireNonNull(authId);
         if (uri_ != null)
         {
-            selenium_.getDriver().get(UriUtils.getUriWithQuery(uri_, "p=" + pauthId).toString());
+            selenium_.getDriver().get(UriUtils.getUriWithQuery(uri_, "p=" + authId).toString());
             waitForReady();
         }
         else
@@ -342,10 +333,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Scrolls the view to a specific provider section
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to scroll to
      */
     public void scrollToSection(ProviderSection section)
     {
@@ -353,7 +343,7 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Overrides normal waitForReady to ensure both the view header and page itself are ready on the page.
      */
     @Override
     public void waitForReady()
