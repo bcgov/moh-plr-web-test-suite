@@ -14,7 +14,7 @@ public class OrganizationProperties {
     private ClinicOwnerBusinessType clinicOwnerBusinessType = null;
     private ClinicType clinicType = null;
     private String clinicLegalBusinessName = null;
-    private List<String> addressUnit = new ArrayList<>();
+    private List<String> addressUnit = new ArrayList<>(); //TODO - Issues with address unit. Implement logic to query parse and use in maintain later
     private List<String> clinicHoursOfOperation = new ArrayList<>();
     private List<String> clinicOwnerNames = new ArrayList<>();
     private List<String> payeeNumber = new ArrayList<>();

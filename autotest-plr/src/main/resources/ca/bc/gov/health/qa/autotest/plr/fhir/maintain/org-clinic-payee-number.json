@@ -1,0 +1,15 @@
+{
+    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-payee-number-extension",
+    "extension": [
+        {
+            "url": "payeeNumber",
+            "valueString": ""
+        },
+        {
+            "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
+            "valuePeriod": {
+                "start": "2000-01-01T00:00:00-07:00"
+            }
+        }
+    ]
+}

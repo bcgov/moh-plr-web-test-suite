@@ -202,6 +202,39 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
            extensionJson.put(MaintainUtils.createNote(info));
         }
 
+        // OrganizationProperties mapping (skip clinic hours of operation for now)
+        if (orgProperties_ != null)
+        {
+            if (orgProperties_.getClinicType() != null)
+            {
+                extensionJson.put(MaintainUtils.createClinicType(orgProperties_.getClinicType().name()));
+            }
+            if (orgProperties_.getClinicOwnerBusinessType() != null)
+            {
+                extensionJson.put(MaintainUtils.createClinicOwnerBusinessType(orgProperties_.getClinicOwnerBusinessType().name()));
+            }
+            if (orgProperties_.getClinicServices() != null)
+            {
+                extensionJson.put(MaintainUtils.createClinicServices(orgProperties_.getClinicServices().name()));
+            }
+            if (orgProperties_.getClinicLegalBusinessName() != null && !orgProperties_.getClinicLegalBusinessName().isBlank())
+            {
+                extensionJson.put(MaintainUtils.createClinicLegalBusinessName(orgProperties_.getClinicLegalBusinessName()));
+            }
+            if (orgProperties_.isPciFlag())
+            {
+                extensionJson.put(MaintainUtils.createPciFlag(true));
+            }
+            for (String ownerName : orgProperties_.getClinicOwnerNames())
+            {
+                extensionJson.put(MaintainUtils.createClinicOwnerName(ownerName));
+            }
+            for (String payee : orgProperties_.getPayeeNumber())
+            {
+                extensionJson.put(MaintainUtils.createClinicPayeeNumber(payee));
+            }
+        }
+
         return json;
     }
 

@@ -1,0 +1,14 @@
+{
+    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-primary-care-clinic-extension",
+    "extension": [
+        {
+            "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-owner-extension",
+            "extension": [
+                {
+                    "url": "ownerName",
+                    "valueString": ""
+                }
+            ]
+        }
+    ]
+}

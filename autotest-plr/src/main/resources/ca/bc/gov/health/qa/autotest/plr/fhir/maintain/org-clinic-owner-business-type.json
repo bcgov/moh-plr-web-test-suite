@@ -1,0 +1,21 @@
+{
+    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-primary-care-clinic-extension",
+    "extension": [
+        {
+            "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-ownership-type-extension",
+            "extension": [
+                {
+                    "url": "code",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-organization-clinic-ownership-type-code-system",
+                                "code": "UNKNOWN"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

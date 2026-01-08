@@ -24,6 +24,22 @@ public class MaintainUtils
     private static final String SPECIALTY_SOURCE_EXTENSION_URL =
             "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-specialty-source-extension";
 
+    // Organization property extension URLs (centralized for reuse)
+    private static final String ORG_PRIMARY_CARE_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-primary-care-clinic-extension";
+    private static final String ORG_CLINIC_TYPE_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-type-extension";
+    private static final String ORG_CLINIC_OWNERSHIP_TYPE_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-ownership-type-extension";
+    private static final String ORG_CLINIC_SERVICES_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-service-delivery-type-extension";
+    private static final String ORG_CLINIC_OWNER_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-owner-extension";
+    private static final String ORG_PCI_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-pci-extension";
+    private static final String ORG_CLINIC_LEGAL_NAME_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-legal-name-extension";
+
     private MaintainUtils()
     {}
 
@@ -387,6 +403,134 @@ public class MaintainUtils
                                   .getJSONArray("coding")
                                   .getJSONObject(0)
                                   .put("code", hdsType.name());
+                return json;
+        }
+
+        // ----------------------- Organization Properties helpers -------------------------------
+
+        /**
+         * Finds a nested extension node by walking a series of URLs. Starts at the root object's
+         * top-level "extension" array and for each url provided, finds the matching entry and
+         * drills into its own "extension" array for the next step. Returns the final matched node.
+         */
+        public static JSONObject findNestedExtension(JSONObject root, String... urls) {
+                JSONArray current = root.getJSONArray("extension");
+                JSONObject node = null;
+                for (int i = 0; i < urls.length; i++) {
+                        node = findEntry(current, "url", urls[i]);
+                        if (i < urls.length - 1) {
+                                current = node.getJSONArray("extension");
+                        }
+                }
+                return node;
+        }
+
+        private static JSONObject createExtensionWithCode(String template, String[] urlPath, String code) {
+                JSONObject json = readJsonTemplate(template);
+                JSONObject codeNode = findNestedExtension(json, urlPath);
+                codeNode
+                        .getJSONObject("valueCodeableConcept")
+                        .getJSONArray("coding")
+                        .getJSONObject(0)
+                        .put("code", code);
+                return json;
+        }
+
+        private static JSONObject createExtensionWithString(String template, String[] urlPath, String value) {
+                JSONObject json = readJsonTemplate(template);
+                JSONObject node = findNestedExtension(json, urlPath);
+                node.put("valueString", value);
+                return json;
+        }
+
+        private static JSONObject createExtensionWithBoolean(String template, String[] urlPath, boolean value) {
+                JSONObject json = readJsonTemplate(template);
+                JSONObject node = findNestedExtension(json, urlPath);
+                node.put("valueBoolean", value);
+                return json;
+        }
+
+        /** Creates clinic type extension block from template and sets code. */
+        public static JSONObject createClinicType(String code) {
+                return createExtensionWithCode(
+                        "org-clinic-type.json",
+                        new String[]{
+                                ORG_PRIMARY_CARE_URL,
+                                ORG_CLINIC_TYPE_URL,
+                                "code"
+                        },
+                        code);
+        }
+
+        /** Creates clinic ownership business type extension block and sets code. */
+        public static JSONObject createClinicOwnerBusinessType(String code) {
+                return createExtensionWithCode(
+                        "org-clinic-owner-business-type.json",
+                        new String[]{
+                                ORG_PRIMARY_CARE_URL,
+                                ORG_CLINIC_OWNERSHIP_TYPE_URL,
+                                "code"
+                        },
+                        code);
+        }
+
+        /** Creates clinic services delivery type extension block and sets code. */
+        public static JSONObject createClinicServices(String code) {
+                return createExtensionWithCode(
+                        "org-clinic-services.json",
+                        new String[]{
+                                ORG_PRIMARY_CARE_URL,
+                                ORG_CLINIC_SERVICES_URL,
+                                "code"
+                        },
+                        code);
+        }
+
+        /** Creates clinic owner name extension block and sets ownerName. */
+        public static JSONObject createClinicOwnerName(String ownerName) {
+                return createExtensionWithString(
+                        "org-clinic-owner.json",
+                        new String[]{
+                                ORG_PRIMARY_CARE_URL,
+                                ORG_CLINIC_OWNER_URL,
+                                "ownerName"
+                        },
+                        ownerName);
+        }
+
+        /** Creates PCI flag extension block and sets boolean value. */
+        public static JSONObject createPciFlag(boolean pciEnabled) {
+                return createExtensionWithBoolean(
+                        "org-pci.json",
+                        new String[]{
+                                ORG_PRIMARY_CARE_URL,
+                                ORG_PCI_URL,
+                                "pciEnabled"
+                        },
+                        pciEnabled);
+        }
+
+        /** Creates clinic legal business name extension and sets string value. */
+        public static JSONObject createClinicLegalBusinessName(String legalName) {
+                return createExtensionWithString(
+                        "org-clinic-legal-name.json",
+                        new String[]{
+                                ORG_PRIMARY_CARE_URL,
+                                ORG_CLINIC_LEGAL_NAME_URL,
+                                "clinicLegalBusinessName"
+                        },
+                        legalName);
+        }
+
+        /** Creates clinic payee number extension and sets value + current period start. */
+        public static JSONObject createClinicPayeeNumber(String payeeNumber) {
+                JSONObject json = createExtensionWithString(
+                        "org-clinic-payee-number.json",
+                        new String[]{ "payeeNumber" },
+                        payeeNumber);
+                JSONArray ext = json.getJSONArray("extension");
+                JSONObject periodExt = findEntry(ext, "url", PERIOD_EXTENSION_URL);
+                periodExt.getJSONObject("valuePeriod").put("start", currentDate());
                 return json;
         }
 
