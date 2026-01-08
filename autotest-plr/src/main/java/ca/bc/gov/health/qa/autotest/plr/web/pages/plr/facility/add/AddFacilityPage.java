@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;

@@ -2,8 +2,8 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions;
 
 import java.net.URI;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.HomePage;

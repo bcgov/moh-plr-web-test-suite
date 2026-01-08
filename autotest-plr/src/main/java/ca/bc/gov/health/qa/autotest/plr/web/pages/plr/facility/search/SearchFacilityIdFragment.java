@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
@@ -95,7 +95,7 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
      *
      * @return  a list of string text from each detail of the identifier tab [instruction, (fields), search button]
      */
-    public List<String> verifyIdentifierTab()
+    public List<String> getIdentifierTab()
     {
         List<String> tabDetails = new ArrayList<>();
 
@@ -121,8 +121,10 @@ public class SearchFacilityIdFragment extends SearchSectionFragment
      */
     public List<String> getCurrentFieldValues()
     {
-        String identifierField = "" + selenium_.findElementByCss(FACILITY_ID_FIELD_CSS).getAttribute("value");
-        String identifierTypeField = "" + selenium_.findElementByCss(ID_TYPE_FIELD_CSS).getText();
+        String identifierField = "";
+        String identifierTypeField = "";
+        identifierField += selenium_.findElementByCss(FACILITY_ID_FIELD_CSS).getAttribute("value");
+        identifierTypeField += selenium_.findElementByCss(ID_TYPE_FIELD_CSS).getText();
         return Arrays.asList(identifierTypeField, identifierField);
     }
 }

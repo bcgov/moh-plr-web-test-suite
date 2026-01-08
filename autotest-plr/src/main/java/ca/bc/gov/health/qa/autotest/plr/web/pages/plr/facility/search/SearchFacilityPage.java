@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
@@ -7,7 +7,6 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumUtils;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 import org.openqa.selenium.By;
-import org.openqa.selenium.support.locators.RelativeLocator;
 
 /**
  * A page object class for the Search Facility page.
@@ -38,11 +37,8 @@ public class SearchFacilityPage extends BasicWebPage
      */
     private static String getSearchSectionXPath(String title)
     {
-        return new StringBuilder().append("//div[@id='accordian']")
-                .append("/div[contains(@class,'ui-accordion-header') and contains(text(), '")
-                .append(title)
-                .append("')]")
-                .toString();
+        return "//div[@id='accordian']/div[contains(@class,'ui-accordion-header') and contains(text(), '" +
+                title + "')]";
     }
 
     /**
@@ -50,7 +46,7 @@ public class SearchFacilityPage extends BasicWebPage
      *
      * @return  boolean of if Search by Identifier is expanded (true) or not (false)
      */
-    public boolean grabIdentifierSectionExpanded()
+    public boolean isIdentifierSectionExpanded()
     {
         return SeleniumUtils.grabElementClassSet(selenium_.findElement(By.xpath(IDENTIFIER_XPATH)))
                 .contains(ACTIVE_UI_STATE_CLASS_NAME);
@@ -61,7 +57,7 @@ public class SearchFacilityPage extends BasicWebPage
      *
      * @return  boolean of if Search By Criteria is expanded (true) or not (false)
      */
-    public boolean grabCriteriaSectionExpanded()
+    public boolean isCriteriaSectionExpanded()
     {
         return SeleniumUtils.grabElementClassSet(selenium_.findElement(By.xpath(CRITERIA_XPATH)))
                 .contains(ACTIVE_UI_STATE_CLASS_NAME);
@@ -251,38 +247,5 @@ public class SearchFacilityPage extends BasicWebPage
         {
             return waitForSearchFacilityResultsFragment();
         }
-    }
-
-    /**
-     * Determines whether the page title is Search Facility as expected.
-     *
-     * @return  whether the page title is "Search Facility" (true) or not (false)
-     */
-    public boolean verifyTitle()
-    {
-        String headingLocator = "div#container > div#content > table > tbody > tr > td > h2";
-        return selenium_.findElementByCss(headingLocator).getText().equals("Search Facility");
-    }
-
-    /**
-     * Determines whether the "Include History" checkbox exists
-     *
-     * @return  whether the "Include History" checkbox exists (true) or not (false)
-     */
-    public boolean verifyHistory()
-    {
-        return selenium_.grabElementPresentByCss("span.historyCheckBox");
-    }
-
-    /**
-     * Checks the ordering of elements on the page is correct
-     * (namely, whether the table of search results is below the identifier/criteria search elements)
-     *
-     * @return  whether the table of search results is in the correct position (true) or not (false)
-     */
-    public boolean checkOrdering()
-    {
-        return selenium_.findElement(RelativeLocator.with(
-                By.cssSelector("div#accordian")).above(By.cssSelector("span#searchResultsGroup"))).isDisplayed();
     }
 }

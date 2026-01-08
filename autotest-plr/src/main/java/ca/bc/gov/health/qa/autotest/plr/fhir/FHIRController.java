@@ -93,9 +93,25 @@ public class FHIRController implements AutoCloseable {
         for (int i = 0; i < relCount; i++) {
             //Create an organization and save the identifier
             OrgRoleType roleType = OrganizationDataGenerator.getInstance().randomOrgRoleType();
-            String orgIPCId = createOrganization(roleType).getIdentifier();
-            builder.addOrganizationRelationship(IdentifierType.IPC, orgIPCId);
+            MaintainOrgBuilder org = createOrganization(roleType);
+            String orgIPCId = org.getIdentifier();
+            String orgIPCName = org.getName();
+            builder.addOrganizationRelationship(IdentifierType.IPC, orgIPCId, orgIPCName);
             //LOG.info("Created organization {} for facility relationship (id={})", i + 1, orgIPCId);
+        }
+
+        if (config.getRelationshipNames() != null) {
+            for (String name : config.getRelationshipNames())
+            {
+                OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig().withName(name);
+                MaintainOrgBuilder org = createOrganization(orgConfig);
+                String orgIPCId = org.getIdentifier();
+                String orgIPCName = org.getName();
+                builder.addOrganizationRelationship(IdentifierType.IPC, orgIPCId, orgIPCName);
+
+                relCount++;
+            }
+
         }
 
         String id = executor.submitMaintain(builder);
@@ -122,7 +138,17 @@ public class FHIRController implements AutoCloseable {
 
     //TODO: createPractitioner()
 
-    //TODO: createOrganization(OrganizationMaintainConfig config)
+    public MaintainOrgBuilder createOrganization(OrganizationMaintainConfig config) {
+        if (config == null) return createOrganization(OrganizationDataGenerator.getInstance().randomOrgRoleType());
+
+        MaintainOrgBuilder builder = organizationFactory.build(config);
+
+        String id = executor.submitMaintain(builder);
+        LOG.info("Created organization (id={}=)", id);
+
+        builder.identifier(id);
+        return builder;
+    }
 
     //TODO: ceaseFacility(MaintainFacilityBuilder facility)
 

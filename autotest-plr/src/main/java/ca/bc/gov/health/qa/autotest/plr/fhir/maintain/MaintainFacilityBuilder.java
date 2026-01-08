@@ -5,6 +5,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.EndReasonCode;
 import static java.util.Objects.requireNonNull;
 
 import java.lang.invoke.MethodHandles;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,16 +27,18 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
  */
 public class MaintainFacilityBuilder implements MaintainRequestBuilder
 {
-    private String                    identifier_      = null;
-    private Map<String,String>        address_         = new HashMap<>();
-    private Map<String,String>        hsda_            = new HashMap<>();
-    private String                    name_            = null;
-    private String                    description_     = null;
-    private List<Map<String,String>>  telecomList_     = new ArrayList<>();
-    private  List<Map<String,String>> noteList_        = new ArrayList<>();
+    private String                    identifier_           = null;
+    private Map<String,String>        address_              = new HashMap<>();
+    private Map<String,String>        position_             = new HashMap<>();
+    private Map<String,String>        hsda_                 = new HashMap<>();
+    private String                    name_                 = null;
+    private String                    description_          = null;
+    private List<Map<String,String>>  telecomList_          = new ArrayList<>();
+    private List<Map<String,String>>  noteList_             = new ArrayList<>();
     private List<Map<String,String>>  orgRelationshipList_  = new ArrayList<>();
-    private final String              PURPOSE           = "FC";
-    private final String              ADDRESS_TYPE_PHYS = "physical";
+    private final String              PURPOSE               = "FC";
+    private final String              ADDRESS_TYPE_PHYS     = "physical";
+    private String                    date                  = null;
 
     // Modifier that will be used on build to determine the end reason code CEASE instead of template default CHG.
     private boolean                   ceaseRelationships_   = false;
@@ -73,6 +76,22 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     }
 
     /**
+     * Adds (or replaces) the position info from the FHIR response.
+     * (Not used in maintain payload - auxiliary information related to the address)
+     * This builder only keeps one position instance; invoking this again overwrites the previous position info.
+     *
+     * @param latitude      the civic address latitude
+     * @param longitude     the civic address longitude
+     * @return              this builder for fluent chaining
+     */
+    public MaintainFacilityBuilder addPosition(String latitude, String longitude)
+    {
+        Map<String,String> positionInfo = Map.of("latitude", latitude, "longitude", longitude);
+        this.position_ = positionInfo;
+        return this;
+    }
+
+    /**
      * Adds (or replaces) the HSDA info from the FHIR response.
      * (Not used in maintain payload - auxiliary information related to the address)
      * This builder only keeps one HSDA instance; invoking this again overwrites the previous HSDA info.
@@ -102,12 +121,14 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
      * Adds a free-form note that will be rendered as an extension element in the outgoing FHIR payload.
      *
      * @param text human readable note text (ignored if null)
+     * @param identifier (null if ignored)
      * @return this builder for fluent chaining
      */
-    public MaintainFacilityBuilder addNote(String text)
+    public MaintainFacilityBuilder addNote(String text, String identifier)
     {
         Map<String,String> info = new HashMap<>();
         info.put("text", text);
+        if (identifier != null) info.put("identifier", identifier);
         noteList_.add(info);
         return this;
     }
@@ -194,6 +215,8 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
             }
         }
 
+        date = LocalDate.now().toString();
+
         return json;
     }
 
@@ -234,11 +257,12 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
      */
     public MaintainFacilityBuilder addOrganizationRelationship(
             IdentifierType identifierType,
-            String identifier)
+            String identifier, String name)
     {
         Map<String,String> orgRelationship = new HashMap<>();
         orgRelationship.put("type",       identifierType.getSourceSystem());
         orgRelationship.put("identifier", identifier);
+        orgRelationship.put("name",       name);
         this.orgRelationshipList_.add(orgRelationship);
         return this;
     }
@@ -373,6 +397,13 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     }
 
     /**
+     * Returns the current date upon being built
+     * (hopefully close to the date of facility creation in all scenarios)
+     * @return a string of the date value or null if not assigned yet
+     */
+    public String getDate() { return date; }
+
+    /**
      * Returns a defensive copy of the single address map (empty if not set).
      * @return defensive copy of address (empty map if unset)
      */
@@ -380,6 +411,12 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
     {
         return new HashMap<>(address_);
     }
+
+    /**
+     * Returns a defensive copy of the position map (empty if not set).
+     * @return defensive copy of position (empty map if unset)
+     */
+    public Map<String,String> getPosition() { return new HashMap<>(position_); }
 
     /**
      * Returns a defensive copy of the HSDA map (empty if not set).

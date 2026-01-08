@@ -39,7 +39,8 @@ public class OrganizationBuilderFactory {
             builder.identifier(dataGen.generateNumericId());
         }
         if (config.isNameEnabled()) {
-            builder.name(dataGen.generateName());
+            if (config.isNameManualEnabled()) { builder.name(config.getName()); }
+            else { builder.name(dataGen.generateName()); }
         }
         // role type always present in config; no conditional needed
         builder.roleType(config.getRoleType());

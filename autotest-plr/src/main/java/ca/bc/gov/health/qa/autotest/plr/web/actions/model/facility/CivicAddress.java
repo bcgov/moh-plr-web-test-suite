@@ -1,11 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.json.JSONObject;
 
 /**
@@ -149,6 +149,29 @@ public class CivicAddress {
 				&& Objects.equals(provinceState, other.provinceState);
 	}
 
+	/**
+	 * Constructs a Civic Address based on the result of a newly generated facility from FHIR.
+	 * TODO add specifications for these fields within the builder as much as possible in future versions
+	 *
+	 * @param fhirFacility	the facility to create the civic address for
+	 */
+	public CivicAddress(MaintainFacilityBuilder fhirFacility) {
+		super();
+
+		this.latitude = fhirFacility.getPosition().get("latitude");
+		this.longitude = fhirFacility.getPosition().get("longitude");
+		this.addressLine1 = fhirFacility.getAddress().get("line1");
+		this.addressLine2 = "";
+		this.addressLine3 = "";
+		this.city = fhirFacility.getAddress().get("city");
+		this.provinceState = "BC - British Columbia";
+		this.country = "CA - CANADA";
+		this.healthAuthority = fhirFacility.getHsda().get("HA");
+		this.healthServiceDeliveryArea = fhirFacility.getHsda().get("HSDA");
+		this.localHealthArea = fhirFacility.getHsda().get("LHA");
+		this.primaryCareNetwork = fhirFacility.getHsda().get("PCN");
+		this.communityHealthServiceArea = fhirFacility.getHsda().get("CHSA");
+	}
 	/**
 	 * Constructs a CivicAddress from a JSON object.
 	 *

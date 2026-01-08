@@ -1,101 +1,84 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
 
-import static java.util.Objects.requireNonNull;
 import static org.testng.Assert.fail;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
-
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
 
-import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
-public class UpdateFacilityPage extends ViewFacilityPage {
-	
-	/*protected final ViewHeaderFragment viewHeader_;
-	protected final ViewFacilityPage viewFacilityPage_;*/
+public class UpdateFacilityPageTwo extends ViewFacilityPage {
 
-	public static final Map<FacilitySection, FacilityDialog> DIALOG_MAP = Map.of(
-			FacilitySection.NAMES,new FacilityDialog("maintainFacilityNameDialog", "maintainFacilityNameForm", "effectiveStartDate",
-					"effectiveEndDate", "orgNameSubmitButton", "EndReasonType","Add a new Facility Name"),
-			FacilitySection.IDENTIFIERS, new FacilityDialog("maintainIdDialog", "maintainIdentifierForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "","Add"), 
-			FacilitySection.NOTES, new FacilityDialog("maintainNoteDialog", "maintainNoteForm", "effectiveFromDate",
-					"effectiveToDate", "idNoteSubmitButton", "endReasonCode","Add a new Note"),
-			FacilitySection.ORGANIZATION_RELATIONSHIPS,new FacilityDialog("maintainOrganizationRelationshipDialog", "maintainOrgRelationshipForm", "effectiveStartDate",
-					"effectiveEndDate", "orgRelationshipSubmitButton", "EndReasonType","Add a new Provider Relationship"), 
-			FacilitySection.TELECOMMUNICATIONS, new FacilityDialog("maintainTelecomDialog", "maintainTelecomForm", "effectiveFromDate",
-					"effectiveToDate", "idTeleSubmitButton", "EndReasonType","Add a new Telecommunication"), 
-			FacilitySection.ELECTRONIC_ADDRESSES, new FacilityDialog("maintainElectronicAddressDialog", "maintainElectronicAddressForm", "effectiveStartDate",
-					"effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType","Add a new Electronic Address"));
+	public static final Map<FacilitySection, FacilityDialog> DIALOG_MAP = Map.of(FacilitySection.NAMES,
+			new FacilityDialog("maintainFacilityNameDialog", "maintainFacilityNameForm", "effectiveStartDate",
+					"effectiveEndDate", "orgNameSubmitButton", "EndReasonType", "Add a new Facility Name"),
+			FacilitySection.IDENTIFIERS,
+			new FacilityDialog("maintainIdDialog", "maintainIdentifierForm", "effectiveFromDate", "effectiveToDate",
+					"idSubmitButton", "", "Add"),
+			FacilitySection.NOTES,
+			new FacilityDialog("maintainNoteDialog", "maintainNoteForm", "effectiveFromDate", "effectiveToDate",
+					"idNoteSubmitButton", "endReasonCode", "Add a new Note"),
+			FacilitySection.ORGANIZATION_RELATIONSHIPS, new FacilityDialog("maintainOrganizationRelationshipDialog",
+					"maintainOrgRelationshipForm", "effectiveStartDate", "effectiveEndDate",
+					"orgRelationshipSubmitButton", "EndReasonType", "Add a new Provider Relationship"),
+			FacilitySection.TELECOMMUNICATIONS,
+			new FacilityDialog("maintainTelecomDialog", "maintainTelecomForm", "effectiveFromDate", "effectiveToDate",
+					"idTeleSubmitButton", "EndReasonType", "Add a new Telecommunication"),
+			FacilitySection.ELECTRONIC_ADDRESSES,
+			new FacilityDialog("maintainElectronicAddressDialog", "maintainElectronicAddressForm", "effectiveStartDate",
+					"effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType",
+					"Add a new Electronic Address"));
 
+	/**
+	 * Initializes page object, overloaded constructor for no specified URL
+	 *
+	 * @param selenium
+	 * @param uri
+	 */
+	public UpdateFacilityPageTwo(SeleniumSession selenium, URI uri) {
+		super(selenium, uri);
 
-	public UpdateFacilityPage(SeleniumSession selenium, URI uri) {
-		super(selenium,  uri);
-		
 	}
 
 	/**
-	 * Open facility detail view page
+	 * wait for Seconds
 	 *
-	 * @param fauthId
-	 * 
+	 * @param second
 	 */
-	public void openFacility(String fauthId) {
-		// this.viewFacilityPage_.openFacility(fauthId);
-		requireNonNull(fauthId);
-		if (uri_ != null) {
-			selenium_.getDriver().get(UriUtils.getUriWithQuery(uri_, "f=" + fauthId).toString());
-			waitForReady();
-		} else {
-			throw new UnsupportedOperationException("Page URL is not specified.");
-		}
-	}
-
-    /**
-     * Tries to wait some number of seconds. Will fail the test used in if interrupted.
-	 * TODO this should be used as little as possible in favour of selenium implicit waits.
-     *
-     * @param second					the number of seconds to wait.
-     */
 	public void waitSeconds(int second) {
 		try {
 			Thread.sleep(1000L * second);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			fail(e.getMessage());
 		}
 
 	}
-	
-    /**
-     * Gets whether a specified data block is active.
-     *
-     * @param section	the facility section to look inside
-     * @param index		the index of the data block within the data section
-     * @return			whether the specified data block is active (true) or not (false)
-     */
+
+	/**
+	 * Grab Data Block Active
+	 *
+	 * @param section
+	 * @param index
+	 * @return True if find an active data block, otherwise return false
+	 */
 	public boolean grabDataBlockActive(FacilitySection section, int index) {
 		By locator = By.cssSelector(getDataBlockHeaderActiveSelector(section, index));
 		return selenium_.searchElement(locator) != null;
 	}
-	
+
 	/**
 	 * get Data Block Header Update Button Selector
 	 *
@@ -109,13 +92,13 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 
 	}
 
-    /**
-     * Gets a facility section's active/inactive data block count.
-     *
-     * @param section		the facility section to count active data blocks within.
-     * @param active		whether to check for active (true) or inactive (false) data blocks.
-     * @return				the number of active/inactive data blocks depending on the value of active
-     */
+	/**
+	 * Grab Active Data Block Count
+	 *
+	 * @param section
+	 * @param active
+	 * @return count of Active Data Block
+	 */
 	public int grabActiveDataBlockCount(FacilitySection section, boolean active) {
 		int count = 0;
 		for (int i = 0; i < grabDataBlockCount(section); i++) {
@@ -132,47 +115,31 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return count;
 	}
 
+	
+
 	/**
-	 * Using a Javascript Executor to press button
-	 * @param button
+	 * Click the Data Block Update button. A dialog box will appear upon successful completion.
+	 *
+	 * @param section
+	 * @param index
 	 */
-	private void clickbuttonWait(WebElement button) {
-		try {
-			button.click();
-		} catch (ElementClickInterceptedException | StaleElementReferenceException e) {
-			JavascriptExecutor js = (JavascriptExecutor) selenium_.getDriver();
-			js.executeScript("arguments[0].click();", button);
-		}
-
-	}
-
-    /**
-     * Attempts to click the update button on a specified data block
-     *
-     * @param section		the facility section to find the data block's update button within
-     * @param index			the specific index of the data block to find and click the update button for
-     */
 	public void clickDataBlockUpdateButton(FacilitySection section, int index) {
 		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
-		WebElement updateButton = selenium_.waitUntil(ExpectedConditions
-				.elementToBeClickable(By.cssSelector(selectCss)));
+		WebElement updateButton = selenium_
+				.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(selectCss)));
 		selenium_.scrollIntoView(updateButton);
 
 		try {
 			updateButton.click();
 		} catch (StaleElementReferenceException e) {
-			// Re-locate the element and retry the action
 			waitSeconds(2);
-			//updateButton = selenium_.findElement(By.cssSelector(selectCss));
 			updateButton.click();
 		}
 		String dialogCss = getDialogCss(section);
-		WebElement visibleElement = selenium_
+		selenium_
 				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 
 	}
-	
-	
 	/**
 	 * Get Dialog Css selector
 	 *
@@ -180,12 +147,12 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	 * @return string of dialog CSS selector
 	 */
 	private String getDialogCss(FacilitySection section) {
-		String dialogName =DIALOG_MAP.get(section).getDialogName();
-		String formName=DIALOG_MAP.get(section).getFormName();
+		String dialogName = DIALOG_MAP.get(section).getDialogName();
+		String formName = DIALOG_MAP.get(section).getFormName();
 
-		return "div#"+dialogName+" > div#"+dialogName+"_content" +" > form#"+formName;
+		return "div#" + dialogName + " > div#" + dialogName + "_content" + " > form#" + formName;
 	}
-	
+
 	/**
 	 * click Data Block Update Button. Dialog will pop up if successful.
 	 * @param section
@@ -219,8 +186,8 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 				By.cssSelector("div#" + formName + "\\:" + dropdownName + "_panel"));
 
 		dropdownMenu.selectItem(visibleText);
-	}	
-	
+	}
+
 	/**
 	 * select Drop down List By DropMenu
 	 *
@@ -239,14 +206,14 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		dropdownMenu.selectItem(dropdownText);
 
 	}
-	
+
 	/**
 	 * Click Dialog Submit Button
 	 *
 	 * @param section
 	 *
 	 */
-	public void clickDialogSubmitButton(FacilitySection section) {
+	private void clickDialogSubmitButton(FacilitySection section) {
 		clickDialogSubmitButton(section, false);
 	}
 
@@ -271,7 +238,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 			selenium_.waitUntil(SeleniumExpectedConditions.pageToBeReady());
 		}
 	}
-	
+
 	/**
 	 * wait Error Message showing up, and return a copy of message as result
 	 * note the result is a set of messages, if there are more than one error messages
@@ -279,7 +246,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	 * @param section
 	 * @return String of error messages
 	 */
-	public String waitErrorMessage(FacilitySection section) {
+	private String waitErrorMessage(FacilitySection section) {
 
 		String msgDisplay = "";
 
@@ -299,7 +266,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 
 	}
-	
+
 	/**
 	 * Click the Header Add Date Block button. A dialog box will appear upon successful completion.
 	 *
@@ -325,7 +292,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		selenium_
 				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
-	
+
 	/**
 	 * check if Header Add Date Block Button Displayed
 	 *
@@ -347,8 +314,6 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return updateButton.isDisplayed();
 
 	}
-	
-	
 
 	/**
 	 * set Dialog Effective From And Effective To.
@@ -378,7 +343,6 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		if (!StringUtils.isEmpty(effectiveTo))
 			effectToElement.sendKeys(effectiveTo);
 	}
-	
 
 	/**
 	 * Click Data Bloc kUpdate Button. Dialog will pop up if successful.
@@ -398,50 +362,6 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 
 	}
-	
-	private void selectDropdownListByClick(FacilitySection section, String dropDownName, String dropdownText) {
-		String formName = DIALOG_MAP.get(section).getFormName();
-		String dialogCss = getDialogCss(section);
-
-			String dropListCss = dialogCss + " > div#" + formName + "\\:" + dropDownName
-				+ " >div.ui-helper-hidden-accessible" + " > select#" + formName + "\\:" + dropDownName + "_input";
-		WebElement dropList = selenium_.findElement(By.cssSelector(dropListCss));
-		selenium_.scrollIntoView(dropList);
-		Select select = new Select(dropList);
-		List<WebElement> options = select.getOptions();
-		int index = 0;
-		boolean found = false;
-		if (!StringUtils.isEmpty(dropdownText)) {
-			for (WebElement option : options) {
-				String str = option.getAttribute("text");
-				if (option.getAttribute("text").equals(dropdownText)) {
-					found = true;
-					break;
-				}
-
-				index++;
-			}
-		}
-		if (found) {
-			String labelCss = dialogCss + " > div#" + formName + "\\:" + dropDownName + " > label#" + formName + "\\:"
-					+ dropDownName + "_label";
-			WebElement label = selenium_.findElement(By.cssSelector(labelCss));
-			selenium_.scrollIntoView(label);
-			label=selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(labelCss)));
-			
-			clickbuttonWait(label);
-
-			WebElement element = selenium_.getDriver().switchTo().activeElement();
-			for (int i = 0; i < index; i++) {
-				element.sendKeys(Keys.ARROW_DOWN);
-			}
-			element.sendKeys(Keys.RETURN);
-		}
-		waitSeconds(2);
-				
-		
-	}
-	
 	/**
 	 * Verify if a DropdownList is displayed in a Update Dialog
 	 *
@@ -471,7 +391,6 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return find;
 
 	}
-	
 	/**
 	 * Verify if a input element is displayed in a Update Dialog
 	 *
@@ -501,7 +420,6 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return find;
 
 	}
-	
 
 	/**
 	 * Cease Data Block
@@ -526,7 +444,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		button.click();
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
-	
+
 	/**
 	 * Cease All Data Block Under Section
 	 *
@@ -555,15 +473,17 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 			inputName.sendKeys(field);
 	}
 
-    /**
-     * Attempts to add a name data block with provided values
-     *
-     * @param name				the name to fill the name field with for the new data block
-     * @param desc				the description to fill the description field with for the new data block
-     * @param effectiveFrom		the effective from date to fill the effective from field with for the new data block
-     * @param effectiveTo		the effective to date to fill the effective to field with for the new data block
-     * @return					the full message dialog of errors, if any exist. otherwise an empty string
-     */
+	/**
+	 * Add Name Data Block
+	 *
+	 * @param name
+	 * @param desc
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @return If a predicted exception occurs, it will capture and return the
+	 *         associated error message; otherwise, it waits for the dialog to
+	 *         dismiss before returning an empty string.
+	 */
 	public String addNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo) {
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(FacilitySection.NAMES).getFormName();
@@ -590,17 +510,18 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
-    /**
-     * Attempts to update a name data block with provided values
-     *
-     * @param name				the name to update the data block with
-     * @param desc				the description to update the data block with
-     * @param effectiveFrom		the effective from date to update the data block with
-     * @param effectiveTo		the effective to date to update the data block with
-     * @param index				the index of name data block to update
-	 * @param endReason			the end reason to specify when updating the data block
-     * @return					a string of the full message dialog of errors, if any exist. otherwise an empty string
-     */
+	/**
+	 * Update Name Data Block
+	 *
+	 * @param name
+	 * @param desc
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param index
+	 * @return If a predicted exception occurs, it will capture and return the
+	 *         associated error message; otherwise, it waits for the dialog to
+	 *         dismiss before returning an empty string.
+	 */
 	public String updateNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo,
 			EndReason endReasonCode, int index) {
 		String msgDisplay = "";
@@ -630,40 +551,41 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
-    /**
-     * Attempts to add an identifier data block with provided values
-     *
-     * @param idType			the type of identifier to fill the identifier type field with in the data block
-     * @param id				the identifier to fill the identifier field with in the data block
-     * @param effectiveFrom		the effective from date to fill the effective from field with in the data block
-     * @param effectiveTo		the effective to date to fill the effective to field with in the data block
-     * @param expectError		whether to anticipate an error (true) or not (false)
-     * @return					a string of the error message, if expectedError is true. otherwise an empty string
-     */
-	public String addIdentifierDataBlock(String idType, String id, String effectiveFrom, String effectiveTo,boolean expectError) {
-		String msgDisplay="";
-		String formName=DIALOG_MAP.get(FacilitySection.IDENTIFIERS).getFormName();
-		String dialogCss=getDialogCss(FacilitySection.IDENTIFIERS);
-		
+	/**
+	 * Add Identifier Data Block
+	 *
+	 * @param idType
+	 * @param id
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param expectError
+	 * @return If a predicted exception occurs, it will capture and return the
+	 *         associated error message; otherwise, it waits for the dialog to
+	 *         dismiss before returning an empty string.
+	 */
+	public String addIdentifierDataBlock(String idType, String id, String effectiveFrom, String effectiveTo,
+			boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(FacilitySection.IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(FacilitySection.IDENTIFIERS);
+
 		clickHeaderAddDateBlockButton(FacilitySection.IDENTIFIERS);
-		//waitSeconds(2);
-		
-		
-		selectDropdownListByClick(FacilitySection.IDENTIFIERS,"identifierType",idType);
-		
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"identifier";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+
+		setDropdownListByVisibleText(FacilitySection.IDENTIFIERS, "identifierType", idType);
+
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
 		inputId.clear();
-		if(!StringUtils.isEmpty(id))inputId.sendKeys(id);
-		
-		setDialogEffectiveFromAndEffectiveTo(FacilitySection.IDENTIFIERS,effectiveFrom,effectiveTo);
-		
-		
+		if (!StringUtils.isEmpty(id))
+			inputId.sendKeys(id);
+
+		setDialogEffectiveFromAndEffectiveTo(FacilitySection.IDENTIFIERS, effectiveFrom, effectiveTo);
+
 		clickDialogSubmitButton(FacilitySection.IDENTIFIERS);
-		
-		if(expectError)
-			msgDisplay=waitErrorMessage(FacilitySection.IDENTIFIERS);
-		
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(FacilitySection.IDENTIFIERS);
+
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
@@ -711,17 +633,18 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
-    /**
-     * Attempts to update a note data block with provided values
-     *
-     * @param text				the note text to update the note text field with
-     * @param effectiveFrom		the effective from date to update the effective from field with
-     * @param effectiveTo		the effective to date to update the effective to field with
-     * @param index				the index of note data block to update
-     * @param expectError		whether an error is anticipated (true) or not (false)
-	 * @param endReason			the end reason field to fill the end reason code field with
-     * @return					a string of the error message, if expectError is true. otherwise an empty string
-     */
+	/**
+	 * Update Note Data Block
+	 *
+	 * @param text
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param index
+	 * @param expectError
+	 * @return If a predicted exception occurs, it will capture and return the
+	 *         associated error message; otherwise, it waits for the dialog to
+	 *         dismiss before returning an empty string.
+	 */
 	public String updateNoteDataBlock(String text, String effectiveFrom, String effectiveTo, EndReason endReasonCode,
 			int index, boolean expectError) {
 		String msgDisplay = "";
@@ -750,7 +673,6 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-
 
 	/**
 	 * Add Related Organization Data Block
@@ -816,51 +738,22 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		}
 		return msgDisplay;
 	}
+
 	/**
-	 * update RelationshipOrg Data Block
+	 * Add Telecommunication Data Block
 	 *
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param index
-	 * @param expectError
-	 * @param endReason
-	 * @return
+	 * @param telecomType         Telecommunication Type
+	 * @param areaCode      - area code
+	 * @param phoneNumber   - phone number
+	 * @param extension     - extension
+	 * @param effectiveFrom - effective from date
+	 * @param effectiveTo  effective to date
+	 * @param expectError  expected error messages of not
+	 *
+	 * @return If a predicted exception occurs, it will capture and return the
+	 *         associated error message; otherwise, it waits for the dialog to
+	 *         dismiss before returning an empty string.
 	 */
-	public String updateRelatedOrganizationDataBlock(String effectiveFrom, String effectiveTo, EndReason endReason,
-			int index, boolean expectError) {
-		String msgDisplay = "";
-		String formName = DIALOG_MAP.get(FacilitySection.ORGANIZATION_RELATIONSHIPS).getFormName();
-		String dialogCss = getDialogCss(FacilitySection.ORGANIZATION_RELATIONSHIPS);
-
-		clickDataBlockUpdateButton(FacilitySection.ORGANIZATION_RELATIONSHIPS, index);
-
-		if (endReason != null)
-			setEndReasonByVisibleText(FacilitySection.ORGANIZATION_RELATIONSHIPS, endReason.getText());
-
-		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ORGANIZATION_RELATIONSHIPS, effectiveFrom, effectiveTo);
-
-		clickDialogSubmitButton(FacilitySection.ORGANIZATION_RELATIONSHIPS);
-
-		if (expectError)
-			msgDisplay = waitErrorMessage(FacilitySection.ORGANIZATION_RELATIONSHIPS);
-
-		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
-		return msgDisplay;
-	}
-
-
-    /**
-     * Attempts to add a telecommunication data block with provided values
-     *
-     * @param type				the type of telecommunication to add a data block for
-     * @param areaCode			the area code to fill the area code field for in the data block
-     * @param phoneNumber		the phone number to fill the number field for in the data block
-     * @param extension			the extension to fill the extension field for in the data block
-     * @param effectiveFrom		the effective from date to fill the effective from field for in the data block
-     * @param effectiveTo		the effective to date to fill the effective to field for in the data block
-     * @param expectError		whether an error is anticipated (true) or not (false)
-     * @return					a string of the error message, if expectError is true. otherwise an empty string
-     */
 	public String addTelecommunicationDataBlock(String telecomType, String areaCode, String phoneNumber, String extension,
 			String effectiveFrom, String effectiveTo, boolean expectError) {
 		String msgDisplay = "";
@@ -900,19 +793,100 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
+	/**
+	 * Add Electronic Address Data Block
+	 *
+	 * @param type
+	 * @param address
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param expectError
+	 * @return If a predicted exception occurs, it will capture and return the
+	 *         associated error message; otherwise, it waits for the dialog to
+	 *         dismiss before returning an empty string.
+	 */
+	public String addElectronicAddressDataBlock(String type, String address, String effectiveFrom, String effectiveTo,
+			boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(FacilitySection.ELECTRONIC_ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(FacilitySection.ELECTRONIC_ADDRESSES);
+
+		clickHeaderAddDateBlockButton(FacilitySection.ELECTRONIC_ADDRESSES);
+
+		setDropdownListByVisibleText(FacilitySection.ELECTRONIC_ADDRESSES, "type", type);
+
+		String inputAddressCss = dialogCss + " >input#" + formName + "\\:" + "electronicAddress";
+		WebElement inputAddress = selenium_.findElement(By.cssSelector(inputAddressCss));
+		inputAddress.clear();
+		if (!StringUtils.isEmpty(address))
+			inputAddress.sendKeys(address);
+
+		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ELECTRONIC_ADDRESSES, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(FacilitySection.ELECTRONIC_ADDRESSES);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(FacilitySection.ELECTRONIC_ADDRESSES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
 
 	/**
-	 * Attempts to update a telecommunication data block with provided values
+	 * Update Electronic Address Data Block
 	 *
-	 * @param areaCode			the area code to update the data block with
-	 * @param phoneNumber		the phone number to update the data block with
-	 * @param extension			the extension to update the data block with
-	 * @param effectiveFrom		the effective from date to update the data block with
-	 * @param effectiveTo		the effective to date to update the data block with
-	 * @param index				the index of the telecom data block to update
-	 * @param expectError		whether an error is anticipated (true) or not (false)
-	 * @param endReason			the end reason to fill the end reason code field with
-	 * @return					a string of the error message, if expectError is true. otherwise an empty string
+	 * @param address
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return If a predicted exception occurs, it will capture and return the
+	 *         associated error message; otherwise, it waits for the dialog to
+	 *         dismiss before returning an empty string.
+	 */
+	public String updateElectronicAddressDataBlock(String address, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(FacilitySection.ELECTRONIC_ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(FacilitySection.ELECTRONIC_ADDRESSES);
+
+		clickDataBlockUpdateButton(FacilitySection.ELECTRONIC_ADDRESSES, index);
+		waitSeconds(2);
+
+		String inputAddressCss = dialogCss + " >input#" + formName + "\\:" + "electronicAddress";
+		WebElement inputAddress = selenium_.findElement(By.cssSelector(inputAddressCss));
+		inputAddress.clear();
+		if (!StringUtils.isEmpty(address))
+			inputAddress.sendKeys(address);
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(FacilitySection.ELECTRONIC_ADDRESSES, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ELECTRONIC_ADDRESSES, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(FacilitySection.ELECTRONIC_ADDRESSES);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(FacilitySection.ELECTRONIC_ADDRESSES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Update Note Data Block
+	 *
+	 * @param areaCode
+	 * @param phoneNumber
+	 * @param extension
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return If a predicted exception occurs, it will capture and return the
+	 *         associated error message; otherwise, it waits for the dialog to
+	 *         dismiss before returning an empty string.
 	 */
 
 	public String updateTelecommunicationDataBlock(String areaCode, String phoneNumber, String extension,
@@ -957,81 +931,41 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 
 	}
 
-    /**
-     * Attempts to add an electronic address data block with provided values
-     *
-     * @param type				the type of electronic address to create a data block for
-     * @param address			the address to fill the address field for in the data block
-     * @param effectiveFrom		the effective from date to fill the effective from field for in the data block
-     * @param effectiveTo		the effective to date to fill the effective to field for in the data block
-     * @param expectError		whether an error is anticipated (true) or not (false)
-     * @return					a string of the error message, if expectError is true. otherwise an empty string
-     */
-	public String addElectronicAddressDataBlock(String type, String address, String effectiveFrom, String effectiveTo,
-			boolean expectError) {
-		String msgDisplay = "";
-		String formName = DIALOG_MAP.get(FacilitySection.ELECTRONIC_ADDRESSES).getFormName();
-		String dialogCss = getDialogCss(FacilitySection.ELECTRONIC_ADDRESSES);
-
-		clickHeaderAddDateBlockButton(FacilitySection.ELECTRONIC_ADDRESSES);
-
-		setDropdownListByVisibleText(FacilitySection.ELECTRONIC_ADDRESSES, "type", type);
-
-		String inputAddressCss = dialogCss + " >input#" + formName + "\\:" + "electronicAddress";
-		WebElement inputAddress = selenium_.findElement(By.cssSelector(inputAddressCss));
-		inputAddress.clear();
-		if (!StringUtils.isEmpty(address))
-			inputAddress.sendKeys(address);
-
-		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ELECTRONIC_ADDRESSES, effectiveFrom, effectiveTo);
-
-		clickDialogSubmitButton(FacilitySection.ELECTRONIC_ADDRESSES);
-
-		if (expectError)
-			msgDisplay = waitErrorMessage(FacilitySection.ELECTRONIC_ADDRESSES);
-
-		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
-		return msgDisplay;
-	}
-
 	/**
-	 * Attempts to update an electronic address data block with provided values.
+	 * Update Related Organization Data Block
 	 *
-	 * @param address			the address to update the data block with
-	 * @param effectiveFrom		the effective from date to update the data block with
-	 * @param effectiveTo		the effective to date to update the data block with
-	 * @param expectError		whether an error is anticipated (true) or not (false)
-	 * @param endReason			the end reason string to fill in the End Reason code field
-	 * @return					a string of the error message, if expectError is true. otherwise an empty string
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReason
+	 * @param index
+	 * @param expectError
+	 * @return If a predicted exception occurs, it will capture and return the
+	 *         associated error message; otherwise, it waits for the dialog to
+	 *         dismiss before returning an empty string.
 	 */
-	public String updateElectronicAddressDataBlock(String address, String effectiveFrom, String effectiveTo,
-			EndReason endReasonCode, int index, boolean expectError) {
+	public String updateRelatedOrganizationDataBlock(String effectiveFrom, String effectiveTo, EndReason endReason,
+			int index, boolean expectError) {
 		String msgDisplay = "";
-		String formName = DIALOG_MAP.get(FacilitySection.ELECTRONIC_ADDRESSES).getFormName();
-		String dialogCss = getDialogCss(FacilitySection.ELECTRONIC_ADDRESSES);
+		String formName = DIALOG_MAP.get(FacilitySection.ORGANIZATION_RELATIONSHIPS).getFormName();
+		String dialogCss = getDialogCss(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
-		clickDataBlockUpdateButton(FacilitySection.ELECTRONIC_ADDRESSES, index);
+		clickDataBlockUpdateButton(FacilitySection.ORGANIZATION_RELATIONSHIPS, index);
 		waitSeconds(2);
 
-		String inputAddressCss = dialogCss + " >input#" + formName + "\\:" + "electronicAddress";
-		WebElement inputAddress = selenium_.findElement(By.cssSelector(inputAddressCss));
-		inputAddress.clear();
-		if (!StringUtils.isEmpty(address))
-			inputAddress.sendKeys(address);
-		if (endReasonCode != null)
-			setEndReasonByVisibleText(FacilitySection.ELECTRONIC_ADDRESSES, endReasonCode.getText());
+		if (endReason != null)
+			setEndReasonByVisibleText(FacilitySection.ORGANIZATION_RELATIONSHIPS, endReason.getText());
 
-		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ELECTRONIC_ADDRESSES, effectiveFrom, effectiveTo);
+		setDialogEffectiveFromAndEffectiveTo(FacilitySection.ORGANIZATION_RELATIONSHIPS, effectiveFrom, effectiveTo);
 
-		clickDialogSubmitButton(FacilitySection.ELECTRONIC_ADDRESSES);
+		clickDialogSubmitButton(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
 		if (expectError)
-			msgDisplay = waitErrorMessage(FacilitySection.ELECTRONIC_ADDRESSES);
+			msgDisplay = waitErrorMessage(FacilitySection.ORGANIZATION_RELATIONSHIPS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	
+
 	/**
 	 * Click CHSA Button
 	 */
@@ -1047,7 +981,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		selenium_
 		.waitUntil(ExpectedConditions.stalenessOf(updateChsaButton));
 	}
-	
+
 	/**
 	 * Add Relationship By Auto-Completion
 	 *
@@ -1087,5 +1021,4 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 		return msgDisplay;
 	}
 
-	
 }
