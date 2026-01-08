@@ -115,19 +115,7 @@ public class UpdateFacilityPageTwo extends ViewFacilityPage {
 		return count;
 	}
 
-	/**
-	 * Using a Javascript Executor to press button
-	 * @param button
-	 */
-	private void clickbuttonWait(WebElement button) {
-		try {
-			button.click();
-		} catch (ElementClickInterceptedException | StaleElementReferenceException e) {
-			JavascriptExecutor js = (JavascriptExecutor) selenium_.getDriver();
-			js.executeScript("arguments[0].click();", button);
-		}
-
-	}
+	
 
 	/**
 	 * Click the Data Block Update button. A dialog box will appear upon successful completion.

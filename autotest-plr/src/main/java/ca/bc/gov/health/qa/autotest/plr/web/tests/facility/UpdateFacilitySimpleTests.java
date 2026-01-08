@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.tests;
+package ca.bc.gov.health.qa.autotest.plr.web.tests.facility;
 
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.AfterClass;
@@ -11,7 +11,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.UpdateFacilitySimpleActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;

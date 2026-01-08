@@ -46,9 +46,16 @@ public class ViewFacilityPage extends BasicWebPage {
 		super(selenium, By.cssSelector("span#facilityDetailsGroup"), "View Facility Details", uri);
 		viewHeader_ = new ViewHeaderFragment(selenium);
 	}
+	
+	//public void refreshPage() { selenium_.getDriver().navigate().refresh(); }
+
+	public void maxWindow() {
+		selenium_.getDriver().manage().window().maximize();
+	}
+
 
     /**
-     * TODO (KD) - doc
+     * expand All data blocks
      *
      * @param expand
      */
@@ -82,7 +89,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param section the Facility Section to select
 	 * @return a CSS selector string for the facility section's div content panel
 	 */
-	private String getSectionContentSelector(FacilitySection section) {
+	protected String getSectionContentSelector(FacilitySection section) {
 		return getSectionSelector(section) + "_content";
 	}
 
@@ -94,7 +101,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param section the Facility Section to select
 	 * @return a CSS selector string for the facility section's data blocks
 	 */
-	private String getDataBlocksSelector(FacilitySection section) {
+	protected String getDataBlocksSelector(FacilitySection section) {
 		return getSectionContentSelector(section) + " > table.recordDetailsPanels > tbody > tr > td > div.ui-panel";
 	}
 
@@ -106,7 +113,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	 * @param index   the index of data block to specifically select
 	 * @return a CSS selector string for a specific data block in a facility section
 	 */
-	private String getDataBlockSelector(FacilitySection section, int index) {
+	protected String getDataBlockSelector(FacilitySection section, int index) {
 		if (index < 0) {
 			String msg = String.format("Negative index (%d).", index);
 			throw new IllegalArgumentException(msg);
