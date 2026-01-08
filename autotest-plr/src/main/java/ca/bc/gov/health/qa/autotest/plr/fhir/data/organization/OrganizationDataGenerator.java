@@ -112,21 +112,37 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
 
     // ----------------------- Organization Properties Generators -------------------------------
 
-    /** Returns a random {@link ClinicServices} value. */
+    /**
+     * Returns a random clinic services value.
+     * @return a random {@link ClinicServices}
+     */
     public ClinicServices randomClinicServices() { return pick(List.of(ClinicServices.values())); }
 
-    /** Returns a random {@link ClinicOwnerBusinessType} value. */
+    /**
+     * Returns a random clinic owner business type value.
+     * @return a random {@link ClinicOwnerBusinessType}
+     */
     public ClinicOwnerBusinessType randomClinicOwnerBusinessType() { return pick(List.of(ClinicOwnerBusinessType.values())); }
 
-    /** Returns a random {@link ClinicType} value. */
+    /**
+     * Returns a random clinic type value.
+     * @return a random {@link ClinicType}
+     */
     public ClinicType randomClinicType() { return pick(List.of(ClinicType.values())); }
 
-    /** Generates a plausible legal business name for the clinic. */
+    /**
+     * Generates a plausible legal business name for the clinic.
+     * @return generated legal business name
+     */
     public String generateClinicLegalBusinessName() {
         return "Legal Business " + generateNumericId().substring(0, 6);
     }
 
-    /** Generates a list of address unit strings. */
+    /**
+     * Generates a list of address unit strings.
+     * @param count number of units to generate
+     * @return list of address units
+     */
     public List<String> generateAddressUnitList(int count) {
         List<String> list = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
@@ -136,7 +152,10 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
         return list;
     }
 
-    /** Generates a single address unit string (e.g., "Unit 123"). */
+    /**
+     * Generates a single address unit string (e.g., "Unit 123").
+     * @return generated address unit string
+     */
     public String generateAddressUnit() {
         int unitNum = 1 + RNG.nextInt(999);
         return "Unit " + unitNum;
@@ -144,7 +163,8 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
 
     /**
      * Generates a clinic hours entry in required format: DAY HH:MM-HH:MM.
-     * Ensures 00:00-24:00 compliant time slot and start < end.
+     * Ensures 00:00-24:00 compliant time slot and start {@literal <} end.
+     * @return formatted clinic hours entry
      */
     public String generateClinicHourEntry() {
         String day = pick(HOURS_DAYS);
@@ -155,7 +175,11 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
         return day + " " + start + "-" + end;
     }
 
-    /** Generates a list of clinic hours entries in required format. */
+    /**
+     * Generates a list of clinic hours entries in required format.
+     * @param count number of entries to generate
+     * @return list of clinic hours entries
+     */
     public List<String> generateClinicHoursOfOperationList(int count) {
         List<String> list = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
@@ -164,7 +188,11 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
         return list;
     }
 
-    /** Generates a list of clinic owner names. */
+    /**
+     * Generates a list of clinic owner names.
+     * @param count number of names to generate
+     * @return list of owner names
+     */
     public List<String> generateClinicOwnerNamesList(int count) {
         List<String> list = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
@@ -173,17 +201,26 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
         return list;
     }
 
-    /** Generates a single clinic owner name (e.g., "Owner 1234"). */
+    /**
+     * Generates a single clinic owner name (e.g., "Owner 1234").
+     * @return generated owner name
+     */
     public String generateClinicOwnerName() {
         return "Owner " + generateNumericId().substring(0, 4);
     }
 
-    /** Generates a single payee number (e.g., "PAY123456"). */
+    /**
+     * Generates a single payee number (e.g., "PAY123456").
+     * @return generated payee number
+     */
     public String generatePayeeNumber() {
         return "PAY" + generateNumericId().substring(0, 6);
     }
 
-    /** Randomizes PCI flag. */
+    /**
+     * Randomizes PCI flag.
+     * @return randomized PCI flag
+     */
     public boolean generatePciFlag() { return RNG.nextBoolean(); }
 
     

@@ -411,7 +411,10 @@ public class MaintainUtils
         /**
          * Finds a nested extension node by walking a series of URLs. Starts at the root object's
          * top-level "extension" array and for each url provided, finds the matching entry and
-         * drills into its own "extension" array for the next step. Returns the final matched node.
+         * drills into its own "extension" array for the next step.
+         * @param root root JSON object containing an "extension" array
+         * @param urls ordered URL path segments to navigate nested extensions
+         * @return the final matched extension node JSON object
          */
         public static JSONObject findNestedExtension(JSONObject root, String... urls) {
                 JSONArray current = root.getJSONArray("extension");
@@ -450,7 +453,11 @@ public class MaintainUtils
                 return json;
         }
 
-        /** Creates clinic type extension block from template and sets code. */
+        /**
+         * Creates clinic type extension block from template and sets code.
+         * @param code clinic type code to set
+         * @return constructed extension JSON object
+         */
         public static JSONObject createClinicType(String code) {
                 return createExtensionWithCode(
                         "org-clinic-type.json",
@@ -462,7 +469,11 @@ public class MaintainUtils
                         code);
         }
 
-        /** Creates clinic ownership business type extension block and sets code. */
+        /**
+         * Creates clinic ownership business type extension block and sets code.
+         * @param code owner business type code to set
+         * @return constructed extension JSON object
+         */
         public static JSONObject createClinicOwnerBusinessType(String code) {
                 return createExtensionWithCode(
                         "org-clinic-owner-business-type.json",
@@ -474,7 +485,11 @@ public class MaintainUtils
                         code);
         }
 
-        /** Creates clinic services delivery type extension block and sets code. */
+        /**
+         * Creates clinic services delivery type extension block and sets code.
+         * @param code clinic services delivery type code to set
+         * @return constructed extension JSON object
+         */
         public static JSONObject createClinicServices(String code) {
                 return createExtensionWithCode(
                         "org-clinic-services.json",
@@ -486,7 +501,11 @@ public class MaintainUtils
                         code);
         }
 
-        /** Creates clinic owner name extension block and sets ownerName. */
+        /**
+         * Creates clinic owner name extension block and sets owner name.
+         * @param ownerName clinic owner name value
+         * @return constructed extension JSON object
+         */
         public static JSONObject createClinicOwnerName(String ownerName) {
                 return createExtensionWithString(
                         "org-clinic-owner.json",
@@ -498,7 +517,11 @@ public class MaintainUtils
                         ownerName);
         }
 
-        /** Creates PCI flag extension block and sets boolean value. */
+        /**
+         * Creates PCI flag extension block and sets boolean value.
+         * @param pciEnabled whether PCI is enabled
+         * @return constructed extension JSON object
+         */
         public static JSONObject createPciFlag(boolean pciEnabled) {
                 return createExtensionWithBoolean(
                         "org-pci.json",
@@ -510,7 +533,11 @@ public class MaintainUtils
                         pciEnabled);
         }
 
-        /** Creates clinic legal business name extension and sets string value. */
+        /**
+         * Creates clinic legal business name extension and sets string value.
+         * @param legalName legal business name value
+         * @return constructed extension JSON object
+         */
         public static JSONObject createClinicLegalBusinessName(String legalName) {
                 return createExtensionWithString(
                         "org-clinic-legal-name.json",
@@ -522,7 +549,11 @@ public class MaintainUtils
                         legalName);
         }
 
-        /** Creates clinic payee number extension and sets value + current period start. */
+        /**
+         * Creates clinic payee number extension and sets value plus current period start.
+         * @param payeeNumber clinic payee number value
+         * @return constructed extension JSON object
+         */
         public static JSONObject createClinicPayeeNumber(String payeeNumber) {
                 JSONObject json = createExtensionWithString(
                         "org-clinic-payee-number.json",

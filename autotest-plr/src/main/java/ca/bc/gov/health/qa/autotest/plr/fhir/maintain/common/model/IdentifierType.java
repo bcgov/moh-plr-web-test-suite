@@ -58,18 +58,20 @@ public enum IdentifierType
     }
 
     /**
-     * TODO (AZ) - doc
+     * Returns the source system URI that identifies this type.
      *
-     * @return ???
+     * @return source system URI string
      */
     public String getSourceSystem()
     {
         return sourceSystem_;
     }
 
-    /*
-     * Get an IdentifierType enum constant matching the given system URI.
-     * @return matching IdentifierType or null if not found
+    /**
+     * Gets an {@link IdentifierType} enum constant matching the given system URI.
+     *
+     * @param system the system URI to match
+     * @return matching {@link IdentifierType} or null if not found
      */
     public static IdentifierType resolveIdentifierType(String system) {
         for (IdentifierType t : IdentifierType.values()) {

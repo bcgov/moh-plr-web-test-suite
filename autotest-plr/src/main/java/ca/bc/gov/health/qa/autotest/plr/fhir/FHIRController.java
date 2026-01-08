@@ -110,7 +110,16 @@ public class FHIRController implements AutoCloseable {
      * @return created organization values as a MaintainOrgBuilder
      */
     public MaintainOrgBuilder createOrganization(OrgRoleType roleType) {
-        MaintainOrgBuilder builder = organizationFactory.build(new OrganizationMaintainConfig(roleType));
+        return createOrganization(new OrganizationMaintainConfig(roleType));
+    }
+
+    /**
+     * Generates organization data with customizable fields and submits a maintain request.
+     *  @param config configuration of the organization to create
+     * @return created organization values as a MaintainOrgBuilder
+     */
+    public MaintainOrgBuilder createOrganization(OrganizationMaintainConfig config) {
+        MaintainOrgBuilder builder = organizationFactory.build(config);
 
         String id = executor.submitMaintain(builder);
         LOG.info("Created organization (id={})", id);
@@ -119,12 +128,6 @@ public class FHIRController implements AutoCloseable {
         builder.addIdentifier(IdentifierType.IPC, id);
         return builder;
     }
-
-    //TODO: createPractitioner()
-
-    //TODO: createOrganization(OrganizationMaintainConfig config)
-
-    //TODO: ceaseFacility(MaintainFacilityBuilder facility)
 
     /**
      * Ceases all organization relationships currently configured on the provided facility builder.
@@ -137,19 +140,14 @@ public class FHIRController implements AutoCloseable {
         String id = executor.submitMaintain(facility);
         LOG.info("Ceased facility relationships (facilityId={}).", id);
         facility.identifier(id);
+        
         // Return a copy without organization relationships to reflect post‑cease state.
-        // TODO: When more cease/correction operations emerge, introduce a FacilityMutatorConfig parameter
-        //       to make this method delegate to a generic maintain+mutate pipeline
         return facility.copyWithoutOrgRelationships();
     }
 
-    //TODO: ceaseFacility(IdentifierType identifier)
+    //TODO: ceaseOrganizationRelationships(MaintainOrgBuilder org)
 
-    //TODO: ceaseOrganization(MaintainOrgBuilder org)
-
-    //TODO: ceaseOrganization(IdentifierType identifier)
-
-    //TODO: ceasePractitioner(MaintainPracBuilder prac)
+    //TODO: createPractitioner(PracType OOP-Individual|Individual, IndividualMaintainConfig config)
 
     //TODO: ceasePractitioner(IdentifierType identifier)
 

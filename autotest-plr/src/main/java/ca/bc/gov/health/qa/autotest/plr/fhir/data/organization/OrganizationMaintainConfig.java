@@ -358,8 +358,12 @@ public class OrganizationMaintainConfig {
     /** Enable all attributes and set counts for note and status lists.
      * @param noteCount number of notes
      * @param statusCount number of statuses
+     * @param addressUnitCount number of address unit values
+     * @param hoursCount number of hours of operation entries
+     * @param ownerNamesCount number of owner names
+     * @param payeeCount number of payee numbers
      * @return this config */
-    public OrganizationMaintainConfig withAllAttributes(int noteCount, int statusCount) {
+    public OrganizationMaintainConfig withAllAttributes(int noteCount, int statusCount, int addressUnitCount, int hoursCount, int ownerNamesCount, int payeeCount) {
         withIdentifier(); 
         withName(); 
         withRoleType(roleType != null ? roleType : OrgRoleType.HDS); 
@@ -369,6 +373,7 @@ public class OrganizationMaintainConfig {
         withAllTelecom(); 
         withNotes(noteCount); 
         withStatuses(statusCount); 
+        withAllOrgProperties(addressUnitCount, hoursCount, ownerNamesCount, payeeCount);
         return this; 
     }
 

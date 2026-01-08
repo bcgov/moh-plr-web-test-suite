@@ -416,6 +416,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     /**
      * Returns the ORGID value if present, else null.
      * Backwards compatibility method use getIdentifier(IdentifierType.ORGID) instead
+     * @return ORGID identifier string or null if not present
      */
     @Deprecated
     public String getOrgIdentifier() {
@@ -424,6 +425,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
 
     /**
      * Returns an immutable snapshot of all identifiers.
+     * @return map copy of identifier values keyed by type
      */
     public Map<IdentifierType,String> getIdentifiers() { return Map.copyOf(identifiers_); }
 

@@ -245,11 +245,11 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * Checks whether the active mark icon is displayed for a data block.
 	 *
-	 * @param section
-	 * @param index
-	 * @return
+	 * @param section the facility section containing the data block
+	 * @param index the zero-based index of the data block within the section
+	 * @return true if the active mark icon is displayed; false otherwise
 	 */
 	public boolean isDataBlockActiveMarkDisplayed(FacilitySection section, int index) {
 		WebElement activeMark = selenium_
@@ -259,11 +259,11 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * Checks whether the Update button is displayed for a data block header.
 	 *
-	 * @param section
-	 * @param index
-	 * @return
+	 * @param section the facility section containing the data block
+	 * @param index the zero-based index of the data block within the section
+	 * @return true if the Update button is present and visible; false otherwise
 	 */
 	public boolean isDataBlockUpdateButtonDisplayed(FacilitySection section, int index) {
 		// String cssString = getDataBlockHeaderSelector(section, index)+ " >
@@ -280,11 +280,11 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * Retrieves the summary line text from a data block header.
 	 *
-	 * @param section
-	 * @param index
-	 * @return
+	 * @param section the facility section containing the data block
+	 * @param index the zero-based index of the data block within the section
+	 * @return the summary line text for the specified data block
 	 */
 	public String grabDataBlockSummaryLine(FacilitySection section, int index) {
 		String cssString = getDataBlockHeaderSelector(section, index);
