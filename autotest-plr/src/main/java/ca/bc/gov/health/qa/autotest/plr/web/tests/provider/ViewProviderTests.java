@@ -16,7 +16,7 @@ import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.ViewProviderActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewMode;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
@@ -30,12 +30,11 @@ implements SimpleTest
 {
     // NOTE: The following test cases *WILL NOT* be automated:
     // - View Provider : Print Provider Details
+    // - View Provider : Visibility of Incorrect Data
 
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
-    // private FHIRController fhirController;
-    // private MaintainOrgBuilder dummyOrg;
 
     public ViewProviderTests()
     {}
@@ -131,7 +130,8 @@ implements SimpleTest
          *  OOP-MD (MOH) + OOP-MD (CPS)     oop-practitioners
          *  ORG (MOH) + ORG (CPS)           organizations
          * before running the testcase.
-         * After running, ensure these DPS are returned to their original values (likely CGITEST_READWRITE_ALL)
+         * After running, ensure these DPS are returned to their original values
+         * (likely CGITEST_READWRITE_ALL)
          */
 
         final JSONObject provider = PlrData.getProvider(providerType, "minimum");

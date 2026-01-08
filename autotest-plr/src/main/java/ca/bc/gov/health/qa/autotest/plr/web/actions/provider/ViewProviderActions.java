@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.actions;
+package ca.bc.gov.health.qa.autotest.plr.web.actions.provider;
 
 import static java.util.Objects.requireNonNull;
 import static org.testng.Assert.assertEquals;
