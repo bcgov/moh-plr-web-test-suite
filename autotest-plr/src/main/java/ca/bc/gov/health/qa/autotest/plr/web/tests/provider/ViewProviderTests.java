@@ -126,18 +126,27 @@ implements SimpleTest
     // View Provider : Viewing Empty Data Objects
     public void testViewingEmptyData(ProviderType providerType)
     {
-        ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
+        /* Step 15 is **not** automated, ensure reg admin DPS is set to CGITEST_WRITE for:
+         *  MD (MOH) + MD (CPS)             bc-practitioners
+         *  OOP-MD (MOH) + OOP-MD (CPS)     oop-practitioners
+         *  ORG (MOH) + ORG (CPS)           organizations
+         * before running the testcase.
+         * After running, ensure these DPS are returned to their original values (likely CGITEST_READWRITE_ALL)
+         */
 
-        JSONObject provider = PlrData.getProvider(providerType, "minimum");
-        actions.openProvider(provider.getString("pauth"));
-        actions.verifyRequiredSections(providerType);
+        final JSONObject provider = PlrData.getProvider(providerType, "minimum");
+        final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 
-        workflowManager_.close(UserType.ADMIN);
-        workflowManager_.selectWorkflow(UserType.SECONDARY).login().openPlr();
-        actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
-        actions.openProvider(provider.getString("pauth"));
+        // Step 1: Navigate to the View Providers Details Screen by submitting a search
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier("IPC", provider.getString("ipc"));
+        search.openResults(0);
 
-        actions.verifyNoPermissionSections(providerType);
+        final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
+
+        // Step 15: Setup DPS to check no permissions to view (not automated, ensure admin is set to CGI_WRITE)
+        // Step 2-14, 16-31: Verify Required sections blocks / No Permission to view record blocks
+        actions.verifyRequiredSections(providerType, true);
     }
 
     // View Provider : Viewing Provider Details

@@ -196,8 +196,9 @@ public class ViewProviderActions
      *
      * @param providerType
      *        ???
+     * @param noPerms ???
      */
-    public void verifyRequiredSections(ProviderType providerType)
+    public void verifyRequiredSections(ProviderType providerType, boolean noPerms)
     {
         ViewProviderPage viewProvider = waitForViewProviderPage();
         for (ProviderSection section : getProviderSectionSet(providerType, userType_))
@@ -205,27 +206,13 @@ public class ViewProviderActions
             String noRecordsNotice = viewProvider.grabSectionNoRecordsNotice(section);
             if (section.isRequired())
             {
-                assertNull(noRecordsNotice, "Section contains data.");
+                if (!noPerms || section.equals(ProviderSection.REGISTRY_IDENTIFIERS)) assertNull(noRecordsNotice, "Section contains data.");
+                else assertEquals(noRecordsNotice, "No permissions to view this record.");
             }
             else
             {
                 assertTrue(noRecordsNotice.startsWith("There are no "), "No records to display.");
             }
-        }
-    }
-
-    /**
-     * TODO (AMV) - doc
-     *
-     * @param providerType
-     */
-    public void verifyNoPermissionSections(ProviderType providerType)
-    {
-        ViewProviderPage viewProvider = waitForViewProviderPage();
-        for (ProviderSection section : getProviderSectionSet(providerType, userType_))
-        {
-            String noPermissionNotice = viewProvider.grabSectionNoRecordsNotice(section);
-            assertEquals(noPermissionNotice, "No permissions to view this record.");
         }
     }
 
@@ -258,11 +245,11 @@ public class ViewProviderActions
     }
 
     /**
-     * TODO (AMV) - doc
+     * Gets the expected view header title for a view provider page
      *
-     * @param providerType
-     * @param provider
-     * @return
+     * @param providerType  the provider type to model the title after
+     * @param provider      the provider JSONObject with expected information
+     * @return              the expected view title for the view provider page as a string
      */
     public String getViewTitle(ProviderType providerType, JSONObject provider)
     {
@@ -358,8 +345,9 @@ public class ViewProviderActions
     }
 
     /**
+     * Verifies the links in the view header are visible as expected upon view facility page load
      *
-     * @return
+     * @return  whether the print button, view mode button, and expand all button are displayed (true) or not (false)
      */
     public boolean verifyLinks()
     {

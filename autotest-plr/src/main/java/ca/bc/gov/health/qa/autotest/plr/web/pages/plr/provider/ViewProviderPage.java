@@ -178,7 +178,7 @@ extends BasicWebPage
                 getDataBlockContentSelector(section, index) + " > table > tbody > tr"));
         if (!dataRowElementList.isEmpty())
         {
-            selenium_.scrollIntoView(dataRowElementList.get(0));
+            selenium_.scrollIntoView(dataRowElementList.getFirst());
         }
         for (WebElement dataRow : dataRowElementList)
         {
@@ -424,9 +424,8 @@ extends BasicWebPage
 
     private String getDataBlocksSelector(ProviderSection section)
     {
-        String selector = getSectionContentSelector(section)
+        return getSectionContentSelector(section)
                 + " > table.recordDetailsPanels > tbody > tr > td > div.ui-panel";
-        return selector;
     }
 
     private String getSectionContentSelector(ProviderSection section)
