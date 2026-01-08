@@ -18,6 +18,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierTyp
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrganizationProperties;
 
 /**
  * Builder for Organization maintain requests. Supports configuration of multi-valued
@@ -37,7 +38,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private List<Map<String,String>>   statusList_      = new ArrayList<>();
     private List<Map<String,String>>   telecomList_     = new ArrayList<>();
     private HdsType                    hdsType_         = null;
-    //TODO: ORG PROPERTIES
+    private OrganizationProperties     orgProperties_   = null;
     //TODO: O2I relationships
     //TODO: 02F relationships
 
@@ -246,6 +247,21 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     }
 
     /**
+     * Sets variable organization properties for this builder.
+     * This allows configuring advanced attributes outside of the standard
+     * scalar and list fields (e.g., clinic services, owner type, clinic type).
+     * Note: these properties are currently not serialized by {@link #build()} and
+     * will be wired into the template mapping in a later step.
+     * @param properties container of organization properties (nullable)
+     * @return this builder
+     */
+    public MaintainOrgBuilder organizationProperties(OrganizationProperties properties)
+    {
+        orgProperties_ = properties;
+        return this;
+    }
+
+    /**
      * Sets the organization role type. If changed away from HDS any previously assigned HDS subtype
      * is cleared. For HDS role types an explicit {@link #hdsType(HdsType)} must be provided before build.
      * @param roleType role type enum (never null)
@@ -432,5 +448,10 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      */
     public HdsType getHdsType() { return hdsType_; }
 
+    /**
+     * Returns the variable organization properties configured for this builder.
+     * @return `OrganizationProperties` instance or null if not set
+     */
+    public OrganizationProperties getOrganizationProperties() { return orgProperties_; }
     
 }

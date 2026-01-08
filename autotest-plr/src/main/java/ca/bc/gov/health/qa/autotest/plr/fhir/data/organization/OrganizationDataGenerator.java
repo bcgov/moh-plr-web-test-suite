@@ -1,10 +1,15 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.AbstractDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicOwnerBusinessType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicServices;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicType;
 
 /**
  * Organization-specific data generator providing distinct name and address pools
@@ -21,6 +26,8 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
     private static final List<String> NAME_SUFFIXES = List.of(
         "Organization", "Group", "Services", "Association", "Collective", "Consortium"
     );
+
+    private static final List<String> HOURS_DAYS = Arrays.asList("MON", "TUE", "WED", "THU", "FRI");
 
     // Address variation: choose among several cities/postals; street number randomized
     private static final List<String[]> ADDRESS_POOLS = List.of(
@@ -102,4 +109,82 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
         int streetNum = FIXED_LOWER_STREET_NUMBER + RNG.nextInt(FIXED_UPPER_STREET_NUMBER - FIXED_LOWER_STREET_NUMBER + 1); // inclusive upper bound
         return new String[]{ streetNum + " " + base[0], base[1], base[2] };
     }
+
+    // ----------------------- Organization Properties Generators -------------------------------
+
+    /** Returns a random {@link ClinicServices} value. */
+    public ClinicServices randomClinicServices() { return pick(List.of(ClinicServices.values())); }
+
+    /** Returns a random {@link ClinicOwnerBusinessType} value. */
+    public ClinicOwnerBusinessType randomClinicOwnerBusinessType() { return pick(List.of(ClinicOwnerBusinessType.values())); }
+
+    /** Returns a random {@link ClinicType} value. */
+    public ClinicType randomClinicType() { return pick(List.of(ClinicType.values())); }
+
+    /** Generates a plausible legal business name for the clinic. */
+    public String generateClinicLegalBusinessName() {
+        return "Legal Business " + generateNumericId().substring(0, 6);
+    }
+
+    /** Generates a list of address unit strings. */
+    public List<String> generateAddressUnitList(int count) {
+        List<String> list = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            int unitNum = 1 + RNG.nextInt(999);
+            list.add("Unit " + unitNum);
+        }
+        return list;
+    }
+
+    /** Generates a single address unit string (e.g., "Unit 123"). */
+    public String generateAddressUnit() {
+        int unitNum = 1 + RNG.nextInt(999);
+        return "Unit " + unitNum;
+    }
+
+    /**
+     * Generates a clinic hours entry in required format: DAY HH:MM-HH:MM.
+     * Ensures 00:00-24:00 compliant time slot and start < end.
+     */
+    public String generateClinicHourEntry() {
+        String day = pick(HOURS_DAYS);
+        int startHour = 8 + RNG.nextInt(4);   // 08-11
+        int endHour = 16 + RNG.nextInt(3);    // 16-18
+        String start = String.format("%02d:%02d", startHour, RNG.nextBoolean() ? 0 : 30);
+        String end   = String.format("%02d:%02d", endHour, RNG.nextBoolean() ? 0 : 30);
+        return day + " " + start + "-" + end;
+    }
+
+    /** Generates a list of clinic hours entries in required format. */
+    public List<String> generateClinicHoursOfOperationList(int count) {
+        List<String> list = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            list.add(generateClinicHourEntry());
+        }
+        return list;
+    }
+
+    /** Generates a list of clinic owner names. */
+    public List<String> generateClinicOwnerNamesList(int count) {
+        List<String> list = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            list.add("Owner " + generateNumericId().substring(0, 4));
+        }
+        return list;
+    }
+
+    /** Generates a single clinic owner name (e.g., "Owner 1234"). */
+    public String generateClinicOwnerName() {
+        return "Owner " + generateNumericId().substring(0, 4);
+    }
+
+    /** Generates a single payee number (e.g., "PAY123456"). */
+    public String generatePayeeNumber() {
+        return "PAY" + generateNumericId().substring(0, 6);
+    }
+
+    /** Randomizes PCI flag. */
+    public boolean generatePciFlag() { return RNG.nextBoolean(); }
+
+    
 }

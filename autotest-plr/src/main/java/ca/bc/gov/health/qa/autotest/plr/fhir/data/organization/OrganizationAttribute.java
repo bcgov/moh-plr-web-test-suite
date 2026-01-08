@@ -1,7 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
 /**
- * Enumeration of facility fields facility generation.
+ * Enumeration of Organization attributes used for maintain payload generation.
  * Optional fields are only included when explicitly requested.
  */
 public enum OrganizationAttribute {
@@ -22,7 +22,27 @@ public enum OrganizationAttribute {
     /** Status (OPTIONAL) */
     STATUS(false),
     /** Note (OPTIONAL) */
-    NOTE(false);
+    NOTE(false),
+
+    // OrganizationProperties-derived optional attributes ---------------------------------------
+    /** Clinic services model (OPTIONAL). */
+    CLINIC_SERVICES(false),
+    /** Clinic ownership/operation business type (OPTIONAL). */
+    CLINIC_OWNER_BUSINESS_TYPE(false),
+    /** Clinic/organization type classification (OPTIONAL). */
+    CLINIC_TYPE(false),
+    /** Legal business name of the clinic (OPTIONAL). */
+    CLINIC_LEGAL_BUSINESS_NAME(false),
+    /** Address unit values (list) (OPTIONAL). */
+    ADDRESS_UNIT(false),
+    /** Clinic hours of operation (list) (OPTIONAL). */
+    CLINIC_HOURS_OF_OPERATION(false),
+    /** Clinic owner names (list) (OPTIONAL). */
+    CLINIC_OWNER_NAMES(false),
+    /** Payee numbers (list) (OPTIONAL). */
+    PAYEE_NUMBER(false),
+    /** PCI flag indicator (OPTIONAL). */
+    PCI_FLAG(false);
 
     private final boolean required;
 

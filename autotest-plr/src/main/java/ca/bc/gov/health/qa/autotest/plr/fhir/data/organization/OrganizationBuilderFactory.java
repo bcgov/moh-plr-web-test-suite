@@ -1,8 +1,12 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrganizationProperties;
 
 /**
  * Factory responsible for creating and configuring {@link MaintainOrgBuilder}
@@ -74,6 +78,67 @@ public class OrganizationBuilderFactory {
         }
         for (int i = 0; i < config.getStatusCount(); i++) {
             builder.addStatus("LIC", "ACTIVE", "GS");
+        }
+
+        // ----------------------- OrganizationProperties -----------------------
+        OrganizationProperties props = new OrganizationProperties();
+        boolean anyProp = false;
+
+        if (config.isClinicServicesEnabled()) {
+            props.setClinicServices(dataGen.randomClinicServices());
+            anyProp = true;
+        }
+        if (config.isClinicOwnerBusinessTypeEnabled()) {
+            props.setClinicOwnerBusinessType(dataGen.randomClinicOwnerBusinessType());
+            anyProp = true;
+        }
+        if (config.isClinicTypeEnabled()) {
+            props.setClinicType(dataGen.randomClinicType());
+            anyProp = true;
+        }
+        if (config.isClinicLegalBusinessNameEnabled()) {
+            props.setClinicLegalBusinessName(dataGen.generateClinicLegalBusinessName());
+            anyProp = true;
+        }
+        if (config.isPciFlagEnabled()) {
+            props.setPciFlag(dataGen.generatePciFlag());
+            anyProp = true;
+        }
+        if (config.getAddressUnitCount() > 0) {
+            List<String> list = new ArrayList<>(config.getAddressUnitCount());
+            for (int i = 0; i < config.getAddressUnitCount(); i++) {
+                list.add(dataGen.generateAddressUnit());
+            }
+            props.setAddressUnit(list);
+            anyProp = true;
+        }
+        if (config.getClinicHoursOfOperationCount() > 0) {
+            List<String> list = new ArrayList<>(config.getClinicHoursOfOperationCount());
+            for (int i = 0; i < config.getClinicHoursOfOperationCount(); i++) {
+                list.add(dataGen.generateClinicHourEntry());
+            }
+            props.setClinicHoursOfOperation(list);
+            anyProp = true;
+        }
+        if (config.getClinicOwnerNamesCount() > 0) {
+            List<String> list = new ArrayList<>(config.getClinicOwnerNamesCount());
+            for (int i = 0; i < config.getClinicOwnerNamesCount(); i++) {
+                list.add(dataGen.generateClinicOwnerName());
+            }
+            props.setClinicOwnerNames(list);
+            anyProp = true;
+        }
+        if (config.getPayeeNumberCount() > 0) {
+            List<String> list = new ArrayList<>(config.getPayeeNumberCount());
+            for (int i = 0; i < config.getPayeeNumberCount(); i++) {
+                list.add(dataGen.generatePayeeNumber());
+            }
+            props.setPayeeNumber(list);
+            anyProp = true;
+        }
+
+        if (anyProp) {
+            builder.organizationProperties(props);
         }
         return builder;
     }

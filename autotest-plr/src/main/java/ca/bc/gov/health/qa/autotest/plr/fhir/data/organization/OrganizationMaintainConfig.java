@@ -22,6 +22,13 @@ public class OrganizationMaintainConfig {
     private boolean alias;
     private boolean confidentiality;
 
+    // Optional OrganizationProperties toggles
+    private boolean clinicServices;            // single-valued
+    private boolean clinicOwnerBusinessType;   // single-valued
+    private boolean clinicType;                // single-valued
+    private boolean clinicLegalBusinessName;   // single-valued
+    private boolean pciFlag;                   // single-valued
+
     // Individual telecom channel toggles (all optional)
     private boolean phone;    // phone
     private boolean mobile;   // sms
@@ -35,6 +42,11 @@ public class OrganizationMaintainConfig {
     // Multi-valued attribute counts
     private int noteCount;     // optional notes (0 => none)
     private int statusCount;   // optional statuses (0 => rely on builder default ACTIVE)
+    // OrganizationProperties list counts
+    private int addressUnitCount;            // number of address unit entries
+    private int clinicHoursOfOperationCount; // number of hours entries
+    private int clinicOwnerNamesCount;       // number of owner names
+    private int payeeNumberCount;            // number of payee numbers
 
     /**
      * Initializes required attributes by inspecting {@link OrganizationAttribute} enum.
@@ -76,6 +88,34 @@ public class OrganizationMaintainConfig {
                 case NOTE:
                     this.noteCount = 1;
                     break;
+                // OrganizationProperties-derived attributes
+                case CLINIC_SERVICES:
+                    this.clinicServices = true;
+                    break;
+                case CLINIC_OWNER_BUSINESS_TYPE:
+                    this.clinicOwnerBusinessType = true;
+                    break;
+                case CLINIC_TYPE:
+                    this.clinicType = true;
+                    break;
+                case CLINIC_LEGAL_BUSINESS_NAME:
+                    this.clinicLegalBusinessName = true;
+                    break;
+                case PCI_FLAG:
+                    this.pciFlag = true;
+                    break;
+                case ADDRESS_UNIT:
+                    this.addressUnitCount = 1;
+                    break;
+                case CLINIC_HOURS_OF_OPERATION:
+                    this.clinicHoursOfOperationCount = 1;
+                    break;
+                case CLINIC_OWNER_NAMES:
+                    this.clinicOwnerNamesCount = 1;
+                    break;
+                case PAYEE_NUMBER:
+                    this.payeeNumberCount = 1;
+                    break;
                 default: break; // others currently not required
             }
         }
@@ -105,6 +145,27 @@ public class OrganizationMaintainConfig {
     /** Verifies if CONFIDENTIALITY will be included.
      * @return true if CONFIDENTIALITY will be included */
     public boolean isConfidentialityEnabled() { return confidentiality; }
+
+    // OrganizationProperties toggles
+    /** Verifies if CLINIC_SERVICES will be included.
+     * @return true if CLINIC_SERVICES will be included */
+    public boolean isClinicServicesEnabled() { return clinicServices; }
+
+    /** Verifies if CLINIC_OWNER_BUSINESS_TYPE will be included.
+     * @return true if CLINIC_OWNER_BUSINESS_TYPE will be included */
+    public boolean isClinicOwnerBusinessTypeEnabled() { return clinicOwnerBusinessType; }
+
+    /** Verifies if CLINIC_TYPE will be included.
+     * @return true if CLINIC_TYPE will be included */
+    public boolean isClinicTypeEnabled() { return clinicType; }
+
+    /** Verifies if CLINIC_LEGAL_BUSINESS_NAME will be included.
+     * @return true if CLINIC_LEGAL_BUSINESS_NAME will be included */
+    public boolean isClinicLegalBusinessNameEnabled() { return clinicLegalBusinessName; }
+
+    /** Verifies if PCI_FLAG will be included.
+     * @return true if PCI_FLAG will be included */
+    public boolean isPciFlagEnabled() { return pciFlag; }
 
     /** Verifies if PHONE will be included.
      * @return true if PHONE will be included */
@@ -146,6 +207,21 @@ public class OrganizationMaintainConfig {
      * @return the number of STATUSes that will be included */
     public int getStatusCount() { return statusCount; }
 
+    /** Gets the number of ADDRESS_UNIT entries to include.
+     * @return count of ADDRESS_UNIT entries */
+    public int getAddressUnitCount() { return addressUnitCount; }
+
+    /** Gets the number of CLINIC_HOURS_OF_OPERATION entries to include.
+     * @return count of CLINIC_HOURS_OF_OPERATION entries */
+    public int getClinicHoursOfOperationCount() { return clinicHoursOfOperationCount; }
+
+    /** Gets the number of CLINIC_OWNER_NAMES entries to include.
+     * @return count of CLINIC_OWNER_NAMES entries */
+    public int getClinicOwnerNamesCount() { return clinicOwnerNamesCount; }
+
+    /** Gets the number of PAYEE_NUMBER entries to include.
+     * @return count of PAYEE_NUMBER entries */
+    public int getPayeeNumberCount() { return payeeNumberCount; }
 
     // Fluent enabling ----------------------------------------------------------------------------
     /** Enable identifier attribute. 
@@ -167,6 +243,59 @@ public class OrganizationMaintainConfig {
     /** Enable confidentiality attribute. 
      * @return this config */
     public OrganizationMaintainConfig withConfidentiality() { this.confidentiality = true; return this; }
+
+    // OrganizationProperties fluent enabling
+    /** Enable CLINIC_SERVICES.
+     * @return this config */
+    public OrganizationMaintainConfig withClinicServices() { this.clinicServices = true; return this; }
+    /** Enable CLINIC_OWNER_BUSINESS_TYPE.
+     * @return this config */
+    public OrganizationMaintainConfig withClinicOwnerBusinessType() { this.clinicOwnerBusinessType = true; return this; }
+    /** Enable CLINIC_TYPE.
+     * @return this config */
+    public OrganizationMaintainConfig withClinicType() { this.clinicType = true; return this; }
+    /** Enable CLINIC_LEGAL_BUSINESS_NAME.
+     * @return this config */
+    public OrganizationMaintainConfig withClinicLegalBusinessName() { this.clinicLegalBusinessName = true; return this; }
+    /** Enable ADDRESS_UNIT and set count.
+     * @param count number of address unit entries (>= required minimum)
+     * @return this config
+     * @throws IllegalArgumentException if below required minimum */
+    public OrganizationMaintainConfig withAddressUnit(int count) {
+        int minRequired = OrganizationAttribute.ADDRESS_UNIT.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("address unit count must be >= " + minRequired);
+        this.addressUnitCount = count; return this;
+    }
+    /** Enable CLINIC_HOURS_OF_OPERATION and set count.
+     * @param count number of hours entries (>= required minimum)
+     * @return this config
+     * @throws IllegalArgumentException if below required minimum */
+    public OrganizationMaintainConfig withClinicHoursOfOperation(int count) {
+        int minRequired = OrganizationAttribute.CLINIC_HOURS_OF_OPERATION.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("clinic hours count must be >= " + minRequired);
+        this.clinicHoursOfOperationCount = count; return this;
+    }
+    /** Enable CLINIC_OWNER_NAMES and set count.
+     * @param count number of owner names (>= required minimum)
+     * @return this config
+     * @throws IllegalArgumentException if below required minimum */
+    public OrganizationMaintainConfig withClinicOwnerNames(int count) {
+        int minRequired = OrganizationAttribute.CLINIC_OWNER_NAMES.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("clinic owner names count must be >= " + minRequired);
+        this.clinicOwnerNamesCount = count; return this;
+    }
+    /** Enable PAYEE_NUMBER and set count.
+     * @param count number of payee numbers (>= required minimum)
+     * @return this config
+     * @throws IllegalArgumentException if below required minimum */
+    public OrganizationMaintainConfig withPayeeNumber(int count) {
+        int minRequired = OrganizationAttribute.PAYEE_NUMBER.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("payee number count must be >= " + minRequired);
+        this.payeeNumberCount = count; return this;
+    }
+    /** Enable PCI_FLAG.
+     * @return this config */
+    public OrganizationMaintainConfig withPciFlag() { this.pciFlag = true; return this; }
     /** Enable phone telecom. 
      * @return this config */
     public OrganizationMaintainConfig withPhone() { this.phone = true; return this; }
@@ -241,5 +370,24 @@ public class OrganizationMaintainConfig {
         withNotes(noteCount); 
         withStatuses(statusCount); 
         return this; 
+    }
+
+    /** Enable all OrganizationProperties toggles and set list counts.
+     * @param addressUnitCount number of address unit values
+     * @param hoursCount number of hours entries
+     * @param ownerNamesCount number of owner names
+     * @param payeeCount number of payee numbers
+     * @return this config */
+    public OrganizationMaintainConfig withAllOrgProperties(int addressUnitCount, int hoursCount, int ownerNamesCount, int payeeCount) {
+        withClinicServices();
+        withClinicOwnerBusinessType();
+        withClinicType();
+        withClinicLegalBusinessName();
+        withAddressUnit(addressUnitCount);
+        withClinicHoursOfOperation(hoursCount);
+        withClinicOwnerNames(ownerNamesCount);
+        withPayeeNumber(payeeCount);
+        withPciFlag();
+        return this;
     }
 }
