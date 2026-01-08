@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TODO (AZ) - doc
+ * Utility holder for provider section data field ordering and keys.
  */
 public class ProviderDataFields
 {
@@ -306,12 +306,10 @@ public class ProviderDataFields
     {}
 
     /**
-     * TODO (AZ) - doc
+     * Gets a list of field names for a particular provider section
      *
-     * @param section
-     *        ???
-     *
-     * @return ???
+     * @param section   the provider section to retrieve a list of inner data field names for
+     * @return          the list of field names for the provider section specified
      */
     public static List<String> getFieldNameList(ProviderSection section)
     {
@@ -319,12 +317,10 @@ public class ProviderDataFields
     }
 
     /**
-     * TODO (AZ) - doc
+     * Returns the sort order key list for a provider section.
      *
-     * @param section
-     *        ???
-     *
-     * @return ???
+     * @param section   the facility section enum
+     * @return          list of field keys used for ordering
      */
     public static List<String> getSortKey(ProviderSection section)
     {

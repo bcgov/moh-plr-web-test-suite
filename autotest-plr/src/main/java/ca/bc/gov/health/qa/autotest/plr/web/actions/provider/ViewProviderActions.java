@@ -19,6 +19,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.text.TextUtils;
+import ca.bc.gov.health.qa.autotest.plr.data.ViewProviderConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderDataFields;
@@ -30,7 +31,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.json.JSONObject;
 
 /**
- * TODO (AZ) - doc
+ * Actions class for the View Provider page/functions
  */
 public class ViewProviderActions
 {
@@ -44,16 +45,11 @@ public class ViewProviderActions
     private final UserType        userType_;
 
     /**
-     * TODO (AZ) - doc
+     * Initializes class and SeleniumSession.
      *
-     * @param selenium
-     *        ???
-     *
-     * @param uri
-     *        ???
-     *
-     * @param userType
-     *        ???
+     * @param selenium  the current SeleniumSession
+     * @param uri       the URI of the current workflow
+     * @param userType  the user type accessing the current workflow
      */
     public ViewProviderActions(SeleniumSession selenium, URI uri, UserType userType)
     {
@@ -63,33 +59,27 @@ public class ViewProviderActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Opens the provider page for a provider given their internal provider ID.s
      *
-     * @param pauthId
-     *        internal provider ID
+     * @param authId                internal provider ID
+     * @return                      a ViewProviderPage reference to the provider page specified by authId
      *
-     * @return ???
-     *
-     * @throws NullPointerException
-     *         if {@code pauthId} is {@code null}
+     * @throws NullPointerException if {@code pauthId} is {@code null}
      */
-    public ViewProviderPage openProvider(String pauthId)
+    public ViewProviderPage openProvider(String authId)
     {
-        LOG.info("Open provider view ({}).", pauthId);
+        LOG.info("Open provider view ({}).", authId);
         ViewProviderPage viewProvider =
                 new ViewProviderPage(selenium_, uri_.resolve("plr/ProviderDetails.xhtml"));
-        viewProvider.openProvider(pauthId);
+        viewProvider.openProvider(authId);
         return viewProvider;
     }
 
     /**
-     * TODO (AZ) - doc
+     * Verifies the data blocks in each provider section are expanded or collapsed
      *
-     * @param providerType
-     *        ???
-     *
-     * @param expectExpanded
-     *        ???
+     * @param providerType      the provider type being checked (determines the sections to be checked)
+     * @param expectExpanded    whether to expect expanded (true) or collapsed (false) data blocks
      */
     public void verifyDataBlocksExpanded(ProviderType providerType, boolean expectExpanded)
     {
@@ -100,13 +90,10 @@ public class ViewProviderActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Verifies the data blocks within a specific section are expanded or collapsed
      *
-     * @param section
-     *        ???
-     *
-     * @param expectExpanded
-     *        ???
+     * @param section           the provider section to check data blocks within
+     * @param expectExpanded    whether to expect expanded (true) or collapsed (false) data blocks
      */
     public void verifyDataBlocksExpanded(ProviderSection section, boolean expectExpanded)
     {
@@ -122,10 +109,9 @@ public class ViewProviderActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Verifies the data blocks on a provider page are sorted in each provider section (by values and dates)
      *
-     * @param providerType
-     *        ???
+     * @param providerType  the provider type under testing - determines the sections to check sorting in
      */
     public void verifyDataBlockSortOrder(ProviderType providerType)
     {
@@ -144,9 +130,9 @@ public class ViewProviderActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Verifies all data blocks in a provider section on the page is sorted (by values and dates)
      *
-     * @param section ???
+     * @param section           the provider section to check sorting in
      */
     public void verifyDataBlockSortOrder(ProviderSection section)
     {
@@ -155,9 +141,9 @@ public class ViewProviderActions
         boolean useActive = section.equals(ProviderSection.STATUSES);
         if (!section.equals(ProviderSection.WORK_LOCATIONS))
         {
-            dateKeyList.add("Effective From");
+            dateKeyList.add(IdentifierField.EFFECTIVE_FROM.getString());
         }
-        dateKeyList.add("DB Created");
+        dateKeyList.add(IdentifierField.DB_CREATED.getString());
         List<String> previousValueList = null;
         List<String> previousDateList  = null;
         ViewProviderPage viewProvider = waitForViewProviderPage();
@@ -192,11 +178,11 @@ public class ViewProviderActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Verifies the required sections include data and that other sections do not contain data
+     * (intended to be used on a Minimum Data Set provider)
      *
-     * @param providerType
-     *        ???
-     * @param noPerms ???
+     * @param providerType  the provider type under testing - determines set of required sections
+     * @param noPerms       whether the session has no permissions to view fields (true) or not (false)
      */
     public void verifyRequiredSections(ProviderType providerType, boolean noPerms)
     {
@@ -217,10 +203,9 @@ public class ViewProviderActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Verifies the data field names of each provider section
      *
-     * @param providerType
-     *        ???
+     * @param providerType  the provider type under testing - determines the set of provider sections to check
      */
     public void verifySectionDataFieldNames(ProviderType providerType)
     {
@@ -279,10 +264,9 @@ public class ViewProviderActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Verifies the provider section titles are their expected values
      *
-     * @param providerType
-     *        ???
+     * @param providerType  the provider type under testing - determines section set to check
      */
     public void verifySectionTitles(ProviderType providerType)
     {
@@ -297,13 +281,11 @@ public class ViewProviderActions
     }
 
     /**
-     * TODO (AZ) - doc
+     * Verifies a section contains active or inactive data blocks.
      *
-     * @param providerType
-     *        ???
+     * @param providerType      the provider type under testing - determines sections to check
      *
-     * @param expectedInactive
-     *        ???
+     * @param expectedInactive  whether we expect inactive data blocks (true) or not
      */
     public void verifySectionsWithActiveDataBlocks(
             ProviderType providerType,

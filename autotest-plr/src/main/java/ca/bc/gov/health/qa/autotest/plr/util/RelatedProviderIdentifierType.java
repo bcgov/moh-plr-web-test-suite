@@ -8,7 +8,7 @@ public enum RelatedProviderIdentifierType {
 	HLBCID("HLBCID - Healthlinks ID"), 
 	ORGID("ORGID - Organization");
 
-	private String text;
+	private final String text;
 
 	RelatedProviderIdentifierType(String text) {
 		this.text = text;

@@ -8,7 +8,8 @@ import java.util.Set;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 
 /**
- * TODO (AZ) - doc
+ * Enum of each of the panels/sections in the View Provider section,
+ * alongside sets of expected sections for certain provider types
  */
 public enum ProviderSection
 {
@@ -207,9 +208,9 @@ public enum ProviderSection
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the panel ID (div element) for the provider section
      *
-     * @return ???
+     * @return a string of the panel ID for the provider section
      */
     public String getPanelId()
     {
@@ -217,9 +218,9 @@ public enum ProviderSection
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the expected title of the provider section
      *
-     * @return ???
+     * @return a string of the expected header title of the provider section
      */
     public String getTitle()
     {
@@ -227,15 +228,12 @@ public enum ProviderSection
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets a set of provider sections expected to appear on the page for a given provider type
      *
-     * @param providerType
-     *        ???
+     * @param providerType              the provider type to retrieve the set of expected sections for
+     * @return                          a set of the expected provider sections for this provider
      *
-     * @return ???
-     *
-     * @throws IllegalStateException
-     *         if the provider type is not supported
+     * @throws IllegalStateException    if the provider type is not supported
      */
     public static Set<ProviderSection> getProviderSectionSet(ProviderType providerType)
     {
@@ -249,9 +247,9 @@ public enum ProviderSection
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the set of provider sections that are mandatory sections on the page (must have some data)
      *
-     * @return ???
+     * @return a Set of provider sections that are required to be nonempty
      */
     public static Set<ProviderSection> getRequiredProviderSectionSet()
     {
@@ -259,9 +257,9 @@ public enum ProviderSection
     }
 
     /**
-     * TODO (AZ) - doc
+     * Returns whether the section is a required section element on the page
      *
-     * @return ???
+     * @return whether the section is required (true) or not (false)
      */
     public boolean isRequired()
     {
