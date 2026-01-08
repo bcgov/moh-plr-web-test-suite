@@ -18,7 +18,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 
 /**
- * TODO (AZ) - doc
+ * A page object class for the View Provider page.
  */
 public class ViewProviderPage
 extends BasicWebPage
@@ -28,10 +28,9 @@ extends BasicWebPage
     private final ViewHeaderFragment viewHeader_;
 
     /**
-     * TODO (AZ) - doc
+     * Initializes page object, overloaded constructor for no specified URL
      *
-     * @param selenium
-     *        ???
+     * @param selenium the current SeleniumSession
      */
     public ViewProviderPage(SeleniumSession selenium)
     {
@@ -39,13 +38,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Initializes page object and changes selenium's main locator to View Provider
+     * Details heading
      *
-     * @param selenium
-     *        ???
-     *
-     * @param uri
-     *        ???
+     * @param selenium the current SeleniumSession
+     * @param uri      the URL to navigate to in inherited methods if applicable
      */
     public ViewProviderPage(SeleniumSession selenium, URI uri)
     {
@@ -57,16 +54,13 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Expands/collapses a "data block" or a specific instance of data within a
+     * provider section
      *
-     * @param section
-     *        ???
-     *
-     * @param index
-     *        ???
-     *
-     * @param expand
-     *        ???
+     * @param section the provider section to select
+     * @param index   the index of the data block within the provider section to
+     *                select
+     * @param expand  whether to expand (true) or collapse (false) the data block
      */
     public void expandDataBlock(ProviderSection section, int index, boolean expand)
     {
@@ -99,9 +93,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the view header
      *
-     * @return ???
+     * @return a ViewHeaderFragment reference for the current page
      */
     public ViewHeaderFragment getViewHeader()
     {
@@ -109,15 +103,13 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the count of active data blocks within a provider section
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to count within
      *
-     * @param active
-     *        ???
+     * @param active    whether to count active (true) or inactive (false) blocks
      *
-     * @return ???
+     * @return          a count of active/inactive data blocks within a provider section
      */
     public int grabActiveDataBlockCount(ProviderSection section, boolean active)
     {
@@ -160,15 +152,15 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the content from a specific data block within a provider section.
      *
-     * @param section
-     *        ???
-     *
-     * @param index
-     *        ???
-     *
-     * @return ???
+     * @param section the provider section to get content from
+     * @param index   the index of data block within the facility section to get
+     *                content from
+     * @return a hash map mapping data block fields (String) to its associated
+     *         values (String)
+     * @throws IllegalStateException If a specific row of data in the block is
+     *                               formatted unexpectedly
      */
     public LinkedHashMap<String,String> grabDataBlockContent(ProviderSection section, int index)
     {
@@ -210,12 +202,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines the number of data blocks in a specific provider section.
      *
-     * @param section
-     *        ???
-     *
-     * @return ???
+     * @param section the provider section to find the number of records for.
+     * @return an integer of the number of records for a particular facility
+     *         section.
      */
     public int grabDataBlockCount(ProviderSection section)
     {
@@ -223,15 +214,12 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether a specific "data block"'s content panel in a provider
+     * section is displayed or not
      *
-     * @param section
-     *        ???
-     *
-     * @param index
-     *        ???
-     *
-     * @return ???
+     * @param section the provider section to select
+     * @param index   the index of data block to specifically select
+     * @return whether the data block is displayed (true) or not displayed (false)
      */
     public boolean grabDataBlockExpanded(ProviderSection section, int index)
     {
@@ -278,12 +266,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets whether a provider section is displayed (true) or not (false)
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to check
      *
-     * @return ???
+     * @return          whether the provider section is visible (true) or not (false)
      */
     public boolean grabSectionDisplayed(ProviderSection section)
     {
