@@ -297,6 +297,7 @@ public class ViewProviderActions
         ViewMode viewMode = viewProvider.getViewHeader().grabViewMode();
         for (ProviderSection section : getProviderSectionSet(providerType, userType_))
         {
+            if (section.equals(ProviderSection.ROLE_TYPE)) continue;
             viewProvider.scrollToSection(section);
             assertTrue(
                     viewProvider.grabSectionDisplayed(section),

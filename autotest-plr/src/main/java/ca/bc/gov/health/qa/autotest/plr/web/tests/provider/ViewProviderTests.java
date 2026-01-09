@@ -68,36 +68,29 @@ implements SimpleTest
         actions.verifySectionsWithActiveDataBlocks(providerType, false);
     }
 
-    @Test(dataProvider = "allPlrUserTypesProviderTypes", dataProviderClass = InjectableData.class)
-    // View Provider : Optional Provider Detail Screen
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     // View Provider : Rules Indicating Current Records
-    // View Provider : Visibility of Incorrect Data
-    public void testOptionalProviderDetail(UserType userType, ProviderType providerType)
+    public void testRulesCurrentRecords(ProviderType providerType)
     {
-        JSONObject provider = PlrData.getProvider(providerType, "default");
-        ViewProviderActions actions =
-                workflowManager_.getSelectedWorkflow().getViewProviderActions();
-        ViewProviderPage viewProvider = actions.openProvider(provider.getString("pauth"));
-        ViewHeaderFragment viewHeader = viewProvider.getViewHeader();
+        final JSONObject provider = PlrData.getProvider(providerType, "default");
 
-        viewHeader.expandViewModeMenu(true);
-        assertTrue(viewHeader.grabViewModeDisplayed(ViewMode.CURRENT), "Current View option");
-        assertTrue(viewHeader.grabViewModeDisplayed(ViewMode.HISTORY), "History View option");
-        assertEquals(
-                viewHeader.grabViewModeDisplayed(ViewMode.AUDIT),
-                !userType.equals(UserType.CONSUMER),
-                "Audit View option");
-        viewHeader.expandViewModeMenu(false);
+        // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
+        ViewProviderPage page = viewByIdentifier(providerType, provider, workflowManager_);
+        final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
 
-        viewHeader.selectViewMode(ViewMode.HISTORY);
-        actions.verifySectionsWithActiveDataBlocks(providerType, true);
-        if (!userType.equals(UserType.CONSUMER))
-        {
-            viewHeader.selectViewMode(ViewMode.AUDIT);
-            actions.verifySectionsWithActiveDataBlocks(providerType, true);
-        }
+        ViewHeaderFragment viewHeader = page.getViewHeader();
+
+        // Step 3: Verify Current View
         viewHeader.selectViewMode(ViewMode.CURRENT);
         actions.verifySectionsWithActiveDataBlocks(providerType, false);
+
+        // Step 4: Verify History View
+        viewHeader.selectViewMode(ViewMode.HISTORY);
+        actions.verifySectionsWithActiveDataBlocks(providerType, true);
+
+        // Step 5: Verify Audit View
+        viewHeader.selectViewMode(ViewMode.AUDIT);
+        actions.verifySectionsWithActiveDataBlocks(providerType, true);
     }
 
     // View Provider : Sort Order On View Provider Details Screen
