@@ -76,8 +76,11 @@ public class OrganizationBuilderFactory {
         for (int i = 0; i < config.getNoteCount(); i++) {
             builder.addNote(dataGen.generateNote());
         }
-        for (int i = 0; i < config.getStatusCount(); i++) {
-            builder.addStatus("LIC", "ACTIVE", "GS");
+        // Generate unique status codes up to requested count. Capped at available status codes.
+        List<String> statusCodes = dataGen.generateUniqueStatusCodes(config.getStatusCount());
+        for (String code : statusCodes) {
+            String reason = dataGen.reasonForStatus(code);
+            builder.addStatus("LIC", code, reason);
         }
 
         // ----------------------- OrganizationProperties -----------------------

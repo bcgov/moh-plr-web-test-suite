@@ -303,6 +303,18 @@ public class MaintainUtils
         return formatDate(Instant.now());
     }
 
+        /**
+         * Returns the current date-time in ISO offset format (e.g., 2026-01-08T00:00:00-08:00).
+         * @return formatted date-time string
+         */
+        public static String currentDateTime()
+        {
+                return DateTimeFormatter
+                                .ISO_OFFSET_DATE_TIME
+                                .withZone(ZoneId.systemDefault())
+                                .format(Instant.now());
+        }
+
     /**
      * TODO (AZ) - doc
      *
@@ -419,7 +431,12 @@ public class MaintainUtils
         public static JSONObject findNestedExtension(JSONObject root, String... urls) {
                 JSONArray current = root.getJSONArray("extension");
                 JSONObject node = null;
-                for (int i = 0; i < urls.length; i++) {
+                int startIndex = 0;
+                // If the first segment matches the root's url, skip it since we've already "navigated" to root
+                if (urls.length > 0 && root.has("url") && urls[0].equals(root.optString("url"))) {
+                        startIndex = 1;
+                }
+                for (int i = startIndex; i < urls.length; i++) {
                         node = findEntry(current, "url", urls[i]);
                         if (i < urls.length - 1) {
                                 current = node.getJSONArray("extension");
@@ -428,77 +445,49 @@ public class MaintainUtils
                 return node;
         }
 
-        private static JSONObject createExtensionWithCode(String template, String[] urlPath, String code) {
-                JSONObject json = readJsonTemplate(template);
-                JSONObject codeNode = findNestedExtension(json, urlPath);
-                codeNode
-                        .getJSONObject("valueCodeableConcept")
-                        .getJSONArray("coding")
-                        .getJSONObject(0)
-                        .put("code", code);
-                return json;
-        }
-
-        private static JSONObject createExtensionWithString(String template, String[] urlPath, String value) {
-                JSONObject json = readJsonTemplate(template);
-                JSONObject node = findNestedExtension(json, urlPath);
-                node.put("valueString", value);
-                return json;
-        }
-
-        private static JSONObject createExtensionWithBoolean(String template, String[] urlPath, boolean value) {
-                JSONObject json = readJsonTemplate(template);
-                JSONObject node = findNestedExtension(json, urlPath);
-                node.put("valueBoolean", value);
+        /**
+         * Creates clinic type extension block from template and sets text value.
+         * The new template format uses a leaf node "clinicType" with valueCodeableConcept.text.
+         * @param text clinic type text to set
+         * @return constructed extension JSON object
+         */
+        public static JSONObject createClinicType(String text) {
+                JSONObject json = readJsonTemplate("org-clinic-type.json");
+                JSONObject typeExt = findNestedExtension(json, new String[]{ ORG_PRIMARY_CARE_URL, ORG_CLINIC_TYPE_URL });
+                JSONArray inner = typeExt.getJSONArray("extension");
+                JSONObject leaf = findEntry(inner, "url", "clinicType");
+                leaf.getJSONObject("valueCodeableConcept").put("text", text);
                 return json;
         }
 
         /**
-         * Creates clinic type extension block from template and sets code.
-         * @param code clinic type code to set
+         * Creates clinic ownership business type extension block and sets text value.
+         * Leaf node "ownershipType" holds valueCodeableConcept.text.
+         * @param text owner business type text to set
          * @return constructed extension JSON object
          */
-        public static JSONObject createClinicType(String code) {
-                return createExtensionWithCode(
-                        "org-clinic-type.json",
-                        new String[]{
-                                ORG_PRIMARY_CARE_URL,
-                                ORG_CLINIC_TYPE_URL,
-                                "code"
-                        },
-                        code);
+        public static JSONObject createClinicOwnerBusinessType(String text) {
+                JSONObject json = readJsonTemplate("org-clinic-owner-business-type.json");
+                JSONObject ownerExt = findNestedExtension(json, new String[]{ ORG_PRIMARY_CARE_URL, ORG_CLINIC_OWNERSHIP_TYPE_URL });
+                JSONArray inner = ownerExt.getJSONArray("extension");
+                JSONObject leaf = findEntry(inner, "url", "ownershipType");
+                leaf.getJSONObject("valueCodeableConcept").put("text", text);
+                return json;
         }
 
         /**
-         * Creates clinic ownership business type extension block and sets code.
-         * @param code owner business type code to set
+         * Creates clinic services delivery type extension block and sets text value.
+         * Leaf node "serviceDeliveryType" holds valueCodeableConcept.text.
+         * @param text clinic services delivery type text to set
          * @return constructed extension JSON object
          */
-        public static JSONObject createClinicOwnerBusinessType(String code) {
-                return createExtensionWithCode(
-                        "org-clinic-owner-business-type.json",
-                        new String[]{
-                                ORG_PRIMARY_CARE_URL,
-                                ORG_CLINIC_OWNERSHIP_TYPE_URL,
-                                "code"
-                        },
-                        code);
-        }
-
-        /**
-         * Creates clinic services delivery type extension block and sets code.
-         * @param code clinic services delivery type code to set
-         * @return constructed extension JSON object
-         */
-        public static JSONObject createClinicServices(String code) {
-                return createExtensionWithCode(
-                        "org-clinic-services.json",
-                        new String[]{
-                                ORG_PRIMARY_CARE_URL,
-                                ORG_CLINIC_SERVICES_URL,
-                                "code"
-                        },
-                        code);
+        public static JSONObject createClinicServices(String text) {
+                JSONObject json = readJsonTemplate("org-clinic-services.json");
+                JSONObject svcExt = findNestedExtension(json, new String[]{ ORG_PRIMARY_CARE_URL, ORG_CLINIC_SERVICES_URL });
+                JSONArray inner = svcExt.getJSONArray("extension");
+                JSONObject leaf = findEntry(inner, "url", "serviceDeliveryType");
+                leaf.getJSONObject("valueCodeableConcept").put("text", text);
+                return json;
         }
 
         /**
@@ -507,30 +496,26 @@ public class MaintainUtils
          * @return constructed extension JSON object
          */
         public static JSONObject createClinicOwnerName(String ownerName) {
-                return createExtensionWithString(
-                        "org-clinic-owner.json",
-                        new String[]{
-                                ORG_PRIMARY_CARE_URL,
-                                ORG_CLINIC_OWNER_URL,
-                                "ownerName"
-                        },
-                        ownerName);
+                JSONObject json = readJsonTemplate("org-clinic-owner.json");
+                JSONObject ext = findNestedExtension(json, new String[]{ ORG_PRIMARY_CARE_URL, ORG_CLINIC_OWNER_URL });
+                JSONArray inner = ext.getJSONArray("extension");
+                JSONObject leaf = findEntry(inner, "url", "clinicOwner");
+                leaf.put("valueString", ownerName);
+                return json;
         }
 
         /**
          * Creates PCI flag extension block and sets boolean value.
-         * @param pciEnabled whether PCI is enabled
+         * @param pciFlag whether PCI is enabled
          * @return constructed extension JSON object
          */
-        public static JSONObject createPciFlag(boolean pciEnabled) {
-                return createExtensionWithBoolean(
-                        "org-pci.json",
-                        new String[]{
-                                ORG_PRIMARY_CARE_URL,
-                                ORG_PCI_URL,
-                                "pciEnabled"
-                        },
-                        pciEnabled);
+        public static JSONObject createPciFlag(boolean pciFlag) {
+                JSONObject json = readJsonTemplate("org-pci.json");
+                JSONObject ext = findNestedExtension(json, new String[]{ ORG_PRIMARY_CARE_URL, ORG_PCI_URL });
+                JSONArray inner = ext.getJSONArray("extension");
+                JSONObject leaf = findEntry(inner, "url", "pciFlag");
+                leaf.put("valueBoolean", pciFlag);
+                return json;
         }
 
         /**
@@ -539,14 +524,12 @@ public class MaintainUtils
          * @return constructed extension JSON object
          */
         public static JSONObject createClinicLegalBusinessName(String legalName) {
-                return createExtensionWithString(
-                        "org-clinic-legal-name.json",
-                        new String[]{
-                                ORG_PRIMARY_CARE_URL,
-                                ORG_CLINIC_LEGAL_NAME_URL,
-                                "clinicLegalBusinessName"
-                        },
-                        legalName);
+                JSONObject json = readJsonTemplate("org-clinic-legal-name.json");
+                JSONObject ext = findNestedExtension(json, new String[]{ ORG_PRIMARY_CARE_URL, ORG_CLINIC_LEGAL_NAME_URL });
+                JSONArray inner = ext.getJSONArray("extension");
+                JSONObject leaf = findEntry(inner, "url", "clinicLegalName");
+                leaf.put("valueString", legalName);
+                return json;
         }
 
         /**
@@ -555,13 +538,12 @@ public class MaintainUtils
          * @return constructed extension JSON object
          */
         public static JSONObject createClinicPayeeNumber(String payeeNumber) {
-                JSONObject json = createExtensionWithString(
-                        "org-clinic-payee-number.json",
-                        new String[]{ "payeeNumber" },
-                        payeeNumber);
+                JSONObject json = readJsonTemplate("org-clinic-payee-number.json");
                 JSONArray ext = json.getJSONArray("extension");
+                JSONObject leaf = findEntry(ext, "url", "payeeNumber");
+                leaf.put("valueString", payeeNumber);
                 JSONObject periodExt = findEntry(ext, "url", PERIOD_EXTENSION_URL);
-                periodExt.getJSONObject("valuePeriod").put("start", currentDate());
+                periodExt.getJSONObject("valuePeriod").put("start", currentDateTime());
                 return json;
         }
 

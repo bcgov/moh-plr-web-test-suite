@@ -207,27 +207,27 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         {
             if (orgProperties_.getClinicType() != null)
             {
-                extensionJson.put(MaintainUtils.createClinicType(orgProperties_.getClinicType().name()));
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicType(orgProperties_.getClinicType().getText()));
             }
             if (orgProperties_.getClinicOwnerBusinessType() != null)
             {
-                extensionJson.put(MaintainUtils.createClinicOwnerBusinessType(orgProperties_.getClinicOwnerBusinessType().name()));
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicOwnerBusinessType(orgProperties_.getClinicOwnerBusinessType().getText()));
             }
             if (orgProperties_.getClinicServices() != null)
             {
-                extensionJson.put(MaintainUtils.createClinicServices(orgProperties_.getClinicServices().name()));
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicServices(orgProperties_.getClinicServices().getText()));
             }
             if (orgProperties_.getClinicLegalBusinessName() != null && !orgProperties_.getClinicLegalBusinessName().isBlank())
             {
-                extensionJson.put(MaintainUtils.createClinicLegalBusinessName(orgProperties_.getClinicLegalBusinessName()));
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicLegalBusinessName(orgProperties_.getClinicLegalBusinessName()));
             }
-            if (orgProperties_.isPciFlag())
+            if (orgProperties_.isPciFlag() != null)
             {
-                extensionJson.put(MaintainUtils.createPciFlag(true));
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createPciFlag(true));
             }
             for (String ownerName : orgProperties_.getClinicOwnerNames())
             {
-                extensionJson.put(MaintainUtils.createClinicOwnerName(ownerName));
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicOwnerName(ownerName));
             }
             for (String payee : orgProperties_.getPayeeNumber())
             {
@@ -236,6 +236,53 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         }
 
         return json;
+    }
+
+    /**
+     * Ensures Organization property extensions that are nested under the primary care wrapper are consolidated
+     * into a single wrapper entry (matching the expected wire format). If a primary-care wrapper already exists
+     * in the organization extension array, the child extensions from the provided wrapper are appended to it;
+     * otherwise the provided wrapper is added.
+     *
+     * @param orgExtensions organization-level extension array to update
+     * @param newWrapper a newly created wrapper JSON from MaintainUtils (url should be the primary-care URL)
+     */
+    private static void mergePrimaryCareWrapper(JSONArray orgExtensions, JSONObject newWrapper) {
+        if (newWrapper == null) return;
+        String url = newWrapper.optString("url", "");
+        // Only merge wrappers (skip non-wrapper extensions like payee number)
+        if (!url.contains("bc-organization-primary-care-clinic-extension")) {
+            orgExtensions.put(newWrapper);
+            return;
+        }
+
+        // Find existing wrapper
+        JSONObject existing = null;
+        for (int i = 0; i < orgExtensions.length(); i++) {
+            JSONObject candidate = orgExtensions.getJSONObject(i);
+            if (url.equals(candidate.optString("url", ""))) {
+                existing = candidate;
+                break;
+            }
+        }
+
+        if (existing == null) {
+            orgExtensions.put(newWrapper);
+            return;
+        }
+
+        // Append child extensions from newWrapper into existing wrapper's extension array
+        JSONArray existingChildren = existing.optJSONArray("extension");
+        if (existingChildren == null) {
+            existingChildren = new JSONArray();
+            existing.put("extension", existingChildren);
+        }
+        JSONArray newChildren = newWrapper.optJSONArray("extension");
+        if (newChildren != null) {
+            for (int j = 0; j < newChildren.length(); j++) {
+                existingChildren.put(newChildren.getJSONObject(j));
+            }
+        }
     }
 
     @Override

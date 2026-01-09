@@ -25,17 +25,6 @@
           "display": "MOH"
         }
       }
-    },
-    {
-      "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
-      "valueCodeableConcept": {
-        "coding": [
-          {
-            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
-            "code": "CHG"
-          }
-        ]
-      }
     }
   ]
 }

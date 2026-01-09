@@ -94,7 +94,7 @@ implements SimpleTest
             //.withClinicHoursOfOperation(2) TODO - Missing logic. Implement logic to query parse and use in maintain later
             .withClinicOwnerNames(2)
             .withPayeeNumber(2)
-            .withPciFlag();           
+            .withPciFlag();        
 
         MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
 
