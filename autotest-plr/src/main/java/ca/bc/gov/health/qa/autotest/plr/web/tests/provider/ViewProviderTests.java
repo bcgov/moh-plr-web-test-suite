@@ -56,20 +56,68 @@ implements SimpleTest
         // fhirController = new FHIRController(UserType.ADMIN);
     }
 
+    // View Provider : Default Provider Detail Screen Record Display
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
-    // View Provider : Default Provider Detail
-    // View Provider : Indicating Current Data Objects
     public void testDefaultProviderDetail(ProviderType providerType)
     {
-        JSONObject provider = PlrData.getProvider(providerType, "default");
-        ViewProviderActions actions =
-                workflowManager_.getSelectedWorkflow().getViewProviderActions();
-        actions.openProvider(provider.getString("pauth"));
+        final JSONObject provider = PlrData.getProvider(providerType, "default");
+
+        // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
+        ViewProviderPage page = viewByIdentifier(providerType, provider, workflowManager_);
+        final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
+
+        // Step 2: Verify Default Provider Detail Screen Record Display
+        ViewHeaderFragment viewHeader = page.getViewHeader();
+        assertEquals(viewHeader.grabViewMode(), ViewMode.CURRENT, "Default view mode not current");
+    }
+
+    // View Provider : Indicating Current Data Objects
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testIndicatingCurrentDataObj(ProviderType providerType)
+    {
+        final JSONObject provider = PlrData.getProvider(providerType, "default");
+
+        // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
+        viewByIdentifier(providerType, provider, workflowManager_);
+        final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
+
+        // Step 3: Verify active data objects
         actions.verifySectionsWithActiveDataBlocks(providerType, false);
     }
 
-    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    // View Provider : Optional Provider Detail Screen Views - History and Audit
+    @Test(dataProvider = "allPlrUserTypesProviderTypes", dataProviderClass = InjectableData.class)
+    public void testOptionalDetailScreenViews(UserType userType, ProviderType providerType)
+    {
+        final JSONObject provider = PlrData.getProvider(providerType, "default");
+
+        // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
+        ViewProviderPage page = viewByIdentifier(providerType, provider, workflowManager_);
+
+        ViewHeaderFragment viewHeader = page.getViewHeader();
+
+        // Step 2: Select Current View
+        viewHeader.selectViewMode(ViewMode.CURRENT);
+
+        // Step 3: Select History View
+        viewHeader.selectViewMode(ViewMode.HISTORY);
+
+        // Step 4: Select Audit View (skipped if consumer)
+        if (!userType.equals(UserType.CONSUMER)) viewHeader.selectViewMode(ViewMode.AUDIT);
+
+        // Step 5-7: Verify Viewable View Modes
+        viewHeader.expandViewModeMenu(true);
+        assertTrue(viewHeader.grabViewModeDisplayed(ViewMode.CURRENT), "Current View option");
+        assertTrue(viewHeader.grabViewModeDisplayed(ViewMode.HISTORY), "History View option");
+        assertEquals(
+                viewHeader.grabViewModeDisplayed(ViewMode.AUDIT),
+                !userType.equals(UserType.CONSUMER),
+                "Audit View option");
+        viewHeader.expandViewModeMenu(false);
+    }
+
     // View Provider : Rules Indicating Current Records
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testRulesCurrentRecords(ProviderType providerType)
     {
         final JSONObject provider = PlrData.getProvider(providerType, "default");
