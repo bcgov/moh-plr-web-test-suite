@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -545,6 +547,57 @@ public class MaintainUtils
                 JSONObject periodExt = findEntry(ext, "url", PERIOD_EXTENSION_URL);
                 periodExt.getJSONObject("valuePeriod").put("start", currentDateTime());
                 return json;
+        }
+
+        private static String normalizeTime(String hhmm) {
+                // Ensure seconds are present e.g., 13:00 -> 13:00:00
+                if (hhmm.matches("\\d{2}:\\d{2}:\\d{2}")) return hhmm;
+                if (hhmm.matches("\\d{2}:\\d{2}")) return hhmm + ":00";
+                return hhmm; // fallback (already formatted)
+        }
+
+        /**
+         * Creates a bc-availability-extension container where each day/time pair in the input string
+         * becomes its own bc-availableTime-extension child.
+         * Example: "MON 12:00-13:00 TUE 13:00-14:00" yields one availability container with two
+         * availableTime children.
+         * The container includes owner and a period start; identifier can be added later if needed.
+         * @param hoursEntry one string possibly containing multiple day/time pairs
+         * @return constructed availability extension JSON object
+         */
+        public static JSONObject createClinicAvailability(String hoursEntry) {
+                JSONObject container = new JSONObject();
+                container.put("url", "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-availability-extension");
+                JSONArray ext = new JSONArray();
+
+                // Parse pairs (supports spaces or newlines between pairs)
+                Pattern p = Pattern.compile("([A-Z]{3})\\s+(\\d{2}:\\d{2})(?::\\d{2})?-(\\d{2}:\\d{2})(?::\\d{2})?");
+                Matcher m = p.matcher(hoursEntry);
+                boolean any = false;
+                while (m.find()) {
+                        any = true;
+                        String day = m.group(1);
+                        String start = m.group(2);
+                        String end = m.group(3);
+
+                        // Use template for availableTime block shape (includes owner/end-reason/period per template)
+                        JSONObject avail = readJsonTemplate("org-clinic-hours.json");
+                        JSONArray inner = avail.getJSONArray("extension");
+
+                        // Set leaf values
+                        findEntry(inner, "url", "daysOfWeek").put("valueCode", day);
+                        findEntry(inner, "url", "availableStartTime").put("valueTime", normalizeTime(start));
+                        findEntry(inner, "url", "availableEndTime").put("valueTime", normalizeTime(end));
+
+                        ext.put(avail);
+                }
+
+                if (!any) {
+                        throw new IllegalArgumentException("Invalid clinic hours entry: " + hoursEntry);
+                }
+
+                container.put("extension", ext);
+                return container;
         }
 
         /**

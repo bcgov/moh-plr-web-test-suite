@@ -84,14 +84,14 @@ implements SimpleTest
             .withConfidentiality()
             //.withAddress() by default as is a required attribute
             .withAllTelecom()
-            .withStatuses(2)
+            .withStatuses(1)
             .withNotes(2)
             .withClinicServices()
             .withClinicOwnerBusinessType()
             .withClinicType()
             .withClinicLegalBusinessName()
             //.withAddressUnit(2) TODO - Issues with address unit. Implement logic to query parse and use in maintain later
-            //.withClinicHoursOfOperation(2) TODO - Missing logic. Implement logic to query parse and use in maintain later
+            .withClinicHoursOfOperation(2)
             .withClinicOwnerNames(2)
             .withPayeeNumber(2)
             .withPciFlag();        

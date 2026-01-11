@@ -42,6 +42,9 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     //TODO: O2I relationships
     //TODO: 02F relationships
 
+    // Organization status rules (single source of truth)
+    public static final List<String> STATUS_CLASSES_ORDER = List.of("LIC", "AE");
+    public static final int MAX_STATUS_COUNT = STATUS_CLASSES_ORDER.size();
 
     /**
      * Constructs an empty Organization builder. Required field validation occurs during {@link #build()}.
@@ -102,6 +105,11 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         statusInfo.put("statusClass",  statusClass);
         statusInfo.put("statusReason", statusReason);
         statusList_.add(statusInfo);
+
+        // Cap to a maximum number of unique classes
+        if (statusList_.size() > MAX_STATUS_COUNT) {
+            statusList_ = new ArrayList<>(statusList_.subList(0, MAX_STATUS_COUNT));
+        }
         return this;
     }
 
@@ -202,9 +210,14 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
            extensionJson.put(MaintainUtils.createNote(info));
         }
 
-        // OrganizationProperties mapping (skip clinic hours of operation for now)
+        // OrganizationProperties mapping
         if (orgProperties_ != null)
         {
+            // Clinic hours of operation (availableTime blocks) — same level as note blocks
+            for (String hours : orgProperties_.getClinicHoursOfOperation())
+            {
+                extensionJson.put(MaintainUtils.createClinicAvailability(hours));
+            }
             if (orgProperties_.getClinicType() != null)
             {
                 mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicType(orgProperties_.getClinicType().getText()));

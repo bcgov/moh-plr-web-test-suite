@@ -345,6 +345,7 @@ public class OrganizationMaintainConfig {
         this.noteCount = count;
         return this;
     }
+    
     /** Set number of status entries to generate.
      * @param count number of statuses (>= required minimum)
      * @return this config
@@ -355,6 +356,16 @@ public class OrganizationMaintainConfig {
         this.statusCount = count;
         return this;
     }
+
+    /** Set one status to be present as an entry to generate.
+     * @return this config
+     * @throws IllegalArgumentException if below required minimum */
+    public OrganizationMaintainConfig withStatus() {
+            this.statusCount = 1;
+        return this;
+    }
+
+
     /** Enable all attributes and set counts for note and status lists.
      * @param noteCount number of notes
      * @param statusCount number of statuses

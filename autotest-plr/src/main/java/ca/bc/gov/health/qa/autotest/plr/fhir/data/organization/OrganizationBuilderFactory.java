@@ -76,11 +76,14 @@ public class OrganizationBuilderFactory {
         for (int i = 0; i < config.getNoteCount(); i++) {
             builder.addNote(dataGen.generateNote());
         }
-        // Generate unique status codes up to requested count. Capped at available status codes.
-        List<String> statusCodes = dataGen.generateUniqueStatusCodes(config.getStatusCount());
-        for (String code : statusCodes) {
+        // Generate up to MAX_STATUS_COUNT unique statuses with distinct statusClass values
+        int desiredStatuses = Math.min(config.getStatusCount(), MaintainOrgBuilder.MAX_STATUS_COUNT);
+        List<String> statusCodes = dataGen.generateUniqueStatusCodes(desiredStatuses);
+        for (int i = 0; i < statusCodes.size(); i++) {
+            String code = statusCodes.get(i);
             String reason = dataGen.reasonForStatus(code);
-            builder.addStatus("LIC", code, reason);
+            String statusClass = MaintainOrgBuilder.STATUS_CLASSES_ORDER.get(i);
+            builder.addStatus(statusClass, code, reason);
         }
 
         // ----------------------- OrganizationProperties -----------------------
