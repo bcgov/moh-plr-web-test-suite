@@ -1,12 +1,18 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization;
+package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrganizationProperties;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicOwnerBusinessType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicServices;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
@@ -19,6 +25,8 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRole
  */
 public final class OrgQueryResponseMapper {
 
+	private static final Logger LOG = ExecutionLogManager.getLogger();
+	
 	private OrgQueryResponseMapper() {}
 
 	/** Canonical extension URL for organization note wrapper. */
@@ -99,6 +107,64 @@ public final class OrgQueryResponseMapper {
 		}
 
 		MaintainOrgBuilder builder = new MaintainOrgBuilder();
+		populateBuilderFromOrganization(orgResource, builder);
+		return builder;
+	}
+
+	/**
+	 * Parses all matching Organization resources from the outer searchset bundle and returns
+	 * a list of MaintainOrgBuilder instances. Each "match" entry may contain a collection
+	 * bundle with one or more Organization resources; all found organizations are mapped.
+	 *
+	 * If no organizations are found, an empty list is returned.
+	 *
+	 * @param orgQueryBundle Complete JSON bundle returned by organization query
+	 * @return list of populated MaintainOrgBuilder objects (possibly empty)
+	 */
+	public static List<MaintainOrgBuilder> fromQueryBundleAll(JSONObject orgQueryBundle) {
+		List<MaintainOrgBuilder> builders = new ArrayList<>();
+		if (orgQueryBundle == null) return builders;
+
+		JSONArray topEntries = orgQueryBundle.optJSONArray("entry");
+		if (topEntries == null) return builders;
+
+		for (int i = 0; i < topEntries.length(); i++) {
+			JSONObject topEntry = topEntries.optJSONObject(i);
+			if (topEntry == null) continue;
+			JSONObject search = topEntry.optJSONObject("search");
+			if (search == null || !"match".equals(search.optString("mode"))) continue;
+
+			JSONObject collectionBundle = topEntry.optJSONObject("resource");
+			if (collectionBundle == null) continue;
+
+			JSONArray innerEntries = collectionBundle.optJSONArray("entry");
+			if (innerEntries == null) continue;
+
+			for (int j = 0; j < innerEntries.length(); j++) {
+				JSONObject inner = innerEntries.optJSONObject(j);
+				if (inner == null) continue;
+				JSONObject resource = inner.optJSONObject("resource");
+				if (resource == null) continue;
+				if (!"Organization".equals(resource.optString("resourceType"))) continue;
+
+				MaintainOrgBuilder b = new MaintainOrgBuilder();
+				try {
+					populateBuilderFromOrganization(resource, b);
+					builders.add(b);
+				} catch (Exception ignored) {
+					LOG.info("Error occurred: {}", ignored.getMessage());
+					// Skip malformed organization entries
+				}
+			}
+		}
+
+		return builders;
+	}
+
+	/**
+	 * Populates a MaintainOrgBuilder from a single Organization resource JSON.
+	 */
+	private static void populateBuilderFromOrganization(JSONObject orgResource, MaintainOrgBuilder builder) {
 		mapIdentifiers(orgResource, builder);
 		mapNameAndAlias(orgResource, builder);
 		mapRoleType(orgResource, builder);
@@ -117,8 +183,6 @@ public final class OrgQueryResponseMapper {
 		mapPrimaryCareProperties(orgResource, props);
 		mapPayeeNumbers(orgResource, props);
 		builder.organizationProperties(props);
-
-		return builder;
 	}
 
     /*

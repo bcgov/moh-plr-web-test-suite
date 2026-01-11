@@ -5,6 +5,8 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
@@ -309,6 +311,87 @@ implements AutoCloseable
                 .build();
         SimpleHttpResponse response = client_.send(request);
         JSONObject responseData;
+        if (response.getStatusCode() == 200)
+        {
+            responseData = new JSONObject(response.getTextResponseBody());
+        }
+        else
+        {
+            throw new IllegalStateException(resourceType + " FHIR query failed.");
+        }
+        return responseData;
+    }
+
+    /**
+     * Executes an Organization $entityQuery using optional criteria.
+     * Only non-null/non-blank parameters are sent. 
+     *
+     * Supported parameters:
+     * - name
+     * - description
+     * - type (e.g., HDS)
+     * - address-city
+     * - address-line1
+     *
+     * @param name           optional organization name filter
+     * @param description    optional description filter
+     * @param type           role type filter (e.g., HDS)
+     * @param addressCity    optional address city filter
+     * @param addressLine1   optional address first line filter
+     * @param withHistory    include "withHistory" flag as empty query param when true
+     * @return JSON response payload
+     * @throws InterruptedException if the current thread is interrupted
+     * @throws IOException          if an I/O error occurs
+     */
+    public JSONObject queryOrganizationByCriteria(
+            String name,
+            String description,
+            String type,
+            String addressCity,
+            String addressLine1,
+            boolean withHistory)
+    throws InterruptedException,
+           IOException
+    {
+        Map<String, String> params = new HashMap<>();
+        if (name != null && !name.isBlank())                 params.put("name", name);
+        if (description != null && !description.isBlank())   params.put("description", description);
+        if (type != null && !type.isBlank())                 params.put("type", type);
+        if (addressCity != null && !addressCity.isBlank())   params.put("address-city", addressCity);
+        if (addressLine1 != null && !addressLine1.isBlank()) params.put("address-line1", addressLine1);
+        if (withHistory)                                     params.put("withHistory", "true");
+            
+
+        return entityQueryWithParams("Organization", params);
+    }
+
+    /**
+     * Generic $entityQuery helper that adds provided parameters and optional empty flags.
+     * @param resourceType resource type path (e.g., "Organization")
+     * @param params       map of query parameters to include
+     * @return JSON response payload
+     * @throws InterruptedException if interrupted
+     * @throws IOException          on I/O errors
+     */
+    private JSONObject entityQueryWithParams(
+            String resourceType,
+            Map<String,String> params)
+    throws InterruptedException,
+           IOException
+    {
+        verifyLoggedIn();
+        SimpleHttpRequestBuilder builder = createHttpRequestBuilder()
+                .transactionName("FHIR:Query" + resourceType)
+                .uri(uri_.resolve(resourceType + "/$entityQuery"));
+        if (params != null) {
+            for (Map.Entry<String,String> e : params.entrySet()) {
+                builder.queryParameter(e.getKey(), e.getValue());
+            }
+        }
+
+        SimpleHttpResponse response = client_.send(builder.build());
+        JSONObject responseData;
+
         if (response.getStatusCode() == 200)
         {
             responseData = new JSONObject(response.getTextResponseBody());

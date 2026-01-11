@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir;
 
+import java.util.List;
+
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
@@ -15,8 +17,9 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResour
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.FacilityQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.OrgQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryResponseMapper;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
@@ -169,7 +172,7 @@ public class FHIRController implements AutoCloseable {
     public MaintainFacilityBuilder queryFacilityByIdentifier(IdentifierType idType, String idValue) {
 
         JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.FACILITY, idType, idValue);
-        LOG.info("Facility query result={}", response);
+        LOG.info("Facility identifier query result={}", response);
 
         return FacilityQueryResponseMapper.fromQueryBundle(response);
     }
@@ -184,9 +187,29 @@ public class FHIRController implements AutoCloseable {
     public MaintainOrgBuilder queryOrganizationByIdentifier(IdentifierType idType, String idValue) {
 
         JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.ORGANIZATION, idType, idValue);
-        LOG.info("Organization query result={}", response);
+        LOG.info("Organization identifier query result={}", response);
 
         return OrgQueryResponseMapper.fromQueryBundle(response);
+    }
+
+    /**
+     * Overload: Queries FHIR for an organization by optional criteria using a DTO.
+     * @param criteria criteria container; only provided values are sent
+     * @return a list of organization builders populated from the FHIR response that match the criteria
+     */
+    public List<MaintainOrgBuilder> queryOrganizationByCriteria(OrgQueryCriteriaParams criteria) {
+
+        JSONObject response = executor.queryOrganizationByCriteria(criteria.getName(),
+                                                                   criteria.getDescription(),
+                                                                   criteria.getRoleType(),
+                                                                   criteria.getAddressCity(),
+                                                                   criteria.getAddressLine1(),
+                                                                   criteria.isWithHistory());
+
+        
+
+        LOG.info("Organization criteria query (DTO) result={}", response);
+        return OrgQueryResponseMapper.fromQueryBundleAll(response);
     }
 
     @Override

@@ -204,4 +204,35 @@ public class FHIRSession implements AutoCloseable
         }
     }
 
+    /**
+     * Executes an Organization $entityQuery with optional criteria. Only non-null/non-blank
+     * parameters are sent; `withHistory` is included as a flag when true.
+     *
+     * @param name           optional organization name filter
+     * @param description    optional description filter
+     * @param type           role type filter (e.g., HDS)
+     * @param addressCity    optional address city filter
+     * @param addressLine1   optional address first line filter
+     * @param withHistory    include the history flag when true
+     * @return JSON response payload
+     * @throws IllegalStateException if interrupted or an I/O error occurs while sending the request
+     */
+    public JSONObject queryOrganizationByCriteria(
+            String name,
+            String description,
+            String type,
+            String addressCity,
+            String addressLine1,
+            boolean withHistory) {
+        try {
+            return actions_.queryOrganizationByCriteria(
+                    name, description, type, addressCity, addressLine1, withHistory);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while submitting query request", e);
+        } catch (IOException e) {
+            throw new IllegalStateException("I/O failure during query request", e);
+        }
+    }
+
 }
