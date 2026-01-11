@@ -570,13 +570,33 @@ public class MaintainUtils
                 container.put("url", "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-availability-extension");
                 JSONArray ext = new JSONArray();
 
-                // Parse pairs (supports spaces or newlines between pairs)
-                Pattern p = Pattern.compile("([A-Z]{3})\\s+(\\d{2}:\\d{2})(?::\\d{2})?-(\\d{2}:\\d{2})(?::\\d{2})?");
+                // Owner extension (assignee display defaults to MOH)
+                JSONObject ownerExt = new JSONObject();
+                ownerExt.put("url", "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension");
+                JSONObject ownerVal = new JSONObject();
+                ownerVal.put("assigner", new JSONObject().put("display", "MOH"));
+                ownerExt.put("valueIdentifier", ownerVal);
+                ext.put(ownerExt);
+
+                // End reason extension (default code CHG)
+                JSONObject endReasonExt = new JSONObject();
+                endReasonExt.put("url", "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension");
+                JSONObject endReasonVal = new JSONObject();
+                JSONArray coding = new JSONArray();
+                coding.put(new JSONObject()
+                                .put("system", "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code")
+                                .put("code", "CHG"));
+                endReasonVal.put("coding", coding);
+                endReasonExt.put("valueCodeableConcept", endReasonVal);
+                ext.put(endReasonExt);
+
+                // Parse pairs: require dash separator (HH:MM-HH:MM), days are case-insensitive
+                Pattern p = Pattern.compile("(?i)([A-Z]{3})\\s+(\\d{2}:\\d{2})(?::\\d{2})?\\s*-\\s*(\\d{2}:\\d{2})(?::\\d{2})?");
                 Matcher m = p.matcher(hoursEntry);
                 boolean any = false;
                 while (m.find()) {
                         any = true;
-                        String day = m.group(1);
+                        String day = m.group(1).toUpperCase(Locale.ROOT);
                         String start = m.group(2);
                         String end = m.group(3);
 
@@ -595,6 +615,12 @@ public class MaintainUtils
                 if (!any) {
                         throw new IllegalArgumentException("Invalid clinic hours entry: " + hoursEntry);
                 }
+
+                // Period extension (start only)
+                JSONObject periodExt = new JSONObject();
+                periodExt.put("url", PERIOD_EXTENSION_URL);
+                periodExt.put("valuePeriod", new JSONObject().put("start", currentDateTime()));
+                ext.put(periodExt);
 
                 container.put("extension", ext);
                 return container;

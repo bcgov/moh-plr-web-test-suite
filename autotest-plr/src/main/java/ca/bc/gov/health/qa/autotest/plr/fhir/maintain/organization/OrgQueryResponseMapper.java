@@ -431,6 +431,9 @@ public final class OrgQueryResponseMapper {
 			if (!AVAILABILITY_EXTENSION_URL.equals(ext.optString("url"))) continue;
 			JSONArray nested = ext.optJSONArray("extension");
 			if (nested == null) continue;
+
+			// Collect all availableTime entries that belong to this single availability block
+			java.util.List<String> blockParts = new java.util.ArrayList<>();
 			for (int j = 0; j < nested.length(); j++) {
 				JSONObject inner = nested.optJSONObject(j);
 				if (inner == null) continue;
@@ -453,10 +456,15 @@ public final class OrgQueryResponseMapper {
 					}
 				}
 				if (day != null && start != null && end != null) {
-					String s = start.length() >= 5 ? start.substring(0,5) : start;
-					String e = end.length() >= 5 ? end.substring(0,5) : end;
-					hours.add(day.toUpperCase(java.util.Locale.ROOT) + " " + s + "-" + e);
+					String s = start.length() >= 5 ? start.substring(0, 5) : start;
+					String e = end.length() >= 5 ? end.substring(0, 5) : end;
+					blockParts.add(day.toUpperCase(java.util.Locale.ROOT) + " " + s + "-" + e);
 				}
+			}
+
+			// Join multiple days from the same availability into one string
+			if (!blockParts.isEmpty()) {
+				hours.add(String.join(" ", blockParts));
 			}
 		}
 		if (!hours.isEmpty()) props.setClinicHoursOfOperation(hours);

@@ -94,10 +94,10 @@ implements SimpleTest
             //.withIdentifier() by default as is a required attribute
             //.withRoleType(OrgRoleType.HDS) already passed on constructor. HDS by default. also required attribute
             .withAlias()
-            .withConfidentiality()
+            //.withConfidentiality() //Note that editing the record will not be possible if confidentiality is set to true.
             //.withAddress() by default as is a required attribute
             .withAllTelecom()
-            .withStatuses(1)
+            .withStatuses(2) //Note that right now the maximum amount of confidentiality that can be added is 2
             .withNotes(2)
             .withClinicServices()
             .withClinicOwnerBusinessType()
@@ -117,7 +117,7 @@ implements SimpleTest
         //Resulting MaintainOrgBuilder contains the queried organization data.
         MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
 
-        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType(), orgQueried.getOrganizationProperties().getClinicType(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation());
+        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation());
 
         //Close the FHIR session
         fhirController.close();

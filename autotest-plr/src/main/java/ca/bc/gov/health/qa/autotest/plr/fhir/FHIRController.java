@@ -145,7 +145,15 @@ public class FHIRController implements AutoCloseable {
         return facility.copyWithoutOrgRelationships();
     }
 
-    //TODO: ceaseOrganizationRelationships(MaintainOrgBuilder org)
+    /*TODO public MaintainOrgBuilder ceaseOrganizationRelationships(MaintainOrgBuilder org){
+        //org.ceaseOrganizationRelationships();
+        String id = executor.submitMaintain(org);
+        LOG.info("Ceased organization relationships (organizationId={}).", id);
+
+        // Return a copy without organization relationships to reflect post‑cease state.
+        //return org.copyWithoutOrgRelationships();
+        return org;
+    }*/
 
     //TODO: createPractitioner(PracType OOP-Individual|Individual, IndividualMaintainConfig config)
 

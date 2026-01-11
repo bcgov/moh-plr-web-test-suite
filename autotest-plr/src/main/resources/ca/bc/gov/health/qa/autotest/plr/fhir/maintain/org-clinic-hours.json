@@ -16,31 +16,6 @@
         {
             "url": "allDay",
             "valueBoolean": false
-        },
-        {
-            "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
-            "valueIdentifier": {
-                "assigner": {
-                    "display": "MOH"
-                }
-            }
-        },
-        {
-            "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
-            "valueCodeableConcept": {
-                "coding": [
-                    {
-                        "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
-                        "code": "CHG"
-                    }
-                ]
-            }
-        },
-        {
-            "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
-            "valuePeriod": {
-                "start": "2026-01-09T00:00:00-08:00"
-            }
         }
     ]
 }
