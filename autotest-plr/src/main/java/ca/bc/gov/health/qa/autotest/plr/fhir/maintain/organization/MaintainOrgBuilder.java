@@ -234,9 +234,9 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
             {
                 mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicLegalBusinessName(orgProperties_.getClinicLegalBusinessName()));
             }
-            if (orgProperties_.isPciFlag() != null)
+            if (orgProperties_.getPciFlag() != null)
             {
-                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createPciFlag(true));
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createPciFlag(orgProperties_.getPciFlag()));
             }
             for (String ownerName : orgProperties_.getClinicOwnerNames())
             {

@@ -23,7 +23,7 @@ implements SimpleTest
     {}
 
     @Test
-    public void test0()
+    public void facilityTest()
     {
 
         //Start Controller - Passed parameter will determine user role for FHIR calls. 
@@ -70,6 +70,19 @@ implements SimpleTest
 
         LOG.info("Ceased facility relationships for facility id {}, name {}, address {}, description {}, telecoms {}, notes {}, relationships {}.", facility.getIdentifier(), facility.getName(), facility.getAddress().toString(), facility.getDescription(), facility.getTelecomList(), facility.getNoteList(), facility.getOrgRelationshipList());
 
+        //Close the FHIR session
+        fhirController.close();
+           
+    }
+
+    @Test
+    public void organizationTest()
+    {
+
+        //Start Controller - Passed parameter will determine user role for FHIR calls. 
+        //To change user role, call fhirController.changeFHIRSession(UserType.<ROLE>).
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
         /***************ORGANIZATION****************/
 
         //Create an organization with random data and specified role type.
@@ -104,7 +117,7 @@ implements SimpleTest
         //Resulting MaintainOrgBuilder contains the queried organization data.
         MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
 
-        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, address {}, telecoms {}, notes {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList());
+        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType(), orgQueried.getOrganizationProperties().getClinicType(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation());
 
         //Close the FHIR session
         fhirController.close();

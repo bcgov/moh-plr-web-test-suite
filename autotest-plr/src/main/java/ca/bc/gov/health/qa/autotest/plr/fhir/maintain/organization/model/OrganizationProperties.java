@@ -121,7 +121,7 @@ public class OrganizationProperties {
      * Returns false when unset (null-safe).
      * @return true if PCI flag is explicitly set to true
      */
-    public Boolean isPciFlag() { return pciFlag; }
+    public Boolean getPciFlag() { return pciFlag; }
     /**
      * Sets the PCI flag.
      * @param pciFlag flag value
