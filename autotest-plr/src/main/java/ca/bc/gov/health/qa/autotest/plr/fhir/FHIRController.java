@@ -9,6 +9,9 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.actions.FHIRSession;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
@@ -16,6 +19,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierTyp
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.FacilityQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryResponseMapper;
@@ -34,6 +38,8 @@ public class FHIRController implements AutoCloseable {
     private FHIRSession executor;
     private final FacilityBuilderFactory facilityFactory;    
     private final OrganizationBuilderFactory organizationFactory;
+    private final IndividualBuilderFactory individualFactory;
+
 
     /**
      * Constructs a controller bound to a specific user role (credential profile).
@@ -44,7 +50,8 @@ public class FHIRController implements AutoCloseable {
 
         facilityFactory = new FacilityBuilderFactory(FacilityDataGenerator.getInstance());
         organizationFactory = new OrganizationBuilderFactory(OrganizationDataGenerator.getInstance());
-
+        individualFactory = new IndividualBuilderFactory(IndividualDataGenerator.getInstance());
+        
         changeFHIRSession(userType);
     }
 
@@ -107,6 +114,22 @@ public class FHIRController implements AutoCloseable {
         return builder;
     }
 
+        /**
+     * Ceases all organization relationships currently configured on the provided facility builder.
+     * The builder is submitted and its identifier updated with the returned IFC id.
+     * @param facility existing facility builder whose relationships should be ceased
+     * @return same builder instance (for fluent chaining)
+     */
+    public MaintainFacilityBuilder ceaseFacilityRelationships(MaintainFacilityBuilder facility) {
+        facility.ceaseOrganizationRelationships();
+        String id = executor.submitMaintain(facility);
+        LOG.info("Ceased facility relationships (facilityId={}).", id);
+        facility.identifier(id);
+        
+        // Return a copy without organization relationships to reflect post‑cease state.
+        return facility.copyWithoutOrgRelationships();
+    }
+
     /**
      * Generates organization data with only required fields and submits a maintain request.
      *  @param roleType role type to assign to the organization
@@ -132,22 +155,6 @@ public class FHIRController implements AutoCloseable {
         return builder;
     }
 
-    /**
-     * Ceases all organization relationships currently configured on the provided facility builder.
-     * The builder is submitted and its identifier updated with the returned IFC id.
-     * @param facility existing facility builder whose relationships should be ceased
-     * @return same builder instance (for fluent chaining)
-     */
-    public MaintainFacilityBuilder ceaseFacilityRelationships(MaintainFacilityBuilder facility) {
-        facility.ceaseOrganizationRelationships();
-        String id = executor.submitMaintain(facility);
-        LOG.info("Ceased facility relationships (facilityId={}).", id);
-        facility.identifier(id);
-        
-        // Return a copy without organization relationships to reflect post‑cease state.
-        return facility.copyWithoutOrgRelationships();
-    }
-
     /*TODO public MaintainOrgBuilder ceaseOrganizationRelationships(MaintainOrgBuilder org){
         //org.ceaseOrganizationRelationships();
         String id = executor.submitMaintain(org);
@@ -157,6 +164,24 @@ public class FHIRController implements AutoCloseable {
         //return org.copyWithoutOrgRelationships();
         return org;
     }*/
+
+    /**
+     * Generates individual provider data with customizable fields and submits a maintain request.
+     *  @param config configuration of the individual to create
+     * @return created organization values as a MaintainIndividualBuilder
+     */
+    public MaintainIndividualBuilder createIndividual(IndividualMaintainConfig config) {
+        MaintainIndividualBuilder builder = individualFactory.build(config);
+
+        /* TODO String id = executor.submitMaintain(builder);
+        LOG.info("Created organization (id={})", id);
+
+        //Set the actual id created by the service (should be an IPC identifier)
+        builder.addIdentifier(IdentifierType.IPC, id);
+        return builder;*/
+
+        return builder;
+    }
 
     //TODO: createPractitioner(PracType OOP-Individual|Individual, IndividualMaintainConfig config)
 

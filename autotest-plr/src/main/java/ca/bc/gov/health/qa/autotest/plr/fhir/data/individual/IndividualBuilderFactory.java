@@ -1,8 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.individual;
 
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
@@ -80,8 +80,9 @@ public class IndividualBuilderFactory {
             b.setDemographics(birthDate, birthCountry, birthProvince, gender, deathDate);
         }
 
-        for (int i = 0; i < config.getExpertiseCount(); i++) {
-            b.addExpertise(dataGen.randomExpertiseCode(), "HL7");
+        List<String> expertiseCodes = dataGen.generateUniqueExpertiseCodes(config.getExpertiseCount());
+        for (String code : expertiseCodes) {
+            b.addExpertise(code, dataGen.shortText());
         }
         for (int i = 0; i < config.getCredentialCount(); i++) {
             b.addCredential(

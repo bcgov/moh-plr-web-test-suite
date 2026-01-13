@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.individual;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.time.LocalDate;
 
@@ -62,7 +64,7 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
     );
 
     private static final List<String> ROLE_TYPES = List.of("MD", "RN", "DEN", "OPT", "PHARM", "LPN");
-    private static final List<String> EXPERTISE_CODES = List.of("ENG", "C06", "L01", "SPAN", "F16");
+    private static final List<String> EXPERTISE_CODES = List.of("ENG", "C06", "L01", "SPAN", "F16", "A10", "S16", "L06", "L23", "M03", "N03", "P11", "S41", "S59", "T01", "T28", "T11", "V01", "W01", "X01", "Y03", "Z01");
     private static final List<String> CREDENTIAL_TYPES = List.of("BD", "BSC", "D", "M", "OTHER", "PHD");
     private static final List<String> INSTITUTION_NAMES = List.of(
         "Hospital School of ",
@@ -76,7 +78,7 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
         "University Health Sciences of ",
         "Health Academy of "
     );
-    
+
     private static final List<String> CONDITION_TYPES = List.of("LOC", "OTH", "NON-RX", "EXP", "PRAC", "HON", "LMCC", "MCCEE", "ACAD", "AF");
 
     private static final int FIXED_LOWER_STREET_NUMBER = 100; 
@@ -111,13 +113,12 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
 
     /**
      * Generate a tuple [first, middle, third] given names.
-     * Middle and third names are optional and may be blank.
      * @return array of names [first, middle, third]
      */
     public String[] generateGivenNames() {
         String first = pick(GIVEN_NAMES);
-        String middle = RNG.nextBoolean() ? pick(GIVEN_NAMES) : "";
-        String third = RNG.nextInt(10) < 3 ? pick(GIVEN_NAMES) : ""; // ~30% chance
+        String middle = pick(GIVEN_NAMES);
+        String third = pick(GIVEN_NAMES);
         return new String[]{ first, middle, third };
     }
 
@@ -127,16 +128,27 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
      */
     public String randomRoleType() { return pick(ROLE_TYPES); }
 
+
     /**
-     * Return a random expertise code.
-     * Source system is fixed in builder mapping for tests.
-     * @return expertise code
+     * Generate a list of unique expertise codes (no duplicates), in randomized order.
+     * If {@code count} exceeds the available code pool size, all codes are returned once.
+     * @param count desired number of unique expertise codes
+     * @return immutable list of unique expertise codes
      */
-    public String randomExpertiseCode() { return pick(EXPERTISE_CODES); }
+    public List<String> generateUniqueExpertiseCodes(int count) {
+        if (count <= 0) {
+            return List.of();
+        }
+
+        ArrayList<String> pool = new ArrayList<>(EXPERTISE_CODES);
+        Collections.shuffle(pool, RNG);
+        int take = Math.min(count, pool.size());
+        return List.copyOf(pool.subList(0, take));
+    }
 
     /**
      * Return a random credential type code.
-     * @return one of BD, BSC, D, M, OTHER, PHD
+     * @return one credential type string
      */
     public String randomCredentialType() { return pick(CREDENTIAL_TYPES); }
 

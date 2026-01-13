@@ -1,5 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
@@ -7,9 +8,11 @@ import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
@@ -137,6 +140,56 @@ implements SimpleTest
         //Close the FHIR session
         fhirController.close();
            
+    }
+
+    @Test
+    public void individualTest(){
+
+        //Start Controller - Passed parameter will determine user role for FHIR calls. 
+        //To change user role, call fhirController.changeFHIRSession(UserType.<ROLE>).
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        /***************Individual****************/
+
+         IndividualMaintainConfig individualConfig = new IndividualMaintainConfig()
+            //.withAllAttributes(2, 2, 2, 2, 2, 2, 2, 2) convenience method to add all attributes
+            //.withIdentifier() by default as is a required attribute
+            //.withFamilyName() by default as is a required attribute
+            //.withNames() by default as is a required attribute
+            //.withRoleType() by default as is a required attribute
+            //.withGivenNames() by default as is a required attribute
+            //.withDemographics() by default as is a required attribute
+            //.withAddress() by default as is a required attribute
+            .withAllTelecom()
+            .withStatuses(2) //Note that right now the maximum amount of confidentiality that can be added is 2
+            .withNotes(2)
+            .withExpertise(2)
+            .withCredentials(2)
+            .withDisciplinaryActions(2)
+            .withConditions(2);
+            //.withConfidentiality(); //Note that editing the record will not be possible if confidentiality is set to true.
+
+        MaintainIndividualBuilder individual = fhirController.createIndividual(individualConfig);
+        
+        LOG.info(
+            "Created Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}",
+            individual.getIdentifiers(),
+            individual.getAddressList(),
+            individual.getConditionList(),
+            individual.getConfidentiality(),
+            individual.getCredentialList(),
+            individual.getDisciplinaryActionList(),
+            individual.getFamilyName(),
+            Arrays.toString(individual.getNames()),
+            individual.getDemographics(),
+            individual.getExpertiseList(),
+            individual.getNoteList(),
+            individual.getRoleType(),
+            individual.getStatusList(),
+            individual.getTelecomList());
+
+        fhirController.close();
+
     }
 
 }
