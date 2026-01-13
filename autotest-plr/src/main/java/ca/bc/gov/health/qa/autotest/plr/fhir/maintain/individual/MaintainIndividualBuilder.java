@@ -23,7 +23,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualAttribute
  * scalar attributes (name, role type, confidentiality). The {@link #build()} method
  * materializes a maintain Bundle JSON using a template resource.
  */
-public class MaintainPracBuilder implements MaintainRequestBuilder
+public class MaintainIndividualBuilder implements MaintainRequestBuilder
 {
     public static final java.util.List<String> STATUS_CLASSES_ORDER = java.util.List.of("LIC", "AE");
     public static final int MAX_STATUS_COUNT = STATUS_CLASSES_ORDER.size();
@@ -49,7 +49,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
     /**
      * Constructs an empty Practitioner builder. Required field validation occurs during {@link #build()}.
      */
-    public MaintainPracBuilder()
+    public MaintainIndividualBuilder()
     {}
 
     /**
@@ -61,7 +61,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param postalCode postal code
      * @return this builder for fluent chaining
      */
-    public MaintainPracBuilder addAddress(
+    public MaintainIndividualBuilder addAddress(
             String type,
             String purpose,
             String line1,
@@ -85,7 +85,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param explanation free-text explanation
      * @return this builder
      */
-    public MaintainPracBuilder addCondition(String type, boolean restriction, String explanation)
+    public MaintainIndividualBuilder addCondition(String type, boolean restriction, String explanation)
     {
         Map<String,String> info = new HashMap<>();
         info.put("type",        type);
@@ -106,7 +106,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param year year obtained
      * @return this builder
      */
-    public MaintainPracBuilder addCredential(
+    public MaintainIndividualBuilder addCredential(
             String type,
             String designation,
             String registrationNumber,
@@ -134,7 +134,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param archiveDate archive date string (YYYY-MM-DD)
      * @return this builder
      */
-    public MaintainPracBuilder addDisciplinaryAction(
+    public MaintainIndividualBuilder addDisciplinaryAction(
             boolean display, String description, String archiveDate)
     {
         Map<String,String> info = new HashMap<>();
@@ -151,7 +151,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param sourceCode source coding system code
      * @return this builder
      */
-    public MaintainPracBuilder addExpertise(String code, String sourceCode)
+    public MaintainIndividualBuilder addExpertise(String code, String sourceCode)
     {
         Map<String,String> info = new HashMap<>();
         info.put("code",       code);
@@ -165,7 +165,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param text note text
      * @return this builder
      */
-    public MaintainPracBuilder addNote(String text)
+    public MaintainIndividualBuilder addNote(String text)
     {
         Map<String,String> info = new HashMap<>();
         info.put("text", text);
@@ -181,7 +181,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param statusReason status reason code (e.g. GS)
      * @return this builder
      */
-    public MaintainPracBuilder addStatus(String statusClass, String status, String statusReason)
+    public MaintainIndividualBuilder addStatus(String statusClass, String status, String statusReason)
     {
         Map<String,String> info = new HashMap<>();
         info.put("status",       status);
@@ -198,7 +198,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param value channel value (number, address, URL, etc.)
      * @return this builder
      */
-    public MaintainPracBuilder addTelecom(String type, String purpose, String value)
+    public MaintainIndividualBuilder addTelecom(String type, String purpose, String value)
     {
         telecomList_.add(Map.of(
                 "purpose", purpose,
@@ -396,7 +396,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param confidentiality confidentiality boolean
      * @return this builder
      */
-    public MaintainPracBuilder confidentiality(boolean confidentiality)
+    public MaintainIndividualBuilder confidentiality(boolean confidentiality)
     {
         confidentiality_ = confidentiality;
         return this;
@@ -407,7 +407,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param familyName family name string
      * @return this builder
      */
-    public MaintainPracBuilder familyName(String familyName)
+    public MaintainIndividualBuilder familyName(String familyName)
     {
         familyName_ = familyName;
         return this;
@@ -418,7 +418,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param roleType role type code (e.g., DEN, MD, RN, OPT)
      * @return this builder
      */
-    public MaintainPracBuilder roleType(String roleType)
+    public MaintainIndividualBuilder roleType(String roleType)
     {
         roleType_ = roleType;
         return this;
@@ -512,7 +512,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param addressList address list
      * @return this builder
      */
-    public MaintainPracBuilder setAddressList(List<Map<String,String>> addressList) {
+    public MaintainIndividualBuilder setAddressList(List<Map<String,String>> addressList) {
         this.addressList_ = addressList;
         return this;
     }
@@ -521,7 +521,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param conditionList condition list
      * @return this builder
      */
-    public MaintainPracBuilder setConditionList(List<Map<String,String>> conditionList) {
+    public MaintainIndividualBuilder setConditionList(List<Map<String,String>> conditionList) {
         this.conditionList_ = conditionList;
         return this;
     }
@@ -530,7 +530,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param confidentiality Boolean flag or null
      * @return this builder
      */
-    public MaintainPracBuilder setConfidentiality(Boolean confidentiality) {
+    public MaintainIndividualBuilder setConfidentiality(Boolean confidentiality) {
         this.confidentiality_ = confidentiality;
         return this;
     }
@@ -539,7 +539,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param credentialList credential list
      * @return this builder
      */
-    public MaintainPracBuilder setCredentialList(List<Map<String,String>> credentialList) {
+    public MaintainIndividualBuilder setCredentialList(List<Map<String,String>> credentialList) {
         this.credentialList_ = credentialList;
         return this;
     }
@@ -548,7 +548,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param disciplinaryActionList non-null disciplinary action list
      * @return this builder
      */
-    public MaintainPracBuilder setDisciplinaryActionList(List<Map<String,String>> disciplinaryActionList) {
+    public MaintainIndividualBuilder setDisciplinaryActionList(List<Map<String,String>> disciplinaryActionList) {
         this.disciplinaryActionList_ = disciplinaryActionList;
         return this;
     }
@@ -557,7 +557,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param familyName family name string
      * @return this builder
      */
-    public MaintainPracBuilder setFamilyName(String familyName) {
+    public MaintainIndividualBuilder setFamilyName(String familyName) {
         this.familyName_ = familyName;
         return this;
     }
@@ -568,7 +568,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param thirdName third name (optional; may be blank)
      * @return this builder
      */
-    public MaintainPracBuilder setNames(String firstName, String middleName, String thirdName) {
+    public MaintainIndividualBuilder setNames(String firstName, String middleName, String thirdName) {
         this.names_ = new String[] { firstName, middleName, thirdName };
         return this;
     }
@@ -577,7 +577,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param identifiers identifier map keyed by type
      * @return this builder
      */
-    public MaintainPracBuilder setIdentifiers(Map<IdentifierType,String> identifiers) {
+    public MaintainIndividualBuilder setIdentifiers(Map<IdentifierType,String> identifiers) {
         this.identifiers_ = identifiers;
         return this;
     }
@@ -591,7 +591,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param deathDate death date (YYYY-MM-DD), optional
      * @return this builder
      */
-    public MaintainPracBuilder setDemographics(String birthDate, String birthCountry, String birthProvince, String gender, String deathDate) {
+    public MaintainIndividualBuilder setDemographics(String birthDate, String birthCountry, String birthProvince, String gender, String deathDate) {
         Map<String,String> demo = new HashMap<>();
         if (birthDate != null && !birthDate.isBlank())       demo.put("birthDate", birthDate);
         if (birthCountry != null && !birthCountry.isBlank()) demo.put("birthCountry", birthCountry);
@@ -606,7 +606,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param expertiseList expertise list
      * @return this builder
      */
-    public MaintainPracBuilder setExpertiseList(List<Map<String,String>> expertiseList) {
+    public MaintainIndividualBuilder setExpertiseList(List<Map<String,String>> expertiseList) {
         this.expertiseList_ = expertiseList;
         return this;
     }
@@ -615,7 +615,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param noteList note list
      * @return this builder
      */
-    public MaintainPracBuilder setNoteList(List<Map<String,String>> noteList) {
+    public MaintainIndividualBuilder setNoteList(List<Map<String,String>> noteList) {
         this.noteList_ = noteList;
         return this;
     }
@@ -624,7 +624,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param roleType role type code
      * @return this builder
      */
-    public MaintainPracBuilder setRoleType(String roleType) {
+    public MaintainIndividualBuilder setRoleType(String roleType) {
         return roleType(roleType);
     }
     /**
@@ -632,7 +632,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param statusList status list
      * @return this builder
      */
-    public MaintainPracBuilder setStatusList(List<Map<String,String>> statusList) {
+    public MaintainIndividualBuilder setStatusList(List<Map<String,String>> statusList) {
         this.statusList_ = statusList;
         return this;
     }
@@ -641,7 +641,7 @@ public class MaintainPracBuilder implements MaintainRequestBuilder
      * @param telecomList telecom list
      * @return this builder
      */
-    public MaintainPracBuilder setTelecomList(List<Map<String,String>> telecomList) {
+    public MaintainIndividualBuilder setTelecomList(List<Map<String,String>> telecomList) {
         this.telecomList_ = telecomList;
         return this;
     }

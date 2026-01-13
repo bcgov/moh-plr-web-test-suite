@@ -5,10 +5,10 @@ import java.util.Map;
 import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainPracBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 
 /**
- * Factory responsible for creating and configuring {@link MaintainPracBuilder}
+ * Factory responsible for creating and configuring {@link MaintainIndividualBuilder}
  * instances using generated test data from {@link IndividualDataGenerator}
  * based on configurations from {@link IndividualMaintainConfig}.
  */
@@ -25,17 +25,17 @@ public class IndividualBuilderFactory {
      * Builds a practitioner with a freshly created {@link IndividualMaintainConfig}.
      * @return configured builder
      */
-    public MaintainPracBuilder build() { return build(new IndividualMaintainConfig()); }
+    public MaintainIndividualBuilder build() { return build(new IndividualMaintainConfig()); }
 
     /**
-     * Builds a {@link MaintainPracBuilder} using the provided configuration.
+     * Builds a {@link MaintainIndividualBuilder} using the provided configuration.
      * Optional attributes are added based on enabled flags; list attributes
      * are generated according to their counts.
      * @param config configuration describing which attributes and counts to include
      * @return populated MaintainPracBuilder ready for submission
      */
-    public MaintainPracBuilder build(IndividualMaintainConfig config) {
-        MaintainPracBuilder b = new MaintainPracBuilder();
+    public MaintainIndividualBuilder build(IndividualMaintainConfig config) {
+        MaintainIndividualBuilder b = new MaintainIndividualBuilder();
 
         if (config.isIdentifierEnabled()) {
             Map<IdentifierType,String> ids = new HashMap<>();
@@ -104,12 +104,12 @@ public class IndividualBuilderFactory {
             b.addNote(dataGen.generateNote());
         }
         // Generate up to MAX_STATUS_COUNT unique statuses with distinct statusClass values
-        int desiredStatuses = Math.min(config.getStatusCount(), MaintainPracBuilder.MAX_STATUS_COUNT);
+        int desiredStatuses = Math.min(config.getStatusCount(), MaintainIndividualBuilder.MAX_STATUS_COUNT);
         List<String> statusCodes = dataGen.generateUniqueStatusCodes(desiredStatuses);
         for (int i = 0; i < statusCodes.size(); i++) {
             String code = statusCodes.get(i);
             String reason = dataGen.reasonForStatus(code);
-            String statusClass = MaintainPracBuilder.STATUS_CLASSES_ORDER.get(i);
+            String statusClass = MaintainIndividualBuilder.STATUS_CLASSES_ORDER.get(i);
             b.addStatus(statusClass, code, reason);
         }
 
