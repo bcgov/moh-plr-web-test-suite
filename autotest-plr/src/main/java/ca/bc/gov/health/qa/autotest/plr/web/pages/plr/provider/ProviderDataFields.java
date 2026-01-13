@@ -32,11 +32,11 @@ public class ProviderDataFields
         map.put(ProviderSection.DISCIPLINARY_ACTIONS,        List.of("Identifier"));
         map.put(ProviderSection.COMMUNICATION_PREFERENCE,    List.of("Content Type"));
         map.put(ProviderSection.CONFIDENTIALITY,             List.of());
-        map.put(ProviderSection.PROVIDER_RELATIONSHIPS,      List.of("Relationship Type"));
+        map.put(ProviderSection.PROVIDER_RELATIONSHIPS,      List.of("Related Provider Identifier"));
         map.put(ProviderSection.FACILITY_RELATIONSHIPS,      List.of("Relationship Type"));
         map.put(ProviderSection.REGISTRY_USER_RELATIONSHIPS, List.of("Type"));
         map.put(ProviderSection.NOTES,                       List.of("Note Identifier"));
-        map.put(ProviderSection.ORGANIZATION_PROPERTIES,     List.of());
+        map.put(ProviderSection.ORGANIZATION_PROPERTIES,     List.of()); // PRPTY Business Key, not visible on site
         SORT_KEY_MAP = Collections.unmodifiableMap(map);
     }
 

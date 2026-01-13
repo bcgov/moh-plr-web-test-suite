@@ -6,6 +6,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.net.URI;
+import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -120,9 +121,7 @@ public class ViewProviderActions
             // TODO (AZ) - Investigate sorting rules for these sections, skip for now.
             if (   !section.equals(ProviderSection.COMMUNICATION_PREFERENCE)
                 && !section.equals(ProviderSection.CONFIDENTIALITY)
-                && !section.equals(ProviderSection.DEMOGRAPHICS)
-                && !section.equals(ProviderSection.ORGANIZATION_PROPERTIES)
-                && !section.equals(ProviderSection.PROVIDER_RELATIONSHIPS))
+                && !section.equals(ProviderSection.DEMOGRAPHICS))
             {
                 verifyDataBlockSortOrder(section);
             }
@@ -141,8 +140,11 @@ public class ViewProviderActions
         boolean useActive = section.equals(ProviderSection.STATUSES);
         if (!section.equals(ProviderSection.ROLE_TYPE))
         {
-            if (!section.equals(ProviderSection.WORK_LOCATIONS))
+            if (!section.equals(ProviderSection.WORK_LOCATIONS)
+                    && !section.equals(ProviderSection.ORGANIZATION_PROPERTIES))
+            {
                 dateKeyList.add(IdentifierField.EFFECTIVE_FROM.getString());
+            }
 
             dateKeyList.add(IdentifierField.DB_CREATED.getString());
         }

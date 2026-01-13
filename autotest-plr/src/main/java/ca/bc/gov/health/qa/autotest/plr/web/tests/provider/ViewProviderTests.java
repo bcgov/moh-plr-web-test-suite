@@ -4,10 +4,14 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
@@ -34,6 +38,8 @@ implements SimpleTest
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
+    private FHIRController fhirController;
+    private MaintainOrgBuilder dummyOrganization;
 
     public ViewProviderTests()
     {}
@@ -53,22 +59,31 @@ implements SimpleTest
         {
             workflow.login().openPlr();
         }
-        // fhirController = new FHIRController(UserType.ADMIN);
+    }
+
+    @BeforeTest
+    public void beforeTest()
+    {
+        //fhirController = new FHIRController(UserType.ADMIN);
+        //dummyOrganization = fhirController.createOrganization(new OrganizationMaintainConfig());
+        //LOG.info(dummyOrganization);
     }
 
     // View Provider : Default Provider Detail Screen Record Display
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testDefaultProviderDetail(ProviderType providerType)
     {
+        // Providers must have: current records and inactive records
         final JSONObject provider = PlrData.getProvider(providerType, "default");
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(providerType, provider, workflowManager_);
-        final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
 
         // Step 2: Verify Default Provider Detail Screen Record Display
         ViewHeaderFragment viewHeader = page.getViewHeader();
         assertEquals(viewHeader.grabViewMode(), ViewMode.CURRENT, "Default view mode not current");
+
+        // TODO: ensure **all** current records are visible - note them in FHIR query and cross-reference what is visible
     }
 
     // View Provider : Indicating Current Data Objects
@@ -83,6 +98,8 @@ implements SimpleTest
 
         // Step 3: Verify active data objects
         actions.verifySectionsWithActiveDataBlocks(providerType, false);
+
+        // TODO: verify checkmark is there for active data blocks and not there for inactive blocks
     }
 
     // View Provider : Optional Provider Detail Screen Views - History and Audit
@@ -139,6 +156,8 @@ implements SimpleTest
         // Step 5: Verify Audit View
         viewHeader.selectViewMode(ViewMode.AUDIT);
         actions.verifySectionsWithActiveDataBlocks(providerType, true);
+
+        // TODO: ensure history includes only changes, and audit includes corrections
     }
 
     // View Provider : Sort Order On View Provider Details Screen
@@ -166,6 +185,8 @@ implements SimpleTest
             viewHeader.selectViewMode(ViewMode.AUDIT);
             actions.verifyDataBlockSortOrder(providerType);
         }
+
+        // TODO: verify sort orders for other fields not implemented by andrej
     }
 
     // View Provider : Viewing Empty Data Objects
@@ -189,6 +210,8 @@ implements SimpleTest
         // Step 15: Setup DPS to check no permissions to view (not automated, ensure admin is set to CGI_WRITE)
         // Step 2-14, 16-31: Verify Required sections blocks / No Permission to view record blocks
         actions.verifyRequiredSections(providerType, true);
+
+        // TODO: if possible, eliminate the need for manually changing DPS permissions
     }
 
     // View Provider : Viewing Provider Details
