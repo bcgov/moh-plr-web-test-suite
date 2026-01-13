@@ -39,7 +39,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private List<Map<String,String>>   telecomList_     = new ArrayList<>();
     private HdsType                    hdsType_         = null;
     private OrganizationProperties     orgProperties_   = null;
-    //TODO: O2I relationships
+    //TODO: P2P relationships
     //TODO: 02F relationships
 
     // Organization status rules (single source of truth)

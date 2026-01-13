@@ -3,8 +3,6 @@ package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.AbstractDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
@@ -31,23 +29,6 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
 
     private static final List<String> HOURS_DAYS = Arrays.asList("MON", "TUE", "WED", "THU", "FRI");
 
-    private static final List<String> STATUS_CODES = List.of(
-        "ACTIVE", "TERMINATED", "INACTIVE", "SUSPENDED", "NULLIFIED", "PENDING", "UNKNOWN", "CANCELLED"
-    );
-
-    /**
-     * Maps status codes to their required reason codes.
-     */
-    private static final Map<String, String> STATUS_REASON_BY_CODE = Map.of(
-        "CANCELLED", "AU",
-        "ACTIVE",    "GS",
-        "TERMINATED","HON",
-        "INACTIVE",  "OOP",
-        "SUSPENDED", "LTP",
-        "NULLIFIED", "MEDSTUD",
-        "PENDING",   "NONPRAC",
-        "UNKNOWN",   "UNK"
-    );
 
     // Address variation: choose among several cities/postals; street number randomized
     private static final List<String[]> ADDRESS_POOLS = List.of(
@@ -243,28 +224,4 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
      */
     public boolean generatePciFlag() { return RNG.nextBoolean(); }
 
-    /**
-     * Generates up to {@code count} unique status codes, randomly selected from the allowed set.
-     * If {@code count} exceeds the number of available unique codes, the result is capped.
-     * @param count desired number of unique status codes
-     * @return list of unique status codes (size less or equal to count)
-     */
-    public List<String> generateUniqueStatusCodes(int count) {
-        if (count <= 0) return List.of();
-        List<String> pool = new ArrayList<>(STATUS_CODES);
-        Collections.shuffle(pool, RNG);
-        int n = Math.min(count, pool.size());
-        return new ArrayList<>(pool.subList(0, n));
-    }
-
-    /**
-     * Returns the required status reason code for the given status code.
-     * Defaults to "GS" if the status code is not mapped.
-     * @param statusCode status code (e.g., ACTIVE)
-     * @return reason code (e.g., GS)
-     */
-    public String reasonForStatus(String statusCode) {
-        return STATUS_REASON_BY_CODE.get(statusCode);
-    }
-    
 }
