@@ -185,8 +185,6 @@ implements SimpleTest
             viewHeader.selectViewMode(ViewMode.AUDIT);
             actions.verifyDataBlockSortOrder(providerType);
         }
-
-        // TODO: verify sort orders for other fields not implemented by andrej
     }
 
     // View Provider : Viewing Empty Data Objects

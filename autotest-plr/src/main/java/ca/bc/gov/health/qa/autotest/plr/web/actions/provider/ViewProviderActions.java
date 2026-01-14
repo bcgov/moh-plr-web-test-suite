@@ -7,12 +7,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.net.URI;
 import java.security.Provider;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -116,15 +111,15 @@ public class ViewProviderActions
      */
     public void verifyDataBlockSortOrder(ProviderType providerType)
     {
+        final Set<ProviderSection> singleDataBlock = new HashSet<>(Arrays.asList(
+                ProviderSection.ROLE_TYPE,
+                ProviderSection.CONFIDENTIALITY,
+                ProviderSection.DEMOGRAPHICS
+        ));
+
         for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
         {
-            // TODO (AZ) - Investigate sorting rules for these sections, skip for now.
-            if (   !section.equals(ProviderSection.COMMUNICATION_PREFERENCE)
-                && !section.equals(ProviderSection.CONFIDENTIALITY)
-                && !section.equals(ProviderSection.DEMOGRAPHICS))
-            {
-                verifyDataBlockSortOrder(section);
-            }
+            if (!singleDataBlock.contains(section)) verifyDataBlockSortOrder(section);
         }
     }
 
@@ -135,19 +130,18 @@ public class ViewProviderActions
      */
     public void verifyDataBlockSortOrder(ProviderSection section)
     {
+        final Set<ProviderSection> effectiveFromExclude = new HashSet<>(Arrays.asList(
+                ProviderSection.WORK_LOCATIONS,
+                ProviderSection.ORGANIZATION_PROPERTIES,
+                ProviderSection.COMMUNICATION_PREFERENCE));
+
         List<String> sortKeyList = ProviderDataFields.getSortKey(section);
         List<String> dateKeyList = new ArrayList<>();
         boolean useActive = section.equals(ProviderSection.STATUSES);
-        if (!section.equals(ProviderSection.ROLE_TYPE))
-        {
-            if (!section.equals(ProviderSection.WORK_LOCATIONS)
-                    && !section.equals(ProviderSection.ORGANIZATION_PROPERTIES))
-            {
-                dateKeyList.add(IdentifierField.EFFECTIVE_FROM.getString());
-            }
 
-            dateKeyList.add(IdentifierField.DB_CREATED.getString());
-        }
+        if (!effectiveFromExclude.contains(section)) dateKeyList.add(IdentifierField.EFFECTIVE_FROM.getString());
+        dateKeyList.add(IdentifierField.DB_CREATED.getString());
+
         List<String> previousValueList = null;
         List<String> previousDateList  = null;
         ViewProviderPage viewProvider = waitForViewProviderPage();
