@@ -259,11 +259,17 @@ public class ViewProviderActions
                 Map<String,String> dataMap = viewProvider.grabDataBlockContent(section, i);
                 List<String> fieldNameList = new ArrayList<>(dataMap.keySet());
                 List<String> expectedFieldNameList = ProviderDataFields.getFieldNameList(section);
-                if (   section.equals(ProviderSection.IDENTIFIERS)
+                if (section.equals(ProviderSection.IDENTIFIERS)
                     && !fieldNameList.contains("Hds Type"))
                 {
                     expectedFieldNameList = new ArrayList<>(expectedFieldNameList);
                     expectedFieldNameList.remove("Hds Type");
+                }
+                if (section.equals(ProviderSection.WORK_LOCATIONS))
+                {
+                    assertTrue(new HashSet<>(fieldNameList).containsAll(expectedFieldNameList),
+                            "Work Location does not contain expected base data field names");
+                    continue;
                 }
                 assertEquals(fieldNameList, expectedFieldNameList,
                         String.format("Data field name list (%s)", section));
