@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -23,6 +25,8 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 public class ViewProviderPage
 extends BasicWebPage
 {
+    private static final Logger LOG = ExecutionLogManager.getLogger();
+
     private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
 
     private final ViewHeaderFragment viewHeader_;
@@ -93,23 +97,46 @@ extends BasicWebPage
     }
 
     /**
+     * Grabs whether a work entity data block is expanded or not
+     *
+     * @param workEntity    a WebElement reference to the work entity data block panel
+     * @return              a boolean - true if the work entity data block is expanded, false otherwise.
+     */
+    private boolean grabWorkEntityBlockExpanded(WebElement workEntity)
+    {
+        return workEntity.findElement(By.cssSelector("div.ui-widget-content")).isDisplayed();
+    }
+
+    /**
      * Expands a work locations' inner data block
      *
      * @param workEntity    a WebElement reference to the work entity subpanel
+     * @param expand        whether to expand (true) or collapse (false) the work entity data block
      */
-    public void expandWorkEntityBlock(WebElement workEntity)
+    private void expandWorkEntityBlock(WebElement workEntity, boolean expand)
     {
-        WebElement expandCollapseButton = workEntity.findElement(By.cssSelector(
-                "div.ui-widget-header > a[title='Expand/Collapse']"));
-        selenium_.scrollIntoView(expandCollapseButton);
-        expandCollapseButton.click();
+        LOG.info(grabWorkEntityBlockExpanded(workEntity));
+        if (grabWorkEntityBlockExpanded(workEntity) != expand)
+        {
+            WebElement expandCollapseButton = workEntity.findElement(By.cssSelector(
+                    "div.ui-widget-header > a[title='Expand/Collapse']"));
+            selenium_.scrollIntoView(expandCollapseButton);
+            expandCollapseButton.click();
 
-        WebElement content = workEntity.findElement(By.cssSelector("div.ui-widget-content"));
+            WebElement content = workEntity.findElement(By.cssSelector("div.ui-widget-content"));
 
-        selenium_.waitUntil(ExpectedConditions.visibilityOf(content));
-        selenium_.waitUntil(
-                ExpectedConditions.attributeToBe(content, "overflow", "visible"));
+            if (expand)
+            {
+                selenium_.waitUntil(ExpectedConditions.visibilityOf(content));
 
+                selenium_.waitUntil(
+                        ExpectedConditions.attributeToBe(content, "overflow", "visible"));
+            }
+            else
+            {
+                selenium_.waitUntil(ExpectedConditions.invisibilityOf(content));
+            }
+        }
     }
 
     /**
@@ -170,10 +197,10 @@ extends BasicWebPage
     }
 
     /**
-     * Adds inner content of a Work Location data block to a data map used in grabDataBlockContent
+     * Adds inner content of a Work Location data block to a data map
      *
      * @param index     the index of work location data block to consider
-     * @param dataMap   the dataMap of the work location, from grabDataBlockContent
+     * @param dataMap   the dataMap of the work location
      */
     @SuppressWarnings("fallthrough")
     private void grabWorkLocationContent(int index, LinkedHashMap<String,String> dataMap)
@@ -194,8 +221,9 @@ extends BasicWebPage
                 List<WebElement> dataRowElementList = workEntity.findElements(By.cssSelector(
                         "div.ui-widget-content > table > tbody > tr"
                 ));
+                expandWorkEntityBlock(workEntity, true);
 
-                expandWorkEntityBlock(workEntity);
+                if (!dataRowElementList.isEmpty()) selenium_.scrollIntoView(dataRowElementList.getFirst());
 
                 for (WebElement dataRow : dataRowElementList)
                 {
