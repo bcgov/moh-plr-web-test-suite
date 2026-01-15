@@ -42,6 +42,12 @@ public class MaintainUtils
     private static final String ORG_CLINIC_LEGAL_NAME_URL =
             "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-legal-name-extension";
 
+    // Practitioner demographics extension URLs
+    private static final String PRACTITIONER_BIRTHPLACE_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-birthplace-extension";
+    private static final String PRACTITIONER_DEATHDATE_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-deathdate-extension";
+
     private MaintainUtils()
     {}
 
@@ -672,5 +678,52 @@ public class MaintainUtils
                                 .put("code", endReasonCode.wire());
                 }
                 return entry;
+        }
+
+        /**
+         * Updates practitioner demographics extensions (birthplace, death date) in the extension array.
+         * Finds and updates existing extension entries for birthplace and death date rather than creating new ones.
+         * 
+         * @param extensionJson the practitioner extension array to update
+         * @param birthCountry ISO country code for birth country (nullable)
+         * @param birthProvince province/state code for birth province (nullable)
+         * @param deathDate death date string in ISO format (nullable)
+         */
+        public static void updateDemographicsExtensions(
+                JSONArray extensionJson, 
+                String birthCountry, 
+                String birthProvince, 
+                String deathDate)
+        {
+                for (int i = 0; i < extensionJson.length(); i++)
+                {
+                        JSONObject ext = extensionJson.getJSONObject(i);
+                        String url = ext.optString("url", "");
+                        
+                        // Update birthplace extension if birthCountry or birthProvince provided
+                        if (url.equals(PRACTITIONER_BIRTHPLACE_URL))
+                        {
+                                if (birthCountry != null || birthProvince != null)
+                                {
+                                        JSONObject valueAddress = ext.getJSONObject("valueAddress");
+                                        if (birthProvince != null)
+                                        {
+                                                valueAddress.put("state", birthProvince);
+                                        }
+                                        if (birthCountry != null)
+                                        {
+                                                valueAddress.put("country", birthCountry);
+                                        }
+                                }
+                        }
+                        // Update death date extension if deathDate provided
+                        else if (url.equals(PRACTITIONER_DEATHDATE_URL))
+                        {
+                                if (deathDate != null)
+                                {
+                                        ext.put("valueDateTime", deathDate);
+                                }
+                        }
+                }
         }
 }

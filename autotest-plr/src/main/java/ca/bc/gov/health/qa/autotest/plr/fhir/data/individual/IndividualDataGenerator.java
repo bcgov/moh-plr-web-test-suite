@@ -227,7 +227,7 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
      * @return one of M, F, U
      */
     public String generateGender() {
-        return pick(List.of("M", "F", "U"));
+        return pick(List.of("male", "female", "unknown"));
     }
 
     /**

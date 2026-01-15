@@ -188,6 +188,12 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         info.put("statusClass",  statusClass);
         info.put("statusReason", statusReason);
         statusList_.add(info);
+
+        // Mirror MaintainOrgBuilder behavior: cap list size to the supported number of classes.
+        if (statusList_.size() > MAX_STATUS_COUNT)
+        {
+            statusList_ = new ArrayList<>(statusList_.subList(0, MAX_STATUS_COUNT));
+        }
         return this;
     }
 
@@ -221,22 +227,79 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         JSONObject pracJson     = accessor.getPracJson();
         JSONObject pracRoleJson = accessor.getPracRoleJson();
 
-        nameJson.put("family", familyName_);
-        pracJson.getJSONArray("identifier")
-                .getJSONObject(0);
-        pracRoleJson
-                .getJSONArray("code")
-                .getJSONObject(0)
-                .getJSONArray("coding")
-                .getJSONObject(0)
-                .put("code", roleType_);
-        pracRoleJson
-                .getJSONObject("practitioner");
+        if (familyName_ != null)
+        {
+            nameJson.put("family", familyName_);
+        }
+        if (names_ != null && names_.length > 0)
+        {
+            nameJson.getJSONArray("given").putAll(names_);
+        }
+        
+        // Pick the first available identifier deterministically
+        IdentifierType firstIdentifierType = null;
+        String firstIdentifierValue = null;
+        for (IdentifierType t : IdentifierType.values()) {
+            String v = identifiers_.get(t);
+            if (v != null && !v.isBlank()) {
+                firstIdentifierType = t;
+                firstIdentifierValue = v;
+                break;
+            }
+        }
+        if(firstIdentifierType != null && firstIdentifierValue != null) {
+            // Set Practitioner identifier
+            pracJson.getJSONArray("identifier")
+                    .getJSONObject(0)
+                    .put("system", firstIdentifierType.getSourceSystem())
+                    .put("value", firstIdentifierValue);
+            
+            // Set PractitionerRole practitioner identifier
+            pracRoleJson
+                    .getJSONObject("practitioner")
+                    .getJSONObject("identifier")
+                    .put("system", firstIdentifierType.getSourceSystem())
+                    .put("value", firstIdentifierValue);
+        }
+        
+        if (roleType_ != null)
+        {
+            pracRoleJson
+                    .getJSONArray("code")
+                    .getJSONObject(0)
+                    .getJSONArray("coding")
+                    .getJSONObject(0)
+                    .put("code", roleType_);
+        }
 
-        pracJson.getJSONObject("_birthDate")
-                .getJSONArray("extension")
-                .getJSONObject(0);
+        // Demographics mapping
+        if (demographics_ != null)
+        {
+            // Gender
+            String gender = demographics_.get("gender");
+            if (gender != null)
+            {
+                pracJson.put("gender", gender);
+            }
 
+            // Birth date (goes in _birthDate.extension[0].valueDateTime)
+            String birthDate = demographics_.get("birthDate");
+            if (birthDate != null)
+            {
+                pracJson.getJSONObject("_birthDate")
+                        .getJSONArray("extension")
+                        .getJSONObject(0)
+                        .put("valueDateTime", birthDate);
+            }
+
+            // Birthplace and death date - update existing extensions in template
+            String birthCountry = demographics_.get("birthCountry");
+            String birthProvince = demographics_.get("birthProvince");
+            String deathDate = demographics_.get("deathDate");
+            
+            JSONArray extensionJson = accessor.getPracExtensionJson();
+            MaintainUtils.updateDemographicsExtensions(extensionJson, birthCountry, birthProvince, deathDate);
+        }
 
         JSONArray addressesJson = pracJson.getJSONArray("address");
         for (Map<String,String> info : addressList_)
@@ -257,20 +320,11 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         }
 
         JSONArray extensionJson = accessor.getPracExtensionJson();
-        if (statusList_.isEmpty())
+        for (Map<String,String> info : statusList_)
         {
-            extensionJson.put(MaintainUtils.createStatus(Map.of(
-                    "statusClass",  "LIC",
-                    "status",       "ACTIVE",
-                    "statusReason", "GS")));
-        }
-        else
-        {
-            for (Map<String,String> info : statusList_)
-            {
                 extensionJson.put(MaintainUtils.createStatus(info));
-            }
         }
+
         if (confidentiality_ != null)
         {
             extensionJson.put(MaintainUtils.createConfidentiality(confidentiality_));

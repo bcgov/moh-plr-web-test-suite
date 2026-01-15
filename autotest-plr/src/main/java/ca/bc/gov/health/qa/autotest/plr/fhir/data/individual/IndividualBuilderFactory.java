@@ -66,6 +66,7 @@ public class IndividualBuilderFactory {
         if (config.isFaxEnabled())    b.addTelecom("fax",   "DC", dataGen.generatePhoneNumber());
         if (config.isEmailEnabled())  b.addTelecom("email", "FC", dataGen.generateEmailAddress());
         if (config.isWebsiteEnabled())b.addTelecom("url",   "BC", dataGen.generateWebsiteUrl());
+        if (config.isFtpEnabled())    b.addTelecom("url",   "MC", dataGen.generateFtpUrl());
 
         if (config.isConfidentialityEnabled()) {
             b.confidentiality(true);
@@ -92,7 +93,7 @@ public class IndividualBuilderFactory {
                 dataGen.generateInstitutionName(),
                 dataGen.generateAddress()[1],
                 true,
-                "1995" + (i)
+                "" + (1995 + (i))
             );
         }
         for (int i = 0; i < config.getConditionCount(); i++) {

@@ -23,6 +23,7 @@ public class IndividualMaintainConfig {
     private boolean fax;      // fax
     private boolean email;    // email
     private boolean website;  // url (http)
+    private boolean ftp;      // url (ftp)
 
     // Multi-valued attribute counts
     private int noteCount;
@@ -64,7 +65,7 @@ public class IndividualMaintainConfig {
                     break;
                 case TELECOM:
                     this.phone = true; this.mobile = true; this.pager = true; this.modem = true;
-                    this.fax = true; this.email = true; this.website = true;
+                    this.fax = true; this.email = true; this.website = true; this.ftp = true;
                     break;
                 case NOTE:
                     this.noteCount = 1;
@@ -148,6 +149,10 @@ public class IndividualMaintainConfig {
      * @return true if WEBSITE will be included */
     public boolean isWebsiteEnabled() { return website; }
 
+    /** Verifies if FTP will be included.
+     * @return true if FTP will be included */
+    public boolean isFtpEnabled() { return ftp; }
+
     /** Gets the number of NOTEs that will be included.
      * @return the number of NOTEs that will be included */
     public int getNoteCount() { return noteCount; }
@@ -230,6 +235,10 @@ public class IndividualMaintainConfig {
      * @return this config */
     public IndividualMaintainConfig withWebsite() { this.website = true; return this; }
 
+    /** Enable FTP telecom.
+     * @return this config */
+    public IndividualMaintainConfig withFtp() { this.ftp = true; return this; }
+
     /** Set number of note entries to generate.
      * @param count number of notes
      * @return this config */
@@ -264,7 +273,7 @@ public class IndividualMaintainConfig {
      * @return this config */
     public IndividualMaintainConfig withAllTelecom() {
         this.phone = true; this.mobile = true; this.pager = true; this.modem = true;
-        this.fax = true; this.email = true; this.website = true; 
+        this.fax = true; this.email = true; this.website = true; this.ftp = true;
         return this;
     }
 

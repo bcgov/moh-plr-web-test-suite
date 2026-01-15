@@ -173,12 +173,8 @@ public class FHIRController implements AutoCloseable {
     public MaintainIndividualBuilder createIndividual(IndividualMaintainConfig config) {
         MaintainIndividualBuilder builder = individualFactory.build(config);
 
-        /* TODO String id = executor.submitMaintain(builder);
-        LOG.info("Created organization (id={})", id);
-
-        //Set the actual id created by the service (should be an IPC identifier)
-        builder.addIdentifier(IdentifierType.IPC, id);
-        return builder;*/
+        String id = executor.submitMaintain(builder);
+        LOG.info("Created Individual (id={})", id);
 
         return builder;
     }

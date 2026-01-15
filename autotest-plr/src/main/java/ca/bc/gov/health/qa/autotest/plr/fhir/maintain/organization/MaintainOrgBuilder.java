@@ -159,16 +159,36 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
             .getJSONObject(0)
             .put("code", roleType_.toString());
         }
+
         // Include specialized _type block for HDS role type.
-        if (roleType_ == OrgRoleType.HDS) {
+        if (roleType_ != null && roleType_ == OrgRoleType.HDS) {
             requireNonNull(hdsType_, "HDS type required when roleType is HDS");
             orgJson.put("_type", MaintainUtils.createHdsType(hdsType_));
         }
 
-        String orgid = identifiers_.get(IdentifierType.ORGID);
-        accessor.getOrgIdentifierJson(0).put("value", orgid);
+        // Pick the first available identifier deterministically
+        IdentifierType firstIdentifierType = null;
+        String firstIdentifierValue = null;
+        for (IdentifierType t : IdentifierType.values()) {
+            String v = identifiers_.get(t);
+            if (v != null && !v.isBlank()) {
+                firstIdentifierType = t;
+                firstIdentifierValue = v;
+                break;
+            }
+        }
+        
+        if(firstIdentifierType != null && firstIdentifierValue != null) {
+            JSONObject orgIdentifierJson = accessor.getOrgIdentifierJson(0);
+            orgIdentifierJson.put("system", firstIdentifierType.getSourceSystem());
+            orgIdentifierJson.put("value", firstIdentifierValue);
+        }
 
-        orgJson.put("name", name_);
+
+        if (name_ != null){
+            orgJson.put("name", name_);
+        }
+
         if (alias_ != null)
         {
             orgJson.getJSONArray("alias").put(0, alias_);
@@ -187,20 +207,11 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         }
 
         JSONArray extensionJson = accessor.getOrgExtensionJson();
-        if (statusList_.isEmpty())
+        for (Map<String,String> info : statusList_)
         {
-            extensionJson.put(MaintainUtils.createStatus(Map.of(
-                    "statusClass",  "LIC",
-                    "status",       "ACTIVE",
-                    "statusReason", "GS")));
+            extensionJson.put(MaintainUtils.createStatus(info));
         }
-        else
-        {
-            for (Map<String,String> info : statusList_)
-            {
-                extensionJson.put(MaintainUtils.createStatus(info));
-            }
-        }
+        
         if (confidentiality_ != null)
         {
             extensionJson.put(MaintainUtils.createConfidentiality(confidentiality_));
@@ -369,16 +380,10 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         return this;
     }
 
-    /**
+     /**
      * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
      * @param hdsType classification string
      * @return this builder
-     */
-    /**
-     * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
-     * @param hdsType HDS subtype enum (never null)
-     * @return this builder
-     * @throws IllegalStateException if role type is not HDS
      */
     public MaintainOrgBuilder hdsType(HdsType hdsType) {
         if (roleType_ != OrgRoleType.HDS) {
