@@ -250,26 +250,24 @@ extends BasicWebPage
         {
             List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td"));
             int dataColumnCount = dataEntryList.size();
-            if (dataColumnCount == 2 || dataColumnCount == 4)
+            switch (dataColumnCount)
             {
-                dataMap.put(
-                        formatDataKey(dataEntryList.get(0).getText()),
-                        dataEntryList.get(1).getText());
-                if (dataColumnCount == 4)
-                {
+                case 4:
                     dataMap.put(
                             formatDataKey(dataEntryList.get(2).getText()),
                             dataEntryList.get(3).getText());
-                }
-            }
-            else
-            {
-                String msg = String.format(
-                        "Invalid data row (%s: %d: %s).",
-                        section.getTitle(),
-                        index,
-                        dataRow.getText());
-                throw new IllegalStateException(msg);
+                case 2:
+                    dataMap.put(
+                            formatDataKey(dataEntryList.get(0).getText()),
+                            dataEntryList.get(1).getText());
+                    break;
+                default:
+                    String msg = String.format(
+                            "Invalid data row (%s: %d: %s).",
+                            section.getTitle(),
+                            index,
+                            dataRow.getText());
+                    throw new IllegalStateException(msg);
             }
         }
         if (section.equals(ProviderSection.WORK_LOCATIONS)) grabWorkLocationContent(index, dataMap);
