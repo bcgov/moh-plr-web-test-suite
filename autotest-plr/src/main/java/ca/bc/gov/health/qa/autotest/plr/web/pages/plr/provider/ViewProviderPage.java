@@ -9,11 +9,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -92,6 +90,26 @@ extends BasicWebPage
                 selenium_.waitUntil(ExpectedConditions.invisibilityOf(content));
             }
         }
+    }
+
+    /**
+     * Expands a work locations' inner data block
+     *
+     * @param workEntity    a WebElement reference to the work entity subpanel
+     */
+    public void expandWorkEntityBlock(WebElement workEntity)
+    {
+        WebElement expandCollapseButton = workEntity.findElement(By.cssSelector(
+                "div.ui-widget-header > a[title='Expand/Collapse']"));
+        selenium_.scrollIntoView(expandCollapseButton);
+        expandCollapseButton.click();
+
+        WebElement content = workEntity.findElement(By.cssSelector("div.ui-widget-content"));
+
+        selenium_.waitUntil(ExpectedConditions.visibilityOf(content));
+        selenium_.waitUntil(
+                ExpectedConditions.attributeToBe(content, "overflow", "visible"));
+
     }
 
     /**
@@ -176,7 +194,7 @@ extends BasicWebPage
                         "div.ui-widget-content > table > tbody > tr"
                 ));
 
-                // TODO expand data blocks within work location? (avoid getting dom property instead of visible text)
+                expandWorkEntityBlock(workEntity);
 
                 for (WebElement dataRow : dataRowElementList)
                 {
@@ -185,14 +203,12 @@ extends BasicWebPage
                     switch (dataColumnCount)
                     {
                         case 4:
-                            dataMap.put(
-                                    formatDataKey(subPanelName + workEntityIndex + "-"
-                                            + dataEntryList.get(2).getDomProperty("innerText")),
+                            dataMap.put(formatDataKey(subPanelName + workEntityIndex + "-"
+                                            + dataEntryList.get(2).getText()),
                                     dataEntryList.get(3).getText());
                         case 2:
-                            dataMap.put(
-                                    formatDataKey(subPanelName + workEntityIndex + "-"
-                                            + dataEntryList.get(0).getDomProperty("innerText")),
+                            dataMap.put(formatDataKey(subPanelName + workEntityIndex + "-"
+                                            + dataEntryList.get(0).getText()),
                                     dataEntryList.get(1).getText());
                             break;
                         default:
