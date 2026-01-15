@@ -175,6 +175,7 @@ extends BasicWebPage
      * @param index     the index of work location data block to consider
      * @param dataMap   the dataMap of the work location, from grabDataBlockContent
      */
+    @SuppressWarnings("fallthrough")
     private void grabWorkLocationContent(int index, LinkedHashMap<String,String> dataMap)
     {
         final ProviderSection section = ProviderSection.WORK_LOCATIONS;
@@ -206,6 +207,7 @@ extends BasicWebPage
                             dataMap.put(formatDataKey(subPanelName + workEntityIndex + "-"
                                             + dataEntryList.get(2).getText()),
                                     dataEntryList.get(3).getText());
+                            // fall through
                         case 2:
                             dataMap.put(formatDataKey(subPanelName + workEntityIndex + "-"
                                             + dataEntryList.get(0).getText()),
@@ -236,6 +238,7 @@ extends BasicWebPage
      * @throws IllegalStateException If a specific row of data in the block is
      *                               formatted unexpectedly
      */
+    @SuppressWarnings("fallthrough")
     public LinkedHashMap<String,String> grabDataBlockContent(ProviderSection section, int index)
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
@@ -256,6 +259,7 @@ extends BasicWebPage
                     dataMap.put(
                             formatDataKey(dataEntryList.get(2).getText()),
                             dataEntryList.get(3).getText());
+                    // fall through
                 case 2:
                     dataMap.put(
                             formatDataKey(dataEntryList.get(0).getText()),

@@ -179,9 +179,11 @@ public class ViewProviderActions
      *
      * @param viewMode  the View Mode used on the page
      */
+    @SuppressWarnings("fallthrough")
     public void verifyEndReason(ProviderType providerType, ViewMode viewMode)
     {
         Set<String> endReasons = new HashSet<>(Set.of(""));
+        // every case is a fall through as each view mode is more and more strict
         switch (viewMode) {
             case AUDIT:
                 endReasons.add("CORR");
