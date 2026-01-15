@@ -58,7 +58,6 @@ implements SimpleTest
         if (!workflow.isLoggedIn())
         {
             workflow.login().openPlr();
-            workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         }
     }
 
