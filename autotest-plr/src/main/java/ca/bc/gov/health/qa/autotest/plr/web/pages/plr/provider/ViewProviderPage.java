@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -150,6 +152,64 @@ extends BasicWebPage
     }
 
     /**
+     * Adds inner content of a Work Location data block to a data map used in grabDataBlockContent
+     *
+     * @param index     the index of work location data block to consider
+     * @param dataMap   the dataMap of the work location, from grabDataBlockContent
+     */
+    private void grabWorkLocationContent(int index, LinkedHashMap<String,String> dataMap)
+    {
+        final ProviderSection section = ProviderSection.WORK_LOCATIONS;
+
+        List<WebElement> wlEntityList = selenium_.findElements(By.cssSelector(getWorkLocationSubpanelsSelector(index)));
+        for (WebElement subPanel : wlEntityList)
+        {
+            String subPanelName = subPanel.findElement(By.cssSelector(
+                    "div.ui-widget-header > span.ui-panel-title")).getText() + "-";
+            List<WebElement> workEntityBlockList = subPanel.findElements(By.cssSelector(
+                    "div.ui-widget-content > div.ui-widget-content > table > tbody > tr > td > div.ui-subpanel"
+            ));
+            int workEntityIndex = 0;
+            for (WebElement workEntity : workEntityBlockList)
+            {
+                List<WebElement> dataRowElementList = workEntity.findElements(By.cssSelector(
+                        "div.ui-widget-content > table > tbody > tr"
+                ));
+
+                // TODO expand data blocks within work location? (avoid getting dom property instead of visible text)
+
+                for (WebElement dataRow : dataRowElementList)
+                {
+                    List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td"));
+                    int dataColumnCount = dataEntryList.size();
+                    switch (dataColumnCount)
+                    {
+                        case 4:
+                            dataMap.put(
+                                    formatDataKey(subPanelName + workEntityIndex + "-"
+                                            + dataEntryList.get(2).getDomProperty("innerText")),
+                                    dataEntryList.get(3).getText());
+                        case 2:
+                            dataMap.put(
+                                    formatDataKey(subPanelName + workEntityIndex + "-"
+                                            + dataEntryList.get(0).getDomProperty("innerText")),
+                                    dataEntryList.get(1).getText());
+                            break;
+                        default:
+                            String msg = String.format(
+                                    "Invalid data row (%s: %d: %s).",
+                                    section.getTitle(),
+                                    index,
+                                    dataRow.getText());
+                            throw new IllegalStateException(msg);
+                    }
+                }
+                workEntityIndex++;
+            }
+        }
+    }
+
+    /**
      * Gets the content from a specific data block within a provider section.
      *
      * @param section the provider section to get content from
@@ -196,6 +256,8 @@ extends BasicWebPage
                 throw new IllegalStateException(msg);
             }
         }
+        if (section.equals(ProviderSection.WORK_LOCATIONS)) grabWorkLocationContent(index, dataMap);
+
         return dataMap;
     }
 
@@ -360,6 +422,12 @@ extends BasicWebPage
     private static String formatDataKey(String key)
     {
         return DATA_KEY_SUFFIX_PATTERN.matcher(key).replaceAll("");
+    }
+
+    private String getWorkLocationSubpanelsSelector(int index)
+    {
+        return getDataBlockContentSelector(ProviderSection.WORK_LOCATIONS, index) +
+                " > div.ui-widget-content > div.ui-widget-content > div.ui-subpanel";
     }
 
     private String getDataBlockContentSelector(ProviderSection section, int index)

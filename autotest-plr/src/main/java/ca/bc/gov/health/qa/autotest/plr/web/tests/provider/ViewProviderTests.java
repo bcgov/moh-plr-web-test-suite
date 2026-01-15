@@ -98,8 +98,6 @@ implements SimpleTest
 
         // Step 3: Verify active data objects
         actions.verifySectionsWithActiveDataBlocks(providerType, false);
-
-        // TODO: verify checkmark is there for active data blocks and not there for inactive blocks
     }
 
     // View Provider : Optional Provider Detail Screen Views - History and Audit
@@ -148,16 +146,17 @@ implements SimpleTest
         // Step 3: Verify Current View
         viewHeader.selectViewMode(ViewMode.CURRENT);
         actions.verifySectionsWithActiveDataBlocks(providerType, false);
+        actions.verifyEndReason(providerType, ViewMode.CURRENT);
 
         // Step 4: Verify History View
         viewHeader.selectViewMode(ViewMode.HISTORY);
         actions.verifySectionsWithActiveDataBlocks(providerType, true);
+        actions.verifyEndReason(providerType, ViewMode.HISTORY);
 
         // Step 5: Verify Audit View
         viewHeader.selectViewMode(ViewMode.AUDIT);
         actions.verifySectionsWithActiveDataBlocks(providerType, true);
-
-        // TODO: ensure history includes only changes, and audit includes corrections
+        actions.verifyEndReason(providerType, ViewMode.AUDIT);
     }
 
     // View Provider : Sort Order On View Provider Details Screen
@@ -208,8 +207,6 @@ implements SimpleTest
         // Step 15: Setup DPS to check no permissions to view (not automated, ensure admin is set to CGI_WRITE)
         // Step 2-14, 16-31: Verify Required sections blocks / No Permission to view record blocks
         actions.verifyRequiredSections(providerType, true);
-
-        // TODO: if possible, eliminate the need for manually changing DPS permissions
     }
 
     // View Provider : Viewing Provider Details

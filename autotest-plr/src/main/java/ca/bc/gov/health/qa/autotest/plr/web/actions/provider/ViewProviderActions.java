@@ -6,7 +6,6 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.net.URI;
-import java.security.Provider;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -172,6 +171,51 @@ public class ViewProviderActions
             }
             previousDateList  = dateList;
             previousValueList = valueList;
+        }
+    }
+
+    /**
+     * Verifies data blocks on the page have expected end reason values depending on the view mode used
+     *
+     * @param viewMode  the View Mode used on the page
+     */
+    public void verifyEndReason(ProviderType providerType, ViewMode viewMode)
+    {
+        Set<String> endReasons = new HashSet<>(Set.of(""));
+        switch (viewMode) {
+            case AUDIT:
+                endReasons.add("CORR");
+            case HISTORY:
+                endReasons.add("CHG");
+                endReasons.add("CEASE");
+            case CURRENT:
+            default:
+        }
+
+        ViewProviderPage viewProvider = waitForViewProviderPage();
+        for (ProviderSection section : getProviderSectionSet(providerType, userType_))
+        {
+            if (section.equals(ProviderSection.ROLE_TYPE)) continue;
+
+            for (int i = 0; i < viewProvider.grabDataBlockCount(section); i++)
+            {
+                Map<String,String> dataMap = viewProvider.grabDataBlockContent(section, i);
+                if (section.equals(ProviderSection.WORK_LOCATIONS))
+                {
+                    List<String> endReasonKeys = dataMap.keySet()
+                            .stream().filter(s -> s.contains("End Reason")).toList();
+
+                    for (String wlEntityKey : endReasonKeys)
+                    {
+                        assertTrue(endReasons.contains(dataMap.get(wlEntityKey)), "Work Locations' " +
+                                wlEntityKey + "contains unexpected End Reason in View Mode" + viewMode.getItemText());
+                    }
+                    continue;
+                }
+                assertTrue(endReasons.contains(dataMap.get("End Reason")),
+                        "Section " + section.getTitle() + " contains unexpected End Reason in View Mode "
+                                + viewMode.getItemText());
+            }
         }
     }
 
