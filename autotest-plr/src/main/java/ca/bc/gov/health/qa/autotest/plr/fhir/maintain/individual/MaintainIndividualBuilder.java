@@ -15,6 +15,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainAccessor;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualAttribute;
 
 /**
@@ -210,6 +211,20 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
                 "purpose", purpose,
                 "type",    type,
                 "value",   value));
+        return this;
+    }
+
+    /**
+     * Sets an identifier value for a specific identifier type.
+     * @param identifierType type of identifier (e.g., IPC, ORGID)
+     * @param identifierValue identifier string
+     * @return this builder
+     */
+    public MaintainIndividualBuilder addIdentifier(IdentifierType identifierType, String identifierValue)
+    {
+        if (identifierType != null && identifierValue != null) {
+            identifiers_.put(identifierType, identifierValue);
+        }
         return this;
     }
 
@@ -703,9 +718,9 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
     @Override
     /**
      * Returns the FHIR resource type produced by this builder.
-     * @return PRACTITIONER resource type
+     * @return INDIVIDUAL resource type
      */
     public PlrFhirResourceType resourceType() {
-        return PlrFhirResourceType.PRACTITIONER;
+        return PlrFhirResourceType.INDIVIDUAL;
     }
 }

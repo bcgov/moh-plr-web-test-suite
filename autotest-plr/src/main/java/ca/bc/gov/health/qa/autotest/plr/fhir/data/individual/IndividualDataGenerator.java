@@ -63,7 +63,7 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
         new String[]{"Cook St", "Victoria", "V8V 3X3"}
     );
 
-    private static final List<String> ROLE_TYPES = List.of("MD", "RN", "DEN", "OPT", "PHARM", "LPN");
+    private static final List<String> ROLE_TYPES = List.of("MD", "RN", "DEN", "OPT", "PHARM");
     private static final List<String> EXPERTISE_CODES = List.of("ENG", "C06", "L01", "SPAN", "F16", "A10", "S16", "L06", "L23", "M03", "N03", "P11", "S41", "S59", "T01", "T28", "T11", "V01", "W01", "X01", "Y03", "Z01");
     private static final List<String> CREDENTIAL_TYPES = List.of("BD", "BSC", "D", "M", "OTHER", "PHD");
     private static final List<String> INSTITUTION_NAMES = List.of(
@@ -151,6 +151,23 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
      * @return one credential type string
      */
     public String randomCredentialType() { return pick(CREDENTIAL_TYPES); }
+
+    /**
+     * Generate a list of unique credential types (no duplicates), in randomized order.
+     * If {@code count} exceeds the available code pool size, all codes are returned once.
+     * @param count desired number of unique credential types
+     * @return immutable list of unique credential types
+     */
+    public List<String> generateUniqueCredentialTypes(int count) {
+        if (count <= 0) {
+            return List.of();
+        }
+
+        ArrayList<String> pool = new ArrayList<>(CREDENTIAL_TYPES);
+        Collections.shuffle(pool, RNG);
+        int take = Math.min(count, pool.size());
+        return List.copyOf(pool.subList(0, take));
+    }
 
     /**
      * Generate a random institution name for credentials.

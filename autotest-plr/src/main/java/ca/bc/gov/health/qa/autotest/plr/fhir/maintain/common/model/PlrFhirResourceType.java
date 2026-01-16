@@ -4,8 +4,8 @@ package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model;
  * Supported FHIR resource types for simplified query/maintain helpers.
  */
 public enum PlrFhirResourceType {
-    /** Practitioner resource (FHIR Practitioner). */
-    PRACTITIONER("Practitioner"),
+    /** Individual resource (FHIR Practitioner). */
+    INDIVIDUAL("Practitioner"),
     /** Organization resource (FHIR Organization). */
     ORGANIZATION("Organization"),
     /** Facility abstraction mapped to FHIR Location. */

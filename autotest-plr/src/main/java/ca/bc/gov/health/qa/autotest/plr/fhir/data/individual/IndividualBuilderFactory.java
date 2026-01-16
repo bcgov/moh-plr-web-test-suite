@@ -85,15 +85,17 @@ public class IndividualBuilderFactory {
         for (String code : expertiseCodes) {
             b.addExpertise(code, dataGen.shortText());
         }
-        for (int i = 0; i < config.getCredentialCount(); i++) {
+
+        List<String> credentialTypes = dataGen.generateUniqueCredentialTypes(config.getCredentialCount());
+        for (String credentialType : credentialTypes) {
             b.addCredential(
-                dataGen.randomCredentialType(),
+                credentialType,
                 dataGen.shortText(),
                 dataGen.generateNumericId().substring(0, 7),
                 dataGen.generateInstitutionName(),
                 dataGen.generateAddress()[1],
                 true,
-                "" + (1995 + (i))
+                "" + (1995 + (int)(Math.random() * 30))
             );
         }
         for (int i = 0; i < config.getConditionCount(); i++) {
