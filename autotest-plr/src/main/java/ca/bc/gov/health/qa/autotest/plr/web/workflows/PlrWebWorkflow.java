@@ -158,7 +158,12 @@ implements AutoCloseable
     {
         return new ViewProviderActions(selenium_, uri_, userType_);
     }
-    
+
+    /**
+     * Creates and gets an actions object for the Update Facility page corresponding to simple test cases
+     *
+     * @return  a UpdateFacilitySimpleActions object
+     */
     public UpdateFacilitySimpleActions getUpdateFacilitySimpleActions()
     {
         return new UpdateFacilitySimpleActions(selenium_, uri_, userType_);

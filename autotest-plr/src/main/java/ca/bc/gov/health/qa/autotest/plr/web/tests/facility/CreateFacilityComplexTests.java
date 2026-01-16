@@ -30,6 +30,7 @@ import java.util.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
 
+/** Tests class (complex) for the Create Facility page */
 public class CreateFacilityComplexTests implements SimpleTest {
 
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -40,7 +41,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
     private static JSONObject errorList;
     private static JSONObject warningList;
 
-    public CreateFacilityComplexTests()
+    private CreateFacilityComplexTests()
     {
         try
         {
@@ -55,13 +56,13 @@ public class CreateFacilityComplexTests implements SimpleTest {
     }
 
     @AfterClass
-    public void teardown() {
+    private void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
 
     @BeforeMethod
-    public void before(Object[] parameters)
+    private void before(Object[] parameters)
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
@@ -69,8 +70,8 @@ public class CreateFacilityComplexTests implements SimpleTest {
         workflow.getSeleniumSession().setWaitTimeout(Duration.ofSeconds(6));
     }
 
+    /** F3-006. Validate Facility Identifiers */
     @Test
-    // F3-006. Validate Facility Identifiers
     public void testValidateFacIdentifiers()
     {
         final String identifierTypeRequired = errorList.getString("identifierTypeRequired");
@@ -146,9 +147,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Current step in flow is unexpected - an error likely occurred.");
     }
 
+    /** F3-010. Facility Address Recognition */
     @Test
-    // F3-010. Facility Address Recognition
-    public void facilityAddressRecognition()
+    public void testFacilityAddressRecognition()
     {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
 
@@ -176,9 +177,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Country field is unexpectedly not in Canada");
     }
 
+    /** F3-012. Facility Civic Address Latitude and Longitude */
     @Test
-    // F3-012. Facility Civic Address Latitude and Longitude
-    public void facilityAddressLatLong()
+    public void testFacilityAddressLatLong()
     {
         final double COORD_ERROR = 0.0001;
         final String geocoderBaseURI = "https://geocoder.api.gov.bc.ca/addresses.geojson?addressString=";
@@ -215,9 +216,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Difference between Geocode Longitude and PLR Civic Address Longitude is too large");
     }
 
+    /** F3-013. Request Facility Health Boundaries */
     @Test
-    // F3-013. Request Facility Health Boundaries
-    public void facilityHealthBoundaries()
+    public void testFacilityHealthBoundaries()
     {
         FHIRController fhirController = new FHIRController(UserType.ADMIN);
 
@@ -244,9 +245,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
         fhirController.close();
     }
 
+    /** F3-015. Validate Facility Mailing Address Type */
     @Test
-    // F3-015. Validate Facility Mailing Address Type
-    public void facilityAddressType()
+    public void testFacilityAddressType()
     {
         final List<String> addressData = List.of("120", "775", "VICTORIA ST, KAMLOOPS");
 
@@ -257,9 +258,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Physical location (P)", "New Facility's other address has unexpected address type");
     }
 
+    /** F3-016. Validate Facility Mailing Address Purpose */
     @Test
-    // F3-016. Validate Facility Mailing Address Purpose
-    public void facilityAddressPurpose()
+    public void testFacilityAddressPurpose()
     {
         final List<String> addressData = List.of("380", "550", "DAVIS RD, LADYSMITH");
 
@@ -270,9 +271,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Facility Contact (FC)", "New Facility's other address has unexpected address purpose");
     }
 
+    /** F3-019. Facility Address Validation Status */
     @Test
-    // F3-019. Facility Address Validation Status
-    public void facilityAddressValidationStatus()
+    public void testFacilityAddressValidationStatus()
     {
         final List<String> addressData = List.of("310", "560", "LINDEN AVE, KAMLOOPS");
         final String streetTypeEnding = "NUE";
@@ -316,9 +317,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
         assertEquals(validationStatus, "Invalid (I)", "Validation Status is not Invalid as expected");
     }
 
+    /** F3-020. Facility Address Correction With External Tool */
     @Test
-    // F3-020. Facility Address Correction With External Tool
-    public void facilityAddressCorrection()
+    public void testFacilityAddressCorrection()
     {
         final String civicAddressRecommendation = warningList.getString("civicAddressRecommendation");
         final List<String> addressData = List.of("250", "300", "LANSDOWNE ST, KAMLOOPS");
@@ -352,8 +353,8 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Created facility does not match expected address name");
     }
 
+    /** F3-021. Facility Address with Multi-Part Street Name */
     @Test
-    // F3-021. Facility Address with Multi-Part Street Name
     public void addressMultiPartStreetName()
     {
         AddFacilityPage addFacility = navigateToAddFacilityPage(workflowManager_);
@@ -421,9 +422,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
     }
 
+    /** F3-023. Rejection of Non-Acceptable Characters */
     @Test
-    // F3-023. Rejection of Non-Acceptable Characters
-    public void rejectionNonAcceptableCharacters()
+    public void testRejectionNonAcceptableCharacters()
     {
         final String foreignCharacterIdentifier = errorList.getString("foreignCharacterIdentifier");
         final String foreignCharacterFacility = errorList.getString("foreignCharacterFacility");
@@ -513,9 +514,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
                 "Postal Code field is unhighlighted");
     }
 
+    /** F3-024. Data Owner Code for Facility */
     @Test
-    // F3-024. Data Owner Code for Facility
-    public void dataOwnerCodeFacility()
+    public void testDataOwnerCodeFacility()
     {
         final List<String> addressData = List.of("300", "930", "ST PAUL ST, KAMLOOPS");
 
@@ -533,9 +534,9 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
     }
 
+    /** F3-026 Facility address should be able to handle addresses with or without street types */
     @Test
-    // F3-026 Facility address should be able to handle addresses with or without street types
-    public void facilityAddressStreetTypes()
+    public void testFacilityAddressStreetTypes()
     {
         final List<String> streetTypes = List.of("ST", "RD", "HWY", "CRT", "AVE");
         final List<List<String>> addressData = List.of(List.of("370", "1070", "BATTLE, KAMLOOPS"),
@@ -581,8 +582,5 @@ public class CreateFacilityComplexTests implements SimpleTest {
 
             streetTypeIndex++;
         }
-
-
-
     }
 }

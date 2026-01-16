@@ -28,8 +28,8 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
-public class ViewProviderTests
-implements SimpleTest
+/** Tests class for the View Provider page */
+public class ViewProviderTests implements SimpleTest
 {
     // NOTE: The following test cases *WILL NOT* be automated:
     // - View Provider : Print Provider Details
@@ -45,14 +45,14 @@ implements SimpleTest
     {}
 
     @AfterClass
-    public void teardown()
+    private void teardown()
     {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
 
     @BeforeMethod
-    public void before(Object[] parameters)
+    private void before(Object[] parameters)
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn())
@@ -62,14 +62,14 @@ implements SimpleTest
     }
 
     @BeforeTest
-    public void beforeTest()
+    private void beforeTest()
     {
         //fhirController = new FHIRController(UserType.ADMIN);
         //dummyOrganization = fhirController.createOrganization(new OrganizationMaintainConfig());
         //LOG.info(dummyOrganization);
     }
 
-    // View Provider : Default Provider Detail Screen Record Display
+    /** View Provider : Default Provider Detail Screen Record Display */
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testDefaultProviderDetail(ProviderType providerType)
     {
@@ -86,7 +86,7 @@ implements SimpleTest
         // TODO: ensure **all** current records are visible - note them in FHIR query and cross-reference what is visible
     }
 
-    // View Provider : Indicating Current Data Objects
+    /** View Provider : Indicating Current Data Objects */
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testIndicatingCurrentDataObj(ProviderType providerType)
     {
@@ -100,7 +100,7 @@ implements SimpleTest
         actions.verifySectionsWithActiveDataBlocks(providerType, false);
     }
 
-    // View Provider : Optional Provider Detail Screen Views - History and Audit
+    /** View Provider : Optional Provider Detail Screen Views - History and Audit */
     @Test(dataProvider = "allPlrUserTypesProviderTypes", dataProviderClass = InjectableData.class)
     public void testOptionalDetailScreenViews(UserType userType, ProviderType providerType)
     {
@@ -131,7 +131,7 @@ implements SimpleTest
         viewHeader.expandViewModeMenu(false);
     }
 
-    // View Provider : Rules Indicating Current Records
+    /** View Provider : Rules Indicating Current Records */
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testRulesCurrentRecords(ProviderType providerType)
     {
@@ -159,7 +159,7 @@ implements SimpleTest
         actions.verifyEndReason(providerType, ViewMode.AUDIT);
     }
 
-    // View Provider : Sort Order On View Provider Details Screen
+    /** View Provider : Sort Order On View Provider Details Screen */
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testSortOrder(ProviderType providerType)
     {
@@ -186,7 +186,7 @@ implements SimpleTest
         }
     }
 
-    // View Provider : Viewing Empty Data Objects
+    /** View Provider : Viewing Empty Data Objects */
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testViewingEmptyData(ProviderType providerType)
     {
@@ -209,7 +209,7 @@ implements SimpleTest
         actions.verifyRequiredSections(providerType, true);
     }
 
-    // View Provider : Viewing Provider Details
+    /** View Provider : Viewing Provider Details */
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testViewingProviderDetails(ProviderType providerType)
     {

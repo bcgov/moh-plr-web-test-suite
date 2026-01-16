@@ -39,6 +39,7 @@ import static java.lang.Integer.parseInt;
 import static org.testng.Assert.*;
 import static ca.bc.gov.health.qa.autotest.plr.data.UpdateFacilityConstants.*;
 
+/** Tests class (complex) for the Update Facility menus */
 public class UpdateFacilityComplexTests implements SimpleTest
 {
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -51,7 +52,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     private static JSONObject errorList;
 
-    public UpdateFacilityComplexTests()
+    private UpdateFacilityComplexTests()
     {
         try
         {
@@ -65,7 +66,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
     }
 
     @AfterClass
-    public void teardown()
+    private void teardown()
     {
         fhirController.close();
         workflowManager_.logoutAllAndClose();
@@ -73,17 +74,16 @@ public class UpdateFacilityComplexTests implements SimpleTest
     }
 
     @BeforeTest
-    public void beforeTest()
+    private void beforeTest()
     {
-			fhirController = new FHIRController(UserType.ADMIN);
+        fhirController = new FHIRController(UserType.ADMIN);
 
-			final FacilityMaintainConfig config = new FacilityMaintainConfig();
-			dummyFacility = fhirController.createFacility(config);
-
+        final FacilityMaintainConfig config = new FacilityMaintainConfig();
+        dummyFacility = fhirController.createFacility(config);
     }
 
     @BeforeMethod
-    public void before(Object[] parameters)
+    private void before(Object[] parameters)
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn())
@@ -92,10 +92,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
     }
 
+    /** F4-020. Validate End Reason Code */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-
-    // F4-020. Validate End Reason Code
-    public void validateEndReasonCode()
+    public void testValidateEndReasonCode()
     {
         final String errMsg5000EndReason = errorList.getString("errMsg5000EndReason");
 
@@ -213,9 +212,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
         assertEquals(page.grabActiveDataBlockCount(FacilitySection.NOTES, true), 0, "Note data block was not ceased as expected.");
     }
 
+    /** F4-021. Validate Effective Start and End Date Format */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-021. Validate Effective Start and End Date Format
-    public void validateStartEndDateFormat()
+    public void testValidateStartEndDateFormat()
     {
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
         UpdateFacilityPage page = actions.openFacility(dummyFacility);
@@ -300,8 +299,6 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 generateNumericString(3), generateNumericString(7), "", effective_date(), increment_year_for_effective_date(), EndReason.CHG, 0, false);
         assertTrue(StringUtils.isEmpty(err), "Precondition failed: new telecommunication block failed to be updated");
 
-        LOG.info("made it here");
-
         // E-Address Add
         while (page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true) > 0)
         {
@@ -309,8 +306,6 @@ public class UpdateFacilityComplexTests implements SimpleTest
             page.ceaseDataBlock(FacilitySection.ELECTRONIC_ADDRESSES, 0);
         }
         final ElectronicAddressType eaType = ElectronicAddressType.HTTP;
-
-        LOG.info("made it here too");
 
         err = page.addElectronicAddressDataBlock(eaType.getText(), generateHTTP(), "", "", true);
         assertEquals(err, errMsg5000, "Missing Effective From field error did not appear when adding e-address block");
@@ -407,9 +402,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
         assertTrue(StringUtils.isEmpty(err), "Precondition failed: new e-address block failed to be updated");
     }
 
+    /** F4-022. Rejection of Non-Acceptable Characters */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-022. Rejection of Non-Acceptable Characters
-    public void rejectNonAcceptableCharacters()
+    public void testRejectNonAcceptableCharacters()
     {
         //Step 1 - Open facility details screen
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -533,9 +528,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
         assertEquals(errMsg7004NoteText, updNoteErr, "Expected error for invalid characters in Note Text update did not appear");
     }
 
+    /** F4-029. Mandatory Facility Telecommunication Attributes */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-029. Mandatory Facility Telecommunication Attributes
-    public void mandatoryTelecomAttributes()
+    public void testMandatoryTelecomAttributes()
     {
         final String errMsg5000EndReason = errorList.getString("errMsg5000EndReason");
         final String errMsg5000Type = errorList.getString("errMsg5000Type");
@@ -594,9 +589,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
         actions.verifyMandatoryAttributesTelecom(page, telecomType, expectedPhoneNumber.get(0), expectedPhoneNumber.get(1));
     }
 
+    /** F4-030. Optional Telecommunication Attributes */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-030. Optional Telecommunication Attributes
-    public void optionalTelecomAttributes()
+    public void testOptionalTelecomAttributes()
     {
         final TelecommunicationType telecomType1 = TelecommunicationType.PAGER;
         final TelecommunicationType telecomType2 = TelecommunicationType.FAX;
@@ -642,9 +637,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Extension update failed to fill as expected");
     }
 
+    /** F4-031. Validate Telecommunication Number */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-031. Validate Telecommunication Number
-    public void validateTelecomNumber()
+    public void testValidateTelecomNumber()
     {
         final TelecommunicationType telecomType = TelecommunicationType.MODEM;
         final String errMsg7008 = errorList.getString("errMsg7008");
@@ -719,9 +714,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Extension is not the specified maximum allowed character count");
     }
 
+    /** F4-035. Mandatory Facility Electronic Address Attributes */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-035. Mandatory Facility Electronic Address Attributes
-    public void mandatoryEAddressAttributes()
+    public void testMandatoryEAddressAttributes()
     {
         final String errMsg5000EndReason = errorList.getString("errMsg5000EndReason");
         final String errMsg5000Type = errorList.getString("errMsg5000Type");
@@ -776,9 +771,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
         actions.verifyMandatoryAttributesEAddress(page, eaType, expectedEmail);
     }
 
+    /** F4-036. Optional Electronic Address Attributes */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-036. Optional Electronic Address Attributes
-    public void optionalEAddressAttributes()
+    public void testOptionalEAddressAttributes()
     {
         final ElectronicAddressType eaType = ElectronicAddressType.FTP;
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -803,9 +798,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Effective To field failed to update as expected");
     }
 
+    /** F4-037. Validate Electronic Address Text */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-037. Validate Electronic Address Text
-    public void validateEAddressText()
+    public void testValidateEAddressText()
     {
         final int maximumLength = 500;
 
@@ -865,9 +860,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
     }
 
+    /** F4-045. Generating Internal Relationship Identifier (RID) */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-045. Generating Internal Relationship Identifier (RID)
-    public void generateRelationshipIdentifier()
+    public void testGenerateRelationshipIdentifier()
     {
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 
@@ -895,9 +890,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
                 "Second relationship identifier is not immediately after the first");
     }
 
+    /** F4-046. Validate Facility Relationship Type Code */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-046. Validate Facility Relationship Type Code
-    public void validateRelationshipTypeCode()
+    public void testValidateRelationshipTypeCode()
     {
         final String errMsg5000OrgRel = errorList.getString("errMsg5000OrgRelType");
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -924,9 +919,9 @@ public class UpdateFacilityComplexTests implements SimpleTest
         }
     }
 
+    /** F4-047. Validate Related Organization ID and Relationship Type Code Combination */
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
-    // F4-047. Validate Related Organization ID and Relationship Type Code Combination
-    public void validateRelatedOrganizationIdAndRelationshipTypeCodeCombination()
+    public void testValidateRelatedOrganizationIdAndRelationshipTypeCodeCombination()
     {
          //Step 1 - Open facility details screen
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
@@ -999,7 +994,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         
         //Step 6 - Attempt to create another organization relationship using a different related provider identifier type (e.g. ORGID vs. IPC) but for the same organization, and the same relationship type as in the previous step.
         
-        //Orgs will have autogenerated an IPC and a CPM by default. The difference is the inital format i.e IPC.########.BC.PRS to CPN.########.BC.PRS
+        //Orgs will have autogenerated an IPC and a CPM by default. The difference is the initial format i.e IPC.########.BC.PRS to CPN.########.BC.PRS
         String org2CPN = org2.getIdentifier().replace("IPC", "CPN");
 
         error = page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.CPN.getText(), org2CPN,

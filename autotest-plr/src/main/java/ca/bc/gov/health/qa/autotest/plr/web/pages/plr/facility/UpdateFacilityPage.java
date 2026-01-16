@@ -598,7 +598,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
      * @param effectiveFrom		the effective from date to update the data block with
      * @param effectiveTo		the effective to date to update the data block with
      * @param index				the index of name data block to update
-	 * @param endReason			the end reason to specify when updating the data block
+	 * @param endReasonCode		the end reason to specify when updating the data block
      * @return					a string of the full message dialog of errors, if any exist. otherwise an empty string
      */
 	public String updateNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo,
@@ -719,7 +719,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
      * @param effectiveTo		the effective to date to update the effective to field with
      * @param index				the index of note data block to update
      * @param expectError		whether an error is anticipated (true) or not (false)
-	 * @param endReason			the end reason field to fill the end reason code field with
+	 * @param endReasonCode		the end reason field to fill the end reason code field with
      * @return					a string of the error message, if expectError is true. otherwise an empty string
      */
 	public String updateNoteDataBlock(String text, String effectiveFrom, String effectiveTo, EndReason endReasonCode,
@@ -852,7 +852,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
     /**
      * Attempts to add a telecommunication data block with provided values
      *
-     * @param type				the type of telecommunication to add a data block for
+     * @param telecomType		the type of telecommunication to add a data block for
      * @param areaCode			the area code to fill the area code field for in the data block
      * @param phoneNumber		the phone number to fill the number field for in the data block
      * @param extension			the extension to fill the extension field for in the data block
@@ -911,7 +911,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	 * @param effectiveTo		the effective to date to update the data block with
 	 * @param index				the index of the telecom data block to update
 	 * @param expectError		whether an error is anticipated (true) or not (false)
-	 * @param endReason			the end reason to fill the end reason code field with
+	 * @param endReasonCode		the end reason to fill the end reason code field with
 	 * @return					a string of the error message, if expectError is true. otherwise an empty string
 	 */
 
@@ -1001,7 +1001,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	 * @param effectiveFrom		the effective from date to update the data block with
 	 * @param effectiveTo		the effective to date to update the data block with
 	 * @param expectError		whether an error is anticipated (true) or not (false)
-	 * @param endReason			the end reason string to fill in the End Reason code field
+	 * @param endReasonCode		the end reason string to fill in the End Reason code field
 	 * @return					a string of the error message, if expectError is true. otherwise an empty string
 	 */
 	public String updateElectronicAddressDataBlock(String address, String effectiveFrom, String effectiveTo,

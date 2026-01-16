@@ -39,6 +39,7 @@ import org.testng.annotations.Test;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
 
+/** Tests class (simple) for the Search Facility page */
 public class SearchFacilitySimpleTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
@@ -52,7 +53,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     private MaintainFacilityBuilder dummyFacility;
     private Map<String,String> dummyAddress;
 
-    public SearchFacilitySimpleTests() {
+    private SearchFacilitySimpleTests() {
         try
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
@@ -66,7 +67,7 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     }
 
     @AfterClass
-    public void teardown() {
+    private void teardown() {
         fhirController.close();
 
         workflowManager_.logoutAllAndClose();
@@ -74,18 +75,18 @@ public class SearchFacilitySimpleTests implements SimpleTest {
     }
 
     @BeforeTest
-    public void beforeTest() {
+    private void beforeTest() {
         fhirController = new FHIRController(UserType.ADMIN);
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
-        // dummyFacility = fhirController.createFacility(dummyCfg);
+        dummyFacility = fhirController.createFacility(dummyCfg);
 
-        // dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
-        // dummyAddress = dummyFacility.getAddress();
+        dummyFacility = fhirController.queryFacilityByIdentifier(IdentifierType.IFC, dummyFacility.getIdentifier());
+        dummyAddress = dummyFacility.getAddress();
     }
 
     @BeforeMethod
-    public void before(Object[] parameters)
+    private void before(Object[] parameters)
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn())
@@ -94,8 +95,9 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         }
     }
 
+    /** F1-001. Facility Search
+     * @param userType  the user type injected into the test (reg-admin, etc.) */
     @Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
-    // F1-001. Facility Search
     public void testFacilitySearch(UserType userType)
     {
         final Pattern SEARCH_RESULTS_TIME_PATTERN = Pattern.compile("([0-9]+\\.[0-9]{3})");
@@ -159,8 +161,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         workflowManager_.logoutAndClose(userType);
     }
 
+    /** F1-002. Facility Search by ID */
     @Test
-    // F1-002. Facility Search by ID
     public void testFacilitySearchID()
     {
         final String expectedCivicAddress = String.format("%s,\n%s,\nBritish Columbia",
@@ -200,8 +202,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 "View page header does not match expected identifier");
     }
 
+    /** F1-003. Minimum Data Requirements for Facility Search by Facility ID */
     @Test
-    // F1-003. Minimum Data Requirements for Facility Search by Facility ID
     public void testMinDataReqsFacilityID()
     {
         final String facIdentifierEmptyError = errorList.getString("missingFacilityIdentifier");
@@ -265,8 +267,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         assertEquals(highlightedFields.size(), 2, "Unexpected amount of highlighted fields");
     }
 
+    /** F1-005. Filtering Identifier Type for Query */
     @Test
-    // F1-005. Filtering Identifier Type for Query
     public void testIdentifierTypes()
     {
         SearchFacilityPage page = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
@@ -280,8 +282,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         }
     }
 
+    /** F1-006. Facility Search by Criteria */
     @Test
-    // F1-006. Facility Search by Criteria
     public void testFacilitySearchCriteria()
     {
         final String uniqueNamePrefix = generateAlphabetString(5); // reasonably likely to be unique
@@ -363,8 +365,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         }
     }
 
+    /** F1-007. Minimum Data Requirements for Facility Search with Criteria */
     @Test
-    // F1-007. Minimum Data Requirements for Facility Search with Criteria
     public void testMinDataReqsCriteria()
     {
         final String expectedMessage = warningList.getString("missingCriteria");
@@ -406,8 +408,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 "Error query changed query results unexpectedly.");
     }
 
+    /** F1-008. Facility Attribute Search Rules - Logical */
     @Test
-    // F1-008. Facility Attribute Search Rules - Logical
     public void testFacilitySearchRulesLogical()
     {
         final List<String> search1Details = Arrays.asList(
@@ -457,8 +459,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 "Facility is missing expected " + CriteriaTabAttribute.SERVICE_DELIVERY_AREA.getString());
     }
 
+    /** F1-009. Service Delivery Area Recognition */
     @Test
-    // F1-009. Service Delivery Area Recognition
     public void testServiceDeliveryArea()
     {
         SearchFacilityPage searchFacility = navigateToSearchFacilityPage(workflowManager_, UserType.ADMIN);
@@ -478,8 +480,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 "Service Delivery Area field did not populate with the expected result");
     }
 
+    /** F1-013. Word Wrap Search Results */
     @Test
-    // F1-013. Word Wrap Search Results
     public void testWordWrapResults()
     {
         final List<String> queryDetails = Arrays.asList(dummyFacility.getName().charAt(0) + "*",
@@ -496,8 +498,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
         }
     }
 
+    /** F1-014. Zero Results */
     @Test
-    // F1-014. Zero Results
     public void testZeroResults()
     {
         final List<String> fakeIdentifierFields = Arrays.asList("IFC", "ABC.123");
@@ -521,8 +523,8 @@ public class SearchFacilitySimpleTests implements SimpleTest {
                 "Empty results message not returned when searching nonexistent facility through criteria.");
     }
 
+    /** F1-017. Previous Facility Search Results Session */
     @Test
-    // F1-017. Previous Facility Search Results Session
     public void testPreviousResultsSession()
     {
         final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();

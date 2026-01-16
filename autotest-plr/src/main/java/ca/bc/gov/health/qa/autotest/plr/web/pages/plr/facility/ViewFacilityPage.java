@@ -55,9 +55,9 @@ public class ViewFacilityPage extends BasicWebPage {
 
 
     /**
-     * expand All data blocks
+     * Expand All data blocks
      *
-     * @param expand
+     * @param expand	whether to expand (true) or collapse (false) all data blocks
      */
 	public void expandAll(boolean expand) {
 		viewHeader_.expandAll(expand);
@@ -333,7 +333,7 @@ public class ViewFacilityPage extends BasicWebPage {
      * @param section               the facility section to get content from
      * @param index                 the index of block within the facility section to get content from
      * @param dataMap               the hash map to fill with data block fields/associated values
-     * @param dataRowElementList
+     * @param dataRowElementList	a list of web elements of each row of data block fields.
      * @return                      a hash map mapping data block fields (String) to its associated values (String)
      */
 	public LinkedHashMap<String, String> grabBlockContent(FacilitySection section, int index,
@@ -396,7 +396,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	/**
 	 * Scroll To Section
 	 *
-	 * @param section
+	 * @param section	the FacilitySection to scroll to
 	 * 
 	 */
 	public void scrollToSection(FacilitySection section) {

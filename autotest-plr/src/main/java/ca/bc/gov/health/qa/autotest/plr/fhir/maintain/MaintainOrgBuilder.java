@@ -231,8 +231,8 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
 
     /**
      * Sets the organization identifier value.
-     * @param identifier identifier string
-     * @return this builder
+     * @param orgidentifier     identifier string
+     * @return                  this builder
      */
 	public MaintainOrgBuilder OrgIdentifier(String orgidentifier) {
 		OrgIdentifier_ = orgidentifier;
@@ -242,8 +242,8 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
 
     /**
      * Sets the organization name.
-     * @param name display name
-     * @return this builder
+     * @param name  display name
+     * @return      this builder
      */
     public MaintainOrgBuilder name(String name)
     {

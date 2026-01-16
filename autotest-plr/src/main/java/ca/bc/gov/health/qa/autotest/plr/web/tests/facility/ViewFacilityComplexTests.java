@@ -30,6 +30,7 @@ import java.util.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
 
+/** Tests class (complex) for the View Facility page */
 public class ViewFacilityComplexTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
@@ -37,10 +38,10 @@ public class ViewFacilityComplexTests implements SimpleTest {
     private static MaintainFacilityBuilder dummyFacility;
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
-    public ViewFacilityComplexTests() {}
+    private ViewFacilityComplexTests() {}
 
     @AfterClass
-    public void teardown() {
+    private void teardown() {
         dummyFacility.ceaseOrganizationRelationships();
         fhirController.close();
         workflowManager_.logoutAllAndClose();
@@ -48,7 +49,7 @@ public class ViewFacilityComplexTests implements SimpleTest {
     }
 
     @BeforeTest
-    public void beforeTest()
+    private void beforeTest()
     {
         fhirController = new FHIRController(UserType.ADMIN);
 
@@ -57,14 +58,14 @@ public class ViewFacilityComplexTests implements SimpleTest {
     }
 
     @BeforeMethod
-    public void before(Object[] parameters)
+    private void before(Object[] parameters)
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
     }
 
+    /** F2-002. Validate Facility Data Block Multiplicity */
     @Test
-    // F2-002. Validate Facility Data Block Multiplicity
     public void testValidateBlockMultiplicity()
     {
         final ViewFacilityActions actions = workflowManager_.getSelectedWorkflow().getViewFacilityActions();
@@ -109,8 +110,8 @@ public class ViewFacilityComplexTests implements SimpleTest {
                 "BC - British Columbia", "Civic Address is not located in British Columbia");
     }
 
+    /** F2-007. Limiting Number of Records For View Facility Details Screen */
     @Test
-    // F2-007. Limiting Number of Records For View Facility Details Screen
     public void testLimitNumberRecords()
     {
         final FacilityMaintainConfig highCountConfig = new FacilityMaintainConfig()
@@ -142,8 +143,8 @@ public class ViewFacilityComplexTests implements SimpleTest {
         highCountFacility.ceaseOrganizationRelationships();
     }
 
+    /** F2-008. View Facility Details Screen - Organization Relationships Block */
     @Test
-    // F2-008. View Facility Details Screen - Organization Relationships Block
     public void testOrgRelationshipBlock()
     {
         List<String> orgIdentifiers = new ArrayList<>();
@@ -173,8 +174,8 @@ public class ViewFacilityComplexTests implements SimpleTest {
                 "Organization Relationships are not sorted by Related Organization Identifier");
     }
 
+    /** F2-010. UI Display Providers Related To Facility */
     @Test
-    // F2-010. UI Display Providers Related To Facility
     public void testUIDisplayProviders()
     {
         final String relIdentifierField = OrgRelationshipField.RELATIONSHIP_IDENTIFIER.getString();
@@ -245,8 +246,8 @@ public class ViewFacilityComplexTests implements SimpleTest {
         }
     }
 
+    /** F2-012. Facility Relationship Summary Line */
     @Test
-    // F2-012. Facility Relationship Summary Line
     public void testFacilityRelationshipSummary()
     {
         final List<String> facRelFields = Arrays.asList(
