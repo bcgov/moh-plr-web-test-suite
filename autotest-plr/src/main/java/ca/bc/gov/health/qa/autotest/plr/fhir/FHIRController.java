@@ -108,13 +108,27 @@ public class FHIRController implements AutoCloseable {
             //LOG.info("Created organization {} for facility relationship (id={})", i + 1, orgIPCId);
         }
 
+        if (config.getRelationshipNames() != null) {
+            for (String name : config.getRelationshipNames())
+            {
+                OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig().withName(name);
+                MaintainOrgBuilder org = createOrganization(orgConfig);
+                String orgIPCId = org.getIdentifier();
+                String orgIPCName = org.getName();
+                builder.addOrganizationRelationship(IdentifierType.IPC, orgIPCId, orgIPCName);
+
+                relCount++;
+            }
+
+        }
+
         String id = executor.submitMaintain(builder);
         LOG.info("Created facility (id={}) using config{}", id, relCount > 0 ? " with " + relCount + " org relationship(s)" : "");
         builder.identifier(id); // overwrite with server returned id (Should be an IFC identifier)
         return builder;
     }
 
-        /**
+    /**
      * Ceases all organization relationships currently configured on the provided facility builder.
      * The builder is submitted and its identifier updated with the returned IFC id.
      * @param facility existing facility builder whose relationships should be ceased

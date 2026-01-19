@@ -43,7 +43,8 @@ public class FacilityBuilderFactory {
             builder.identifier(dataGen.generateNumericId());
         }
         if (config.isNameEnabled()) {
-            builder.name(dataGen.generateName());
+            if (config.isNameManualEnabled()) { builder.name(config.getName()); }
+            else { builder.name(dataGen.generateName()); }
         }
         if (config.isAddressEnabled()) {
             String[] addr = dataGen.generateAddress();
@@ -79,7 +80,7 @@ public class FacilityBuilderFactory {
 
         int noteCount = config.getNoteCount();
         for (int i = 0; i < noteCount; i++) {
-            builder.addNote(dataGen.generateNote());
+            builder.addNote(dataGen.generateNote(), null);
         }
         
         return builder;

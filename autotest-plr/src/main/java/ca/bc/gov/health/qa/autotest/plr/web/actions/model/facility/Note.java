@@ -3,6 +3,8 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.json.JSONObject;
 import static org.testng.Assert.*;
 
@@ -92,6 +94,26 @@ public class Note {
 				&& Objects.equals(effectiveFrom, other.effectiveFrom) && Objects.equals(effectiveTo, other.effectiveTo)
 				&& Objects.equals(endReason, other.endReason) && Objects.equals(noteIdentifier, other.noteIdentifier)
 				&& Objects.equals(noteText, other.noteText);
+	}
+
+	/**
+	 * Constructs an Note based on the result of a newly generated facility from FHIR.
+	 * TODO add specifications for these fields within the builder as much as possible in future versions
+	 *
+	 * @param fhirFacility	the facility to create the note for
+	 */
+	public Note(MaintainFacilityBuilder fhirFacility, int index) {
+		super();
+
+		this.noteIdentifier = fhirFacility.getNoteList().get(index).getOrDefault("identifier", "null");
+		this.noteText = fhirFacility.getNoteList().get(index).get("text");
+		this.effectiveFrom = fhirFacility.getDate();
+		this.effectiveTo = "";
+		this.endReason = "";
+		this.dataSource = ViewFacilityConstants.DATA_SOURCE_DEFAULT;
+		this.dbCreated = fhirFacility.getDate();
+		this.dbExpired = "";
+		this.dataOwnerCode = ViewFacilityConstants.DATA_OWNER_CODE_DEFAULT;
 	}
 
 	/**

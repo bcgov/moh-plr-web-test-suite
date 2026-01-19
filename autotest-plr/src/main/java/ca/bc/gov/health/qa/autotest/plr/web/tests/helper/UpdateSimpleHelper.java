@@ -49,6 +49,15 @@ public class UpdateSimpleHelper {
 		String dateformatted = dateFormat.format(date);
 		return dateformatted;
 	}
+	
+	static public String increment_month_for_effective_date(){
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.MONTH, 1);
+		Date nextYear = cal.getTime();
+		return dateFormat.format(nextYear);
+	}
+
 
 	public static String increment_year_for_effective_date() {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -73,9 +82,9 @@ public class UpdateSimpleHelper {
 	}
 
 	/**
-	 * TODO (KD) - doc
+	 * get fault ID
 	 *
-	 * @param IfcID
+	 * @param IfcID IFC.xxxxxx/BC.PRS
 	 * @return
 	 */
 	public static String getFaultId(String IfcID) {

@@ -17,6 +17,8 @@ public class OrganizationMaintainConfig {
     private boolean name;
     private OrgRoleType roleType; // required actual value (defaults in ctor)
     private boolean address; // at least one address
+    private boolean nameManual;     // if name is being specified manually
+    private String org_name;        // organization name, used if name is input manually
 
     // Optional scalars
     private boolean alias;
@@ -130,6 +132,17 @@ public class OrganizationMaintainConfig {
      * @return true if NAME will be included */
     public boolean isNameEnabled() { return name; }
 
+    /**
+     * Verifies if NAME will be manually set instead of randomly generated.
+     * @return true if name will be manually generated, false if not */
+    public boolean isNameManualEnabled() { return nameManual; }
+
+    /**
+     * Name that is used for the facility if name will be manually set
+     * @return  facility name (null if will be randomly generated)
+     */
+    public String getName() { return org_name; }
+
     /** Verifies if ROLE_TYPE will be included.
      * @return organization role type value (never null after construction) */
     public OrgRoleType getRoleType() { return roleType; }
@@ -230,6 +243,15 @@ public class OrganizationMaintainConfig {
     /** Enable name attribute. 
      * @return this config */
     public OrganizationMaintainConfig withName() { this.name = true; return this; }
+    /** Explicitly enable name attribute
+     * @param name  the name to use
+     * @return      this config */
+    public OrganizationMaintainConfig withName(String name)
+    {
+        this.name = true; this.nameManual = true;
+        this.org_name = name;
+        return this;
+    }
     /** Set role type value. 
      * @param roleType organization role type
      * @return this config */

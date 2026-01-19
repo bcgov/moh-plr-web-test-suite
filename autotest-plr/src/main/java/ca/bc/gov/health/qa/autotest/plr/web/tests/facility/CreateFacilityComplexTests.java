@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.tests;
+package ca.bc.gov.health.qa.autotest.plr.web.tests.facility;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -7,6 +7,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierTyp
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.*;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -562,7 +563,7 @@ public class CreateFacilityComplexTests implements SimpleTest {
             addFacility.clickNext("Facility", "");
 
             String fullAddress = fillOutAddressSection(addFacility, addressLine, 5);
-            fullAddress = fullAddress.substring(0, fullAddress.indexOf(",")) + " " + streetTypes.get(streetTypeIndex);
+            fullAddress = fullAddress.substring(0, fullAddress.indexOf(","));
 
             addFacility.waitForAddFacilityStep("Address", false);
             ViewFacilityPage newFacility = addFacility.getFacilitySummary().clickSubmitButton();

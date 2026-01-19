@@ -1,12 +1,13 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
 import org.json.JSONObject;
+
+import static org.testng.Assert.*;
 
 /**
  * Name data block content)
@@ -59,6 +60,25 @@ public class Name {
 	}
 
 	/**
+	 * Constructs a Name based on the result of a newly generated facility from FHIR.
+	 * TODO add specifications for these fields within the builder as much as possible in future versions
+	 *
+	 * @param fhirFacility	the facility to create the name for
+	 */
+	public Name(MaintainFacilityBuilder fhirFacility) {
+		super();
+
+		this.name = fhirFacility.getName();
+		this.description = fhirFacility.getDescription();
+		this.effectiveFrom = ViewFacilityConstants.NAME_EFFECTIVE_FROM_DEFAULT;
+		this.effectiveTo = "";
+		this.endReason = "";
+		this.dataSource = ViewFacilityConstants.DATA_SOURCE_DEFAULT;
+		this.dbCreated = fhirFacility.getDate();
+		this.dbExpired = "";
+		this.dataOwnerCode = ViewFacilityConstants.DATA_OWNER_CODE_DEFAULT;
+	}
+	/*
 	 * Gets the facility name.
 	 *
 	 * @return the Data Owner Code string
@@ -76,7 +96,7 @@ public class Name {
 		super();
 		assertNotNull(jsonData);
 
-		assertTrue(!jsonData.isNull("Name"));
+        assertFalse(jsonData.isNull("Name"));
 		this.name = jsonData.getString("Name");
 		
 		

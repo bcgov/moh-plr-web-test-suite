@@ -137,6 +137,8 @@ public final class FacilityQueryResponseMapper {
             b.name(name);
         }
 
+
+
         JSONArray alias = location.optJSONArray("alias");
         if (alias != null && alias.length() > 0) {
             String desc = alias.optString(0, null);
@@ -167,18 +169,27 @@ public final class FacilityQueryResponseMapper {
                     hsdaInfo = ext.optJSONArray("extension");
                 }
             }
-
         }
 
         if (valueAddress != null) {
             JSONArray lines = valueAddress.optJSONArray("line");
-            String line1 = lines != null && lines.length() > 0 ? lines.optString(0, null) : valueAddress.optString("text", null);
+            String line1 = lines != null && !lines.isEmpty() ? lines.optString(0, null) : valueAddress.optString("text", null);
             String city = valueAddress.optString("city", null);
             String postal = valueAddress.optString("postalCode", null);
             if (line1 != null && city != null) {
                 b.addAddress(line1, city, postal);
             }
         }
+
+        String latitudeString = "";
+        String longitudeString = "";
+        JSONObject valuePosition = location.optJSONObject("position");
+        if (valuePosition != null)
+        {
+            latitudeString = valuePosition.optString("latitude");
+            longitudeString = valuePosition.optString("longitude");
+        }
+        b.addPosition(latitudeString, longitudeString);
 
         // parse HSDA values to add to builder
         String chsaString = "";
@@ -245,15 +256,20 @@ public final class FacilityQueryResponseMapper {
             if (NOTE_EXTENSION_URL.equals(ext.optString("url"))) {
                 JSONArray nested = ext.optJSONArray("extension");
                 if (nested == null) continue;
+                String noteText = null;
+                String noteIdentifier = null;
                 for (int j = 0; j < nested.length(); j++) {
                     JSONObject inner = nested.optJSONObject(j);
                     if (inner == null) continue;
                     if ("text".equals(inner.optString("url"))) {
-                        String noteText = inner.optString("valueString", null);
-                        if (noteText != null && !noteText.isEmpty()) {
-                            b.addNote(noteText);
-                        }
+                        noteText = inner.optString("valueString", null);
                     }
+                    if ("identifier".equals(inner.optString("url"))) {
+                        noteIdentifier = inner.optString("valueIdentifier", null);
+                    }
+                }
+                if (noteText != null && !noteText.isEmpty()) {
+                    b.addNote(noteText, noteIdentifier);
                 }
             }
         }
@@ -261,8 +277,11 @@ public final class FacilityQueryResponseMapper {
 
     /*
      * Maps the OrganizationRelationships from the Location resource to the Facility builder.
+     * Does not include Org Name in the map currently, use queryOrgByIdentifier to find based on identifier if needed
+     *
      * @param affiliationArray Array containing OrganizationAffiliation resources
      * @param b MaintainFacilityBuilder to populate
+     *
      */
     private static void mapOrganizationRelationships(JSONArray affiliationArray, MaintainFacilityBuilder b) {
         if (affiliationArray == null) return;
@@ -272,12 +291,12 @@ public final class FacilityQueryResponseMapper {
             JSONObject org = aff.optJSONObject("organization");
             JSONObject identifier = org.optJSONObject("identifier");
 
-            String system = identifier.optString("system", null);
-            String value  = identifier.optString("value", null);
-            if (system == null || value == null || value.isEmpty()) continue;
+            String system    = identifier.optString("system", null);
+            String idValue   = identifier.optString("value", null);
+            if (system == null || idValue == null || idValue.isEmpty()) continue;
             IdentifierType idType = IdentifierType.resolveIdentifierType(system);
             if (idType != null) {
-                b.addOrganizationRelationship(idType, value);
+                b.addOrganizationRelationship(idType, idValue, null);
             }
         }
     }

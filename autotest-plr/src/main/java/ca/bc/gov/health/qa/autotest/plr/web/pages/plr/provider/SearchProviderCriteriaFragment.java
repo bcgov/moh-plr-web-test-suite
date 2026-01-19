@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
+import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;

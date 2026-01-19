@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.tests;
+package ca.bc.gov.health.qa.autotest.plr.web.tests.facility;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -10,15 +10,16 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierTyp
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.PlrNavigationMenuFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityAddressFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityIdFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityNameFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.AddFacilitySummaryFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityAddressFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityIdFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityNameFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilitySummaryFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.SearchFacilityResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;

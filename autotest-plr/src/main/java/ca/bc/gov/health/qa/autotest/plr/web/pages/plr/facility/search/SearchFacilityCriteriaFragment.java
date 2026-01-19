@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
@@ -144,7 +144,7 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
     /**
      * Fills the service delivery area field, either directly or using the autocomplete feature.
      * If serviceDeliveryAreaPrefix is set to null, the field will be directly filled with serviceDeliveryAreaField.
-     * Otherwise, the field will be filled using serviceDeliveryAreaField to setup autocomplete and
+     * Otherwise, the field will be filled using serviceDeliveryAreaField to set up autocomplete and
      * serviceDeliveryAreaPrefix to select an autocomplete option.
      *
      * @param serviceDeliveryAreaField     the initial characters to fill the service delivery area field with
@@ -183,7 +183,7 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
      * @return  a list of string text from each detail of the criteria tab
      *          [instruction, (fields), clear button, search button]
      */
-    public List<String> verifyCriteriaTab()
+    public List<String> getCriteriaTab()
     {
         List<String> tabDetails = new ArrayList<>();
 
@@ -220,11 +220,14 @@ public class SearchFacilityCriteriaFragment extends SearchSectionFragment
 
         for (String selector : selectorList)
         {
-            fieldValues.add("" + selenium_.findElementByCss(selector).getAttribute("value"));
+            String fieldValue = "";
+            fieldValue += selenium_.findElementByCss(selector).getAttribute("value");
+            fieldValues.add(fieldValue);
         }
 
-        fieldValues.add(fieldValues.size()-1,
-                "" + selenium_.findElementByCss(FACTYPE_FIELD_CSS).getText());
+        String facilityTypeField = "";
+        facilityTypeField += selenium_.findElementByCss(FACTYPE_FIELD_CSS).getText();
+        fieldValues.add(fieldValues.size()-1, facilityTypeField);
 
         return fieldValues;
     }

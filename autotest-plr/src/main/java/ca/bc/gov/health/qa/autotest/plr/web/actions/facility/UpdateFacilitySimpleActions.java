@@ -1,18 +1,22 @@
-package ca.bc.gov.health.qa.autotest.plr.web.actions;
+package ca.bc.gov.health.qa.autotest.plr.web.actions.facility;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.EAddressField;
+import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.TelecomField;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.util.RelatedProviderIdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.CivicAddress;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.ElectronicAddress;
@@ -24,7 +28,6 @@ import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Relationship;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Telecommunication;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.UpdateFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.RelatedProviderIdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
@@ -35,6 +38,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.json.JSONObject;
 
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.effective_date;
 import static org.testng.Assert.*;
 
 public class UpdateFacilitySimpleActions {
@@ -1260,5 +1264,160 @@ public class UpdateFacilitySimpleActions {
 		// TODO: update test case, since the validation target "verify" button is not applicable
 
 	}
+	
+	/**
+	 * Adds a telecommunication data block to a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page				the update facility page reference
+	 * @param telecomNumber		telecom number: list of strings: should be formatted
+	 *                             [type, area code, phone number, extension, effective from, effective to]
+	 * @param expectError		whether an error is expected or not
+	 * @return					the error message if an error is expected to occur
+	 */
+	public String addTelecommunicationNumber(UpdateFacilityPage page, List<String> telecomNumber, boolean expectError)
+	{
+		return page.addTelecommunicationDataBlock(telecomNumber.get(0),
+				telecomNumber.get(1), telecomNumber.get(2), telecomNumber.get(3),
+				telecomNumber.get(4), telecomNumber.get(5), expectError);
+	}
 
+	/**
+	 * Updates a telecommunication data block in a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page				the update facility page reference
+	 * @param type				the telecommunication type to update
+	 * @param telecomNumber		telecom number: list of strings should be formatted [area code, phone number, extension]
+	 * @param expectError		whether an error is expected or not
+	 * @return					the error message if an error is expected to occur
+	 */
+	public String updateTelecommunicationNumber(UpdateFacilityPage page, TelecommunicationType type,
+												List<String> telecomNumber, boolean expectError)
+	{
+		return page.updateTelecommunicationDataBlock(telecomNumber.get(1), telecomNumber.get(2), telecomNumber.get(3),
+				telecomNumber.get(4), telecomNumber.get(5),EndReason.CHG,
+				Integer.parseInt(getTelecomInfo(page, type).get("index")), expectError);
+	}
+	
+	/**
+	 * Verifies the mandatory telecommunication attributes have been changed and match as expected
+	 *
+	 * @param page			the update facility page reference
+	 * @param telecomType	the telecommunication type to get content for
+	 * @param areaCode		the area code to assert the telecom area code has been changed to
+	 * @param phoneNumber	the phone number to assert the telecom phone number has been changed to
+	 */
+	public void verifyMandatoryAttributesTelecom(UpdateFacilityPage page, TelecommunicationType telecomType,
+												  String areaCode, String phoneNumber)
+	{
+		LinkedHashMap<String,String> telecomInfo = getTelecomInfo(page, telecomType);
+
+		assertEquals(telecomInfo.get(TelecomField.TYPE.getString()), telecomType.getDataField(),
+				"Unexpected telecommunication type");
+		assertEquals(telecomInfo.get(TelecomField.AREA_CODE.getString()), areaCode,
+				"Unexpected area code field result");
+		assertEquals(telecomInfo.get(TelecomField.NUMBER.getString()), phoneNumber,
+				"Unexpected phone number field result");
+		assertEquals(telecomInfo.get(TelecomField.EFFECTIVE_FROM.getString()), effective_date(),
+				"Unexpected effective from data field result");
+	}
+	
+	/**
+	 * Gets the info of a data block for the telecommunication type
+	 *
+	 * @param page			the update facility page reference
+	 * @param telecomType	the telecommunication type to get content for
+	 * @return				a map of strings for the data block corresponding to the desired telecommunication type
+	 */
+	public LinkedHashMap<String,String> getTelecomInfo(UpdateFacilityPage page, TelecommunicationType telecomType)
+	{
+		LinkedHashMap<String,String> telecomInfo = new LinkedHashMap<>();
+
+		int telecomIndex = page.grabActiveDataBlockCount(FacilitySection.TELECOMMUNICATIONS, true);
+		for (int index = 0; index < telecomIndex; index++)
+		{
+			telecomInfo = page.grabTelecommunicationsBlockContent(index);
+			if (telecomInfo.get(TelecomField.TYPE.getString()).equals(telecomType.getDataField())) {
+				telecomInfo.put("index", Integer.toString(index));
+				break;
+			}
+		}
+
+		return telecomInfo;
+	}
+	/**
+	 * Adds an electronic address data block to a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page			the update facility page reference
+	 * @param eAddress		e-address: list of strings, should be formatted
+	 *                         [type, address, effective from, effective to]
+	 * @param expectError	whether an error is expected or not
+	 * @return				the error message if an error is expected to occur
+	 */
+	public String addEAddress(UpdateFacilityPage page, List<String> eAddress, boolean expectError)
+	{
+		return page.addElectronicAddressDataBlock(eAddress.get(0),
+				eAddress.get(1), eAddress.get(2), eAddress.get(3), expectError);
+	}
+	/**
+	 * Gets the info of a data block for the electronic address type
+	 *
+	 * @param page			the update facility page reference
+	 * @param eaType		the electronic address type to get content for
+	 * @return				a map of strings for the data block corresponding to the desired e-address type
+	 */
+	public LinkedHashMap<String,String> getEAddressInfo(UpdateFacilityPage page, ElectronicAddressType eaType)
+	{
+		LinkedHashMap<String,String> eAddressInfo = new LinkedHashMap<>();
+
+		int telecomIndex = page.grabActiveDataBlockCount(FacilitySection.ELECTRONIC_ADDRESSES, true);
+		for (int index = 0; index < telecomIndex; index++)
+		{
+			eAddressInfo = page.grabElectronicAddressesBlockContent(index);
+			if (eAddressInfo.get(EAddressField.TYPE.getString()).equals(eaType.getDataField())) {
+				eAddressInfo.put("index", Integer.toString(index));
+				break;
+			}
+		}
+
+		return eAddressInfo;
+	}
+	/**
+	 * Updates an electronic address data block to a page.
+	 * Based in a list of strings representing the number instead of separate fields.
+	 *
+	 * @param page			the update facility page reference
+	 * @param type			the e-address type to update
+	 * @param eAddress		e-address: list of strings, should be formatted
+	 *                         [type, address, effective from, effective to]
+	 * @param expectError	whether an error is expected or not
+	 * @return				the error message if an error is expected to occur
+	 */
+	public String updateEAddress(UpdateFacilityPage page, ElectronicAddressType type,
+								 List<String> eAddress, boolean expectError)
+	{
+		return page.updateElectronicAddressDataBlock(eAddress.get(1), eAddress.get(2), eAddress.get(3),
+				EndReason.CHG,Integer.parseInt(getEAddressInfo(page, type).get("index")), expectError);
+	}
+
+	/**
+	 * Verifies the mandatory e-address attributes have been changed and match as expected
+	 *
+	 * @param page			the update facility page reference
+	 * @param eaType		the electronic address type to get content for
+	 * @param address		the address to assert the electronic address field has been changed to
+	 */
+	public void verifyMandatoryAttributesEAddress(UpdateFacilityPage page, ElectronicAddressType eaType, String address)
+	{
+		LinkedHashMap<String,String> eaInfo = getEAddressInfo(page, eaType);
+
+		assertEquals(eaInfo.get(EAddressField.TYPE.getString()), eaType.getDataField(),
+				"Unexpected telecommunication type");
+		assertEquals(eaInfo.get(EAddressField.ADDRESS.getString()), address,
+				"Unexpected area code field result");
+		assertEquals(eaInfo.get(EAddressField.EFFECTIVE_FROM.getString()), effective_date(),
+				"Unexpected effective from data field result");
+	}
 }
