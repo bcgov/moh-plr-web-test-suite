@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
@@ -73,8 +74,14 @@ extends SearchSectionFragment
         selenium_.fillFieldByCss(CITY_FIELD_CSS, city);
         if (!city.isEmpty())
         {
-            waitForCityPanelVisible(true);
-            selenium_.clickByCss(CITY_FIELD_CSS);
+        	try {
+        		waitForCityPanelVisible(true);
+        		selenium_.clickByCss(CITY_FIELD_CSS);
+            }
+        	catch (org.openqa.selenium.TimeoutException e) {
+        		
+        	}
+            
         }
         waitForCityPanelVisible(false);
     }
@@ -113,18 +120,36 @@ extends SearchSectionFragment
                 By.cssSelector("label#accordian\\:searchByOrganizationForm\\:providerType_label"),
                 By.cssSelector("div#accordian\\:searchByOrganizationForm\\:providerType_panel"));
     }
+    
+    
+    public DropDownMenu getHdsTypeMenu()
+    {
+        return new DropDownMenu(
+                selenium_,
+                By.cssSelector("label#accordian\\:searchByOrganizationForm\\:hds_label"),
+                By.cssSelector("div#accordian\\:searchByOrganizationForm\\:hds_panel"));
+    }
 
     /**
-     * TODO (AZ) - doc
-     *
+     * Select roel type code
+     * 
      * @param roleTypePrefix
-     *        ???
-     *
-     * @return ???
+     * @return Role Type
      */
     public String selectRoleType(String roleTypePrefix)
     {
         return getRoleTypeMenu().selectItem(roleTypePrefix);
+    }
+    
+    /**
+     * Select Hds Type code
+     * 
+     * @param hdsType
+     * @return HDS type 
+     */
+    public String selectHdsType(String hdsType)
+    {
+        return getHdsTypeMenu().selectItem(hdsType);
     }
 
     /**
@@ -151,4 +176,26 @@ extends SearchSectionFragment
             selenium_.waitUntil(ExpectedConditions.invisibilityOf(cityPanel));
         }
     }
+
+	public void clearName() {
+		WebElement name=selenium_.findElementByCss(NAME_FIELD_CSS);
+		name.clear();
+	}
+
+	public void clearDescription() {
+		WebElement des=selenium_.findElementByCss(DESCRIPTION_FIELD_CSS);
+		des.clear();
+		
+	}
+
+	public void clearAddressLine1() {
+		WebElement addrLine1=selenium_.findElementByCss(ADDRESS_LINE_1_FIELD);
+		addrLine1.clear();
+		
+	}
+
+	public void clearCity() {
+		WebElement city=selenium_.findElementByCss(CITY_FIELD_CSS);
+		city.clear();
+	}
 }

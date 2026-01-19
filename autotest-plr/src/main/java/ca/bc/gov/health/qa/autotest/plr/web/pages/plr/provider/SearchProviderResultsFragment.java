@@ -53,10 +53,13 @@ extends BasicWebPageFragment
      *
      * @return ???
      */
-    public int grabResultsRowCount()
-    {
-        return findResultsTableData().findElements(By.cssSelector("tr[role='row']")).size();
-    }
+	public int grabResultsRowCount() {
+		int even = findResultsTableData().findElements(By.cssSelector("tr.ui-datatable-even")).size();
+		int odd = findResultsTableData().findElements(By.cssSelector("tr.ui-datatable-odd")).size();
+		// return
+		// findResultsTableData().findElements(By.cssSelector("tr[role='row']")).size();
+		return even + odd;
+	}
 
     /**
      * TODO (AZ) - doc

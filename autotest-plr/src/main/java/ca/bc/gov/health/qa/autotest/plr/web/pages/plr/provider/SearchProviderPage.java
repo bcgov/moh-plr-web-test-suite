@@ -1,9 +1,16 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 
+import static org.testng.Assert.assertTrue;
+
 import java.util.Collection;
+import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.How;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
@@ -33,6 +40,8 @@ extends BasicWebPage
 
     private static final String REGISTRY_IDENTIFIER_XPATH =
             getSearchSectionXPath("Search by Registry Identifier");
+    
+    private static final String ALERT_ERROR_CSS = "";
 
     /**
      * TODO (AZ) - doc
@@ -231,31 +240,16 @@ extends BasicWebPage
         return grabSearchSectionVisible(REGISTRY_IDENTIFIER_XPATH);
     }
 
+   
     /**
-     * TODO (AZ) - doc
-     *
      * @param roleTypePrefix
-     *        ???
-     *
      * @param firstName
-     *        ???
-     *
      * @param lastName
-     *        ???
-     *
      * @param genderPrefix
-     *        ???
-     *
      * @param city
-     *        ???
-     *
      * @param statusCodePrefix
-     *        ???
-     *
      * @param statusReasonCodePrefix
-     *        ???
-     *
-     * @return ???
+     * @return
      */
     public SearchProviderResultsFragment searchByCriteria(
             String roleTypePrefix,
@@ -278,38 +272,7 @@ extends BasicWebPage
                 null);
     }
 
-    /**
-     * TODO (AZ) - doc (parameters are optional)
-     *
-     * @param roleTypePrefix
-     *        ???
-     *
-     * @param firstName
-     *        ???
-     *
-     * @param lastName
-     *        ???
-     *
-     * @param genderPrefix
-     *        ???
-     *
-     * @param city
-     *        ???
-     *
-     * @param statusCodePrefix
-     *        ???
-     *
-     * @param statusReasonCodePrefix
-     *        ???
-     *
-     * @param expertisePrefixCollection
-     *        ???
-     *
-     * @param languagePrefixCollection
-     *        ???
-     *
-     * @return ???
-     */
+   
     public SearchProviderResultsFragment searchByCriteria(
             String roleTypePrefix,
             String firstName,
@@ -495,6 +458,48 @@ extends BasicWebPage
         search.clickSearchButton();
         return waitForSearchProviderResultsFragment();
     }
+    
+    public SearchProviderResultsFragment searchHDSOrganization(
+            String hdsType,
+            String name,
+            String description,
+            String city,
+            String addressLine1) {
+    	 SearchProviderOrganizationFragment search = expandSearchOrganization(true);
+    	 
+        
+    	 search.selectRoleType("HDS");
+    	 WebElement visibleElement = selenium_
+ 				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("accordian:searchByOrganizationForm:hds")));
+    	// WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("accordian\\:searchByOrganizationForm\\:hds")));
+
+    
+    	if(hdsType!=null)
+         search.selectHdsType(hdsType);
+        
+         if (name != null)
+         {
+             search.fillName(name);
+         }else 
+        	 search.clearName();
+         if (description != null)
+         {
+             search.fillDescription(description);
+         }else search.clearDescription();
+        	 
+         if (addressLine1 != null)
+         {
+             search.fillAddressLine1(addressLine1);
+         }else search.clearAddressLine1();
+         if (city != null)
+         {
+             search.fillCity(city);
+         }else search.clearCity();
+         
+         search.clickSearchButton();
+         return waitForSearchProviderResultsFragment();
+    	
+    }
 
     /**
      * TODO (AZ) - doc
@@ -591,4 +596,16 @@ extends BasicWebPage
                     locator, ACTIVE_UI_STATE_CLASS_NAME));
         }
     }
+
+	public String grabPageMessage() {
+		
+		String alertMsgCss = "span.ui-messages-error-summary";
+		String msgDisplay="";
+		WebElement alertMsg = selenium_.findElement(By.cssSelector(alertMsgCss));
+		if (alertMsg.isDisplayed()) {
+			msgDisplay = alertMsg.getText();
+
+		}
+		return msgDisplay;
+	}
 }
