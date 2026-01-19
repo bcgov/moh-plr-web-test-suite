@@ -54,7 +54,7 @@ public class ViewProviderActions
     }
 
     /**
-     * Opens the provider page for a provider given their internal provider ID.s
+     * Opens the provider page for a provider given their internal provider ID.
      *
      * @param authId                internal provider ID
      * @return                      a ViewProviderPage reference to the provider page specified by authId
