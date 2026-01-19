@@ -14,8 +14,8 @@ import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.EAddressField;
 import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.TelecomField;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.RelatedProviderIdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.CivicAddress;

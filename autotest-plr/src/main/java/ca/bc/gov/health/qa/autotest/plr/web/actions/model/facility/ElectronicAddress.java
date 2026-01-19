@@ -6,7 +6,7 @@ import java.util.Objects;
 import static org.testng.Assert.*;
 
 import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import org.json.JSONObject;
 
 /**
