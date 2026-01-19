@@ -1,19 +1,22 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
-import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
@@ -26,12 +29,14 @@ implements SimpleTest
     {}
 
     @Test
-    public void test0()
+    public void facilityTest()
     {
 
         //Start Controller - Passed parameter will determine user role for FHIR calls. 
         //To change user role, call fhirController.changeFHIRSession(UserType.<ROLE>).
         FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        /***************FACILITY****************/
 
         //Configuration to determine what data to include when creating a Facility with random values.
         // Required attributes are included by default.
@@ -71,21 +76,120 @@ implements SimpleTest
 
         LOG.info("Ceased facility relationships for facility id {}, name {}, address {}, description {}, telecoms {}, notes {}, relationships {}.", facility.getIdentifier(), facility.getName(), facility.getAddress().toString(), facility.getDescription(), facility.getTelecomList(), facility.getNoteList(), facility.getOrgRelationshipList());
 
+        //Close the FHIR session
+        fhirController.close();
+           
+    }
+
+    @Test
+    public void organizationTest()
+    {
+
+        //Start Controller - Passed parameter will determine user role for FHIR calls. 
+        //To change user role, call fhirController.changeFHIRSession(UserType.<ROLE>).
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        /***************ORGANIZATION****************/
+
         //Create an organization with random data and specified role type.
         //Note that the saved organization identifier is an IPC identifier.
-        MaintainOrgBuilder org = fhirController.createOrganization(OrgRoleType.HDS);
+        OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS)
+            //.withAllAttributes(2, 2, 2, 2, 2, 2) convenience method to add all attributes including org properties
+            //.withAllOrgProperties(0, 0, 0, 0) convenience method to add all organization properties
+            //.withName() by default as is a required attribute
+            //.withIdentifier() by default as is a required attribute
+            //.withRoleType(OrgRoleType.HDS) already passed on constructor. HDS by default. also required attribute
+            .withAlias()
+            //.withConfidentiality() //Note that editing the record will not be possible if confidentiality is set to true.
+            //.withAddress() by default as is a required attribute
+            .withAllTelecom()
+            .withStatuses(2) //Note that right now the maximum amount of confidentiality that can be added is 2
+            .withNotes(2)
+            .withClinicServices()
+            .withClinicOwnerBusinessType()
+            .withClinicType()
+            .withClinicLegalBusinessName()
+            //.withAddressUnit(2) TODO - Issues with address unit. Implement logic to query parse and use in maintain later
+            .withClinicHoursOfOperation(2)
+            .withClinicOwnerNames(2)
+            .withPayeeNumber(2)
+            .withPciFlag();        
 
-        LOG.info("Created organization id {}, name {}.", org.getIdentifier(), org.getName());
+        MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
+
+        LOG.info("Created organization id {}, name {}.", org.getIdentifiers(), org.getName());
 
         //Query an organization by its IPC identifier.
         //Resulting MaintainOrgBuilder contains the queried organization data.
-        MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier());
+        MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
 
-        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, address {}, telecoms {}, notes {}.", orgQueried.getIdentifier(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList());
+        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation());
+
+        List<MaintainOrgBuilder> orgQueriedbyCriteria = fhirController.queryOrganizationByCriteria(
+            new OrgQueryCriteriaParams()
+                .setRoleType(OrgRoleType.HDS)
+                .setAddressCity("Vancouver")
+                //.setName("ExampleName")
+                //.setWithHistory(true) //example of boolean param
+        );
+
+        for (MaintainOrgBuilder orgByCriteria : orgQueriedbyCriteria) {
+            LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}.", orgByCriteria.getIdentifiers(), orgByCriteria.getName(), orgByCriteria.getRoleType(), orgByCriteria.getRoleType() == OrgRoleType.HDS ? orgByCriteria.getHdsType() : "null", orgByCriteria.getStatusList(), orgByCriteria.getAlias(), orgByCriteria.getConfidentiality(), orgByCriteria.getAddressList(), orgByCriteria.getTelecomList(), orgByCriteria.getNoteList(), orgByCriteria.getOrganizationProperties().getClinicServices(), orgByCriteria.getOrganizationProperties().getClinicOwnerBusinessType(), orgByCriteria.getOrganizationProperties().getClinicType(), orgByCriteria.getOrganizationProperties().getClinicLegalBusinessName(), orgByCriteria.getOrganizationProperties().getClinicOwnerNames(), orgByCriteria.getOrganizationProperties().getPayeeNumber(), orgByCriteria.getOrganizationProperties().getPciFlag(), orgByCriteria.getOrganizationProperties().getClinicHoursOfOperation());
+        }
 
         //Close the FHIR session
         fhirController.close();
            
+    }
+
+    @Test
+    public void individualTest(){
+
+        //Start Controller - Passed parameter will determine user role for FHIR calls. 
+        //To change user role, call fhirController.changeFHIRSession(UserType.<ROLE>).
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        /***************Individual****************/
+
+         IndividualMaintainConfig individualConfig = new IndividualMaintainConfig()
+            //.withAllAttributes(2, 2, 2, 2, 2, 2, 2, 2) convenience method to add all attributes
+            //.withIdentifier() by default as is a required attribute
+            //.withFamilyName() by default as is a required attribute
+            //.withNames() by default as is a required attribute
+            //.withRoleType() by default as is a required attribute
+            //.withGivenNames() by default as is a required attribute
+            //.withDemographics() by default as is a required attribute
+            //.withAddress() by default as is a required attribute
+            .withAllTelecom()
+            .withStatuses(2) //Note that right now the maximum amount of confidentiality that can be added is 2
+            .withNotes(2)
+            .withExpertise(2)
+            .withCredentials(2)
+            .withDisciplinaryActions(2)
+            .withConditions(2);
+            //.withConfidentiality(); //Note that editing the record will not be possible if confidentiality is set to true.
+
+        MaintainIndividualBuilder individual = fhirController.createIndividual(individualConfig);
+        
+        LOG.info(
+            "Created Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}",
+            individual.getIdentifiers(),
+            individual.getAddressList(),
+            individual.getConditionList(),
+            individual.getConfidentiality(),
+            individual.getCredentialList(),
+            individual.getDisciplinaryActionList(),
+            individual.getFamilyName(),
+            Arrays.toString(individual.getNames()),
+            individual.getDemographics(),
+            individual.getExpertiseList(),
+            individual.getNoteList(),
+            individual.getRoleType(),
+            individual.getStatusList(),
+            individual.getTelecomList());
+
+        fhirController.close();
+
     }
 
 }

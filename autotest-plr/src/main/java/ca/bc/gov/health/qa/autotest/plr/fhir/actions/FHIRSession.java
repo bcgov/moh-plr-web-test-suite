@@ -13,8 +13,8 @@ import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
@@ -200,6 +200,37 @@ public class FHIRSession implements AutoCloseable
         }
         catch (IOException e)
         {
+            throw new IllegalStateException("I/O failure during query request", e);
+        }
+    }
+
+    /**
+     * Executes an Organization $entityQuery with optional criteria. Only non-null/non-blank
+     * parameters are sent; `withHistory` is included as a flag when true.
+     *
+     * @param name           optional organization name filter
+     * @param description    optional description filter
+     * @param type           role type filter (e.g., HDS)
+     * @param addressCity    optional address city filter
+     * @param addressLine1   optional address first line filter
+     * @param withHistory    include the history flag when true
+     * @return JSON response payload
+     * @throws IllegalStateException if interrupted or an I/O error occurs while sending the request
+     */
+    public JSONObject queryOrganizationByCriteria(
+            String name,
+            String description,
+            String type,
+            String addressCity,
+            String addressLine1,
+            boolean withHistory) {
+        try {
+            return actions_.queryOrganizationByCriteria(
+                    name, description, type, addressCity, addressLine1, withHistory);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while submitting query request", e);
+        } catch (IOException e) {
             throw new IllegalStateException("I/O failure during query request", e);
         }
     }
