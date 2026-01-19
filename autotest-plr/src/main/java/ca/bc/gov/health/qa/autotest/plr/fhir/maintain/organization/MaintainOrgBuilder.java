@@ -1,8 +1,7 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
+package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization;
 
 import static java.util.Objects.requireNonNull;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,11 +10,15 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.OrgRoleType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.HdsType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationAttribute;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationAttribute;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainAccessor;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrganizationProperties;
 
 /**
  * Builder for Organization maintain requests. Supports configuration of multi-valued
@@ -25,21 +28,23 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationAttribute;
  */
 public class MaintainOrgBuilder implements MaintainRequestBuilder
 {
-    private List<Map<String,String>>  addressList_     = new ArrayList<>();
-    private String                    alias_           = null;
-    private Boolean                   confidentiality_ = null;
-    private String                    identifier_      = null;
-    private String                    name_            = null;
-    private  List<Map<String,String>> noteList_        = new ArrayList<>();
-    private OrgRoleType               roleType_        = null; // must be explicitly set
-    private List<Map<String,String>>  statusList_      = new ArrayList<>();
-    private List<Map<String,String>>  telecomList_     = new ArrayList<>();
-    private HdsType                   hdsType_         = null;
-    private String                    OrgIdentifier_      = null;
-    //TODO: ORG PROPERTIES
-    //TODO: O2I relationships
+    private List<Map<String,String>>   addressList_     = new ArrayList<>();
+    private String                     alias_           = null;
+    private Boolean                    confidentiality_ = null;
+    private Map<IdentifierType,String> identifiers_    = new HashMap<>();
+    private String                     name_            = null;
+    private List<Map<String,String>>   noteList_        = new ArrayList<>();
+    private OrgRoleType                roleType_        = null; // must be explicitly set
+    private List<Map<String,String>>   statusList_      = new ArrayList<>();
+    private List<Map<String,String>>   telecomList_     = new ArrayList<>();
+    private HdsType                    hdsType_         = null;
+    private OrganizationProperties     orgProperties_   = null;
+    //TODO: P2P relationships
     //TODO: 02F relationships
 
+    // Organization status rules (single source of truth)
+    public static final List<String> STATUS_CLASSES_ORDER = List.of("LIC", "AE");
+    public static final int MAX_STATUS_COUNT = STATUS_CLASSES_ORDER.size();
 
     /**
      * Constructs an empty Organization builder. Required field validation occurs during {@link #build()}.
@@ -100,6 +105,11 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         statusInfo.put("statusClass",  statusClass);
         statusInfo.put("statusReason", statusReason);
         statusList_.add(statusInfo);
+
+        // Cap to a maximum number of unique classes
+        if (statusList_.size() > MAX_STATUS_COUNT) {
+            statusList_ = new ArrayList<>(statusList_.subList(0, MAX_STATUS_COUNT));
+        }
         return this;
     }
 
@@ -139,25 +149,47 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     public JSONObject build()
     {
         verifyParameters();
-        String template = ResourceUtils.readResource(
-                MethodHandles.lookup().lookupClass(), "maintain-organization.json");
-        JSONObject json = new JSONObject(template);
+        JSONObject json = MaintainUtils.readJsonTemplate("maintain-organization.json");
 
         MaintainAccessor accessor = new MaintainAccessor(json);
         JSONObject orgJson = accessor.getOrgJson();
      
-       if(roleType_ != null ){ orgJson.getJSONObject("type")
+       if(roleType_ != null ){
+            orgJson.getJSONObject("type")
             .getJSONArray("coding")
             .getJSONObject(0)
             .put("code", roleType_.toString());
         }
+
         // Include specialized _type block for HDS role type.
-        if (roleType_ == OrgRoleType.HDS) {
+        if (roleType_ != null && roleType_ == OrgRoleType.HDS) {
             requireNonNull(hdsType_, "HDS type required when roleType is HDS");
             orgJson.put("_type", MaintainUtils.createHdsType(hdsType_));
         }
-        accessor.getOrgIdentifierJson(0).put("value", identifier_);
-        orgJson.put("name", name_);
+
+        // Pick the first available identifier deterministically
+        IdentifierType firstIdentifierType = null;
+        String firstIdentifierValue = null;
+        for (IdentifierType t : IdentifierType.values()) {
+            String v = identifiers_.get(t);
+            if (v != null && !v.isBlank()) {
+                firstIdentifierType = t;
+                firstIdentifierValue = v;
+                break;
+            }
+        }
+        
+        if(firstIdentifierType != null && firstIdentifierValue != null) {
+            JSONObject orgIdentifierJson = accessor.getOrgIdentifierJson(0);
+            orgIdentifierJson.put("system", firstIdentifierType.getSourceSystem());
+            orgIdentifierJson.put("value", firstIdentifierValue);
+        }
+
+
+        if (name_ != null){
+            orgJson.put("name", name_);
+        }
+
         if (alias_ != null)
         {
             orgJson.getJSONArray("alias").put(0, alias_);
@@ -176,20 +208,11 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         }
 
         JSONArray extensionJson = accessor.getOrgExtensionJson();
-        if (statusList_.isEmpty())
+        for (Map<String,String> info : statusList_)
         {
-            extensionJson.put(MaintainUtils.createStatus(Map.of(
-                    "statusClass",  "LIC",
-                    "status",       "ACTIVE",
-                    "statusReason", "GS")));
+            extensionJson.put(MaintainUtils.createStatus(info));
         }
-        else
-        {
-            for (Map<String,String> info : statusList_)
-            {
-                extensionJson.put(MaintainUtils.createStatus(info));
-            }
-        }
+        
         if (confidentiality_ != null)
         {
             extensionJson.put(MaintainUtils.createConfidentiality(confidentiality_));
@@ -199,7 +222,92 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
            extensionJson.put(MaintainUtils.createNote(info));
         }
 
+        // OrganizationProperties mapping
+        if (orgProperties_ != null)
+        {
+            // Clinic hours of operation (availableTime blocks) — same level as note blocks
+            for (String hours : orgProperties_.getClinicHoursOfOperation())
+            {
+                extensionJson.put(MaintainUtils.createClinicAvailability(hours));
+            }
+            if (orgProperties_.getClinicType() != null)
+            {
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicType(orgProperties_.getClinicType().getText()));
+            }
+            if (orgProperties_.getClinicOwnerBusinessType() != null)
+            {
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicOwnerBusinessType(orgProperties_.getClinicOwnerBusinessType().getText()));
+            }
+            if (orgProperties_.getClinicServices() != null)
+            {
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicServices(orgProperties_.getClinicServices().getText()));
+            }
+            if (orgProperties_.getClinicLegalBusinessName() != null && !orgProperties_.getClinicLegalBusinessName().isBlank())
+            {
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicLegalBusinessName(orgProperties_.getClinicLegalBusinessName()));
+            }
+            if (orgProperties_.getPciFlag() != null)
+            {
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createPciFlag(orgProperties_.getPciFlag()));
+            }
+            for (String ownerName : orgProperties_.getClinicOwnerNames())
+            {
+                mergePrimaryCareWrapper(extensionJson, MaintainUtils.createClinicOwnerName(ownerName));
+            }
+            for (String payee : orgProperties_.getPayeeNumber())
+            {
+                extensionJson.put(MaintainUtils.createClinicPayeeNumber(payee));
+            }
+        }
+
         return json;
+    }
+
+    /**
+     * Ensures Organization property extensions that are nested under the primary care wrapper are consolidated
+     * into a single wrapper entry (matching the expected wire format). If a primary-care wrapper already exists
+     * in the organization extension array, the child extensions from the provided wrapper are appended to it;
+     * otherwise the provided wrapper is added.
+     *
+     * @param orgExtensions organization-level extension array to update
+     * @param newWrapper a newly created wrapper JSON from MaintainUtils (url should be the primary-care URL)
+     */
+    private static void mergePrimaryCareWrapper(JSONArray orgExtensions, JSONObject newWrapper) {
+        if (newWrapper == null) return;
+        String url = newWrapper.optString("url", "");
+        // Only merge wrappers (skip non-wrapper extensions like payee number)
+        if (!url.contains("bc-organization-primary-care-clinic-extension")) {
+            orgExtensions.put(newWrapper);
+            return;
+        }
+
+        // Find existing wrapper
+        JSONObject existing = null;
+        for (int i = 0; i < orgExtensions.length(); i++) {
+            JSONObject candidate = orgExtensions.getJSONObject(i);
+            if (url.equals(candidate.optString("url", ""))) {
+                existing = candidate;
+                break;
+            }
+        }
+
+        if (existing == null) {
+            orgExtensions.put(newWrapper);
+            return;
+        }
+
+        // Append child extensions from newWrapper into existing wrapper's extension array
+        JSONArray existingChildren = existing.optJSONArray("extension");
+        if (existingChildren == null) {
+            existingChildren = new JSONArray();
+            existing.put("extension", existingChildren);
+        }
+        JSONArray newChildren = newWrapper.optJSONArray("extension");
+        if (newChildren != null) {
+            for (int j = 0; j < newChildren.length(); j++) {
+                existingChildren.put(newChildren.getJSONObject(j));
+            }
+        }
     }
 
     @Override
@@ -219,35 +327,42 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     }
 
     /**
-     * Sets the organization identifier value.
-     * @param identifier identifier string
+     * Sets an identifier value for a specific identifier type.
+     * @param identifierType type of identifier (e.g., IPC, ORGID)
+     * @param identifierValue identifier string
      * @return this builder
      */
-    public MaintainOrgBuilder identifier(String identifier)
+    public MaintainOrgBuilder addIdentifier(IdentifierType identifierType, String identifierValue)
     {
-        identifier_ = identifier;
+        if (identifierType != null && identifierValue != null) {
+            identifiers_.put(identifierType, identifierValue);
+        }
         return this;
     }
 
     /**
-     * Sets the organization identifier value.
-     * @param orgidentifier     identifier string
-     * @return                  this builder
-     */
-	public MaintainOrgBuilder OrgIdentifier(String orgidentifier) {
-		OrgIdentifier_ = orgidentifier;
-		return this;
-	}
-
-
-    /**
      * Sets the organization name.
-     * @param name  display name
-     * @return      this builder
+     * @param name display name
+     * @return this builder
      */
     public MaintainOrgBuilder name(String name)
     {
         name_ = name;
+        return this;
+    }
+
+    /**
+     * Sets variable organization properties for this builder.
+     * This allows configuring advanced attributes outside of the standard
+     * scalar and list fields (e.g., clinic services, owner type, clinic type).
+     * Note: these properties are currently not serialized by {@link #build()} and
+     * will be wired into the template mapping in a later step.
+     * @param properties container of organization properties (nullable)
+     * @return this builder
+     */
+    public MaintainOrgBuilder organizationProperties(OrganizationProperties properties)
+    {
+        orgProperties_ = properties;
         return this;
     }
 
@@ -266,16 +381,10 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         return this;
     }
 
-    /**
+     /**
      * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
      * @param hdsType classification string
      * @return this builder
-     */
-    /**
-     * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
-     * @param hdsType HDS subtype enum (never null)
-     * @return this builder
-     * @throws IllegalStateException if role type is not HDS
      */
     public MaintainOrgBuilder hdsType(HdsType hdsType) {
         if (roleType_ != OrgRoleType.HDS) {
@@ -309,7 +418,9 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private void validateRequiredField(OrganizationAttribute attr) {
         switch (attr) {
             case IDENTIFIER:
-                requireNonNull(identifier_, "Missing organization identifier.");
+                if (identifiers_.isEmpty()) {
+                    requireNonNull(null, "Missing organization identifier.");
+                }
                 break;
             case NAME:
                 requireNonNull(name_, "Missing organization name.");
@@ -350,14 +461,39 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     }
 
     /**
-     * Organization identifier configured.
-     * @return organization identifier value (may be null until set)
+     * Returns the preferred identifier value (IPC if present, else null).
+     * Backwards compatibility method use getIdentifier(IdentifierType.IPC) instead
+     * @return IPC identifier value.
      */
-    public String getIdentifier() { return identifier_; }
+    @Deprecated
+    public String getIdentifier() {
+        return getIdentifier(IdentifierType.IPC);
+    }
 
+    /**
+     * Returns the identifier value for the specified identifier type (or null if not present).
+     * @param type identifier type enum
+     * @return identifier string or null
+     */
+    public String getIdentifier(IdentifierType type){
+        return identifiers_.get(type);
+    }
+
+    /**
+     * Returns the ORGID value if present, else null.
+     * Backwards compatibility method use getIdentifier(IdentifierType.ORGID) instead
+     * @return ORGID identifier string or null if not present
+     */
+    @Deprecated
     public String getOrgIdentifier() {
-		return OrgIdentifier_;
-	}
+        return identifiers_.get(IdentifierType.ORGID);
+    }
+
+    /**
+     * Returns an immutable snapshot of all identifiers.
+     * @return map copy of identifier values keyed by type
+     */
+    public Map<IdentifierType,String> getIdentifiers() { return Map.copyOf(identifiers_); }
 
 	/**
      * Organization name configured.
@@ -413,5 +549,10 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      */
     public HdsType getHdsType() { return hdsType_; }
 
+    /**
+     * Returns the variable organization properties configured for this builder.
+     * @return `OrganizationProperties` instance or null if not set
+     */
+    public OrganizationProperties getOrganizationProperties() { return orgProperties_; }
     
 }

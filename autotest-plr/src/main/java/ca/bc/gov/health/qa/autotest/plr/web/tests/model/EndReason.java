@@ -1,23 +1,14 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 
 /**
- * End Reasons
+ * Enumerates end reasons used for relationship/status termination.
  */
+
 public enum EndReason {
-
-	/**
-	 * Cease Data block
-	 */
-	 CEASE("CEASE - Cease"),
-
-	/**
-	 * Change Data block info
-	 */
+	
+	
+	 CEASE("CEASE - Cease"), 
 	 CHG("CHG - Change"),
-
-	/**
-	 * Data block correction
-	 */
 	 CORR("CORR - Correct");
 
 	private String text;
@@ -27,19 +18,17 @@ public enum EndReason {
 	}
 
 	/**
-	 * Gets the end reason text visible in the update facility menu or view facility data block field for End Reason
-	 *
-	 * @return	a string of the end reason text
+	 * Gets the display text associated with this end reason.
+	 * @return display text
 	 */
 	public String getText() {
 		return this.text;
 	}
 
 	/**
-	 * Determines an EndReason enum based on a text string
-	 *
-	 * @param text	the text string to match with an EndReason
-	 * @return		an EndReason enum that matches the text string
+	 * Resolves an enum constant by case-insensitive matching of its display text.
+	 * @param text display text to match
+	 * @return matching {@link EndReason} or null if not found
 	 */
 	public static EndReason fromString(String text) {
 		for (EndReason b : EndReason.values()) {

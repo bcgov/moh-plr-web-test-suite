@@ -7,7 +7,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
@@ -597,8 +597,8 @@ public class UpdateFacilityPage extends ViewFacilityPage {
      * @param desc				the description to update the data block with
      * @param effectiveFrom		the effective from date to update the data block with
      * @param effectiveTo		the effective to date to update the data block with
+	 * @param endReasonCode			the end reason to specify when updating the data block
      * @param index				the index of name data block to update
-	 * @param endReasonCode		the end reason to specify when updating the data block
      * @return					a string of the full message dialog of errors, if any exist. otherwise an empty string
      */
 	public String updateNameDataBlock(String name, String desc, String effectiveFrom, String effectiveTo,
@@ -717,9 +717,9 @@ public class UpdateFacilityPage extends ViewFacilityPage {
      * @param text				the note text to update the note text field with
      * @param effectiveFrom		the effective from date to update the effective from field with
      * @param effectiveTo		the effective to date to update the effective to field with
-     * @param index				the index of note data block to update
-     * @param expectError		whether an error is anticipated (true) or not (false)
 	 * @param endReasonCode		the end reason field to fill the end reason code field with
+	 * @param index				the index of note data block to update
+     * @param expectError		whether an error is anticipated (true) or not (false)
      * @return					a string of the error message, if expectError is true. otherwise an empty string
      */
 	public String updateNoteDataBlock(String text, String effectiveFrom, String effectiveTo, EndReason endReasonCode,
@@ -909,9 +909,9 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	 * @param extension			the extension to update the data block with
 	 * @param effectiveFrom		the effective from date to update the data block with
 	 * @param effectiveTo		the effective to date to update the data block with
+	 * @param endReasonCode			the end reason to fill the end reason code field with
 	 * @param index				the index of the telecom data block to update
 	 * @param expectError		whether an error is anticipated (true) or not (false)
-	 * @param endReasonCode		the end reason to fill the end reason code field with
 	 * @return					a string of the error message, if expectError is true. otherwise an empty string
 	 */
 
@@ -1000,8 +1000,9 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	 * @param address			the address to update the data block with
 	 * @param effectiveFrom		the effective from date to update the data block with
 	 * @param effectiveTo		the effective to date to update the data block with
-	 * @param expectError		whether an error is anticipated (true) or not (false)
 	 * @param endReasonCode		the end reason string to fill in the End Reason code field
+	 * @param index				the index of the electronic address data block to update
+	 * @param expectError		whether an error is anticipated (true) or not (false)
 	 * @return					a string of the error message, if expectError is true. otherwise an empty string
 	 */
 	public String updateElectronicAddressDataBlock(String address, String effectiveFrom, String effectiveTo,

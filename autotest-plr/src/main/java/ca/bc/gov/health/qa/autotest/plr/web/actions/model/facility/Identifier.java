@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 
 import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 

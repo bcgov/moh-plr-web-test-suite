@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.model;
+package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model;
 
 /**
  * Enumeration of supported end reason codes used in lifecycle extensions for affiliation / relationship

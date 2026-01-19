@@ -1,0 +1,41 @@
+{
+    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-primary-care-clinic-extension",
+    "extension": [
+        {
+            "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-ownership-type-extension",
+            "extension": [
+                {
+                    "url": "ownershipType",
+                    "valueCodeableConcept": {
+                        "text": ""
+                    }
+                },
+                {
+                    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+                    "valueIdentifier": {
+                        "assigner": {
+                            "display": "MOH"
+                        }
+                    }
+                },
+                {
+                    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+                                "code": "CHG"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension",
+                    "valuePeriod": {
+                        "start": "2024-07-25T00:00:00-07:00"
+                    }
+                }
+            ]
+        }
+    ]
+}

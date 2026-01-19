@@ -1,11 +1,9 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
+package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility;
 
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 
 /**
  * Maps a facility query JSON response into a {@link MaintainFacilityBuilder}.
@@ -14,8 +12,6 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
  * caught by MaintainFacilityBuilder.verifyParameters() on build().
  */
 public final class FacilityQueryResponseMapper {
-
-    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private FacilityQueryResponseMapper() {}
 

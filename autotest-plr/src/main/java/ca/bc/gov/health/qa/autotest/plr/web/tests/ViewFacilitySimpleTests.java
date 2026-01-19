@@ -7,12 +7,9 @@ import java.util.*;
 
 import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationDataGenerator;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.OrganizationMaintainConfig;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainOrgBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
