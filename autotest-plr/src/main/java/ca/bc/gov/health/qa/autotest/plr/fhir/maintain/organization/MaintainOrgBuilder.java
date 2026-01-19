@@ -154,7 +154,8 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         MaintainAccessor accessor = new MaintainAccessor(json);
         JSONObject orgJson = accessor.getOrgJson();
      
-       if(roleType_ != null ){ orgJson.getJSONObject("type")
+       if(roleType_ != null ){
+            orgJson.getJSONObject("type")
             .getJSONArray("coding")
             .getJSONObject(0)
             .put("code", roleType_.toString());

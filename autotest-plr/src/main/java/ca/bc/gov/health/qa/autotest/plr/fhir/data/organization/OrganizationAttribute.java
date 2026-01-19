@@ -19,8 +19,8 @@ public enum OrganizationAttribute {
     ADDRESS(true),
     /** Telecom (OPTIONAL) */
     TELECOM(false),
-    /** Status (OPTIONAL) */
-    STATUS(false),
+    /** Status at least 1 is required*/
+    STATUS(true),
     /** Note (OPTIONAL) */
     NOTE(false),
 

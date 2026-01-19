@@ -87,6 +87,7 @@ public class OrganizationMaintainConfig {
                     break;
                 case STATUS:
                     this.statusCount = 1;
+                    break;
                 case NOTE:
                     this.noteCount = 1;
                     break;
