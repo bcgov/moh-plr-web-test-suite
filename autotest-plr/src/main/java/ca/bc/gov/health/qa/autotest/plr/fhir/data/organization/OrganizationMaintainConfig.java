@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
+import java.util.List;
+
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 
@@ -49,6 +51,8 @@ public class OrganizationMaintainConfig {
     private int clinicHoursOfOperationCount; // number of hours entries
     private int clinicOwnerNamesCount;       // number of owner names
     private int payeeNumberCount;            // number of payee numbers
+    private int facilityRelationshipCount;   // number of facility relationships to generate (0 => omit)
+    private List<String> facilityRelationshipNames;  // explicit facility names for relationships (null => random generation)
 
     /**
      * Initializes required attributes by inspecting {@link OrganizationAttribute} enum.
@@ -118,6 +122,9 @@ public class OrganizationMaintainConfig {
                     break;
                 case PAYEE_NUMBER:
                     this.payeeNumberCount = 1;
+                    break;
+                case FACILITY_RELATIONSHIPS:
+                    this.facilityRelationshipCount = 1; // required => at least one
                     break;
                 default: break; // others currently not required
             }
@@ -237,6 +244,15 @@ public class OrganizationMaintainConfig {
      * @return count of PAYEE_NUMBER entries */
     public int getPayeeNumberCount() { return payeeNumberCount; }
 
+    /** Gets the number of facility relationships configured.\n     * @return facility relationship count */
+    public int getFacilityRelationshipCount() { return facilityRelationshipCount; }
+
+    /** Gets the explicit facility relationship names (if any).\n     * @return list of facility names or null if not set */
+    public List<String> getFacilityRelationshipNames() { return facilityRelationshipNames; }
+
+    /** Checks if facility relationships are configured.\n     * @return true if facilityRelationshipCount > 0 */
+    public boolean hasFacilityRelationships() { return facilityRelationshipCount > 0; }
+
     // Fluent enabling ----------------------------------------------------------------------------
     /** Enable identifier attribute. 
      * @return this config */
@@ -316,6 +332,32 @@ public class OrganizationMaintainConfig {
         if (count < minRequired) throw new IllegalArgumentException("payee number count must be >= " + minRequired);
         this.payeeNumberCount = count; return this;
     }
+
+    /** Enable facility relationships with specified count (random facilities).
+     * @param count number of facility relationships to create
+     * @return this config
+     * @throws IllegalArgumentException if count below required minimum */
+    public OrganizationMaintainConfig withFacilityRelationships(int count) {
+        int minRequired = OrganizationAttribute.FACILITY_RELATIONSHIPS.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("facility relationship count must be >= " + minRequired);
+        this.facilityRelationshipCount = count;
+        return this;
+    }
+
+    /** Enable facility relationships with explicit facility names.
+     * @param names list of facility names to create relationships with
+     * @return this config
+     * @throws IllegalArgumentException if provided list size is below required minimum */
+    public OrganizationMaintainConfig withFacilityRelationships(List<String> names) {
+        int count = names != null ? names.size() : 0;
+        int minRequired = OrganizationAttribute.FACILITY_RELATIONSHIPS.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("facility relationship count must be >= " + minRequired);
+        // TODO something involving validation of names (under maximum, etc.)
+        this.facilityRelationshipNames = names;
+        this.facilityRelationshipCount = count;
+        return this;
+    }
+
     /** Enable PCI_FLAG.
      * @return this config */
     public OrganizationMaintainConfig withPciFlag() { this.pciFlag = true; return this; }
@@ -396,8 +438,9 @@ public class OrganizationMaintainConfig {
      * @param hoursCount number of hours of operation entries
      * @param ownerNamesCount number of owner names
      * @param payeeCount number of payee numbers
+     * @param facilityRelationshipCount number of facility relationships
      * @return this config */
-    public OrganizationMaintainConfig withAllAttributes(int noteCount, int statusCount, int addressUnitCount, int hoursCount, int ownerNamesCount, int payeeCount) {
+    public OrganizationMaintainConfig withAllAttributes(int noteCount, int statusCount, int addressUnitCount, int hoursCount, int ownerNamesCount, int payeeCount, int facilityRelationshipCount) {
         withIdentifier(); 
         withName(); 
         withRoleType(roleType != null ? roleType : OrgRoleType.HDS); 
@@ -408,6 +451,7 @@ public class OrganizationMaintainConfig {
         withNotes(noteCount); 
         withStatuses(statusCount); 
         withAllOrgProperties(addressUnitCount, hoursCount, ownerNamesCount, payeeCount);
+        withFacilityRelationships(facilityRelationshipCount);
         return this; 
     }
 

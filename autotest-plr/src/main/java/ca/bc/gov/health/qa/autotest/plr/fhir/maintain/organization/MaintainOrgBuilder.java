@@ -14,6 +14,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationAttri
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainAccessor;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.EndReasonCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
@@ -39,6 +40,9 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private List<Map<String,String>>   telecomList_     = new ArrayList<>();
     private HdsType                    hdsType_         = null;
     private OrganizationProperties     orgProperties_   = null;
+    private List<Map<String,String>>   facilityRelationshipList_ = new ArrayList<>();
+    // Modifier that will be used on build to determine the end reason code CEASE instead of template default CHG.
+    private boolean                    ceaseRelationships_ = false;
     //TODO: P2P relationships
     //TODO: 02F relationships
 
@@ -260,6 +264,26 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
             }
         }
 
+        // For each facility relationship create a distinct OrganizationAffiliation bundle entry
+        JSONArray bundleEntryArray = accessor.getEntryArrayJson();
+        
+        // Create organization info map for the OrganizationAffiliation
+        if (firstIdentifierValue != null && firstIdentifierType != null) {
+            Map<String,String> orgInfo = new HashMap<>();
+            orgInfo.put("type", firstIdentifierType.getSourceSystem());
+            orgInfo.put("identifier", firstIdentifierValue);
+            
+            for (Map<String,String> facilityInfo : facilityRelationshipList_) 
+            {
+                String facilityIdentifier = facilityInfo.get("identifier");
+                if (ceaseRelationships_) {
+                    bundleEntryArray.put(MaintainUtils.createFacilityOrgAffiliation(orgInfo, facilityIdentifier, EndReasonCode.CEASE));
+                } else {
+                    bundleEntryArray.put(MaintainUtils.createFacilityOrgAffiliation(orgInfo, facilityIdentifier));
+                }
+            }
+        }
+
         return json;
     }
 
@@ -382,6 +406,35 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     }
 
      /**
+     * Adds a facility relationship to the organization.
+     * @param identifierType type of identifier used to reference the facility
+     * @param identifier identifier value of the facility
+     * @param name facility name
+     * @return this builder for fluent chaining
+     */
+    public MaintainOrgBuilder addFacilityRelationship(
+            IdentifierType identifierType,
+            String identifier, String name)
+    {
+        Map<String,String> facilityRelationship = new HashMap<>();
+        facilityRelationship.put("type",       identifierType.getSourceSystem());
+        facilityRelationship.put("identifier", identifier);
+        facilityRelationship.put("name",       name);
+        this.facilityRelationshipList_.add(facilityRelationship);
+        return this;
+    }
+
+    /**
+     * Marks all relationships to be ceased during maintain submission by overriding the
+     * end reason extension code from CHG to CEASE.
+     * @return this builder for fluent chaining
+     */
+    public MaintainOrgBuilder ceaseRelationships() {
+        this.ceaseRelationships_ = true;
+        return this;
+    }
+
+    /**
      * Sets the specific HDS type classification for the organization (only meaningful when role type is HDS).
      * @param hdsType classification string
      * @return this builder
@@ -453,6 +506,11 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
                 break;
             case ROLE_TYPE:
                 requireNonNull(roleType_, "Missing organization role type.");
+                break;
+            case FACILITY_RELATIONSHIPS:
+                if (facilityRelationshipList_.isEmpty()) {
+                    requireNonNull(null, "At least one facility relationship is required.");
+                }
                 break;
             default:
                 // no-op for unsupported entries
@@ -544,6 +602,12 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     public List<Map<String,String>> getNoteList() { return List.copyOf(noteList_); }
 
     /**
+     * Facility relationship entries accumulated.
+     * @return immutable list of facility relationship maps
+     */
+    public List<Map<String,String>> getFacilityRelationshipList() { return List.copyOf(facilityRelationshipList_); }
+
+    /**
      * Returns the configured HDS type classification (may be null if not set or role type not HDS).
      * @return hds type string or null
      */
@@ -554,5 +618,51 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      * @return `OrganizationProperties` instance or null if not set
      */
     public OrganizationProperties getOrganizationProperties() { return orgProperties_; }
+
+    /**
+     * Creates a copy of this builder without any relationship lists (facility, P2P, O2F).
+     * Useful for creating fresh maintain requests that inherit attributes but drop
+     * relationships unless explicitly requested again.
+     *
+     * @return new builder instance without any relationships
+     */
+    public MaintainOrgBuilder copyWithoutRelationships() {
+        MaintainOrgBuilder copy = new MaintainOrgBuilder();
+        copy.name_ = this.name_;
+        copy.alias_ = this.alias_;
+        copy.confidentiality_ = this.confidentiality_;
+        copy.roleType_ = this.roleType_;
+        copy.hdsType_ = this.hdsType_;
+        copy.orgProperties_ = this.orgProperties_;
+        
+        // Deep copy identifiers
+        copy.identifiers_ = new HashMap<>(this.identifiers_);
+        
+        // Deep copy address list
+        for (Map<String,String> address : this.addressList_) {
+            copy.addressList_.add(new HashMap<>(address));
+        }
+        
+        // Deep copy telecom list
+        for (Map<String,String> telecom : this.telecomList_) {
+            copy.telecomList_.add(new HashMap<>(telecom));
+        }
+        
+        // Deep copy status list
+        for (Map<String,String> status : this.statusList_) {
+            copy.statusList_.add(new HashMap<>(status));
+        }
+        
+        // Deep copy notes
+        for (Map<String,String> note : this.noteList_) {
+            copy.noteList_.add(new HashMap<>(note));
+        }
+        
+        // facilityRelationshipList_ intentionally left empty
+        // Future P2P and O2F relationship lists also left empty
+        copy.ceaseRelationships_ = false; // explicit
+        
+        return copy;
+    }
     
 }

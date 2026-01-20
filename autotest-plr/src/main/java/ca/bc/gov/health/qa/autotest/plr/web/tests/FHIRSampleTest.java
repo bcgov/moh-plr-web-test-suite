@@ -96,7 +96,7 @@ implements SimpleTest
         //Create an organization with random data and specified role type.
         //Note that the saved organization identifier is an IPC identifier.
         OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS)
-            //.withAllAttributes(2, 2, 2, 2, 2, 2) convenience method to add all attributes including org properties
+            //.withAllAttributes(2, 2, 2, 2, 2, 2, 2) convenience method to add all attributes including org properties and relationships
             //.withAllOrgProperties(0, 0, 0, 0) convenience method to add all organization properties
             //.withName() by default as is a required attribute
             //.withIdentifier() by default as is a required attribute
@@ -115,17 +115,18 @@ implements SimpleTest
             .withClinicHoursOfOperation(2)
             .withClinicOwnerNames(2)
             .withPayeeNumber(2)
+            .withFacilityRelationships(2)
             .withPciFlag();        
 
         MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
 
-        LOG.info("Created organization id {}, name {}.", org.getIdentifiers(), org.getName());
+        LOG.info("Created organization id {}, name {} relationships {}.", org.getIdentifiers(), org.getName(), org.getFacilityRelationshipList());
 
         //Query an organization by its IPC identifier.
         //Resulting MaintainOrgBuilder contains the queried organization data.
         MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
 
-        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation());
+        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}, relationships {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation(), org.getFacilityRelationshipList());
 
         List<MaintainOrgBuilder> orgQueriedbyCriteria = fhirController.queryOrganizationByCriteria(
             new OrgQueryCriteriaParams()
@@ -246,6 +247,27 @@ implements SimpleTest
     
         fhirController.close();
 
+    }
+
+    @Test
+    public void testFunctionality(){
+        //This test can be used to quickly test any new functionality added to the FHIRController or related classes.
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+      //Create an organization with random data and specified role type.
+        //Note that the saved organization identifier is an IPC identifier.
+        OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS)
+            .withAllTelecom()
+            .withStatuses(2) //Note that right now the maximum amount of confidentiality that can be added is 2
+            .withFacilityRelationships(2)
+            .withPciFlag();        
+
+        MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
+
+        LOG.info("Created organization id {}, name {}.", org.getIdentifiers(), org.getName());
+
+        fhirController.close();
     }
 
 }

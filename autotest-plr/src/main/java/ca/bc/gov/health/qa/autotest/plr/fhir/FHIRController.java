@@ -166,23 +166,51 @@ public class FHIRController implements AutoCloseable {
     public MaintainOrgBuilder createOrganization(OrganizationMaintainConfig config) {
         MaintainOrgBuilder builder = organizationFactory.build(config);
 
+        int relCount = config.getFacilityRelationshipCount();
+
+        // If relationshipCount > 0 create that many facilities first and attach relationships
+        for (int i = 0; i < relCount; i++) {
+            //Create a facility and save the identifier
+            MaintainFacilityBuilder facility = createFacility();
+            String facilityIFCId = facility.getIdentifier();
+            String facilityName = facility.getName();
+            builder.addFacilityRelationship(IdentifierType.IFC, facilityIFCId, facilityName);
+        }
+
+        if (config.getFacilityRelationshipNames() != null) {
+            for (String name : config.getFacilityRelationshipNames())
+            {
+                FacilityMaintainConfig facilityConfig = new FacilityMaintainConfig().withName(name);
+                MaintainFacilityBuilder facility = createFacility(facilityConfig);
+                String facilityIFCId = facility.getIdentifier();
+                String facilityName = facility.getName();
+                builder.addFacilityRelationship(IdentifierType.IFC, facilityIFCId, facilityName);
+
+                relCount++;
+            }
+        }
+
         String id = executor.submitMaintain(builder);
-        LOG.info("Created organization (id={})", id);
+        LOG.info("Created organization (id={}) using config{}",  id, relCount > 0 ? " with " + relCount + " facility relationship(s)" : "");
 
         //Set the actual id created by the service (should be an IPC identifier)
         builder.addIdentifier(IdentifierType.IPC, id);
         return builder;
     }
 
-    /*TODO public MaintainOrgBuilder ceaseOrganizationRelationships(MaintainOrgBuilder org){
-        //org.ceaseOrganizationRelationships();
-        String id = executor.submitMaintain(org);
+    /**
+     * Ceases all organization relationships currently configured on the provided organization builder.
+     * @param organization existing organization builder whose relationships should be ceased
+     * @return same builder instance (for fluent chaining)
+     */
+    public MaintainOrgBuilder ceaseOrganizationRelationships(MaintainOrgBuilder organization) {
+        organization.ceaseRelationships();
+        String id = executor.submitMaintain(organization);
         LOG.info("Ceased organization relationships (organizationId={}).", id);
-
+        
         // Return a copy without organization relationships to reflect post‑cease state.
-        //return org.copyWithoutOrgRelationships();
-        return org;
-    }*/
+        return organization.copyWithoutRelationships();
+    }
 
     /**
      * Creates an individual with a specific role type and default configuration.

@@ -251,6 +251,7 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
      * Adds an organization relationship to the facility.
      * @param identifierType type of identifier used to reference the organization
      * @param identifier identifier value of the organization
+     * @param name name of the organization
      * @return this builder for fluent chaining
      */
     public MaintainFacilityBuilder addOrganizationRelationship(

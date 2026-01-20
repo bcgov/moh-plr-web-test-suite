@@ -58,6 +58,12 @@ public final class OrgQueryResponseMapper {
 	/** Canonical extension URL for clinic payee number */
 	private static final String CLINIC_PAYEE_NUMBER_URL       = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-payee-number-extension";
 
+	/** OrganizationAffiliation resourceType constant. */
+	private static final String ORG_AFFILIATION_TYPE = "OrganizationAffiliation";
+
+	/** Organization resourceType constant. */
+	private static final String ORGANIZATION_TYPE = "Organization";
+
 	/**
      * Convert a organization query bundle into a MaintainOrgBuilder.
      * @param orgQueryBundle Complete JSON bundle returned by organization query
@@ -91,14 +97,18 @@ public final class OrgQueryResponseMapper {
 		}
 
 		JSONObject orgResource = null;
+		// Collect affiliation resources for relationships and the organization resource.
+		JSONArray affiliationArray = new JSONArray();
 		for (int i = 0; i < innerEntries.length(); i++) {
 			JSONObject inner = innerEntries.optJSONObject(i);
 			if (inner == null) continue;
 			JSONObject resource = inner.optJSONObject("resource");
 			if (resource == null) continue;
-			if ("Organization".equals(resource.optString("resourceType"))) {
-				orgResource = resource;
-				break;
+			String type = resource.optString("resourceType", "");
+			if (ORGANIZATION_TYPE.equals(type) && orgResource == null) {
+				orgResource = resource; // first organization only
+			} else if (ORG_AFFILIATION_TYPE.equals(type)) {
+				affiliationArray.put(resource);
 			}
 		}
 
@@ -108,6 +118,7 @@ public final class OrgQueryResponseMapper {
 
 		MaintainOrgBuilder builder = new MaintainOrgBuilder();
 		populateBuilderFromOrganization(orgResource, builder);
+		mapFacilityRelationships(affiliationArray, builder);
 		return builder;
 	}
 
@@ -140,16 +151,31 @@ public final class OrgQueryResponseMapper {
 			JSONArray innerEntries = collectionBundle.optJSONArray("entry");
 			if (innerEntries == null) continue;
 
+			// First pass: collect organization resources and affiliations
+			JSONArray affiliationArray = new JSONArray();
 			for (int j = 0; j < innerEntries.length(); j++) {
 				JSONObject inner = innerEntries.optJSONObject(j);
 				if (inner == null) continue;
 				JSONObject resource = inner.optJSONObject("resource");
 				if (resource == null) continue;
-				if (!"Organization".equals(resource.optString("resourceType"))) continue;
+				String type = resource.optString("resourceType", "");
+				if (ORG_AFFILIATION_TYPE.equals(type)) {
+					affiliationArray.put(resource);
+				}
+			}
+
+			// Second pass: process organization resources
+			for (int j = 0; j < innerEntries.length(); j++) {
+				JSONObject inner = innerEntries.optJSONObject(j);
+				if (inner == null) continue;
+				JSONObject resource = inner.optJSONObject("resource");
+				if (resource == null) continue;
+				if (!ORGANIZATION_TYPE.equals(resource.optString("resourceType"))) continue;
 
 				MaintainOrgBuilder b = new MaintainOrgBuilder();
 				try {
 					populateBuilderFromOrganization(resource, b);
+					mapFacilityRelationships(affiliationArray, b);
 					builders.add(b);
 				} catch (Exception ignored) {
 					LOG.info("Error occurred: {}", ignored.getMessage());
@@ -671,6 +697,36 @@ public final class OrgQueryResponseMapper {
 			if (text.equals(cs.getText())) return cs;
 		}
 		return null;
+	}
+
+	/*
+	 * Maps the FacilityRelationships from the Organization resource to the Organization builder.
+	 * Does not include Facility Name in the map currently, use queryFacilityByIdentifier to find based on identifier if needed
+	 *
+	 * @param affiliationArray Array containing OrganizationAffiliation resources
+	 * @param b MaintainOrgBuilder to populate
+	 *
+	 */
+	private static void mapFacilityRelationships(JSONArray affiliationArray, MaintainOrgBuilder b) {
+		if (affiliationArray == null) return;
+		for (int i = 0; i < affiliationArray.length(); i++) {
+			JSONObject aff = affiliationArray.optJSONObject(i);
+			if (aff == null) continue;
+
+			JSONObject location = aff.optJSONObject("location");
+			if (location == null) continue;
+
+			JSONObject identifier = location.optJSONObject("identifier");
+			if (identifier == null) continue;
+
+			String system    = identifier.optString("system", null);
+			String idValue   = identifier.optString("value", null);
+			if (system == null || idValue == null || idValue.isEmpty()) continue;
+			IdentifierType idType = IdentifierType.resolveIdentifierType(system);
+			if (idType != null) {
+				b.addFacilityRelationship(idType, idValue, null);
+			}
+		}
 	}
 
 }
