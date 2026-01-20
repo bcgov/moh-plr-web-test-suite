@@ -13,6 +13,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaint
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
@@ -166,8 +167,8 @@ implements SimpleTest
             .withExpertise(2)
             .withCredentials(2)
             .withDisciplinaryActions(2)
-            .withConditions(2);
-            //.withConfidentiality(); //Note that editing the record will not be possible if confidentiality is set to true.
+            .withConditions(2)
+            .withConfidentiality(); //Note that editing the record will not be possible if confidentiality is set to true.
 
         MaintainIndividualBuilder individual = fhirController.createIndividual(individualConfig);
         
@@ -188,6 +189,49 @@ implements SimpleTest
             individual.getStatusList(),
             individual.getTelecomList());
 
+        MaintainIndividualBuilder queriedIndividual = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
+
+        LOG.info(
+            "Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}",
+            queriedIndividual.getIdentifiers(),
+            queriedIndividual.getAddressList(),
+            queriedIndividual.getConditionList(),
+            queriedIndividual.getConfidentiality(),
+            queriedIndividual.getCredentialList(),
+            queriedIndividual.getDisciplinaryActionList(),
+            queriedIndividual.getFamilyName(),
+            Arrays.toString(queriedIndividual.getNames()),
+            queriedIndividual.getDemographics(),
+            queriedIndividual.getExpertiseList(),
+            queriedIndividual.getNoteList(),
+            queriedIndividual.getRoleType(),
+            queriedIndividual.getStatusList(),
+            queriedIndividual.getTelecomList());
+
+
+        List<MaintainIndividualBuilder> individualQueriedByCriteria = fhirController.queryIndividualByCriteria(
+            new IndividualQueryCriteriaParams() //Look at class to see available parameters
+                .setAddressCity("Victoria"));
+
+        for (MaintainIndividualBuilder individualByCriteria : individualQueriedByCriteria) {
+            LOG.info(
+                "Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}",
+                individualByCriteria.getIdentifiers(),
+                individualByCriteria.getAddressList(),
+                individualByCriteria.getConditionList(),
+                individualByCriteria.getConfidentiality(),
+                individualByCriteria.getCredentialList(),
+                individualByCriteria.getDisciplinaryActionList(),
+                individualByCriteria.getFamilyName(),
+                Arrays.toString(individualByCriteria.getNames()),
+                individualByCriteria.getDemographics(),
+                individualByCriteria.getExpertiseList(),
+                individualByCriteria.getNoteList(),
+                individualByCriteria.getRoleType(),
+                individualByCriteria.getStatusList(),
+                individualByCriteria.getTelecomList());
+        }
+    
         fhirController.close();
 
     }
