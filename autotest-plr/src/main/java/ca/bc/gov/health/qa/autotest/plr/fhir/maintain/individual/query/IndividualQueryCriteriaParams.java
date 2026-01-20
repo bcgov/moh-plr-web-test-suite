@@ -1,11 +1,14 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
+
 /**
  * Criteria container for Individual (Practitioner) $entityQuery parameters. Only non-null/non-blank
  * values will be sent. The {@code withHistory} flag is included when true.
+ * Convenience setter accepts {@link IndividualRoleType} to populate the {@code role} filter.
  */
 public class IndividualQueryCriteriaParams {
-    private String role = null;
+    private IndividualRoleType role = null;
     private String addressCity = null;
     private String family = null;
     private String expertise = null;
@@ -19,17 +22,17 @@ public class IndividualQueryCriteriaParams {
     public IndividualQueryCriteriaParams() {}
 
     /**
-     * Gets the practitioner role type filter.
-     * @return role type code or null if not set
+     * Gets the practitioner role type code.
+     * @return role type code string or null if not set
      */
-    public String getRole() { return role; }
+    public String getRoleType() { return role != null ? role.getRoleType() : null; }
     
     /**
      * Sets the practitioner role type filter for the query.
-     * @param role practitioner role type code (e.g., MD, RN, DEN)
+     * @param role practitioner role type enum value
      * @return this instance for method chaining
      */
-    public IndividualQueryCriteriaParams setRole(String role) { this.role = role; return this; }
+    public IndividualQueryCriteriaParams setRoleType(IndividualRoleType role) { this.role = role; return this; }
 
     /**
      * Gets the address city filter.

@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.individual;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
+
 /**
  * Configuration object representing which Practitioner attributes and list counts
  * should be included when building a MaintainPracBuilder. Required attributes
@@ -9,7 +11,7 @@ public class IndividualMaintainConfig {
 
     private boolean identifier;
     private boolean familyName;
-    private boolean roleType;
+    private IndividualRoleType roleType;
     private boolean address;
     private boolean confidentiality;
     private boolean demographics;
@@ -36,8 +38,18 @@ public class IndividualMaintainConfig {
     /**
      * Initializes required attributes by inspecting {@link IndividualAttribute} enum.
      * Required flags are auto-enabled for scalars, telecom channels, and list counts.
+     * Uses MD as the default role type.
      */
     public IndividualMaintainConfig() {
+        // Call constructor using MD as default role type
+        this(IndividualRoleType.MD);
+    }
+
+    /**
+     * Initializes required attributes by inspecting {@link IndividualAttribute} enum.
+     * @param roleType individual role type to set as required value
+     */
+    public IndividualMaintainConfig(IndividualRoleType roleType) {
         // Initialize based on required IndividualAttribute flags
         for (IndividualAttribute attr : IndividualAttribute.values()) {
             if (!attr.isRequired()) continue;
@@ -49,7 +61,7 @@ public class IndividualMaintainConfig {
                     this.familyName = true; 
                     break;
                 case ROLE_TYPE: 
-                    this.roleType = true; 
+                    this.roleType = roleType; 
                     break;
                 case ADDRESS: 
                     this.address = true; 
@@ -101,9 +113,9 @@ public class IndividualMaintainConfig {
      * @return true if FAMILY_NAME will be included */
     public boolean isFamilyNameEnabled() { return familyName; }
 
-    /** Verifies if ROLE_TYPE will be included.
-     * @return true if ROLE_TYPE will be included */
-    public boolean isRoleTypeEnabled() { return roleType; }
+    /** Gets the individual role type.
+     * @return the role type */
+    public IndividualRoleType getRoleType() { return roleType; }
 
     /** Verifies if ADDRESS will be included.
      * @return true if ADDRESS will be included */
@@ -187,9 +199,10 @@ public class IndividualMaintainConfig {
      * @return this config */
     public IndividualMaintainConfig withFamilyName() { this.familyName = true; return this; }
 
-    /** Enable role type attribute.
+    /** Set role type value.
+     * @param roleType individual role type
      * @return this config */
-    public IndividualMaintainConfig withRoleType() { this.roleType = true; return this; }
+    public IndividualMaintainConfig withRoleType(IndividualRoleType roleType) { this.roleType = roleType; return this; }
 
     /** Enable address attribute.
      * @return this config */
@@ -287,7 +300,6 @@ public class IndividualMaintainConfig {
      * @return this config */
     public IndividualMaintainConfig withAllAttributes(int noteCount, int statusCount, int expertiseCount, int credentialCount, int conditionCount, int disciplinaryCount) {
         withIdentifier(); withFamilyName();
-        withRoleType();
         withAddress(); withConfidentiality(); withDemographics(); withGivenNames(); withAllTelecom();
         withNotes(noteCount); withStatuses(statusCount); withExpertise(expertiseCount);
         withCredentials(credentialCount); withConditions(conditionCount); withDisciplinaryActions(disciplinaryCount);

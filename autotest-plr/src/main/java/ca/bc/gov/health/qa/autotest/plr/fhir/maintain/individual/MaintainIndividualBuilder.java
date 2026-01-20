@@ -16,6 +16,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualAttribute;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 
 /**
  * Builder for Practitioner maintain requests. Supports configuration of multi-valued
@@ -38,7 +39,7 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
     private Map<String,String>         demographics_           = null; //date of birth, date of death, birth country, birth province, gender 
     private List<Map<String,String>>   expertiseList_          = new ArrayList<>();
     private List<Map<String,String>>   noteList_               = new ArrayList<>();
-    private String                     roleType_               = null;
+    private IndividualRoleType         roleType_               = null; // must be explicitly set
     private List<Map<String,String>>   statusList_             = new ArrayList<>();
     private List<Map<String,String>>   telecomList_            = new ArrayList<>();
     //TODO: P2P relationships
@@ -283,7 +284,7 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
                     .getJSONObject(0)
                     .getJSONArray("coding")
                     .getJSONObject(0)
-                    .put("code", roleType_);
+                    .put("code", roleType_.getRoleType());
         }
 
         // Demographics mapping
@@ -482,13 +483,14 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
     }
 
     /**
-     * Sets the practitioner role type code.
-     * @param roleType role type code (e.g., DEN, MD, RN, OPT)
+    /**
+     * Sets the practitioner role type using the IndividualRoleType enum.
+     * @param roleType role type enum (never null)
      * @return this builder
      */
-    public MaintainIndividualBuilder roleType(String roleType)
+    public MaintainIndividualBuilder roleType(IndividualRoleType roleType)
     {
-        roleType_ = roleType;
+        roleType_ = requireNonNull(roleType);
         return this;
     }
 
@@ -562,7 +564,11 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
      * Role type code.
      * @return role type code string or null
      */
-    public String getRoleType() { return roleType_; }    // Specialty support removed
+    /**
+     * Role type enum.
+     * @return role type or null if not set
+     */
+    public IndividualRoleType getRoleType() { return roleType_; }
     /**
      * Status entries accumulated.
      * @return immutable list of status maps
@@ -687,14 +693,7 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         this.noteList_ = noteList;
         return this;
     }
-    /**
-     * Sets the practitioner role type code.
-     * @param roleType role type code
-     * @return this builder
-     */
-    public MaintainIndividualBuilder setRoleType(String roleType) {
-        return roleType(roleType);
-    }
+
     /**
      * Replaces the status list.
      * @param statusList status list

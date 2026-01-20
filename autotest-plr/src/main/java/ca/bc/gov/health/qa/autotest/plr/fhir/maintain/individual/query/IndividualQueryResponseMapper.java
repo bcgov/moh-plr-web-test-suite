@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
 /**
@@ -196,7 +197,10 @@ public final class IndividualQueryResponseMapper {
 
 			String roleCode = extractCodingCode(firstCode, "coding");
 			if (roleCode != null) {
-				builder.roleType(roleCode);
+				IndividualRoleType roleType = IndividualRoleType.resolveRoleType(roleCode);
+				if (roleType != null) {
+					builder.roleType(roleType);
+				} 
 				return; // Only need the first one
 			}
 		}

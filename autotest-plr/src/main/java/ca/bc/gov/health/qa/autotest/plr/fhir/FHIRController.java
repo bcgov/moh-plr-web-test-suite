@@ -25,6 +25,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.Individua
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryResponseMapper;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -184,9 +185,18 @@ public class FHIRController implements AutoCloseable {
     }*/
 
     /**
+     * Creates an individual with a specific role type and default configuration.
+     * @param roleType individual role type
+     * @return created individual values as a MaintainIndividualBuilder
+     */
+    public MaintainIndividualBuilder createIndividual(IndividualRoleType roleType) {
+        return createIndividual(new IndividualMaintainConfig(roleType));
+    }
+
+    /**
      * Generates individual provider data with customizable fields and submits a maintain request.
      *  @param config configuration of the individual to create
-     * @return created organization values as a MaintainIndividualBuilder
+     * @return created individual values as a MaintainIndividualBuilder
      */
     public MaintainIndividualBuilder createIndividual(IndividualMaintainConfig config) {
         MaintainIndividualBuilder builder = individualFactory.build(config);
@@ -196,8 +206,6 @@ public class FHIRController implements AutoCloseable {
 
         return builder;
     }
-
-    //TODO: createPractitioner(PracType OOP-Individual|Individual, IndividualMaintainConfig config)
 
     //TODO: ceasePractitioner(IdentifierType identifier)
 
@@ -274,7 +282,7 @@ public class FHIRController implements AutoCloseable {
     public List<MaintainIndividualBuilder> queryIndividualByCriteria(IndividualQueryCriteriaParams criteria) {
 
         JSONObject response = executor.queryIndividualByCriteria(
-                                                                   criteria.getRole(),
+                                                                   criteria.getRoleType(),
                                                                    criteria.getAddressCity(),
                                                                    criteria.getFamily(),
                                                                    criteria.getExpertise(),

@@ -6,6 +6,7 @@ import java.util.List;
 import java.time.LocalDate;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.AbstractDataGenerator;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 
 /**
  * Practitioner (individual)-specific data generator extending {@link AbstractDataGenerator}.
@@ -63,7 +64,6 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
         new String[]{"Cook St", "Victoria", "V8V 3X3"}
     );
 
-    private static final List<String> ROLE_TYPES = List.of("MD", "RN", "DEN", "OPT", "PHARM");
     private static final List<String> EXPERTISE_CODES = List.of("ENG", "C06", "L01", "SPAN", "F16", "A10", "S16", "L06", "L23", "M03", "N03", "P11", "S41", "S59", "T01", "T28", "T11", "V01", "W01", "X01", "Y03", "Z01");
     private static final List<String> CREDENTIAL_TYPES = List.of("BD", "BSC", "D", "M", "OTHER", "PHD");
     private static final List<String> INSTITUTION_NAMES = List.of(
@@ -123,10 +123,12 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
     }
 
     /**
-     * Return a random practitioner role type code (e.g., MD, RN).
-     * @return role type code string
+     * Returns a randomly selected {@link IndividualRoleType} value.
+     * @return randomly chosen IndividualRoleType
      */
-    public String randomRoleType() { return pick(ROLE_TYPES); }
+    public IndividualRoleType randomRoleType() {
+        return pick(List.of(IndividualRoleType.values()));
+    }
 
 
     /**

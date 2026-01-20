@@ -13,6 +13,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaint
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
@@ -161,6 +162,7 @@ implements SimpleTest
             //.withGivenNames() by default as is a required attribute
             //.withDemographics() by default as is a required attribute
             //.withAddress() by default as is a required attribute
+            .withRoleType(IndividualRoleType.RN)
             .withAllTelecom()
             .withStatuses(2) //Note that right now the maximum amount of confidentiality that can be added is 2
             .withNotes(2)
@@ -188,6 +190,16 @@ implements SimpleTest
             individual.getRoleType(),
             individual.getStatusList(),
             individual.getTelecomList());
+
+        //Other option to create an individual with default config
+        //Note that between the IndividualRoleType enum, OOP role types are incluedd
+        MaintainIndividualBuilder individual2 = fhirController.createIndividual(IndividualRoleType.OOP_MD);
+
+        LOG.info(
+            "Created Individual identifiers {}, addresses {}, roleType {}",
+            individual2.getIdentifiers(),
+            individual2.getAddressList(),
+            individual2.getRoleType());
 
         MaintainIndividualBuilder queriedIndividual = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
 
