@@ -235,4 +235,42 @@ public class FHIRSession implements AutoCloseable
         }
     }
 
+    /**
+     * Queries Practitioner resources by optional criteria.
+     * @param role           optional practitioner role type filter
+     * @param addressCity    optional address city filter
+     * @param family         optional family (last) name filter
+     * @param expertise      optional expertise code filter
+     * @param communication  optional communication language code filter
+     * @param given          optional given (first) name filter
+     * @param statusReason   optional status reason code filter
+     * @param status         optional status code filter
+     * @param gender         optional gender filter
+     * @param withHistory    include the history flag when true
+     * @return JSON response payload
+     * @throws IllegalStateException if interrupted or an I/O error occurs while sending the request
+     */
+    public JSONObject queryIndividualByCriteria(
+            String role,
+            String addressCity,
+            String family,
+            String expertise,
+            String communication,
+            String given,
+            String statusReason,
+            String status,
+            String gender,
+            boolean withHistory) {
+        try {
+            return actions_.queryIndividualByCriteria(
+                    role, addressCity, family, expertise, communication, given, 
+                    statusReason, status, gender, withHistory);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while submitting query request", e);
+        } catch (IOException e) {
+            throw new IllegalStateException("I/O failure during query request", e);
+        }
+    }
+
 }

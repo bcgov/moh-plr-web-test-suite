@@ -20,6 +20,8 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResour
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.FacilityQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryResponseMapper;
@@ -245,8 +247,46 @@ public class FHIRController implements AutoCloseable {
 
         
 
-        LOG.info("Organization criteria query (DTO) result={}", response);
+        LOG.info("Organization criteria query result={}", response);
         return OrgQueryResponseMapper.fromQueryBundleAll(response);
+    }
+
+    /**
+     * Queries FHIR for an individual by identifier type and value.
+     *
+     * @param idType the identifier system/type to search by
+     * @param idValue the identifier value to match
+     * @return a builder populated from the FHIR response
+     */
+    public MaintainIndividualBuilder queryIndividualByIdentifier(IdentifierType idType, String idValue) {
+
+        JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.INDIVIDUAL, idType, idValue);
+        LOG.info("Individual identifier query result={}", response);
+
+        return IndividualQueryResponseMapper.fromQueryBundle(response);
+    }
+
+    /**
+     * Queries FHIR for individuals (practitioners) by optional criteria using a DTO.
+     * @param criteria criteria container; only provided values are sent
+     * @return a list of individual builders populated from the FHIR response that match the criteria
+     */
+    public List<MaintainIndividualBuilder> queryIndividualByCriteria(IndividualQueryCriteriaParams criteria) {
+
+        JSONObject response = executor.queryIndividualByCriteria(
+                                                                   criteria.getRole(),
+                                                                   criteria.getAddressCity(),
+                                                                   criteria.getFamily(),
+                                                                   criteria.getExpertise(),
+                                                                   criteria.getCommunication(),
+                                                                   criteria.getGiven(),
+                                                                   criteria.getStatusReason(),
+                                                                   criteria.getStatus(),
+                                                                   criteria.getGender(),
+                                                                   criteria.isWithHistory());
+
+        LOG.info("Individual criteria query result={}", response);
+        return IndividualQueryResponseMapper.fromQueryBundleAll(response);
     }
 
     @Override

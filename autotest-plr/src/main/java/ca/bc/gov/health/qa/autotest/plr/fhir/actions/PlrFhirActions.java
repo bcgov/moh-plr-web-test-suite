@@ -317,7 +317,8 @@ implements AutoCloseable
         }
         else
         {
-            throw new IllegalStateException(resourceType + " FHIR query failed.");
+            throw new IllegalStateException(resourceType + " FHIR query failed." + 
+                                            response.getTextResponseBody());
         }
         return responseData;
     }
@@ -366,6 +367,52 @@ implements AutoCloseable
     }
 
     /**
+     * Queries FHIR Practitioner resources by optional criteria.
+     * Only non-null/non-blank parameters are sent. Returns all matching results.
+     * @param role           optional practitioner role type filter
+     * @param addressCity    optional address city filter
+     * @param family         optional family (last) name filter
+     * @param expertise      optional expertise code filter
+     * @param communication  optional communication language code filter
+     * @param given          optional given (first) name filter
+     * @param statusReason   optional status reason code filter
+     * @param status         optional status code filter
+     * @param gender         optional gender filter
+     * @param withHistory    include "withHistory" flag as empty query param when true
+     * @return JSON response payload
+     * @throws InterruptedException if the current thread is interrupted
+     * @throws IOException          if an I/O error occurs
+     */
+    public JSONObject queryIndividualByCriteria(
+            String role,
+            String addressCity,
+            String family,
+            String expertise,
+            String communication,
+            String given,
+            String statusReason,
+            String status,
+            String gender,
+            boolean withHistory)
+    throws InterruptedException,
+           IOException
+    {
+        Map<String, String> params = new HashMap<>();
+        if (role != null && !role.isBlank())                 params.put("role", role);
+        if (addressCity != null && !addressCity.isBlank())   params.put("address-city", addressCity);
+        if (family != null && !family.isBlank())             params.put("family", family);
+        if (expertise != null && !expertise.isBlank())       params.put("expertise", expertise);
+        if (communication != null && !communication.isBlank()) params.put("communication", communication);
+        if (given != null && !given.isBlank())               params.put("given", given);
+        if (statusReason != null && !statusReason.isBlank()) params.put("status-reason", statusReason);
+        if (status != null && !status.isBlank())             params.put("status", status);
+        if (gender != null && !gender.isBlank())             params.put("gender", gender);
+        if (withHistory)                                     params.put("withHistory", "true");
+
+        return entityQueryWithParams("Practitioner", params);
+    }
+
+    /**
      * Generic $entityQuery helper that adds provided parameters and optional empty flags.
      * @param resourceType resource type path (e.g., "Organization")
      * @param params       map of query parameters to include
@@ -398,7 +445,8 @@ implements AutoCloseable
         }
         else
         {
-            throw new IllegalStateException(resourceType + " FHIR query failed.");
+            throw new IllegalStateException(resourceType + " FHIR query failed." + 
+                                            response.getTextResponseBody());
         }
         return responseData;
     }
