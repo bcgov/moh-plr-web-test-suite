@@ -17,6 +17,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.EndReasonCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PractitionerRelationshipCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrganizationProperties;
@@ -41,10 +42,10 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private HdsType                    hdsType_         = null;
     private OrganizationProperties     orgProperties_   = null;
     private List<Map<String,String>>   facilityRelationshipList_ = new ArrayList<>();
+    private List<Map<String,String>>   organizationRelationshipList_ = new ArrayList<>();
+    private List<Map<String,String>>   individualRelationshipList_ = new ArrayList<>();
     // Modifier that will be used on build to determine the end reason code CEASE instead of template default CHG.
     private boolean                    ceaseRelationships_ = false;
-    //TODO: P2P relationships
-    //TODO: 02F relationships
 
     // Organization status rules (single source of truth)
     public static final List<String> STATUS_CLASSES_ORDER = List.of("LIC", "AE");
@@ -273,6 +274,8 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
             orgInfo.put("type", firstIdentifierType.getSourceSystem());
             orgInfo.put("identifier", firstIdentifierValue);
             
+            // For each facility relationship create a distinct OrganizationAffiliation bundle entry
+            
             for (Map<String,String> facilityInfo : facilityRelationshipList_) 
             {
                 String facilityIdentifier = facilityInfo.get("identifier");
@@ -280,6 +283,28 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
                     bundleEntryArray.put(MaintainUtils.createFacilityOrgAffiliation(orgInfo, facilityIdentifier, EndReasonCode.CEASE));
                 } else {
                     bundleEntryArray.put(MaintainUtils.createFacilityOrgAffiliation(orgInfo, facilityIdentifier));
+                }
+            }
+            
+            // For each organization relationship create a distinct OrganizationAffiliation bundle entry
+            for (Map<String,String> relatedOrgInfo : organizationRelationshipList_)
+            {
+                String relationshipCode = relatedOrgInfo.get("code");
+                if (ceaseRelationships_) {
+                    bundleEntryArray.put(MaintainUtils.createOrganizationOrgAffiliation(orgInfo, relatedOrgInfo, relationshipCode, EndReasonCode.CEASE));
+                } else {
+                    bundleEntryArray.put(MaintainUtils.createOrganizationOrgAffiliation(orgInfo, relatedOrgInfo, relationshipCode));
+                }
+            }
+
+            // For each individual relationship create a distinct PractitionerAffiliation bundle entry
+            for (Map<String,String> relatedIndividualInfo : individualRelationshipList_)
+            {
+                String relationshipCode = relatedIndividualInfo.get("code");
+                if (ceaseRelationships_) {
+                    bundleEntryArray.put(MaintainUtils.createOrganizationIndividualAffiliation(orgInfo, relatedIndividualInfo, relationshipCode, EndReasonCode.CEASE));
+                } else {
+                    bundleEntryArray.put(MaintainUtils.createOrganizationIndividualAffiliation(orgInfo, relatedIndividualInfo, relationshipCode));
                 }
             }
         }
@@ -421,6 +446,46 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         facilityRelationship.put("identifier", identifier);
         facilityRelationship.put("name",       name);
         this.facilityRelationshipList_.add(facilityRelationship);
+        return this;
+    }
+
+    /**
+     * Adds an organization relationship to this organization.
+     * @param identifierType type of identifier used to reference the related organization
+     * @param identifier identifier value of the related organization
+     * @param relationshipCode relationship type code (e.g., P2P, O2F)
+     * @return this builder for fluent chaining
+     */
+    public MaintainOrgBuilder addOrganizationRelationship(
+            IdentifierType identifierType,
+            String identifier,
+            PractitionerRelationshipCode relationshipCode)
+    {
+        Map<String,String> orgRelationship = new HashMap<>();
+        orgRelationship.put("type",       identifierType.getSourceSystem());
+        orgRelationship.put("identifier", identifier);
+        orgRelationship.put("code",       relationshipCode.getCode());
+        this.organizationRelationshipList_.add(orgRelationship);
+        return this;
+    }
+
+    /**
+     * Adds an individual (practitioner) relationship to this organization.
+     * @param identifierType type of identifier used to reference the related individual
+     * @param identifier identifier value of the related individual
+     * @param relationshipCode relationship type code
+     * @return this builder for fluent chaining
+     */
+    public MaintainOrgBuilder addIndividualRelationship(
+            IdentifierType identifierType,
+            String identifier,
+            PractitionerRelationshipCode relationshipCode)
+    {
+        Map<String,String> individualRelationship = new HashMap<>();
+        individualRelationship.put("type",       identifierType.getSourceSystem());
+        individualRelationship.put("identifier", identifier);
+        individualRelationship.put("code",       relationshipCode.getCode());
+        this.individualRelationshipList_.add(individualRelationship);
         return this;
     }
 
@@ -606,6 +671,18 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      * @return immutable list of facility relationship maps
      */
     public List<Map<String,String>> getFacilityRelationshipList() { return List.copyOf(facilityRelationshipList_); }
+
+    /**
+     * Organization relationship entries accumulated.
+     * @return immutable list of organization relationship maps
+     */
+    public List<Map<String,String>> getOrganizationRelationshipList() { return List.copyOf(organizationRelationshipList_); }
+
+    /**
+     * Individual relationship entries accumulated.
+     * @return immutable list of individual relationship maps
+     */
+    public List<Map<String,String>> getIndividualRelationshipList() { return List.copyOf(individualRelationshipList_); }
 
     /**
      * Returns the configured HDS type classification (may be null if not set or role type not HDS).

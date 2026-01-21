@@ -17,6 +17,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataG
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PractitionerRelationshipCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.FacilityQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
@@ -166,10 +167,10 @@ public class FHIRController implements AutoCloseable {
     public MaintainOrgBuilder createOrganization(OrganizationMaintainConfig config) {
         MaintainOrgBuilder builder = organizationFactory.build(config);
 
-        int relCount = config.getFacilityRelationshipCount();
+        int facilityRelCount = config.getFacilityRelationshipCount();
 
-        // If relationshipCount > 0 create that many facilities first and attach relationships
-        for (int i = 0; i < relCount; i++) {
+        // If facilityRelationshipCount > 0 create that many facilities first and attach relationships
+        for (int i = 0; i < facilityRelCount; i++) {
             //Create a facility and save the identifier
             MaintainFacilityBuilder facility = createFacility();
             String facilityIFCId = facility.getIdentifier();
@@ -186,12 +187,43 @@ public class FHIRController implements AutoCloseable {
                 String facilityName = facility.getName();
                 builder.addFacilityRelationship(IdentifierType.IFC, facilityIFCId, facilityName);
 
-                relCount++;
+                facilityRelCount++;
             }
         }
 
+        int orgRelCount = config.getOrganizationRelationshipCount();
+        
+        // If organizationRelationshipCount > 0 create that many organizations first and attach relationships
+        for (int i = 0; i < orgRelCount; i++) {
+            //Create a related organization and save the identifier
+            OrgRoleType roleType = OrganizationDataGenerator.getInstance().randomOrgRoleType();
+            MaintainOrgBuilder relatedOrg = createOrganization(roleType);
+            String relatedOrgId = relatedOrg.getIdentifier(IdentifierType.IPC);
+            PractitionerRelationshipCode relationshipCode = OrganizationDataGenerator.getInstance().generatePractitionerRelationshipCode();
+            builder.addOrganizationRelationship(IdentifierType.IPC, relatedOrgId, relationshipCode);
+        }
+
+        int individualRelCount = config.getIndividualRelationshipCount();
+        
+        // If individualRelationshipCount > 0 create that many individuals first and attach relationships
+        for (int i = 0; i < individualRelCount; i++) {
+            //Create a related individual and save the identifier
+            MaintainIndividualBuilder relatedIndividual = createIndividual(IndividualDataGenerator.getInstance().randomRoleType(false));
+            String relatedIndividualId = relatedIndividual.getIdentifier(IdentifierType.IPC);
+            PractitionerRelationshipCode relationshipCode = OrganizationDataGenerator.getInstance().generatePractitionerRelationshipCode();
+            builder.addIndividualRelationship(IdentifierType.IPC, relatedIndividualId, relationshipCode);
+        }
+
+
         String id = executor.submitMaintain(builder);
-        LOG.info("Created organization (id={}) using config{}",  id, relCount > 0 ? " with " + relCount + " facility relationship(s)" : "");
+        String logMsg = "";
+        if (facilityRelCount > 0 || orgRelCount > 0 || individualRelCount > 0) {
+            logMsg = " with";
+            if (facilityRelCount > 0) logMsg += " " + facilityRelCount + " facility relationship(s)";
+            if (orgRelCount > 0) logMsg += (facilityRelCount > 0 ? " and" : "") + " " + orgRelCount + " organization relationship(s)";
+            if (individualRelCount > 0) logMsg += ((facilityRelCount > 0 || orgRelCount > 0) ? " and" : "") + " " + individualRelCount + " individual relationship(s)";
+        }
+        LOG.info("Created organization (id={}){}", id, logMsg);
 
         //Set the actual id created by the service (should be an IPC identifier)
         builder.addIdentifier(IdentifierType.IPC, id);

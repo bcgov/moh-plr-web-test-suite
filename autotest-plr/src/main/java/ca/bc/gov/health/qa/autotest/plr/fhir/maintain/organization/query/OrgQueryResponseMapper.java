@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PractitionerRelationshipCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrganizationProperties;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -57,9 +58,14 @@ public final class OrgQueryResponseMapper {
 	private static final String CLINIC_LEGAL_NAME_URL         = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-legal-name-extension";
 	/** Canonical extension URL for clinic payee number */
 	private static final String CLINIC_PAYEE_NUMBER_URL       = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-payee-number-extension";
+	/** Canonical extension URL for relationship type */
+	private static final String RELATIONSHIP_TYPE_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-relationship-type-extension";
 
 	/** OrganizationAffiliation resourceType constant. */
 	private static final String ORG_AFFILIATION_TYPE = "OrganizationAffiliation";
+
+	/** PractitionerRole resourceType constant. */
+	private static final String PRACTITIONER_ROLE_TYPE = "PractitionerRole";
 
 	/** Organization resourceType constant. */
 	private static final String ORGANIZATION_TYPE = "Organization";
@@ -99,6 +105,7 @@ public final class OrgQueryResponseMapper {
 		JSONObject orgResource = null;
 		// Collect affiliation resources for relationships and the organization resource.
 		JSONArray affiliationArray = new JSONArray();
+		JSONArray practitionerRoleArray = new JSONArray();
 		for (int i = 0; i < innerEntries.length(); i++) {
 			JSONObject inner = innerEntries.optJSONObject(i);
 			if (inner == null) continue;
@@ -109,6 +116,8 @@ public final class OrgQueryResponseMapper {
 				orgResource = resource; // first organization only
 			} else if (ORG_AFFILIATION_TYPE.equals(type)) {
 				affiliationArray.put(resource);
+			} else if (PRACTITIONER_ROLE_TYPE.equals(type)) {
+				practitionerRoleArray.put(resource);
 			}
 		}
 
@@ -119,6 +128,8 @@ public final class OrgQueryResponseMapper {
 		MaintainOrgBuilder builder = new MaintainOrgBuilder();
 		populateBuilderFromOrganization(orgResource, builder);
 		mapFacilityRelationships(affiliationArray, builder);
+		mapOrganizationRelationships(affiliationArray, builder);
+		mapIndividualRelationships(practitionerRoleArray, builder);
 		return builder;
 	}
 
@@ -153,6 +164,7 @@ public final class OrgQueryResponseMapper {
 
 			// First pass: collect organization resources and affiliations
 			JSONArray affiliationArray = new JSONArray();
+			JSONArray practitionerRoleArray = new JSONArray();
 			for (int j = 0; j < innerEntries.length(); j++) {
 				JSONObject inner = innerEntries.optJSONObject(j);
 				if (inner == null) continue;
@@ -161,6 +173,8 @@ public final class OrgQueryResponseMapper {
 				String type = resource.optString("resourceType", "");
 				if (ORG_AFFILIATION_TYPE.equals(type)) {
 					affiliationArray.put(resource);
+				} else if (PRACTITIONER_ROLE_TYPE.equals(type)) {
+					practitionerRoleArray.put(resource);
 				}
 			}
 
@@ -176,6 +190,8 @@ public final class OrgQueryResponseMapper {
 				try {
 					populateBuilderFromOrganization(resource, b);
 					mapFacilityRelationships(affiliationArray, b);
+					mapOrganizationRelationships(affiliationArray, b);
+					mapIndividualRelationships(practitionerRoleArray, b);
 					builders.add(b);
 				} catch (Exception ignored) {
 					LOG.info("Error occurred: {}", ignored.getMessage());
@@ -725,6 +741,98 @@ public final class OrgQueryResponseMapper {
 			IdentifierType idType = IdentifierType.resolveIdentifierType(system);
 			if (idType != null) {
 				b.addFacilityRelationship(idType, idValue, null);
+			}
+		}
+	}
+
+	/*
+	 * Maps the OrganizationRelationships from the Organization resource to the Organization builder.
+	 *
+	 * @param affiliationArray Array containing OrganizationAffiliation resources
+	 * @param b MaintainOrgBuilder to populate
+	 *
+	 */
+	private static void mapOrganizationRelationships(JSONArray affiliationArray, MaintainOrgBuilder b) {
+		if (affiliationArray == null) return;
+		for (int i = 0; i < affiliationArray.length(); i++) {
+			JSONObject aff = affiliationArray.optJSONObject(i);
+			if (aff == null) continue;
+
+			// Check for participatingOrganization (organization-to-organization relationship)
+			JSONObject participatingOrg = aff.optJSONObject("participatingOrganization");
+			if (participatingOrg == null) continue;
+
+			JSONObject identifier = participatingOrg.optJSONObject("identifier");
+			if (identifier == null) continue;
+
+			String system = identifier.optString("system", null);
+			String idValue = identifier.optString("value", null);
+			if (system == null || idValue == null || idValue.isEmpty()) continue;
+
+			// Extract relationship code
+			String relationshipCode = null;
+			JSONArray codeArray = aff.optJSONArray("code");
+			if (codeArray != null && codeArray.length() > 0) {
+				JSONObject codeObj = codeArray.optJSONObject(0);
+				if (codeObj != null) {
+					JSONArray coding = codeObj.optJSONArray("coding");
+					if (coding != null && coding.length() > 0) {
+						JSONObject codingObj = coding.optJSONObject(0);
+						if (codingObj != null) {
+							relationshipCode = codingObj.optString("code", null);
+						}
+					}
+				}
+			}
+
+			IdentifierType idType = IdentifierType.resolveIdentifierType(system);
+			if (idType != null && relationshipCode != null) {
+				b.addOrganizationRelationship(idType, idValue, PractitionerRelationshipCode.resolveCode(relationshipCode));
+			}
+		}
+	}
+
+	/*
+	 * Maps the IndividualRelationships from the Organization resource to the Organization builder.
+	 * Parses PractitionerRole resources to extract practitioner identifier and relationship code.
+	 *
+	 * @param practitionerRoleArray Array containing PractitionerRole resources
+	 * @param b MaintainOrgBuilder to populate
+	 */
+	private static void mapIndividualRelationships(JSONArray practitionerRoleArray, MaintainOrgBuilder b) {
+		if (practitionerRoleArray == null) return;
+		for (int i = 0; i < practitionerRoleArray.length(); i++) {
+			JSONObject role = practitionerRoleArray.optJSONObject(i);
+			if (role == null) continue;
+
+			// Extract practitioner identifier
+			JSONObject practitioner = role.optJSONObject("practitioner");
+			if (practitioner == null) continue;
+
+			JSONObject identifier = practitioner.optJSONObject("identifier");
+			if (identifier == null) continue;
+
+			String system = identifier.optString("system", null);
+			String idValue = identifier.optString("value", null);
+			if (system == null || idValue == null || idValue.isEmpty()) continue;
+
+			// Extract relationship code from extension
+			String relationshipCode = null;
+			JSONArray extensions = role.optJSONArray("extension");
+			if (extensions != null) {
+				for (int j = 0; j < extensions.length(); j++) {
+					JSONObject ext = extensions.optJSONObject(j);
+					if (ext == null) continue;
+					if (RELATIONSHIP_TYPE_EXTENSION_URL.equals(ext.optString("url"))) {
+						relationshipCode = extractCodingCode(ext, "valueCodeableConcept");
+						break;
+					}
+				}
+			}
+
+			IdentifierType idType = IdentifierType.resolveIdentifierType(system);
+			if (idType != null && relationshipCode != null) {
+				b.addIndividualRelationship(idType, idValue, PractitionerRelationshipCode.resolveCode(relationshipCode));
 			}
 		}
 	}

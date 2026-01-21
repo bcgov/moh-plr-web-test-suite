@@ -124,10 +124,15 @@ public final class IndividualDataGenerator extends AbstractDataGenerator {
 
     /**
      * Returns a randomly selected {@link IndividualRoleType} value.
-     * @return randomly chosen IndividualRoleType
+     * @param isOOP if true, returns an OOP (Out-of-Province) role type; if false, returns a BC-registered role type
+     * @return randomly chosen IndividualRoleType based on OOP parameter
      */
-    public IndividualRoleType randomRoleType() {
-        return pick(List.of(IndividualRoleType.values()));
+    public IndividualRoleType randomRoleType(boolean isOOP) {
+        IndividualRoleType role;
+        do {
+            role = pick(List.of(IndividualRoleType.values()));
+        } while (role.getRoleType().contains("OOP") != isOOP);
+        return role;
     }
 
 

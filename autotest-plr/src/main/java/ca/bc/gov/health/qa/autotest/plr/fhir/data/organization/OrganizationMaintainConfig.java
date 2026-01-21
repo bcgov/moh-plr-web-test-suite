@@ -53,6 +53,9 @@ public class OrganizationMaintainConfig {
     private int payeeNumberCount;            // number of payee numbers
     private int facilityRelationshipCount;   // number of facility relationships to generate (0 => omit)
     private List<String> facilityRelationshipNames;  // explicit facility names for relationships (null => random generation)
+    private int organizationRelationshipCount; // number of organization relationships to generate (0 => omit)
+    private int individualRelationshipCount; // number of individual relationships to generate (0 => omit)
+
 
     /**
      * Initializes required attributes by inspecting {@link OrganizationAttribute} enum.
@@ -125,6 +128,12 @@ public class OrganizationMaintainConfig {
                     break;
                 case FACILITY_RELATIONSHIPS:
                     this.facilityRelationshipCount = 1; // required => at least one
+                    break;
+                case ORGANIZATION_RELATIONSHIPS:
+                    this.organizationRelationshipCount = 1; // required => at least one
+                    break;
+                case INDIVIDUAL_RELATIONSHIPS:
+                    this.individualRelationshipCount = 1; // required => at least one
                     break;
                 default: break; // others currently not required
             }
@@ -253,6 +262,18 @@ public class OrganizationMaintainConfig {
     /** Checks if facility relationships are configured.\n     * @return true if facilityRelationshipCount > 0 */
     public boolean hasFacilityRelationships() { return facilityRelationshipCount > 0; }
 
+    /** Gets the number of organization relationships configured.\n     * @return organization relationship count */
+    public int getOrganizationRelationshipCount() { return organizationRelationshipCount; }
+
+    /** Checks if organization relationships are configured.\n     * @return true if organizationRelationshipCount > 0 */
+    public boolean hasOrganizationRelationships() { return organizationRelationshipCount > 0; }
+
+    /** Gets the number of individual relationships configured.\n     * @return individual relationship count */
+    public int getIndividualRelationshipCount() { return individualRelationshipCount; }
+
+    /** Checks if individual relationships are configured.\n     * @return true if individualRelationshipCount > 0 */
+    public boolean hasIndividualRelationships() { return individualRelationshipCount > 0; }
+
     // Fluent enabling ----------------------------------------------------------------------------
     /** Enable identifier attribute. 
      * @return this config */
@@ -358,6 +379,28 @@ public class OrganizationMaintainConfig {
         return this;
     }
 
+    /** Enable organization relationships with specified count (random relationship codes).
+     * @param count number of organization relationships to create
+     * @return this config
+     * @throws IllegalArgumentException if count below required minimum */
+    public OrganizationMaintainConfig withOrganizationRelationships(int count) {
+        int minRequired = OrganizationAttribute.ORGANIZATION_RELATIONSHIPS.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("organization relationship count must be >= " + minRequired);
+        this.organizationRelationshipCount = count;
+        return this;
+    }
+
+    /** Enable individual relationships with specified count (random relationship codes).
+     * @param count number of organization relationships to create
+     * @return this config
+     * @throws IllegalArgumentException if count below required minimum */
+    public OrganizationMaintainConfig withIndividualRelationships(int count) {
+        int minRequired = OrganizationAttribute.INDIVIDUAL_RELATIONSHIPS.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("organization relationship count must be >= " + minRequired);
+        this.individualRelationshipCount = count;
+        return this;
+    }
+
     /** Enable PCI_FLAG.
      * @return this config */
     public OrganizationMaintainConfig withPciFlag() { this.pciFlag = true; return this; }
@@ -439,8 +482,10 @@ public class OrganizationMaintainConfig {
      * @param ownerNamesCount number of owner names
      * @param payeeCount number of payee numbers
      * @param facilityRelationshipCount number of facility relationships
+     * @param organizationRelationshipCount number of organization relationships
+     * @param individualRelationshipCount number of individual relationships
      * @return this config */
-    public OrganizationMaintainConfig withAllAttributes(int noteCount, int statusCount, int addressUnitCount, int hoursCount, int ownerNamesCount, int payeeCount, int facilityRelationshipCount) {
+    public OrganizationMaintainConfig withAllAttributes(int noteCount, int statusCount, int addressUnitCount, int hoursCount, int ownerNamesCount, int payeeCount, int facilityRelationshipCount, int organizationRelationshipCount, int individualRelationshipCount) {
         withIdentifier(); 
         withName(); 
         withRoleType(roleType != null ? roleType : OrgRoleType.HDS); 
@@ -452,6 +497,8 @@ public class OrganizationMaintainConfig {
         withStatuses(statusCount); 
         withAllOrgProperties(addressUnitCount, hoursCount, ownerNamesCount, payeeCount);
         withFacilityRelationships(facilityRelationshipCount);
+        withOrganizationRelationships(organizationRelationshipCount);
+        withIndividualRelationships(individualRelationshipCount);
         return this; 
     }
 

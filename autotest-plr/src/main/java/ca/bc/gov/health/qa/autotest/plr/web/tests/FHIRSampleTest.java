@@ -116,18 +116,25 @@ implements SimpleTest
             .withClinicOwnerNames(2)
             .withPayeeNumber(2)
             .withFacilityRelationships(2)
+            .withOrganizationRelationships(2)
+            .withIndividualRelationships(2)
             .withPciFlag();        
 
         MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
 
-        LOG.info("Created organization id {}, name {} relationships {}.", org.getIdentifiers(), org.getName(), org.getFacilityRelationshipList());
+        LOG.info("Created organization id {}, name {} fac relationships {}, org relationships {}, ind relationships {}.", org.getIdentifiers(), org.getName(), org.getFacilityRelationshipList(), org.getOrganizationRelationshipList(), org.getIndividualRelationshipList());
 
         //Query an organization by its IPC identifier.
         //Resulting MaintainOrgBuilder contains the queried organization data.
         MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
 
-        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}, relationships {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation(), org.getFacilityRelationshipList());
+        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}, fac relationships {}, org relationships {}, ind relationships {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation(), orgQueried.getFacilityRelationshipList(), orgQueried.getOrganizationRelationshipList(), orgQueried.getIndividualRelationshipList());
 
+        //orgQueried = fhirController.ceaseOrganizationRelationships(orgQueried);
+
+        //LOG.info("Ceased relationships for organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}, fac relationships {}, org relationships {}, ind relationships.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation(), orgQueried.getFacilityRelationshipList(), orgQueried.getOrganizationRelationshipList(), orgQueried.getIndividualRelationshipList());
+
+        /*
         List<MaintainOrgBuilder> orgQueriedbyCriteria = fhirController.queryOrganizationByCriteria(
             new OrgQueryCriteriaParams()
                 .setRoleType(OrgRoleType.HDS)
@@ -138,7 +145,7 @@ implements SimpleTest
 
         for (MaintainOrgBuilder orgByCriteria : orgQueriedbyCriteria) {
             LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}.", orgByCriteria.getIdentifiers(), orgByCriteria.getName(), orgByCriteria.getRoleType(), orgByCriteria.getRoleType() == OrgRoleType.HDS ? orgByCriteria.getHdsType() : "null", orgByCriteria.getStatusList(), orgByCriteria.getAlias(), orgByCriteria.getConfidentiality(), orgByCriteria.getAddressList(), orgByCriteria.getTelecomList(), orgByCriteria.getNoteList(), orgByCriteria.getOrganizationProperties().getClinicServices(), orgByCriteria.getOrganizationProperties().getClinicOwnerBusinessType(), orgByCriteria.getOrganizationProperties().getClinicType(), orgByCriteria.getOrganizationProperties().getClinicLegalBusinessName(), orgByCriteria.getOrganizationProperties().getClinicOwnerNames(), orgByCriteria.getOrganizationProperties().getPayeeNumber(), orgByCriteria.getOrganizationProperties().getPciFlag(), orgByCriteria.getOrganizationProperties().getClinicHoursOfOperation());
-        }
+        }*/
 
         //Close the FHIR session
         fhirController.close();

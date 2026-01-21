@@ -44,7 +44,11 @@ public enum OrganizationAttribute {
     /** PCI flag indicator (OPTIONAL). */
     PCI_FLAG(false),
     /** Facility relationships (OPTIONAL). */
-    FACILITY_RELATIONSHIPS(false);
+    FACILITY_RELATIONSHIPS(false),
+    /** Organization relationships (OPTIONAL). */
+    ORGANIZATION_RELATIONSHIPS(false),
+    /** Individual relationships (OPTIONAL). */
+    INDIVIDUAL_RELATIONSHIPS(false);;
 
     private final boolean required;
 
