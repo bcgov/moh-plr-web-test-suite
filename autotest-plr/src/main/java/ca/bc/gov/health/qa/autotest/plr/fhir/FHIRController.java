@@ -150,6 +150,7 @@ public class FHIRController implements AutoCloseable {
         return facility.copyWithoutOrgRelationships();
     }
 
+    
     /**
      * Generates organization data with only required fields and submits a maintain request.
      *  @param roleType role type to assign to the organization
@@ -231,6 +232,19 @@ public class FHIRController implements AutoCloseable {
     }
 
     /**
+     * Submits a pre-configured organization builder directly without generating new data.
+     * Useful when developers want full control over the builder data.
+     * @param builder pre-configured organization builder to submit
+     * @return the submitted builder with updated identifier
+     */
+    public MaintainOrgBuilder submitOrganization(MaintainOrgBuilder builder) {
+        String id = executor.submitMaintain(builder);
+        LOG.info("Submitted organization (id={})", id);
+        builder.addIdentifier(IdentifierType.IPC, id);
+        return builder;
+    }
+
+    /**
      * Ceases all organization relationships currently configured on the provided organization builder.
      * @param organization existing organization builder whose relationships should be ceased
      * @return same builder instance (for fluent chaining)
@@ -293,6 +307,18 @@ public class FHIRController implements AutoCloseable {
         }
         LOG.info("Created Individual (id={}){}", id, logMsg);
 
+        return builder;
+    }
+
+    /**
+     * Submits a pre-configured individual builder directly without generating new data.
+     * Useful when developers want full control over the builder data.
+     * @param builder pre-configured individual builder to submit
+     * @return the submitted builder with updated identifier
+     */
+    public MaintainIndividualBuilder submitIndividual(MaintainIndividualBuilder builder) {
+        String id = executor.submitMaintain(builder);
+        LOG.info("Submitted individual (id={})", id);
         return builder;
     }
 

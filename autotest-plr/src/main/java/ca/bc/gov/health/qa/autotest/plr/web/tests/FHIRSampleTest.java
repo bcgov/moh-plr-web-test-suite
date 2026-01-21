@@ -8,7 +8,11 @@ import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
@@ -310,22 +314,46 @@ implements SimpleTest
     }
 
     @Test
-    public void testFunctionality(){
+    public void testManualBuilderSetup(){
         //This test can be used to quickly test any new functionality added to the FHIRController or related classes.
+
+        OrganizationBuilderFactory organizationFactory = new OrganizationBuilderFactory(OrganizationDataGenerator.getInstance());
+        IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(IndividualDataGenerator.getInstance());
 
         FHIRController fhirController = new FHIRController(UserType.ADMIN);
 
-      //Create an organization with random data and specified role type.
-        //Note that the saved organization identifier is an IPC identifier.
+        //Generate random random data for an organization. (All required fields + telecoms + 2 statuses + 1 payee number + pci flag)
         OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS)
             .withAllTelecom()
             .withStatuses(2) //Note that right now the maximum amount of confidentiality that can be added is 2
-            .withFacilityRelationships(2)
+            .withPayeeNumber(1)
             .withPciFlag();        
+        MaintainOrgBuilder org = organizationFactory.build(orgConfig);
 
-        MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
+        //override some of the generated data + add a personalized block
+        org.name("Custom Organization Hello World");
+        org.confidentiality(false);
+
+        org = fhirController.submitOrganization(org);
 
         LOG.info("Created organization id {}, name {}.", org.getIdentifiers(), org.getName());
+
+        //Generate random data for an individual (All required fields + telecoms + 2 statuses + 2 notes + 2 expertise)
+        IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.MD)
+            .withAllTelecom()
+            .withStatuses(2)
+            .withNotes(2)
+            .withExpertise(2);
+        MaintainIndividualBuilder individual = individualFactory.build(individualConfig);
+
+        //override some of the generated data
+        individual.familyName("Smith");
+        individual.setNames("John", "Alexander", null);
+        individual.confidentiality(false);
+
+        individual = fhirController.submitIndividual(individual);
+
+        LOG.info("Created individual id {}, name {}.", individual.getIdentifiers(), individual.getFamilyName() + ", " + Arrays.toString(individual.getNames()));
 
         fhirController.close();
     }
