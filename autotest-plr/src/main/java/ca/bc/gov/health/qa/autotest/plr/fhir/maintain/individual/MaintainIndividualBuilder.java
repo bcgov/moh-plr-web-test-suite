@@ -565,7 +565,7 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
      * @param confidentiality confidentiality boolean
      * @return this builder
      */
-    public MaintainIndividualBuilder confidentiality(boolean confidentiality)
+    public MaintainIndividualBuilder confidentiality(Boolean confidentiality)
     {
         confidentiality_ = confidentiality;
         return this;
@@ -679,25 +679,6 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
      */
     public List<Map<String,String>> getTelecomList() { return List.copyOf(telecomList_); }
 
-    // Fluent setters
-    /**
-     * Replaces the address list.
-     * @param addressList address list
-     * @return this builder
-     */
-    public MaintainIndividualBuilder setAddressList(List<Map<String,String>> addressList) {
-        this.addressList_ = addressList;
-        return this;
-    }
-    /**
-     * Replaces the condition list.
-     * @param conditionList condition list
-     * @return this builder
-     */
-    public MaintainIndividualBuilder setConditionList(List<Map<String,String>> conditionList) {
-        this.conditionList_ = conditionList;
-        return this;
-    }
     /**
      * Sets the confidentiality flag (nullable).
      * @param confidentiality Boolean flag or null
@@ -707,24 +688,7 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         this.confidentiality_ = confidentiality;
         return this;
     }
-    /**
-     * Replaces the credential list.
-     * @param credentialList credential list
-     * @return this builder
-     */
-    public MaintainIndividualBuilder setCredentialList(List<Map<String,String>> credentialList) {
-        this.credentialList_ = credentialList;
-        return this;
-    }
-    /**
-     * Replaces the disciplinary action list.
-     * @param disciplinaryActionList non-null disciplinary action list
-     * @return this builder
-     */
-    public MaintainIndividualBuilder setDisciplinaryActionList(List<Map<String,String>> disciplinaryActionList) {
-        this.disciplinaryActionList_ = disciplinaryActionList;
-        return this;
-    }
+
     /**
      * Sets the family name.
      * @param familyName family name string
@@ -774,43 +738,6 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         this.demographics_ = demo;
         return this;
     }
-    /**
-     * Replaces the expertise list.
-     * @param expertiseList expertise list
-     * @return this builder
-     */
-    public MaintainIndividualBuilder setExpertiseList(List<Map<String,String>> expertiseList) {
-        this.expertiseList_ = expertiseList;
-        return this;
-    }
-    /**
-     * Replaces the note list.
-     * @param noteList note list
-     * @return this builder
-     */
-    public MaintainIndividualBuilder setNoteList(List<Map<String,String>> noteList) {
-        this.noteList_ = noteList;
-        return this;
-    }
-
-    /**
-     * Replaces the status list.
-     * @param statusList status list
-     * @return this builder
-     */
-    public MaintainIndividualBuilder setStatusList(List<Map<String,String>> statusList) {
-        this.statusList_ = statusList;
-        return this;
-    }
-    /**
-     * Replaces the telecom list.
-     * @param telecomList telecom list
-     * @return this builder
-     */
-    public MaintainIndividualBuilder setTelecomList(List<Map<String,String>> telecomList) {
-        this.telecomList_ = telecomList;
-        return this;
-    }
 
     /**
      * Returns a defensive copy of the organization relationship list.
@@ -823,6 +750,106 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
      * @return immutable copy of individual relationship list
      */
     public List<Map<String,String>> getIndividualRelationshipList() { return List.copyOf(individualRelationshipList_); }
+
+    /**
+     * Replaces the address list with the provided list.
+     * @param addressList new list of addresses to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setAddressList(List<Map<String,String>> addressList) {
+        this.addressList_ = new ArrayList<>(addressList);
+        return this;
+    }
+
+    /**
+     * Replaces the condition list with the provided list.
+     * @param conditionList new list of conditions to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setConditionList(List<Map<String,String>> conditionList) {
+        this.conditionList_ = new ArrayList<>(conditionList);
+        return this;
+    }
+
+    /**
+     * Replaces the credential list with the provided list.
+     * @param credentialList new list of credentials to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setCredentialList(List<Map<String,String>> credentialList) {
+        this.credentialList_ = new ArrayList<>(credentialList);
+        return this;
+    }
+
+    /**
+     * Replaces the disciplinary action list with the provided list.
+     * @param disciplinaryActionList new list of disciplinary actions to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setDisciplinaryActionList(List<Map<String,String>> disciplinaryActionList) {
+        this.disciplinaryActionList_ = new ArrayList<>(disciplinaryActionList);
+        return this;
+    }
+
+    /**
+     * Replaces the expertise list with the provided list.
+     * @param expertiseList new list of expertise entries to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setExpertiseList(List<Map<String,String>> expertiseList) {
+        this.expertiseList_ = new ArrayList<>(expertiseList);
+        return this;
+    }
+
+    /**
+     * Replaces the note list with the provided list.
+     * @param noteList new list of notes to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setNoteList(List<Map<String,String>> noteList) {
+        this.noteList_ = new ArrayList<>(noteList);
+        return this;
+    }
+
+    /**
+     * Replaces the status list with the provided list.
+     * @param statusList new list of statuses to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setStatusList(List<Map<String,String>> statusList) {
+        this.statusList_ = new ArrayList<>(statusList);
+        return this;
+    }
+
+    /**
+     * Replaces the telecom list with the provided list.
+     * @param telecomList new list of telecoms to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setTelecomList(List<Map<String,String>> telecomList) {
+        this.telecomList_ = new ArrayList<>(telecomList);
+        return this;
+    }
+
+    /**
+     * Replaces the organization relationship list with the provided list.
+     * @param organizationRelationshipList new list of organization relationships to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setOrganizationRelationshipList(List<Map<String,String>> organizationRelationshipList) {
+        this.organizationRelationshipList_ = new ArrayList<>(organizationRelationshipList);
+        return this;
+    }
+
+    /**
+     * Replaces the individual relationship list with the provided list.
+     * @param individualRelationshipList new list of individual relationships to set
+     * @return this builder
+     */
+    public MaintainIndividualBuilder setIndividualRelationshipList(List<Map<String,String>> individualRelationshipList) {
+        this.individualRelationshipList_ = new ArrayList<>(individualRelationshipList);
+        return this;
+    }
 
     /**
      * Marks all relationships to be ceased during maintain submission by overriding the
