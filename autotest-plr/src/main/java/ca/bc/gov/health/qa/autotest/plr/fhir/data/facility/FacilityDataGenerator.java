@@ -1,6 +1,8 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.data;
+package ca.bc.gov.health.qa.autotest.plr.fhir.data.facility;
 
 import java.util.List;
+
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.AbstractDataGenerator;
 
 /**
  * Facility-specific data generator extending {@link AbstractDataGenerator}.

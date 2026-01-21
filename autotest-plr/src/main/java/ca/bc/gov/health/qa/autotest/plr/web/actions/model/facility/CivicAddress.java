@@ -5,7 +5,7 @@ import static org.testng.Assert.assertNotNull;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import org.json.JSONObject;
 
 /**

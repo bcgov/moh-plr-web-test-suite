@@ -1,0 +1,21 @@
+{
+    "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-availableTime-extension",
+    "extension": [
+        {
+            "url": "daysOfWeek",
+            "valueCode": ""
+        },
+        {
+            "url": "availableStartTime",
+            "valueTime": ""
+        },
+        {
+            "url": "availableEndTime",
+            "valueTime": ""
+        },
+        {
+            "url": "allDay",
+            "valueBoolean": false
+        }
+    ]
+}

@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.data;
+package ca.bc.gov.health.qa.autotest.plr.fhir.data.facility;
 
 /**
  * Enumeration of facility fields facility generation.

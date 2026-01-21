@@ -238,13 +238,13 @@ public class ViewFacilityPage extends BasicWebPage {
 
 	}
 
-    /**
-     * TODO (KD) - doc
-     *
-     * @param section
-     * @param index
-     * @return
-     */
+	/**
+	 * Checks whether the active mark icon is displayed for a data block.
+	 *
+	 * @param section the facility section containing the data block
+	 * @param index the zero-based index of the data block within the section
+	 * @return true if the active mark icon is displayed; false otherwise
+	 */
 	public boolean isDataBlockActiveMarkDisplayed(FacilitySection section, int index) {
 		WebElement activeMark = selenium_
 				.findElement(By.cssSelector(getDataBlockHeaderActiveMarkSelector(section, index)));
@@ -252,13 +252,13 @@ public class ViewFacilityPage extends BasicWebPage {
 		return activeMark.isDisplayed();
 	}
 
-    /**
-     * TODO (KD) - doc
-     *
-     * @param section
-     * @param index
-     * @return
-     */
+	/**
+	 * Checks whether the Update button is displayed for a data block header.
+	 *
+	 * @param section the facility section containing the data block
+	 * @param index the zero-based index of the data block within the section
+	 * @return true if the Update button is present and visible; false otherwise
+	 */
 	public boolean isDataBlockUpdateButtonDisplayed(FacilitySection section, int index) {
 		// String cssString = getDataBlockHeaderSelector(section, index)+ " >
 		// div.ui-panel-actions " + " > span >a >img[title^='Update']" ;
@@ -273,13 +273,13 @@ public class ViewFacilityPage extends BasicWebPage {
         return updateButton.isDisplayed();
 	}
 
-    /**
-     * TODO (KD) - doc
-     *
-     * @param section
-     * @param index
-     * @return
-     */
+	/**
+	 * Retrieves the summary line text from a data block header.
+	 *
+	 * @param section the facility section containing the data block
+	 * @param index the zero-based index of the data block within the section
+	 * @return the summary line text for the specified data block
+	 */
 	public String grabDataBlockSummaryLine(FacilitySection section, int index) {
 		String cssString = getDataBlockHeaderSelector(section, index);
 		cssString = cssString + " > span.ui-panel-title";

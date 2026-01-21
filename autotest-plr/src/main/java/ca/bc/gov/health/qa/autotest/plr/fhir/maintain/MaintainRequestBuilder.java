@@ -1,7 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
 
 import org.json.JSONObject;
-import ca.bc.gov.health.qa.autotest.plr.fhir.model.PlrFhirResourceType;
+
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
 
 /**
  * Common contract for all maintain request builders.

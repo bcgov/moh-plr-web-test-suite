@@ -2,6 +2,9 @@ package ca.bc.gov.health.qa.autotest.plr.fhir.data;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Abstract base for data generators that provide randomized test values used in FHIR builders.
@@ -44,6 +47,29 @@ public abstract class AbstractDataGenerator {
         "Parking available on-site",
         "Public transit accessible",
         "Multilingual staff available"
+    );
+
+    // ----------------------- Shared Status Code Logic -------------------------------
+
+    /**
+     * Allowed status codes for maintain requests.
+     */
+    protected static final List<String> STATUS_CODES = List.of(
+        "ACTIVE", "TERMINATED", "INACTIVE", "SUSPENDED", "NULLIFIED", "PENDING", "UNKNOWN", "CANCELLED"
+    );
+
+    /**
+     * Maps status codes to their required reason codes.
+     */
+    protected static final Map<String, String> STATUS_REASON_BY_CODE = Map.of(
+        "CANCELLED", "AU",
+        "ACTIVE",    "GS",
+        "TERMINATED","HON",
+        "INACTIVE",  "OOP",
+        "SUSPENDED", "LTP",
+        "NULLIFIED", "MEDSTUD",
+        "PENDING",   "NONPRAC",
+        "UNKNOWN",   "UNK"
     );
 
     /**
@@ -127,6 +153,30 @@ public abstract class AbstractDataGenerator {
      * @return generated address array
     */
     public abstract String[] generateAddress();
+
+    /**
+     * Generates up to {@code count} unique status codes, randomly selected from the allowed set.
+     * If {@code count} exceeds the number of available unique codes, the result is capped.
+     * @param count desired number of unique status codes
+     * @return list of unique status codes (size less or equal to count)
+     */
+    public List<String> generateUniqueStatusCodes(int count) {
+        if (count <= 0) return List.of();
+        List<String> pool = new ArrayList<>(STATUS_CODES);
+        Collections.shuffle(pool, RNG);
+        int n = Math.min(count, pool.size());
+        return new ArrayList<>(pool.subList(0, n));
+    }
+
+    /**
+     * Returns the required status reason code for the given status code.
+     * Defaults to a mapped value; callers should ensure code validity.
+     * @param statusCode status code (e.g., ACTIVE)
+     * @return reason code (e.g., GS)
+     */
+    public String reasonForStatus(String statusCode) {
+        return STATUS_REASON_BY_CODE.get(statusCode);
+    }
 
     /**
      * Returns a uniformly random element from the provided non-empty list.

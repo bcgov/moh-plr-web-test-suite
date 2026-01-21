@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.model;
+package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model;
 
 /**
  * Enumeration of Health Delivery Site (HDS) subtype classifications used only when

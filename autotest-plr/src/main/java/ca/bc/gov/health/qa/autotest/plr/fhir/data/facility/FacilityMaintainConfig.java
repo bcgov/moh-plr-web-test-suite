@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.fhir.data;
+package ca.bc.gov.health.qa.autotest.plr.fhir.data.facility;
 
 // Uses FacilityAttribute enum for scalar attribute selection
 
