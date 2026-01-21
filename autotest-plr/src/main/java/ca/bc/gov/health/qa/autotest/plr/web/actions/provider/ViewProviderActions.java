@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import org.apache.logging.log4j.Logger;
 
@@ -156,8 +158,13 @@ public class ViewProviderActions
             }
             if (previousValueList != null)
             {
-                // Compare values in ascending order.
-                int result = TextUtils.compareStringLists(previousValueList, valueList);
+                int result;
+
+                // Compare values in ascending order (except if it's a facility relationship)
+                if (section.equals(ProviderSection.FACILITY_RELATIONSHIPS))
+                    result = TextUtils.compareStringLists(valueList, previousValueList);
+                else result = TextUtils.compareStringLists(previousValueList, valueList);
+
                 if (result == 0)
                 {
                     // Compare dates in descending order.
@@ -236,6 +243,7 @@ public class ViewProviderActions
             String noRecordsNotice = viewProvider.grabSectionNoRecordsNotice(section);
             if (section.isRequired())
             {
+                LOG.info(section);
                 if (!noPerms || section.equals(ProviderSection.REGISTRY_IDENTIFIERS)) assertNull(noRecordsNotice, "Section contains data.");
                 else assertEquals(noRecordsNotice, "No permissions to view this record.");
             }
@@ -311,6 +319,16 @@ public class ViewProviderActions
                 throw new IllegalStateException(msg);
             }
         };
+    }
+
+    public String getViewTitle(MaintainOrgBuilder org)
+    {
+        String status = org.getStatusList().getFirst().get("status");
+        status = status.charAt(0) + status.substring(1).toLowerCase();
+
+        return org.getName() +
+                "(" + org.getIdentifierOwners().get(IdentifierType.ORGID) + ")" +
+                " - " + status;
     }
 
     /**

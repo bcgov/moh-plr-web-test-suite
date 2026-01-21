@@ -115,7 +115,6 @@ extends BasicWebPage
      */
     private void expandWorkEntityBlock(WebElement workEntity, boolean expand)
     {
-        LOG.info(grabWorkEntityBlockExpanded(workEntity));
         if (grabWorkEntityBlockExpanded(workEntity) != expand)
         {
             WebElement expandCollapseButton = workEntity.findElement(By.cssSelector(

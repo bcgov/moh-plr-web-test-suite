@@ -402,14 +402,13 @@ public final class TestHelper {
         return generateRandomString(length, allowedChars);
     }
 
-    public static ViewProviderPage viewByIdentifier(ProviderType providerType, JSONObject provider,
-                                                    PlrWebWorkflowManager workflowManager)
+    public static ViewProviderPage viewByIdentifier(String identifier, PlrWebWorkflowManager workflowManager)
     {
         final PlrWebWorkflow workflow = workflowManager.getSelectedWorkflow();
 
         SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
         SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier(
-                "IPC", provider.getString("ipc"));
+                "IPC", identifier);
         search.openResults(0);
 
         return new ViewProviderPage(workflow.getSeleniumSession());

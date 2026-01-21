@@ -28,17 +28,18 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.Organiz
  */
 public class MaintainOrgBuilder implements MaintainRequestBuilder
 {
-    private List<Map<String,String>>   addressList_     = new ArrayList<>();
-    private String                     alias_           = null;
-    private Boolean                    confidentiality_ = null;
-    private Map<IdentifierType,String> identifiers_    = new HashMap<>();
-    private String                     name_            = null;
-    private List<Map<String,String>>   noteList_        = new ArrayList<>();
-    private OrgRoleType                roleType_        = null; // must be explicitly set
-    private List<Map<String,String>>   statusList_      = new ArrayList<>();
-    private List<Map<String,String>>   telecomList_     = new ArrayList<>();
-    private HdsType                    hdsType_         = null;
-    private OrganizationProperties     orgProperties_   = null;
+    private List<Map<String,String>>   addressList_      = new ArrayList<>();
+    private String                     alias_            = null;
+    private Boolean                    confidentiality_  = null;
+    private Map<IdentifierType,String> identifiers_      = new HashMap<>();
+    private Map<IdentifierType,String> identifierOwners_ = new HashMap<>();
+    private String                     name_             = null;
+    private List<Map<String,String>>   noteList_         = new ArrayList<>();
+    private OrgRoleType                roleType_         = null; // must be explicitly set
+    private List<Map<String,String>>   statusList_       = new ArrayList<>();
+    private List<Map<String,String>>   telecomList_      = new ArrayList<>();
+    private HdsType                    hdsType_          = null;
+    private OrganizationProperties     orgProperties_    = null;
     //TODO: P2P relationships
     //TODO: 02F relationships
 
@@ -340,6 +341,13 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         return this;
     }
 
+    public MaintainOrgBuilder addIdentifier(IdentifierType identifierType, String identifierValue, String ownerValue)
+    {
+        if (identifierType != null && identifierValue != null) identifiers_.put(identifierType, identifierValue);
+        if (ownerValue != null) identifierOwners_.put(identifierType, ownerValue);
+        return this;
+    }
+
     /**
      * Sets the organization name.
      * @param name display name
@@ -495,7 +503,13 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      */
     public Map<IdentifierType,String> getIdentifiers() { return Map.copyOf(identifiers_); }
 
-	/**
+    /**
+     * Returns an immutable snapshot of owner of identifiers. (auxiliary data only used by query)
+     * @return  map copy of identifier owner values keyed by type
+     */
+    public Map<IdentifierType,String> getIdentifierOwners() { return Map.copyOf(identifierOwners_); }
+
+    /**
      * Organization name configured.
      * @return name value or null if not provided
      */

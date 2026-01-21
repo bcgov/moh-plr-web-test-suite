@@ -32,7 +32,7 @@ public class ProviderDataFields
         map.put(ProviderSection.DISCIPLINARY_ACTIONS,        List.of("Identifier"));
         map.put(ProviderSection.COMMUNICATION_PREFERENCE,    List.of()); // Only DB Created
         map.put(ProviderSection.CONFIDENTIALITY,             List.of()); // Only 1 data block can exist
-        map.put(ProviderSection.PROVIDER_RELATIONSHIPS,      List.of("Related Provider Identifier"));
+        map.put(ProviderSection.PROVIDER_RELATIONSHIPS,      List.of("Related Provider Identifier", "Relationship Type"));
         map.put(ProviderSection.FACILITY_RELATIONSHIPS,      List.of("Relationship Type"));
         map.put(ProviderSection.REGISTRY_USER_RELATIONSHIPS, List.of("Type"));
         map.put(ProviderSection.NOTES,                       List.of("Note Identifier"));

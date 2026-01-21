@@ -6,6 +6,12 @@ import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
@@ -129,6 +135,32 @@ public class PlrData
             throw new IllegalStateException(msg);
         }
         return provider;
+    }
+
+    /**
+     * TODO (AMV) - doc
+     *
+     * @param key
+     * @param fhir
+     * @return
+     */
+    public static MaintainOrgBuilder getOrgProvider(String key, FHIRController fhir)
+    {
+        MaintainOrgBuilder org = new MaintainOrgBuilder();
+        switch (key)
+        {
+            case "sortOrder" -> {
+                OrganizationMaintainConfig config = new OrganizationMaintainConfig();
+                config.withAllAttributes(
+                        2, 2, 2, 2, 2, 2);
+                org = fhir.createOrganization(config);
+            }
+            case "default" -> {
+                OrgQueryCriteriaParams params = new OrgQueryCriteriaParams().setRoleType(OrgRoleType.BUSINESS);
+                org = fhir.queryOrganizationByCriteria(params).getFirst();
+            }
+        }
+        return org;
     }
 
     /**

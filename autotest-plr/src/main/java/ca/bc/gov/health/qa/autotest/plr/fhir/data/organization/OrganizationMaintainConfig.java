@@ -55,7 +55,7 @@ public class OrganizationMaintainConfig {
      * Use HDS as default organization role type.
      */
     public OrganizationMaintainConfig() {
-        //Call construcotr using HDS as default roletype
+        // Call constructor using HDS as default role type
         this(OrgRoleType.HDS);
     }
 
