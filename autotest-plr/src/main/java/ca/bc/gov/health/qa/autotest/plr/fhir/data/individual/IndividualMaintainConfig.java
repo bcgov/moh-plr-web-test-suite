@@ -40,11 +40,11 @@ public class IndividualMaintainConfig {
     /**
      * Initializes required attributes by inspecting {@link IndividualAttribute} enum.
      * Required flags are auto-enabled for scalars, telecom channels, and list counts.
-     * Uses MD as the default role type.
+     * Uses a random role type as the default role type.
      */
     public IndividualMaintainConfig() {
-        // Call constructor using MD as default role type
-        this(IndividualRoleType.MD);
+        // Call constructor using a random role type as default role type
+        this(IndividualDataGenerator.getInstance().randomRoleType(false));
     }
 
     /**

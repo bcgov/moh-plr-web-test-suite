@@ -227,8 +227,8 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
            extensionJson.put(MaintainUtils.createNote(info));
         }
 
-        // OrganizationProperties mapping
-        if (orgProperties_ != null)
+        // OrganizationProperties mapping (if provided) and if not ceasing relationships)
+        if (orgProperties_ != null && !ceaseRelationships_)
         {
             // Clinic hours of operation (availableTime blocks) — same level as note blocks
             for (String hours : orgProperties_.getClinicHoursOfOperation())

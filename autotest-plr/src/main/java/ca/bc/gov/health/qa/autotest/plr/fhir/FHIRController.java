@@ -238,7 +238,7 @@ public class FHIRController implements AutoCloseable {
     public MaintainOrgBuilder ceaseOrganizationRelationships(MaintainOrgBuilder organization) {
         organization.ceaseRelationships();
         String id = executor.submitMaintain(organization);
-        LOG.info("Ceased organization relationships (organizationId={}).", id);
+        LOG.info("Ceased all relationships for organization (organizationId={}).", id);
         
         // Return a copy without organization relationships to reflect post‑cease state.
         return organization.copyWithoutRelationships();
@@ -297,16 +297,18 @@ public class FHIRController implements AutoCloseable {
     }
 
     /**
-     * Ceases all relationships for a practitioner by setting the end reason code to CEASE.
+     * Ceases all relationships for a practitioner by setting the end reason code to CEASE and afterwards, sending a maintain request.
      * @param practitioner the practitioner builder with relationships to cease
      * @return updated practitioner builder with relationships marked for cessation
      */
     public MaintainIndividualBuilder ceasePractitionerRelationships(MaintainIndividualBuilder practitioner) {
         practitioner.ceaseRelationships();
+
+        String id = executor.submitMaintain(practitioner);
+        LOG.info("Ceased all relationships for individual (individualId={}).", id);
+        // Return a copy without organization relationships to reflect post‑cease state.
         return practitioner.copyWithoutRelationships();
     }
-
-    //TODO: ceasePractitioner(IdentifierType identifier)
 
     /**
      * Queries FHIR for a facility by identifier type and value.

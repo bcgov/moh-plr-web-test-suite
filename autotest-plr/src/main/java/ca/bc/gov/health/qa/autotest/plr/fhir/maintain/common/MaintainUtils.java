@@ -14,7 +14,6 @@ import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.EndReasonCode;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 
 /**

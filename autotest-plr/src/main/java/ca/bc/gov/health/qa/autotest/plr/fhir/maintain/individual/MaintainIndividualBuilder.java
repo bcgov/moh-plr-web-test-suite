@@ -361,56 +361,59 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
             MaintainUtils.updateDemographicsExtensions(extensionJson, birthCountry, birthProvince, deathDate);
         }
 
-        JSONArray addressesJson = pracJson.getJSONArray("address");
-        for (Map<String,String> info : addressList_)
-        {
-            addressesJson.put(MaintainUtils.createAddress(info));
-        }
-
-        JSONArray telecomJson = pracJson.getJSONArray("telecom");
-        for (Map<String,String> info : telecomList_)
-        {
-            telecomJson.put(MaintainUtils.createTelecom(info));
-        }
-
-        JSONArray communicationJson = pracJson.getJSONArray("communication");
-        for (Map<String,String> info : expertiseList_)
-        {
-            communicationJson.put(MaintainUtils.createExpertise(true, info));
-        }
-
         JSONArray extensionJson = accessor.getPracExtensionJson();
-        for (Map<String,String> info : statusList_)
-        {
-                extensionJson.put(MaintainUtils.createStatus(info));
-        }
+        //Skip blocks when ceasing relationships to avoid request issues. Possible TODO, adjust template to change depending on the update kind
+        if (!ceaseRelationships_) {
+            JSONArray addressesJson = pracJson.getJSONArray("address");
+            for (Map<String,String> info : addressList_)
+            {
+                addressesJson.put(MaintainUtils.createAddress(info));
+            }
 
-        if (confidentiality_ != null)
-        {
-            extensionJson.put(MaintainUtils.createConfidentiality(confidentiality_));
-        }
-        for (Map<String,String> info : conditionList_)
-        {
-            extensionJson.put(MaintainUtils.createCondition(info));
-        }
-        for (Map<String,String> info : disciplinaryActionList_)
-        {
-            extensionJson.put(MaintainUtils.createDisciplinaryAction(info));
-        }
-        for (Map<String,String> info : noteList_)
-        {
-           extensionJson.put(MaintainUtils.createNote(info));
-        }
+            JSONArray telecomJson = pracJson.getJSONArray("telecom");
+            for (Map<String,String> info : telecomList_)
+            {
+                telecomJson.put(MaintainUtils.createTelecom(info));
+            }
 
-        JSONArray containedJson = pracJson.getJSONArray("contained");
-        JSONArray qualificationJson = pracJson.getJSONArray("qualification");
-        int refNum = 0;
-        for (Map<String,String> info : credentialList_)
-        {
-            refNum++;
-            String reference = "grantingInstitution-" + refNum;
-            containedJson.put(MaintainUtils.createContained(info, reference));
-            qualificationJson.put(MaintainUtils.createQualification(info, reference));
+            JSONArray communicationJson = pracJson.getJSONArray("communication");
+            for (Map<String,String> info : expertiseList_)
+            {
+                communicationJson.put(MaintainUtils.createExpertise(true, info));
+            }
+
+            for (Map<String,String> info : statusList_)
+            {
+                    extensionJson.put(MaintainUtils.createStatus(info));
+            }
+
+            if (confidentiality_ != null)
+            {
+                extensionJson.put(MaintainUtils.createConfidentiality(confidentiality_));
+            }
+            for (Map<String,String> info : conditionList_)
+            {
+                extensionJson.put(MaintainUtils.createCondition(info));
+            }
+            for (Map<String,String> info : disciplinaryActionList_)
+            {
+                extensionJson.put(MaintainUtils.createDisciplinaryAction(info));
+            }
+            for (Map<String,String> info : noteList_)
+            {
+            extensionJson.put(MaintainUtils.createNote(info));
+            }
+
+            JSONArray containedJson = pracJson.getJSONArray("contained");
+            JSONArray qualificationJson = pracJson.getJSONArray("qualification");
+            int refNum = 0;
+            for (Map<String,String> info : credentialList_)
+            {
+                refNum++;
+                String reference = "grantingInstitution-" + refNum;
+                containedJson.put(MaintainUtils.createContained(info, reference));
+                qualificationJson.put(MaintainUtils.createQualification(info, reference));
+            }
         }
 
         // Build organization relationships as PractitionerRole entries

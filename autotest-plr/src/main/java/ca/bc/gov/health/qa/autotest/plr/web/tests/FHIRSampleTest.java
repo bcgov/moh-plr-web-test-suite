@@ -130,11 +130,12 @@ implements SimpleTest
 
         LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}, fac relationships {}, org relationships {}, ind relationships {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation(), orgQueried.getFacilityRelationshipList(), orgQueried.getOrganizationRelationshipList(), orgQueried.getIndividualRelationshipList());
 
-        //orgQueried = fhirController.ceaseOrganizationRelationships(orgQueried);
+        //cease all relationships that an organization has
+        org = fhirController.ceaseOrganizationRelationships(org);
 
-        //LOG.info("Ceased relationships for organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}, fac relationships {}, org relationships {}, ind relationships.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation(), orgQueried.getFacilityRelationshipList(), orgQueried.getOrganizationRelationshipList(), orgQueried.getIndividualRelationshipList());
+        LOG.info("Ceased relationships for organization id {}, name {}, role type {}, fac relationships {}, org relationships {}, ind relationships.", org.getIdentifiers(), org.getName(), org.getRoleType(), org.getFacilityRelationshipList(), org.getOrganizationRelationshipList(), org.getIndividualRelationshipList());
 
-        /*
+        
         List<MaintainOrgBuilder> orgQueriedbyCriteria = fhirController.queryOrganizationByCriteria(
             new OrgQueryCriteriaParams()
                 .setRoleType(OrgRoleType.HDS)
@@ -145,7 +146,7 @@ implements SimpleTest
 
         for (MaintainOrgBuilder orgByCriteria : orgQueriedbyCriteria) {
             LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}.", orgByCriteria.getIdentifiers(), orgByCriteria.getName(), orgByCriteria.getRoleType(), orgByCriteria.getRoleType() == OrgRoleType.HDS ? orgByCriteria.getHdsType() : "null", orgByCriteria.getStatusList(), orgByCriteria.getAlias(), orgByCriteria.getConfidentiality(), orgByCriteria.getAddressList(), orgByCriteria.getTelecomList(), orgByCriteria.getNoteList(), orgByCriteria.getOrganizationProperties().getClinicServices(), orgByCriteria.getOrganizationProperties().getClinicOwnerBusinessType(), orgByCriteria.getOrganizationProperties().getClinicType(), orgByCriteria.getOrganizationProperties().getClinicLegalBusinessName(), orgByCriteria.getOrganizationProperties().getClinicOwnerNames(), orgByCriteria.getOrganizationProperties().getPayeeNumber(), orgByCriteria.getOrganizationProperties().getPciFlag(), orgByCriteria.getOrganizationProperties().getClinicHoursOfOperation());
-        }*/
+        }
 
         //Close the FHIR session
         fhirController.close();
@@ -236,8 +237,52 @@ implements SimpleTest
             queriedIndividual.getIndividualRelationshipList()
         );
 
+        individual = fhirController.ceasePractitionerRelationships(individual);
 
-        /*List<MaintainIndividualBuilder> individualQueriedByCriteria = fhirController.queryIndividualByCriteria(
+        LOG.info(
+            "Ceased relationships for Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}, org relationships {}, ind relationships {}",
+            individual.getIdentifiers(),
+            individual.getAddressList(),
+            individual.getConditionList(),
+            individual.getConfidentiality(),
+            individual.getCredentialList(),
+            individual.getDisciplinaryActionList(),
+            individual.getFamilyName(),
+            Arrays.toString(individual.getNames()),
+            individual.getDemographics(),
+            individual.getExpertiseList(),
+            individual.getNoteList(),
+            individual.getRoleType(),
+            individual.getStatusList(),
+            individual.getTelecomList(),
+            individual.getOrganizationRelationshipList(),
+            individual.getIndividualRelationshipList()
+        );
+
+        queriedIndividual = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
+
+        LOG.info(
+            "Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}, org relationships {}, ind relationships {}",
+            queriedIndividual.getIdentifiers(),
+            queriedIndividual.getAddressList(),
+            queriedIndividual.getConditionList(),
+            queriedIndividual.getConfidentiality(),
+            queriedIndividual.getCredentialList(),
+            queriedIndividual.getDisciplinaryActionList(),
+            queriedIndividual.getFamilyName(),
+            Arrays.toString(queriedIndividual.getNames()),
+            queriedIndividual.getDemographics(),
+            queriedIndividual.getExpertiseList(),
+            queriedIndividual.getNoteList(),
+            queriedIndividual.getRoleType(),
+            queriedIndividual.getStatusList(),
+            queriedIndividual.getTelecomList(),
+            queriedIndividual.getOrganizationRelationshipList(),
+            queriedIndividual.getIndividualRelationshipList()
+        );
+
+        //Query by criteria will return a list of individuals that match the criteria
+        List<MaintainIndividualBuilder> individualQueriedByCriteria = fhirController.queryIndividualByCriteria(
             new IndividualQueryCriteriaParams() //Look at class to see available parameters
                 .setAddressCity("Victoria"));
 
@@ -258,7 +303,7 @@ implements SimpleTest
                 individualByCriteria.getRoleType(),
                 individualByCriteria.getStatusList(),
                 individualByCriteria.getTelecomList());
-        }*/
+        }
     
         fhirController.close();
 
