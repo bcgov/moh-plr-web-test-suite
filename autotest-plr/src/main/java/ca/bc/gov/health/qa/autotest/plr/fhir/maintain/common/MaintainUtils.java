@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.core.util.io.ResourceUtils;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.EndReasonCode;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 
 /**
@@ -827,7 +828,7 @@ public class MaintainUtils
          * @return populated practitioner role entry JSON
          */
         public static JSONObject createOrganizationIndividualAffiliation(Map<String,String> orgInfo, Map<String,String> individualInfo, String relationshipCode, EndReasonCode endReasonCode) {
-                JSONObject entry = readJsonTemplate("organiztion-to-individual.json");
+                JSONObject entry = readJsonTemplate("organization-to-individual-relationship.json");
                 setFullUrl(entry);
                 JSONObject resource = entry.getJSONObject("resource");
 
@@ -852,6 +853,57 @@ public class MaintainUtils
                 applyEndReasonCode(resource, endReasonCode);
                 
                 return entry;
+        }
+
+        /**
+         * Creates a practitioner relationship extension representing an individual-to-individual relationship.
+         * This extension is added to the Practitioner's extension array (not as a separate bundle entry).
+         * Overload without end reason code - uses template default (CHG).
+         * @param targetIdType identifier type for the target practitioner
+         * @param targetIdValue identifier value for the target practitioner
+         * @param relationshipCode relationship type code
+         * @return populated practitioner relationship extension JSON
+         */
+        public static JSONObject createIndividualIndividualRelationship(String targetIdType, String targetIdValue, String relationshipCode) {
+                return createIndividualIndividualRelationship(targetIdType, targetIdValue, relationshipCode, (EndReasonCode) null);
+        }
+
+        /**
+         * Creates a practitioner relationship extension representing an individual-to-individual relationship.
+         * This extension is added to the Practitioner's extension array (not as a separate bundle entry).
+         * Overload supporting an explicit end-reason code override (e.g. CEASE) that replaces the template default.
+         * @param targetIdType identifier type for the target practitioner
+         * @param targetIdValue identifier value for the target practitioner
+         * @param relationshipCode relationship type code
+         * @param endReasonCode optional end reason code (if null template value retained)
+         * @return populated practitioner relationship extension JSON
+         */
+        public static JSONObject createIndividualIndividualRelationship(String targetIdType, String targetIdValue, String relationshipCode, EndReasonCode endReasonCode) {
+                JSONObject extension = readJsonTemplate("individual-to-individual-relationship.json");
+
+                // Set target practitioner identifier
+                JSONArray extensionArray = extension.getJSONArray("extension");
+                JSONObject targetPractitionerExt = findEntry(extensionArray, "url", "targetPractitioner");
+                JSONObject identifier = targetPractitionerExt
+                        .getJSONObject("valueReference")
+                        .getJSONObject("identifier");
+                identifier.put("system", targetIdType);
+                identifier.put("value", targetIdValue);
+
+                // Set relationship type code
+                if (relationshipCode != null && !relationshipCode.isEmpty()) {
+                        JSONObject relationshipTypeExt = findEntry(extensionArray, "url", "relationshipType");
+                        relationshipTypeExt
+                                .getJSONObject("valueCodeableConcept")
+                                .getJSONArray("coding")
+                                .getJSONObject(0)
+                                .put("code", relationshipCode);
+                }
+
+                // Optional end reason code override
+                applyEndReasonCode(extension, endReasonCode);
+                
+                return extension;
         }
 
         /**

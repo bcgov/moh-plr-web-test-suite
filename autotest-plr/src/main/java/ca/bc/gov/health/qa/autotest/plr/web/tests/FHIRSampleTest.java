@@ -177,13 +177,15 @@ implements SimpleTest
             .withExpertise(2)
             .withCredentials(2)
             .withDisciplinaryActions(2)
-            .withConditions(2)
-            .withConfidentiality(); //Note that editing the record will not be possible if confidentiality is set to true.
+            .withOrganizationRelationships(2)
+            .withIndividualRelationships(2)
+            .withConditions(2);
+            //.withConfidentiality(); //Note that editing the record will not be possible if confidentiality is set to true.
 
         MaintainIndividualBuilder individual = fhirController.createIndividual(individualConfig);
         
         LOG.info(
-            "Created Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}",
+            "Created Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}, org relationships {}, ind relationships {}",
             individual.getIdentifiers(),
             individual.getAddressList(),
             individual.getConditionList(),
@@ -197,22 +199,25 @@ implements SimpleTest
             individual.getNoteList(),
             individual.getRoleType(),
             individual.getStatusList(),
-            individual.getTelecomList());
+            individual.getTelecomList(),
+            individual.getOrganizationRelationshipList(),
+            individual.getIndividualRelationshipList()
+        );
 
         //Other option to create an individual with default config
         //Note that between the IndividualRoleType enum, OOP role types are incluedd
-        MaintainIndividualBuilder individual2 = fhirController.createIndividual(IndividualRoleType.OOP_MD);
+        /*MaintainIndividualBuilder individual2 = fhirController.createIndividual(IndividualRoleType.OOP_MD);
 
         LOG.info(
             "Created Individual identifiers {}, addresses {}, roleType {}",
             individual2.getIdentifiers(),
             individual2.getAddressList(),
-            individual2.getRoleType());
+            individual2.getRoleType());*/
 
         MaintainIndividualBuilder queriedIndividual = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
 
         LOG.info(
-            "Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}",
+            "Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}, org relationships {}, ind relationships {}",
             queriedIndividual.getIdentifiers(),
             queriedIndividual.getAddressList(),
             queriedIndividual.getConditionList(),
@@ -226,10 +231,13 @@ implements SimpleTest
             queriedIndividual.getNoteList(),
             queriedIndividual.getRoleType(),
             queriedIndividual.getStatusList(),
-            queriedIndividual.getTelecomList());
+            queriedIndividual.getTelecomList(),
+            queriedIndividual.getOrganizationRelationshipList(),
+            queriedIndividual.getIndividualRelationshipList()
+        );
 
 
-        List<MaintainIndividualBuilder> individualQueriedByCriteria = fhirController.queryIndividualByCriteria(
+        /*List<MaintainIndividualBuilder> individualQueriedByCriteria = fhirController.queryIndividualByCriteria(
             new IndividualQueryCriteriaParams() //Look at class to see available parameters
                 .setAddressCity("Victoria"));
 
@@ -250,7 +258,7 @@ implements SimpleTest
                 individualByCriteria.getRoleType(),
                 individualByCriteria.getStatusList(),
                 individualByCriteria.getTelecomList());
-        }
+        }*/
     
         fhirController.close();
 

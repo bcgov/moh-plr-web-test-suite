@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PractitionerRelationshipCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -42,6 +43,13 @@ public final class IndividualQueryResponseMapper {
 	private static final String DISCIPLINARY_EXTENSION_URL   = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-disciplinary-action-extension";
 	/** Canonical extension URL for confidentiality */
 	private static final String CONFIDENTIALITY_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-confidentiality-extension";
+	/** Canonical extension URL for relationship type */
+	private static final String RELATIONSHIP_TYPE_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-relationship-type-extension";
+	/** Canonical extension URL for practitioner-to-practitioner relationships */
+	private static final String PRACTITIONER_RELATIONSHIP_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-relationship-extension";
+
+	/** PractitionerRole resourceType constant. */
+	private static final String PRACTITIONER_ROLE_TYPE = "PractitionerRole";
 
 	/**
      * Convert a practitioner query bundle into a MaintainIndividualBuilder.
@@ -77,13 +85,17 @@ public final class IndividualQueryResponseMapper {
 		}
 
 		JSONObject pracResource = null;
+		JSONArray practitionerRoleArray = new JSONArray();
 		for (int i = 0; i < innerEntries.length(); i++) {
 			JSONObject inner = innerEntries.optJSONObject(i);
 			if (inner == null) continue;
 			JSONObject resource = inner.optJSONObject("resource");
-			if (resource != null && "Practitioner".equals(resource.optString("resourceType"))) {
+			if (resource == null) continue;
+			String resourceType = resource.optString("resourceType");
+			if ("Practitioner".equals(resourceType) && pracResource == null) {
 				pracResource = resource;
-				break;
+			} else if (PRACTITIONER_ROLE_TYPE.equals(resourceType)) {
+				practitionerRoleArray.put(resource);
 			}
 		}
 
@@ -93,6 +105,7 @@ public final class IndividualQueryResponseMapper {
 
 		MaintainIndividualBuilder builder = new MaintainIndividualBuilder();
 		populateBuilderFromIndividual(pracResource, builder, collectionBundle);
+		mapOrganizationRelationships(practitionerRoleArray, builder);
 		return builder;
 	}
 
@@ -125,6 +138,19 @@ public final class IndividualQueryResponseMapper {
 			JSONArray innerEntries = collectionBundle.optJSONArray("entry");
 			if (innerEntries == null) continue;
 
+			// First pass: collect PractitionerRole resources
+			JSONArray practitionerRoleArray = new JSONArray();
+			for (int j = 0; j < innerEntries.length(); j++) {
+				JSONObject inner = innerEntries.optJSONObject(j);
+				if (inner == null) continue;
+				JSONObject resource = inner.optJSONObject("resource");
+				if (resource == null) continue;
+				if (PRACTITIONER_ROLE_TYPE.equals(resource.optString("resourceType"))) {
+					practitionerRoleArray.put(resource);
+				}
+			}
+
+			// Second pass: process Practitioner resources
 			for (int j = 0; j < innerEntries.length(); j++) {
 				JSONObject inner = innerEntries.optJSONObject(j);
 				if (inner == null) continue;
@@ -136,6 +162,7 @@ public final class IndividualQueryResponseMapper {
 				
 				try {
 					populateBuilderFromIndividual(resource, builder, collectionBundle);
+					mapOrganizationRelationships(practitionerRoleArray, builder);
 					builders.add(builder);
 				} catch (Exception ignored) {
 					LOG.info("Error occurred: {}", ignored.getMessage());
@@ -167,6 +194,7 @@ public final class IndividualQueryResponseMapper {
 		mapConditions(pracResource, builder);
 		mapDisciplinaryActions(pracResource, builder);
 		mapConfidentiality(pracResource, builder);
+		mapIndividualRelationships(pracResource, builder);
 		mapRoleType(collectionBundle, builder);
 	}
 
@@ -743,4 +771,100 @@ public final class IndividualQueryResponseMapper {
 		JSONObject first = coding.optJSONObject(0);
 		return first != null ? first.optString("code", null) : null;
 	}
+
+	/*
+	* Maps the OrganizationRelationships from PractitionerRole resources to the Individual builder.
+	* Parses PractitionerRole resources to extract organization identifier and relationship code.
+	*
+	* @param practitionerRoleArray Array containing PractitionerRole resources
+	* @param b MaintainIndividualBuilder to populate
+	*/
+	private static void mapOrganizationRelationships(JSONArray practitionerRoleArray, MaintainIndividualBuilder b) {
+		if (practitionerRoleArray == null) return;
+		for (int i = 0; i < practitionerRoleArray.length(); i++) {
+			JSONObject role = practitionerRoleArray.optJSONObject(i);
+			if (role == null) continue;
+
+			// Extract organization identifier
+			JSONObject organization = role.optJSONObject("organization");
+			if (organization == null) continue;
+
+			JSONObject identifier = organization.optJSONObject("identifier");
+			if (identifier == null) continue;
+
+			String system = identifier.optString("system", null);
+			String idValue = identifier.optString("value", null);
+			if (system == null || idValue == null || idValue.isEmpty()) continue;
+
+			// Extract relationship code from extension
+			String relationshipCode = null;
+			JSONArray extensions = role.optJSONArray("extension");
+			if (extensions != null) {
+				for (int j = 0; j < extensions.length(); j++) {
+					JSONObject ext = extensions.optJSONObject(j);
+					if (ext == null) continue;
+					if (RELATIONSHIP_TYPE_EXTENSION_URL.equals(ext.optString("url"))) {
+						relationshipCode = extractCodingCode(ext, "valueCodeableConcept");
+						break;
+					}
+				}
+			}
+
+			IdentifierType idType = IdentifierType.resolveIdentifierType(system);
+			if (idType != null && relationshipCode != null) {
+				b.addOrganizationRelationship(idType, idValue, PractitionerRelationshipCode.resolveCode(relationshipCode));
+			}
+		}
+	}
+
+	/*
+	 * Maps individual-to-individual relationships from Practitioner extension array to the Individual builder.
+	 * These relationships are stored as extensions in the Practitioner resource itself.
+	 *
+	 * @param pracResource Practitioner resource JSON
+	 * @param b MaintainIndividualBuilder to populate
+	 */
+	private static void mapIndividualRelationships(JSONObject pracResource, MaintainIndividualBuilder b) {
+		JSONArray extensions = pracResource.optJSONArray("extension");
+		if (extensions == null) return;
+
+		for (int i = 0; i < extensions.length(); i++) {
+			JSONObject ext = extensions.optJSONObject(i);
+			if (ext == null) continue;
+			if (!PRACTITIONER_RELATIONSHIP_EXTENSION_URL.equals(ext.optString("url"))) continue;
+
+			// Found a practitioner relationship extension
+			JSONArray relationshipExtensions = ext.optJSONArray("extension");
+			if (relationshipExtensions == null) continue;
+
+			String targetIdSystem = null;
+			String targetIdValue = null;
+			String relationshipCode = null;
+
+			for (int j = 0; j < relationshipExtensions.length(); j++) {
+				JSONObject innerExt = relationshipExtensions.optJSONObject(j);
+				if (innerExt == null) continue;
+				String innerUrl = innerExt.optString("url", null);
+
+				if ("targetPractitioner".equals(innerUrl)) {
+					JSONObject valueRef = innerExt.optJSONObject("valueReference");
+					if (valueRef != null) {
+						JSONObject identifier = valueRef.optJSONObject("identifier");
+						if (identifier != null) {
+							targetIdSystem = identifier.optString("system", null);
+							targetIdValue = identifier.optString("value", null);
+						}
+					}
+				} else if ("relationshipType".equals(innerUrl)) {
+					relationshipCode = extractCodingCode(innerExt, "valueCodeableConcept");
+				}
+			}
+
+			IdentifierType idType = IdentifierType.resolveIdentifierType(targetIdSystem);
+			if (idType != null && targetIdValue != null && relationshipCode != null) {
+				b.addIndividualRelationship(idType, targetIdValue, PractitionerRelationshipCode.resolveCode(relationshipCode));
+			}
+		}
+	}
 }
+

@@ -577,6 +577,16 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
                     requireNonNull(null, "At least one facility relationship is required.");
                 }
                 break;
+            case ORGANIZATION_RELATIONSHIPS:
+                if (organizationRelationshipList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization relationship is required.");
+                }
+                break;
+            case INDIVIDUAL_RELATIONSHIPS:
+                if (individualRelationshipList_.isEmpty()) {
+                    requireNonNull(null, "At least one individual relationship is required.");
+                }
+                break;
             default:
                 // no-op for unsupported entries
                 break;

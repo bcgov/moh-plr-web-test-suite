@@ -34,6 +34,8 @@ public class IndividualMaintainConfig {
     private int credentialCount;
     private int conditionCount;
     private int disciplinaryActionCount;
+    private int organizationRelationshipCount;
+    private int individualRelationshipCount;
 
     /**
      * Initializes required attributes by inspecting {@link IndividualAttribute} enum.
@@ -96,6 +98,12 @@ public class IndividualMaintainConfig {
                     break;
                 case DISCIPLINARY_ACTION:
                     this.disciplinaryActionCount = 1;
+                    break;
+                case ORGANIZATION_RELATIONSHIPS:
+                    this.organizationRelationshipCount = 1;
+                    break;
+                case INDIVIDUAL_RELATIONSHIPS:
+                    this.individualRelationshipCount = 1;
                     break;
                 default: 
                     break;
@@ -190,6 +198,18 @@ public class IndividualMaintainConfig {
      * @return count of DISCIPLINARY_ACTION entries */
     public int getDisciplinaryActionCount() { return disciplinaryActionCount; }
 
+    /** Gets the number of organization relationships configured.\n     * @return organization relationship count */
+    public int getOrganizationRelationshipCount() { return organizationRelationshipCount; }
+
+    /** Checks if organization relationships are configured.\n     * @return true if organizationRelationshipCount > 0 */
+    public boolean hasOrganizationRelationships() { return organizationRelationshipCount > 0; }
+
+    /** Gets the number of individual relationships configured.\n     * @return individual relationship count */
+    public int getIndividualRelationshipCount() { return individualRelationshipCount; }
+
+    /** Checks if individual relationships are configured.\n     * @return true if individualRelationshipCount > 0 */
+    public boolean hasIndividualRelationships() { return individualRelationshipCount > 0; }
+
     // Fluent enabling
     /** Enable identifier attribute.
      * @return this config */
@@ -282,6 +302,16 @@ public class IndividualMaintainConfig {
      * @return this config */
     public IndividualMaintainConfig withDisciplinaryActions(int count) { this.disciplinaryActionCount = count; return this; }
 
+    /** Set number of organization relationship entries to generate.
+     * @param count number of organization relationship entries
+     * @return this config */
+    public IndividualMaintainConfig withOrganizationRelationships(int count) { this.organizationRelationshipCount = count; return this; }
+
+    /** Set number of individual relationship entries to generate.
+     * @param count number of individual relationship entries
+     * @return this config */
+    public IndividualMaintainConfig withIndividualRelationships(int count) { this.individualRelationshipCount = count; return this; }
+
     /** Enable all telecom channel types.
      * @return this config */
     public IndividualMaintainConfig withAllTelecom() {
@@ -298,7 +328,7 @@ public class IndividualMaintainConfig {
      * @param conditionCount number of condition entries
      * @param disciplinaryCount number of disciplinary action entries
      * @return this config */
-    public IndividualMaintainConfig withAllAttributes(int noteCount, int statusCount, int expertiseCount, int credentialCount, int conditionCount, int disciplinaryCount) {
+    public IndividualMaintainConfig withAllAttributes(int noteCount, int statusCount, int expertiseCount, int credentialCount, int conditionCount, int disciplinaryCount, int organizationRelationshipCount, int individualRelationshipCount) {
         withIdentifier(); withFamilyName();
         withAddress(); withConfidentiality(); withDemographics(); withGivenNames(); withAllTelecom();
         withNotes(noteCount); withStatuses(statusCount); withExpertise(expertiseCount);

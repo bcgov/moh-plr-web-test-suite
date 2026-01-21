@@ -13,8 +13,10 @@ import org.json.JSONObject;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainAccessor;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.MaintainUtils;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.EndReasonCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PractitionerRelationshipCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualAttribute;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 
@@ -26,7 +28,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.Individua
  */
 public class MaintainIndividualBuilder implements MaintainRequestBuilder
 {
-    public static final java.util.List<String> STATUS_CLASSES_ORDER = java.util.List.of("LIC", "AE");
+    public static final List<String> STATUS_CLASSES_ORDER = java.util.List.of("LIC", "AE");
     public static final int MAX_STATUS_COUNT = STATUS_CLASSES_ORDER.size();
     private List<Map<String,String>>   addressList_            = new ArrayList<>();
     private List<Map<String,String>>   conditionList_          = new ArrayList<>();
@@ -42,9 +44,12 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
     private IndividualRoleType         roleType_               = null; // must be explicitly set
     private List<Map<String,String>>   statusList_             = new ArrayList<>();
     private List<Map<String,String>>   telecomList_            = new ArrayList<>();
-    //TODO: P2P relationships
+    private List<Map<String,String>>   organizationRelationshipList_ = new ArrayList<>();
+    private List<Map<String,String>>   individualRelationshipList_ = new ArrayList<>();
+    // Modifier that will be used on build to determine the end reason code CEASE instead of template default CHG.
+    private boolean                    ceaseRelationships_ = false;
+
     //private String workLocations = null //N/A TO FHIR
-    //TODO CHECK IF APPLIES TO FHIR private MAP<String,String> communicationPreferences_         = null;
 
 
     /**
@@ -76,6 +81,46 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         info.put("city",       city);
         info.put("postalCode", postalCode);
         addressList_.add(info);
+        return this;
+    }
+
+    /**
+     * Adds an organization relationship to the practitioner.
+     * @param idType identifier type for the organization
+     * @param idValue identifier value for the organization
+     * @param relationshipCode relationship code
+     * @return this builder
+     */
+    public MaintainIndividualBuilder addOrganizationRelationship(
+            IdentifierType idType,
+            String idValue,
+            PractitionerRelationshipCode relationshipCode)
+    {
+        Map<String,String> orgRelationship = new HashMap<>();
+        orgRelationship.put("type",       idType.getSourceSystem());
+        orgRelationship.put("identifier", idValue);
+        orgRelationship.put("code",       relationshipCode.getCode());
+        organizationRelationshipList_.add(orgRelationship);
+        return this;
+    }
+
+    /**
+     * Adds an individual relationship to the practitioner.
+     * @param idType identifier type for the individual
+     * @param idValue identifier value for the individual
+     * @param relationshipCode relationship code
+     * @return this builder
+     */
+    public MaintainIndividualBuilder addIndividualRelationship(
+            IdentifierType idType,
+            String idValue,
+            PractitionerRelationshipCode relationshipCode)
+    {
+        Map<String,String> individualRelationship = new HashMap<>();
+        individualRelationship.put("type",       idType.getSourceSystem());
+        individualRelationship.put("identifier", idValue);
+        individualRelationship.put("code",       relationshipCode.getCode());
+        individualRelationshipList_.add(individualRelationship);
         return this;
     }
 
@@ -368,6 +413,48 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
             qualificationJson.put(MaintainUtils.createQualification(info, reference));
         }
 
+        // Build organization relationships as PractitionerRole entries
+        JSONArray entryArray = accessor.getEntryArrayJson();
+        
+        if(firstIdentifierType != null && firstIdentifierValue != null) {
+            Map<String,String> individualInfo = new HashMap<>();
+            individualInfo.put("type", firstIdentifierType.getSourceSystem());
+            individualInfo.put("identifier", firstIdentifierValue);
+
+            //for each organization relationship, create a PractitionerAffiliation bundle entry
+            for (Map<String,String> orgInfo : organizationRelationshipList_)
+            {
+                String relationshipCode = orgInfo.get("code");
+                if (ceaseRelationships_) {
+                    entryArray.put(MaintainUtils.createOrganizationIndividualAffiliation(
+                        orgInfo, individualInfo, relationshipCode, EndReasonCode.CEASE
+                    ));
+                } else {
+                    entryArray.put(MaintainUtils.createOrganizationIndividualAffiliation(
+                        orgInfo, individualInfo, relationshipCode
+                    ));
+                }
+            }
+        }
+
+        // Build individual relationships as extensions in the Practitioner resource
+        for (Map<String,String> info : individualRelationshipList_)
+        {
+            String targetIdType = info.get("type");
+            String targetIdValue = info.get("identifier");
+            String relationshipCode = info.get("code");
+            
+            if (ceaseRelationships_) {
+                extensionJson.put(MaintainUtils.createIndividualIndividualRelationship(
+                    targetIdType, targetIdValue, relationshipCode, EndReasonCode.CEASE
+                ));
+            } else {
+                extensionJson.put(MaintainUtils.createIndividualIndividualRelationship(
+                    targetIdType, targetIdValue, relationshipCode
+                ));
+            }
+        }
+
         return json;
     }
 
@@ -454,6 +541,16 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
             case CONFIDENTIALITY:
                 requireNonNull(confidentiality_, "Missing practitioner confidentiality flag.");
                 break;
+            case ORGANIZATION_RELATIONSHIPS:
+                if (organizationRelationshipList_.isEmpty()) {
+                    requireNonNull(null, "At least one organization relationship is required.");
+                }
+                break;
+            case INDIVIDUAL_RELATIONSHIPS:
+                if (individualRelationshipList_.isEmpty()) {
+                    requireNonNull(null, "At least one individual relationship is required.");
+                }
+                break;
             default:
                 // no-op
                 break;
@@ -482,7 +579,6 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         return this;
     }
 
-    /**
     /**
      * Sets the practitioner role type using the IndividualRoleType enum.
      * @param roleType role type enum (never null)
@@ -711,6 +807,93 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
     public MaintainIndividualBuilder setTelecomList(List<Map<String,String>> telecomList) {
         this.telecomList_ = telecomList;
         return this;
+    }
+
+    /**
+     * Returns a defensive copy of the organization relationship list.
+     * @return immutable copy of organization relationship list
+     */
+    public List<Map<String,String>> getOrganizationRelationshipList() { return List.copyOf(organizationRelationshipList_); }
+
+    /**
+     * Returns a defensive copy of the individual relationship list.
+     * @return immutable copy of individual relationship list
+     */
+    public List<Map<String,String>> getIndividualRelationshipList() { return List.copyOf(individualRelationshipList_); }
+
+    /**
+     * Marks all relationships to be ceased during maintain submission by overriding the
+     * end reason extension code from CHG to CEASE.
+     * @return this builder for fluent chaining
+     */
+    public MaintainIndividualBuilder ceaseRelationships() {
+        this.ceaseRelationships_ = true;
+        return this;
+    }
+
+    /**
+     * Creates a copy of this builder without any relationship lists (organization, individual).
+     * Useful for creating fresh maintain requests that inherit attributes but drop
+     * relationships unless explicitly requested again.
+     *
+     * @return new builder instance without any relationships
+     */
+    public MaintainIndividualBuilder copyWithoutRelationships() {
+        MaintainIndividualBuilder copy = new MaintainIndividualBuilder();
+        copy.familyName_ = this.familyName_;
+        copy.names_ = this.names_;
+        copy.confidentiality_ = this.confidentiality_;
+        copy.roleType_ = this.roleType_;
+        copy.demographics_ = this.demographics_;
+        
+        // Deep copy identifiers
+        copy.identifiers_ = new HashMap<>(this.identifiers_);
+        
+        // Deep copy address list
+        for (Map<String,String> address : this.addressList_) {
+            copy.addressList_.add(new HashMap<>(address));
+        }
+        
+        // Deep copy telecom list
+        for (Map<String,String> telecom : this.telecomList_) {
+            copy.telecomList_.add(new HashMap<>(telecom));
+        }
+        
+        // Deep copy status list
+        for (Map<String,String> status : this.statusList_) {
+            copy.statusList_.add(new HashMap<>(status));
+        }
+        
+        // Deep copy notes
+        for (Map<String,String> note : this.noteList_) {
+            copy.noteList_.add(new HashMap<>(note));
+        }
+        
+        // Deep copy expertise list
+        for (Map<String,String> expertise : this.expertiseList_) {
+            copy.expertiseList_.add(new HashMap<>(expertise));
+        }
+        
+        // Deep copy credential list
+        for (Map<String,String> credential : this.credentialList_) {
+            copy.credentialList_.add(new HashMap<>(credential));
+        }
+        
+        // Deep copy condition list
+        for (Map<String,String> condition : this.conditionList_) {
+            copy.conditionList_.add(new HashMap<>(condition));
+        }
+        
+        // Deep copy disciplinary action list
+        for (Map<String,String> action : this.disciplinaryActionList_) {
+            copy.disciplinaryActionList_.add(new HashMap<>(action));
+        }
+        
+        // organizationRelationshipList_ intentionally left empty
+        // individualRelationshipList_ intentionally left empty
+        copy.ceaseRelationships_ = false; // explicit
+        
+        return copy;
     }
 
     @Override

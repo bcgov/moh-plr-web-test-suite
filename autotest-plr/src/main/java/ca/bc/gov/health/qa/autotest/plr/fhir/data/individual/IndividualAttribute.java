@@ -33,7 +33,11 @@ public enum IndividualAttribute {
     /** Condition/restriction entries */
     CONDITION(false),
     /** Confidentiality flag */
-    CONFIDENTIALITY(false);
+    CONFIDENTIALITY(false),
+    /** Organization relationships (individual-to-organization) */
+    ORGANIZATION_RELATIONSHIPS(false),
+    /** Individual relationships (individual-to-individual) */
+    INDIVIDUAL_RELATIONSHIPS(false);
 
     private final boolean required;
 

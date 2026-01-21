@@ -261,10 +261,49 @@ public class FHIRController implements AutoCloseable {
     public MaintainIndividualBuilder createIndividual(IndividualMaintainConfig config) {
         MaintainIndividualBuilder builder = individualFactory.build(config);
 
+        int orgRelCount = config.getOrganizationRelationshipCount();
+        
+        // If organizationRelationshipCount > 0 create that many organizations first and attach relationships
+        for (int i = 0; i < orgRelCount; i++) {
+            //Create a related organization and save the identifier
+            OrgRoleType roleType = OrganizationDataGenerator.getInstance().randomOrgRoleType();
+            MaintainOrgBuilder relatedOrg = createOrganization(roleType);
+            String relatedOrgId = relatedOrg.getIdentifier(IdentifierType.IPC);
+            PractitionerRelationshipCode relationshipCode = IndividualDataGenerator.getInstance().generatePractitionerRelationshipCode();
+            builder.addOrganizationRelationship(IdentifierType.IPC, relatedOrgId, relationshipCode);
+        }
+
+        int individualRelCount = config.getIndividualRelationshipCount();
+        
+        // If individualRelationshipCount > 0 create that many individuals first and attach relationships
+        for (int i = 0; i < individualRelCount; i++) {
+            //Create a related individual and save the identifier
+            MaintainIndividualBuilder relatedIndividual = createIndividual(IndividualDataGenerator.getInstance().randomRoleType(false));
+            String relatedIndividualId = relatedIndividual.getIdentifier(IdentifierType.IPC);
+            PractitionerRelationshipCode relationshipCode = IndividualDataGenerator.getInstance().generatePractitionerRelationshipCode();
+            builder.addIndividualRelationship(IdentifierType.IPC, relatedIndividualId, relationshipCode);
+        }
+
         String id = executor.submitMaintain(builder);
-        LOG.info("Created Individual (id={})", id);
+        String logMsg = "";
+        if (orgRelCount > 0 || individualRelCount > 0) {
+            logMsg = " with";
+            if (orgRelCount > 0) logMsg += " " + orgRelCount + " organization relationship(s)";
+            if (individualRelCount > 0) logMsg += (orgRelCount > 0 ? " and" : "") + " " + individualRelCount + " individual relationship(s)";
+        }
+        LOG.info("Created Individual (id={}){}", id, logMsg);
 
         return builder;
+    }
+
+    /**
+     * Ceases all relationships for a practitioner by setting the end reason code to CEASE.
+     * @param practitioner the practitioner builder with relationships to cease
+     * @return updated practitioner builder with relationships marked for cessation
+     */
+    public MaintainIndividualBuilder ceasePractitionerRelationships(MaintainIndividualBuilder practitioner) {
+        practitioner.ceaseRelationships();
+        return practitioner.copyWithoutRelationships();
     }
 
     //TODO: ceasePractitioner(IdentifierType identifier)
