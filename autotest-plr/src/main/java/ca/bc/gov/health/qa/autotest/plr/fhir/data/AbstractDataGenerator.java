@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PractitionerRelationshipCode;
+
 /**
  * Abstract base for data generators that provide randomized test values used in FHIR builders.
  * Shared generation logic for identifiers, telecom values, notes and descriptions lives here.
@@ -189,4 +191,15 @@ public abstract class AbstractDataGenerator {
         if (list.isEmpty()) throw new IllegalArgumentException("Cannot pick from empty list");
         return list.get(RNG.nextInt(list.size()));
     }
+
+    /**
+     * Generates a random practitioner relationship code from the available options.
+     * This code can be used for both organization and individual relationships.
+     * @return randomly selected practitioner relationship code
+     */
+    public PractitionerRelationshipCode generatePractitionerRelationshipCode() {
+        return pick(List.of(PractitionerRelationshipCode.values()));
+    }
+
+
 }

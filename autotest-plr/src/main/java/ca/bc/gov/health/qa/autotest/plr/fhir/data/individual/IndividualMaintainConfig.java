@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.individual;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
+
 /**
  * Configuration object representing which Practitioner attributes and list counts
  * should be included when building a MaintainPracBuilder. Required attributes
@@ -9,7 +11,7 @@ public class IndividualMaintainConfig {
 
     private boolean identifier;
     private boolean familyName;
-    private boolean roleType;
+    private IndividualRoleType roleType;
     private boolean address;
     private boolean confidentiality;
     private boolean demographics;
@@ -32,12 +34,24 @@ public class IndividualMaintainConfig {
     private int credentialCount;
     private int conditionCount;
     private int disciplinaryActionCount;
+    private int organizationRelationshipCount;
+    private int individualRelationshipCount;
 
     /**
      * Initializes required attributes by inspecting {@link IndividualAttribute} enum.
      * Required flags are auto-enabled for scalars, telecom channels, and list counts.
+     * Uses a random role type as the default role type.
      */
     public IndividualMaintainConfig() {
+        // Call constructor using a random role type as default role type
+        this(IndividualDataGenerator.getInstance().randomRoleType(false));
+    }
+
+    /**
+     * Initializes required attributes by inspecting {@link IndividualAttribute} enum.
+     * @param roleType individual role type to set as required value
+     */
+    public IndividualMaintainConfig(IndividualRoleType roleType) {
         // Initialize based on required IndividualAttribute flags
         for (IndividualAttribute attr : IndividualAttribute.values()) {
             if (!attr.isRequired()) continue;
@@ -49,7 +63,7 @@ public class IndividualMaintainConfig {
                     this.familyName = true; 
                     break;
                 case ROLE_TYPE: 
-                    this.roleType = true; 
+                    this.roleType = roleType; 
                     break;
                 case ADDRESS: 
                     this.address = true; 
@@ -85,6 +99,12 @@ public class IndividualMaintainConfig {
                 case DISCIPLINARY_ACTION:
                     this.disciplinaryActionCount = 1;
                     break;
+                case ORGANIZATION_RELATIONSHIPS:
+                    this.organizationRelationshipCount = 1;
+                    break;
+                case INDIVIDUAL_RELATIONSHIPS:
+                    this.individualRelationshipCount = 1;
+                    break;
                 default: 
                     break;
             }
@@ -101,9 +121,9 @@ public class IndividualMaintainConfig {
      * @return true if FAMILY_NAME will be included */
     public boolean isFamilyNameEnabled() { return familyName; }
 
-    /** Verifies if ROLE_TYPE will be included.
-     * @return true if ROLE_TYPE will be included */
-    public boolean isRoleTypeEnabled() { return roleType; }
+    /** Gets the individual role type.
+     * @return the role type */
+    public IndividualRoleType getRoleType() { return roleType; }
 
     /** Verifies if ADDRESS will be included.
      * @return true if ADDRESS will be included */
@@ -178,6 +198,18 @@ public class IndividualMaintainConfig {
      * @return count of DISCIPLINARY_ACTION entries */
     public int getDisciplinaryActionCount() { return disciplinaryActionCount; }
 
+    /** Gets the number of organization relationships configured.\n     * @return organization relationship count */
+    public int getOrganizationRelationshipCount() { return organizationRelationshipCount; }
+
+    /** Checks if organization relationships are configured.\n     * @return true if organizationRelationshipCount > 0 */
+    public boolean hasOrganizationRelationships() { return organizationRelationshipCount > 0; }
+
+    /** Gets the number of individual relationships configured.\n     * @return individual relationship count */
+    public int getIndividualRelationshipCount() { return individualRelationshipCount; }
+
+    /** Checks if individual relationships are configured.\n     * @return true if individualRelationshipCount > 0 */
+    public boolean hasIndividualRelationships() { return individualRelationshipCount > 0; }
+
     // Fluent enabling
     /** Enable identifier attribute.
      * @return this config */
@@ -187,9 +219,10 @@ public class IndividualMaintainConfig {
      * @return this config */
     public IndividualMaintainConfig withFamilyName() { this.familyName = true; return this; }
 
-    /** Enable role type attribute.
+    /** Set role type value.
+     * @param roleType individual role type
      * @return this config */
-    public IndividualMaintainConfig withRoleType() { this.roleType = true; return this; }
+    public IndividualMaintainConfig withRoleType(IndividualRoleType roleType) { this.roleType = roleType; return this; }
 
     /** Enable address attribute.
      * @return this config */
@@ -269,6 +302,16 @@ public class IndividualMaintainConfig {
      * @return this config */
     public IndividualMaintainConfig withDisciplinaryActions(int count) { this.disciplinaryActionCount = count; return this; }
 
+    /** Set number of organization relationship entries to generate.
+     * @param count number of organization relationship entries
+     * @return this config */
+    public IndividualMaintainConfig withOrganizationRelationships(int count) { this.organizationRelationshipCount = count; return this; }
+
+    /** Set number of individual relationship entries to generate.
+     * @param count number of individual relationship entries
+     * @return this config */
+    public IndividualMaintainConfig withIndividualRelationships(int count) { this.individualRelationshipCount = count; return this; }
+
     /** Enable all telecom channel types.
      * @return this config */
     public IndividualMaintainConfig withAllTelecom() {
@@ -285,9 +328,8 @@ public class IndividualMaintainConfig {
      * @param conditionCount number of condition entries
      * @param disciplinaryCount number of disciplinary action entries
      * @return this config */
-    public IndividualMaintainConfig withAllAttributes(int noteCount, int statusCount, int expertiseCount, int credentialCount, int conditionCount, int disciplinaryCount) {
+    public IndividualMaintainConfig withAllAttributes(int noteCount, int statusCount, int expertiseCount, int credentialCount, int conditionCount, int disciplinaryCount, int organizationRelationshipCount, int individualRelationshipCount) {
         withIdentifier(); withFamilyName();
-        withRoleType();
         withAddress(); withConfidentiality(); withDemographics(); withGivenNames(); withAllTelecom();
         withNotes(noteCount); withStatuses(statusCount); withExpertise(expertiseCount);
         withCredentials(credentialCount); withConditions(conditionCount); withDisciplinaryActions(disciplinaryCount);

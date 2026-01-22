@@ -1,0 +1,64 @@
+{
+    "fullUrl": "urn:uuid:3d857c66-d80f-4c27-9669-8a9690817d03",
+    "resource": {
+        "resourceType": "OrganizationAffiliation",
+        "id": "Example-OrganizationAffiliation-1-OrgRef-FromOrg",
+        "meta": {
+            "profile": [
+                "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-affiliation"
+            ]
+        },
+        "extension": [
+            {
+                "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension",
+                "valueIdentifier": {
+                    "assigner": {
+                        "display": "MOH"
+                    }
+                }
+            },
+            {
+                "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension",
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code",
+                            "code": "CHG"
+                        }
+                    ]
+                }
+            }
+        ],
+        "period": {
+            "start": "2015-01-01"
+        },
+        "organization": {
+            "identifier": {
+                "system": "",
+                "value": "",
+                "period": {
+                    "start": "2000-01-01"
+                }
+            }
+        },
+        "participatingOrganization": {
+            "identifier": {
+                "system": "",
+                "value": "",
+                "period": {
+                    "start": "2000-02-02"
+                }
+            }
+        },
+        "code": [
+            {
+                "coding": [
+                    {
+                        "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-relationship-type-code",
+                        "code": ""
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -42,7 +42,13 @@ public enum OrganizationAttribute {
     /** Payee numbers (list) (OPTIONAL). */
     PAYEE_NUMBER(false),
     /** PCI flag indicator (OPTIONAL). */
-    PCI_FLAG(false);
+    PCI_FLAG(false),
+    /** Facility relationships (OPTIONAL). */
+    FACILITY_RELATIONSHIPS(false),
+    /** Organization relationships (OPTIONAL). */
+    ORGANIZATION_RELATIONSHIPS(false),
+    /** Individual relationships (OPTIONAL). */
+    INDIVIDUAL_RELATIONSHIPS(false);;
 
     private final boolean required;
 

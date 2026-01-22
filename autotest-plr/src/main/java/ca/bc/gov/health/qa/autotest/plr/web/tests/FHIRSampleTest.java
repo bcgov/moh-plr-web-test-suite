@@ -2,17 +2,24 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
@@ -94,7 +101,7 @@ implements SimpleTest
         //Create an organization with random data and specified role type.
         //Note that the saved organization identifier is an IPC identifier.
         OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS)
-            //.withAllAttributes(2, 2, 2, 2, 2, 2) convenience method to add all attributes including org properties
+            //.withAllAttributes(2, 2, 2, 2, 2, 2, 2) convenience method to add all attributes including org properties and relationships
             //.withAllOrgProperties(0, 0, 0, 0) convenience method to add all organization properties
             //.withName() by default as is a required attribute
             //.withIdentifier() by default as is a required attribute
@@ -113,18 +120,27 @@ implements SimpleTest
             .withClinicHoursOfOperation(2)
             .withClinicOwnerNames(2)
             .withPayeeNumber(2)
+            .withFacilityRelationships(2)
+            .withOrganizationRelationships(2)
+            .withIndividualRelationships(2)
             .withPciFlag();        
 
         MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
 
-        LOG.info("Created organization id {}, name {}.", org.getIdentifiers(), org.getName());
+        LOG.info("Created organization id {}, name {} fac relationships {}, org relationships {}, ind relationships {}.", org.getIdentifiers(), org.getName(), org.getFacilityRelationshipList(), org.getOrganizationRelationshipList(), org.getIndividualRelationshipList());
 
         //Query an organization by its IPC identifier.
         //Resulting MaintainOrgBuilder contains the queried organization data.
         MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
 
-        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation());
+        LOG.info("Queried organization id {}, name {}, role type {}, HDS type {}, status {}, alias {}, confidentiality {}, address {}, telecoms {}, notes {}, clinicServices {}, clinicOwnerBuisnessType {}, clinicType {}, clinicLegalBusinessName {}, clinicOwnerNames {}, payeeNumber {}, pciFlag {}, hoursOfOperation {}, fac relationships {}, org relationships {}, ind relationships {}.", orgQueried.getIdentifiers(), orgQueried.getName(), orgQueried.getRoleType(), orgQueried.getHdsType(), orgQueried.getStatusList(), orgQueried.getAlias(), orgQueried.getConfidentiality(), orgQueried.getAddressList(), orgQueried.getTelecomList(), orgQueried.getNoteList(), orgQueried.getOrganizationProperties().getClinicServices().getText(), orgQueried.getOrganizationProperties().getClinicOwnerBusinessType().getText(), orgQueried.getOrganizationProperties().getClinicType().getText(), orgQueried.getOrganizationProperties().getClinicLegalBusinessName(), orgQueried.getOrganizationProperties().getClinicOwnerNames(), orgQueried.getOrganizationProperties().getPayeeNumber(), orgQueried.getOrganizationProperties().getPciFlag(), orgQueried.getOrganizationProperties().getClinicHoursOfOperation(), orgQueried.getFacilityRelationshipList(), orgQueried.getOrganizationRelationshipList(), orgQueried.getIndividualRelationshipList());
 
+        //cease all relationships that an organization has
+        org = fhirController.ceaseOrganizationRelationships(org);
+
+        LOG.info("Ceased relationships for organization id {}, name {}, role type {}, fac relationships {}, org relationships {}, ind relationships.", org.getIdentifiers(), org.getName(), org.getRoleType(), org.getFacilityRelationshipList(), org.getOrganizationRelationshipList(), org.getIndividualRelationshipList());
+
+        
         List<MaintainOrgBuilder> orgQueriedbyCriteria = fhirController.queryOrganizationByCriteria(
             new OrgQueryCriteriaParams()
                 .setRoleType(OrgRoleType.HDS)
@@ -160,19 +176,22 @@ implements SimpleTest
             //.withGivenNames() by default as is a required attribute
             //.withDemographics() by default as is a required attribute
             //.withAddress() by default as is a required attribute
+            .withRoleType(IndividualRoleType.RN)
             .withAllTelecom()
             .withStatuses(2) //Note that right now the maximum amount of confidentiality that can be added is 2
             .withNotes(2)
             .withExpertise(2)
             .withCredentials(2)
             .withDisciplinaryActions(2)
+            .withOrganizationRelationships(2)
+            .withIndividualRelationships(2)
             .withConditions(2);
             //.withConfidentiality(); //Note that editing the record will not be possible if confidentiality is set to true.
 
         MaintainIndividualBuilder individual = fhirController.createIndividual(individualConfig);
         
         LOG.info(
-            "Created Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}",
+            "Created Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}, org relationships {}, ind relationships {}",
             individual.getIdentifiers(),
             individual.getAddressList(),
             individual.getConditionList(),
@@ -186,10 +205,209 @@ implements SimpleTest
             individual.getNoteList(),
             individual.getRoleType(),
             individual.getStatusList(),
-            individual.getTelecomList());
+            individual.getTelecomList(),
+            individual.getOrganizationRelationshipList(),
+            individual.getIndividualRelationshipList()
+        );
 
+        //Other option to create an individual with default config
+        //Note that between the IndividualRoleType enum, OOP role types are incluedd
+        /*MaintainIndividualBuilder individual2 = fhirController.createIndividual(IndividualRoleType.OOP_MD);
+
+        LOG.info(
+            "Created Individual identifiers {}, addresses {}, roleType {}",
+            individual2.getIdentifiers(),
+            individual2.getAddressList(),
+            individual2.getRoleType());*/
+
+        MaintainIndividualBuilder queriedIndividual = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
+
+        LOG.info(
+            "Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}, org relationships {}, ind relationships {}",
+            queriedIndividual.getIdentifiers(),
+            queriedIndividual.getAddressList(),
+            queriedIndividual.getConditionList(),
+            queriedIndividual.getConfidentiality(),
+            queriedIndividual.getCredentialList(),
+            queriedIndividual.getDisciplinaryActionList(),
+            queriedIndividual.getFamilyName(),
+            Arrays.toString(queriedIndividual.getNames()),
+            queriedIndividual.getDemographics(),
+            queriedIndividual.getExpertiseList(),
+            queriedIndividual.getNoteList(),
+            queriedIndividual.getRoleType(),
+            queriedIndividual.getStatusList(),
+            queriedIndividual.getTelecomList(),
+            queriedIndividual.getOrganizationRelationshipList(),
+            queriedIndividual.getIndividualRelationshipList()
+        );
+
+        individual = fhirController.ceasePractitionerRelationships(individual);
+
+        LOG.info(
+            "Ceased relationships for Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}, org relationships {}, ind relationships {}",
+            individual.getIdentifiers(),
+            individual.getAddressList(),
+            individual.getConditionList(),
+            individual.getConfidentiality(),
+            individual.getCredentialList(),
+            individual.getDisciplinaryActionList(),
+            individual.getFamilyName(),
+            Arrays.toString(individual.getNames()),
+            individual.getDemographics(),
+            individual.getExpertiseList(),
+            individual.getNoteList(),
+            individual.getRoleType(),
+            individual.getStatusList(),
+            individual.getTelecomList(),
+            individual.getOrganizationRelationshipList(),
+            individual.getIndividualRelationshipList()
+        );
+
+        queriedIndividual = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
+
+        LOG.info(
+            "Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}, org relationships {}, ind relationships {}",
+            queriedIndividual.getIdentifiers(),
+            queriedIndividual.getAddressList(),
+            queriedIndividual.getConditionList(),
+            queriedIndividual.getConfidentiality(),
+            queriedIndividual.getCredentialList(),
+            queriedIndividual.getDisciplinaryActionList(),
+            queriedIndividual.getFamilyName(),
+            Arrays.toString(queriedIndividual.getNames()),
+            queriedIndividual.getDemographics(),
+            queriedIndividual.getExpertiseList(),
+            queriedIndividual.getNoteList(),
+            queriedIndividual.getRoleType(),
+            queriedIndividual.getStatusList(),
+            queriedIndividual.getTelecomList(),
+            queriedIndividual.getOrganizationRelationshipList(),
+            queriedIndividual.getIndividualRelationshipList()
+        );
+
+        //Query by criteria will return a list of individuals that match the criteria
+        List<MaintainIndividualBuilder> individualQueriedByCriteria = fhirController.queryIndividualByCriteria(
+            new IndividualQueryCriteriaParams() //Look at class to see available parameters
+                .setAddressCity("Victoria"));
+
+        for (MaintainIndividualBuilder individualByCriteria : individualQueriedByCriteria) {
+            LOG.info(
+                "Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}",
+                individualByCriteria.getIdentifiers(),
+                individualByCriteria.getAddressList(),
+                individualByCriteria.getConditionList(),
+                individualByCriteria.getConfidentiality(),
+                individualByCriteria.getCredentialList(),
+                individualByCriteria.getDisciplinaryActionList(),
+                individualByCriteria.getFamilyName(),
+                Arrays.toString(individualByCriteria.getNames()),
+                individualByCriteria.getDemographics(),
+                individualByCriteria.getExpertiseList(),
+                individualByCriteria.getNoteList(),
+                individualByCriteria.getRoleType(),
+                individualByCriteria.getStatusList(),
+                individualByCriteria.getTelecomList());
+        }
+    
         fhirController.close();
 
+    }
+
+    @Test
+    public void testManualBuilderSetup(){
+        //This test can be used to quickly test any new functionality added to the FHIRController or related classes.
+
+        OrganizationBuilderFactory organizationFactory = new OrganizationBuilderFactory(OrganizationDataGenerator.getInstance());
+        IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(IndividualDataGenerator.getInstance());
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        //Generate random random data for an organization. (All required fields + telecoms + 2 statuses + 1 payee number + pci flag)
+        OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS)
+            //.withAllTelecom()
+            .withStatuses(1) //Note that right now the maximum amount of confidentiality that can be added is 2
+            .withName()
+            .withAddress();
+            //.withPayeeNumber(1)
+            //.withPciFlag();        
+        MaintainOrgBuilder org = organizationFactory.build(orgConfig);
+
+        //override some of the generated data + add a personalized block
+        org.confidentiality(false);
+
+        org = fhirController.submitOrganization(org);
+
+        LOG.info("Created organization id {}, name {}, status {}, address {}.", org.getIdentifiers(), org.getName(), org.getStatusList(), org.getAddressList());
+
+        Map<String,String> address = org.getAddressList().get(0);
+        address.put("line1",      "123 Main St");
+        address.put("city",       "Sample City");
+
+        List<Map<String,String>> statuses = org.getStatusList();
+
+
+        statuses.get(0).put("status", "CANCELLED");
+        statuses.get(0).put("statusReason", "LAP");
+
+        org.setAddressList(List.of(address));
+        org.name("New name");
+        org.setStatusList(statuses);
+
+        //since submit organization does not has as many safeguards, we have to make sure to not send values that will trigger errors i.e. confidentiality
+        org.confidentiality(null);
+
+        org = fhirController.submitOrganization(org);
+
+        LOG.info("Updated organization id {}, name {}, status {}, address {}.", org.getIdentifiers(), org.getName(), org.getStatusList(), org.getAddressList());
+
+        //Generate random data for an individual (All required fields + 1 status + 1 address + 1 expertise + 1 credential)
+        IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.MD)
+            .withStatuses(1)
+            .withAddress()
+            .withGivenNames()
+            .withExpertise(2)
+            .withCredentials(1);
+        MaintainIndividualBuilder individual = individualFactory.build(individualConfig);
+
+        //override some of the generated data
+        individual.confidentiality(false);
+
+        individual = fhirController.submitIndividual(individual);
+
+        LOG.info("Created individual id {}, name {}, status {}, address {}, expertise {}, credentials {}.", individual.getIdentifiers(), individual.getFamilyName() + ", " + Arrays.toString(individual.getNames()), individual.getStatusList(), individual.getAddressList(), individual.getExpertiseList(), individual.getCredentialList());
+
+        Map<String,String> individualAddress = individual.getAddressList().get(0);
+        individualAddress.put("line1", "456 Oak Avenue");
+        individualAddress.put("city", "Custom City");
+
+        List<Map<String,String>> individualStatuses = individual.getStatusList();
+        individualStatuses.get(0).put("status", "CANCELLED");
+        individualStatuses.get(0).put("statusReason", "LAP");
+
+        List<Map<String,String>> individualExpertise = individual.getExpertiseList();
+        individualExpertise.get(0).put("code", "C15");
+        individualExpertise.get(0).put("sourceCode", "Language expertise example update");
+
+        List<Map<String,String>> individualCredentials = individual.getCredentialList();
+        individualCredentials.get(0).put("institution", "Example Insititution");
+        individualCredentials.get(0).put("city", "Cowichan");
+
+        individual.setAddressList(List.of(individualAddress));
+        individual.familyName("CustomLastName");
+        individual.setNames("CustomFirstName", "CustomMiddleName", null);
+        individual.setStatusList(individualStatuses);
+        individual.setExpertiseList(individualExpertise);
+        individual.setCredentialList(individualCredentials);
+
+        //since submit individual does not have as many safeguards, we have to make sure to not send values that will trigger errors i.e. confidentiality
+        individual.confidentiality(null);
+
+        individual = fhirController.submitIndividual(individual);
+
+        LOG.info("Updated individual id {}, name {}, status {}, address {}, expertise {}, credentials {}.", individual.getIdentifiers(), individual.getFamilyName() + ", " + Arrays.toString(individual.getNames()), individual.getStatusList(), individual.getAddressList(), individual.getExpertiseList(), individual.getCredentialList());
+        
+        fhirController.close();
     }
 
 }

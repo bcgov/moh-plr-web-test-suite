@@ -20,11 +20,11 @@ public final class FacilityDataGenerator extends AbstractDataGenerator {
     );
 
     // Address fixed except for street number.
-    private static final String FIXED_STREET = "Lawrence Ave"; // Spelling per specification
-    private static final String FIXED_CITY = "Kelowna";
-    private static final String FIXED_POSTAL = "V1Y 6L9";
-    private static final int FIXED_LOWER_STREET_NUMBER = 250;
-    private static final int FIXED_UPPER_STREET_NUMBER = 1250;
+    private static final String FIXED_STREET = "Buchanan Rd"; // Spelling per specification
+    private static final String FIXED_CITY = "Coldstream";
+    private static final String FIXED_POSTAL = "V1B 3C5";
+    private static final int FIXED_LOWER_STREET_NUMBER = 6500;
+    private static final int FIXED_UPPER_STREET_NUMBER = 7500;
 
     private FacilityDataGenerator() { /* enforce singleton */ }
 
