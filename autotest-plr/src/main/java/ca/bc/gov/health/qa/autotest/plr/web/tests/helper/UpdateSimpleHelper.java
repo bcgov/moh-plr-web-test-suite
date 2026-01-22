@@ -111,5 +111,17 @@ public class UpdateSimpleHelper {
 			return false;
 		}
 	}
+	
+	/**
+	 * convert name to wildcard for example, ("royal", 3) will generate "roy*"
+	 * @param name name to be converted 
+	 * @param length length of substring from name. 
+	 * @return wildcard name,
+	 */
+	public static String generateWildcardName(String name, int length) {
+		if (StringUtils.isEmpty(name))return "*" ;
+		int cutLength = Math.min(name.length(), length);
+        return name.substring(0, cutLength)+"*";
+	}
 
 }

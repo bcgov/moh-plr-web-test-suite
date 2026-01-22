@@ -5,22 +5,26 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Ordering;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.FacilityMaintainConfig;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainFacilityBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -30,10 +34,11 @@ public class SearchProviderTests implements SimpleTest{
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
-    private MaintainFacilityBuilder dummyFacility;
+
     private SearchProviderTests(){}
 
     static final int SEARCH_PROVIDER_MAX_RESULTS=20;
+    private final String NORECORDFOUND = "No records found.";
     @AfterClass
 	public void teardown() {
 		workflowManager_.logoutAllAndClose();
@@ -233,38 +238,64 @@ public class SearchProviderTests implements SimpleTest{
     	String error02 ="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Organizational Provider Role Type'. Your transaction has not been processed. Correct and resubmit.";
     	PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
+        //FHIR
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+        OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG);
+        MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
+        MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
+        fhirController.close();
+        OrgRoleType roleType = orgQueried.getRoleType();
+        String name=orgQueried.getName();       
+        Map<String, String> address = orgQueried.getAddressList().get(0);
+        String city=address.get("city");
+        String addressline1=address.get("line1");
+        String desp="";
+        
         //Step 1
-        SearchProviderResultsFragment searchResults = searchProvider.searchForOrganization("ORG", "Royal Columbian Hospital", null, null,
-				"Harrison Hot Springs");
-        assertTrue(searchResults.grabResultsRowCount()>0);
+        SearchProviderResultsFragment searchResults = searchProvider.searchForOrganization(roleType.name(), name, null, addressline1,
+        		city);
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
         //Step 2
-        searchResults = searchProvider.searchForOrganization("ORG", null, null, null,null);
+        searchResults = searchProvider.searchForOrganization(roleType.name(), null, null, null,null);
         String errMsg = searchResults.grabEmptyResultsMessage();
         assertTrue(errMsg.equals(error01));
        //Step 3
-        searchResults = searchProvider.searchForOrganization("ORG", "Royal Columbian Hospital", null, null,
+        searchResults = searchProvider.searchForOrganization(roleType.name(), name, null, null,
 				null);
-        assertTrue(searchResults.grabResultsRowCount()>0);
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
         
         //Step 4: not able to only search by nmae-role type default value "ORG"
-        //Step 5
-        searchResults = searchProvider.searchForOrganization("ORG", "Royal Columbian Hospital", null, null,
-				null);
-        assertTrue(searchResults.grabResultsRowCount()>0);
+        //Step 5: description not support FHIR
+        searchResults = searchProvider.searchForOrganization(OrgRoleType.ORG.name(), null, "McBride and District Hospital"
+        		, null,	null);
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
         //Step 6
-        searchResults = searchProvider.searchForOrganization("ORG", null, null, null,"143 Noack Turnpike");
-        assertTrue(searchResults.grabResultsRowCount()>0);
+        searchResults = searchProvider.searchForOrganization(roleType.name(), null, null, null,"143 Noack Turnpike");
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
  	}
 //
 // 	Search - Search Results Limit
     @Test(groups = { "SearchProvider"})
  	public void testSearchResultsLimit() {
+    	
     	PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
+    	
+    	//create 22 individual DEN in victoria? TODO
+    	
+    	//test
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
         SearchProviderResultsFragment searchResults =
-                searchProvider.searchByCriteria("DEN", null, null, null, "Victoria", null, null);
+        		searchProviderPage.searchByCriteria("DEN", null, null, null, "Victoria", null, null);
         assertTrue(searchResults.grabResultsRowCount()==SEARCH_PROVIDER_MAX_RESULTS);
-        searchResults = searchProvider.searchForOrganization("ORG", null, null, null,
+        String errMsg = searchProviderPage.grabPageMessage();
+        // create 22 ORG in vicotria 
+       /* FHIRController fhirController = new FHIRController(UserType.ADMIN);
+        OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS);
+        MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
+        MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
+        fhirController.close();*/
+        //test
+        searchResults = searchProviderPage.searchForOrganization("ORG", null, null, null,
 				"Victoria");
         assertTrue(searchResults.grabResultsRowCount()==SEARCH_PROVIDER_MAX_RESULTS);
  	}
@@ -273,19 +304,19 @@ public class SearchProviderTests implements SimpleTest{
 	@Test(groups = { "SearchProvider" })
 	public void testSearchZeroResultss() {
 
-		final String expectedMessage = "No records found.";
+	
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
 		SearchProviderResultsFragment searchResults = searchProvider.searchByIdentifier("IPC", "ABC.123");
-		assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage);
+		assertEquals(searchResults.grabEmptyResultsMessage(), NORECORDFOUND);
 		searchResults = searchProvider.searchByRegistryIdentifier("CPN", "DEF.4567");
-		assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage);
+		assertEquals(searchResults.grabEmptyResultsMessage(), NORECORDFOUND);
 		searchResults = searchProvider.searchByCriteria("MD", "Nonexistent", "Provider", "M", "Victoria", "TERMINATED",
 				"RET", List.of("AMD1 ", "AMD49 "), List.of("A01 ", "A09 "));
-		assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage);
+		assertEquals(searchResults.grabEmptyResultsMessage(), NORECORDFOUND);
 		searchResults = searchProvider.searchForOrganization("ORG", "Nonexistent", "Organization", "123 Some Street",
 				"Victoria");
-		assertEquals(searchResults.grabEmptyResultsMessage(), expectedMessage);
+		assertEquals(searchResults.grabEmptyResultsMessage(), NORECORDFOUND);
 
 	}
 //
@@ -293,36 +324,44 @@ public class SearchProviderTests implements SimpleTest{
     @Test(groups = { "SearchProvider"})
  	public void testSearchHDS() {
     	PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+    	FHIRController fhirController = new FHIRController(UserType.ADMIN);
+        OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS).withAlias();
+        MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
+        MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
+        fhirController.close();
+        HdsType hdsType = orgQueried.getHdsType();
+        String name=orgQueried.getName();       
+        Map<String, String> address = orgQueried.getAddressList().get(0);
+        String city=address.get("city");
+        String addressline1=address.get("line1");
+        String desp=orgQueried.getAlias();
     	//test1
     	SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
-    	SearchProviderResultsFragment searchResults = searchProviderPage.searchHDSOrganization("HOSPITAL", 
-    			null, null, "Victoria", null);
-    	 assertTrue(searchResults.grabResultsRowCount()>0);
-    	 //test2
-    	 searchResults = searchProviderPage.searchHDSOrganization(null, 
-     			null, null, null, null); 
-    	 String errMsg = searchProviderPage.grabPageMessage();
-    	 assertTrue(errMsg.contains("The following fields must be supplied: 'Name or Description or Address Line 1 or City'"));
-    	//test3
-    	 searchResults = searchProviderPage.searchHDSOrganization("GENERAL_CARE", 
+    	SearchProviderResultsFragment searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), 
+    			name, desp, city, addressline1);
+    	 assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+    	//test2
+    	 searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), 
       			null, null, null, null); 
-     	  errMsg = searchProviderPage.grabPageMessage();
+     	  String errMsg = searchProviderPage.grabPageMessage();
      	 assertTrue( errMsg.contains("The following fields must be supplied: 'Name or Description or Address Line 1 or City'"));
+     	//test3
+     	 searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), 
+     			name, desp, null, null); 
+     	assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
      	//test4
-     	 searchResults = searchProviderPage.searchHDSOrganization("GENERAL_CARE", 
-       			null, null, "vaa", null); 
-      	  errMsg = searchResults.grabEmptyResultsMessage();
-      	 assertTrue( errMsg.contains("No records found"));
-     	 //test5
-      	searchResults = searchProviderPage.searchHDSOrganization("HOSPITAL", 
-    			"Care*", null, "Victoria", null);
-    	 assertTrue(searchResults.grabResultsRowCount()>0);
-    	 /*boolean found=false;
-    	 for(int i=0;i<searchResults.grabResultsRowCount();i++) {
-    		 List<String> item = searchResults.grabResultsRow(i);
-    		 if(item.contains("Royal Jubilee Hospital"))found=true;
-    	 }*
-    	 assertTrue(found,"The target Hds Organization is not found");*/
+    	 searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), 
+    			null, null, city, null); 
+    	assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+     	 //test5 
+    	searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), 
+     			null, desp, null, null); 
+     	assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+     	//test 6
+      	searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), 
+      			null, null, null, addressline1);
+    	 assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+    	 
  	}
 
 }
