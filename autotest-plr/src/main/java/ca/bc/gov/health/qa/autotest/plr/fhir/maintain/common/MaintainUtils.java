@@ -25,6 +25,18 @@ public class MaintainUtils
             "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-period-extension";
     private static final String SPECIALTY_SOURCE_EXTENSION_URL =
             "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-specialty-source-extension";
+    private static final String AVAILABILITY_EXTENSION_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-availability-extension";
+    private static final String OWNER_EXTENSION_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension";
+    private static final String END_REASON_EXTENSION_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension";
+    private static final String RELATIONSHIP_TYPE_EXTENSION_URL =
+            "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-relationship-type-extension";
+    private static final String END_REASON_CODE_SYSTEM =
+            "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code-system";
+        
+
 
     // Organization property extension URLs (centralized for reuse)
     private static final String ORG_PRIMARY_CARE_URL =
@@ -573,12 +585,12 @@ public class MaintainUtils
          */
         public static JSONObject createClinicAvailability(String hoursEntry) {
                 JSONObject container = new JSONObject();
-                container.put("url", "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-availability-extension");
+                container.put("url", AVAILABILITY_EXTENSION_URL);
                 JSONArray ext = new JSONArray();
 
                 // Owner extension (assignee display defaults to MOH)
                 JSONObject ownerExt = new JSONObject();
-                ownerExt.put("url", "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension");
+                ownerExt.put("url", OWNER_EXTENSION_URL);
                 JSONObject ownerVal = new JSONObject();
                 ownerVal.put("assigner", new JSONObject().put("display", "MOH"));
                 ownerExt.put("valueIdentifier", ownerVal);
@@ -586,11 +598,11 @@ public class MaintainUtils
 
                 // End reason extension (default code CHG)
                 JSONObject endReasonExt = new JSONObject();
-                endReasonExt.put("url", "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension");
+                endReasonExt.put("url", END_REASON_EXTENSION_URL);
                 JSONObject endReasonVal = new JSONObject();
                 JSONArray coding = new JSONArray();
                 coding.put(new JSONObject()
-                                .put("system", "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-end-reason-code")
+                                .put("system", END_REASON_CODE_SYSTEM)
                                 .put("code", "CHG"));
                 endReasonVal.put("coding", coding);
                 endReasonExt.put("valueCodeableConcept", endReasonVal);
@@ -670,7 +682,7 @@ public class MaintainUtils
                 // Optional end reason code override
                 if (endReasonCode != null) {
                         JSONArray extensions = resource.getJSONArray("extension");
-                        JSONObject endReasonExt = findEntry(extensions, "url", "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-end-reason-extension");
+                        JSONObject endReasonExt = findEntry(extensions, "url", END_REASON_EXTENSION_URL);
                         endReasonExt
                                 .getJSONObject("valueCodeableConcept")
                                 .getJSONArray("coding")
@@ -678,6 +690,219 @@ public class MaintainUtils
                                 .put("code", endReasonCode.wire());
                 }
                 return entry;
+        }
+
+        /**
+         * Helper to generate UUID and set fullUrl on a bundle entry.
+         * @param entry bundle entry JSON object
+         * @return the generated UUID string
+         */
+        private static String setFullUrl(JSONObject entry) {
+                String uuid = java.util.UUID.randomUUID().toString();
+                entry.put("fullUrl", "urn:uuid:" + uuid);
+                return uuid;
+        }
+
+        /**
+         * Helper to set identifier (system and value) on a JSON object.
+         * @param target target JSON object containing identifier
+         * @param info map with "type" (system) and "identifier" (value) keys
+         */
+        private static void setIdentifier(JSONObject target, Map<String,String> info) {
+                JSONObject identifier = target.getJSONObject("identifier");
+                identifier.put("system", info.get("type"));
+                identifier.put("value", info.get("identifier"));
+        }
+
+        /**
+         * Helper to apply end reason code override to a resource's extension array.
+         * @param resource resource JSON object
+         * @param endReasonCode end reason code to apply (if not null)
+         */
+        private static void applyEndReasonCode(JSONObject resource, EndReasonCode endReasonCode) {
+                if (endReasonCode == null) return;
+                
+                JSONArray extensions = resource.optJSONArray("extension");
+                if (extensions == null) {
+                        extensions = new JSONArray();
+                        resource.put("extension", extensions);
+                }
+                
+                // Find or create end reason extension
+                JSONObject endReasonExt = null;
+                for (int i = 0; i < extensions.length(); i++) {
+                        JSONObject ext = extensions.optJSONObject(i);
+                        if (ext != null && END_REASON_EXTENSION_URL.equals(ext.optString("url"))) {
+                                endReasonExt = ext;
+                                break;
+                        }
+                }
+                
+                if (endReasonExt == null) {
+                        // Create new end reason extension
+                        endReasonExt = new JSONObject();
+                        endReasonExt.put("url", END_REASON_EXTENSION_URL);
+                        JSONObject valueCC = new JSONObject();
+                        JSONArray coding = new JSONArray();
+                        JSONObject codingObj = new JSONObject();
+                        codingObj.put("system", END_REASON_CODE_SYSTEM);
+                        codingObj.put("code", endReasonCode.wire());
+                        coding.put(codingObj);
+                        valueCC.put("coding", coding);
+                        endReasonExt.put("valueCodeableConcept", valueCC);
+                        extensions.put(endReasonExt);
+                } else {
+                        // Update existing extension
+                        endReasonExt
+                                .getJSONObject("valueCodeableConcept")
+                                .getJSONArray("coding")
+                                .getJSONObject(0)
+                                .put("code", endReasonCode.wire());
+                }
+        }
+
+        /**
+         * Creates an OrganizationAffiliation entry for organization-to-organization relationships.
+         * Uses the organization-relationship.json template.
+         * @param orgInfo source organization mapping data (identifier + type/system)
+         * @param relatedOrgInfo related organization mapping data (identifier + type/system)
+         * @param relationshipCode relationship type code (e.g., P2P, O2F)
+         * @return populated affiliation entry
+         */
+        public static JSONObject createOrganizationOrgAffiliation(Map<String,String> orgInfo, Map<String,String> relatedOrgInfo, String relationshipCode) {
+                return createOrganizationOrgAffiliation(orgInfo, relatedOrgInfo, relationshipCode, (EndReasonCode) null);
+        }
+
+        /**
+         * Overload supporting an explicit end-reason code override (e.g. CEASE) that replaces the template default.
+         * @param orgInfo source organization mapping data (identifier + type/system)
+         * @param relatedOrgInfo related organization mapping data (identifier + type/system)
+         * @param relationshipCode relationship type code (e.g., P2P, O2F)
+         * @param endReasonCode optional end reason code (if null template value retained). Use {@link EndReasonCode#CHANGE}
+         *                      only if you want to be explicit; the template default is already CHG.
+         * @return populated affiliation entry JSON
+         */
+        public static JSONObject createOrganizationOrgAffiliation(Map<String,String> orgInfo, Map<String,String> relatedOrgInfo, String relationshipCode, EndReasonCode endReasonCode) {
+                JSONObject entry = readJsonTemplate("organization-to-organization-relationship.json");
+                setFullUrl(entry);
+                JSONObject resource = entry.getJSONObject("resource");
+
+                // Organization identifier (source organization)
+                setIdentifier(resource.getJSONObject("organization"), orgInfo);
+
+                // Participating organization identifier (related organization)
+                setIdentifier(resource.getJSONObject("participatingOrganization"), relatedOrgInfo);
+
+                // Relationship code
+                if (relationshipCode != null && !relationshipCode.isEmpty()) {
+                        JSONObject codeObj = resource.getJSONArray("code").getJSONObject(0);
+                        codeObj.getJSONArray("coding").getJSONObject(0).put("code", relationshipCode);
+                }
+
+                // Optional end reason code override
+                applyEndReasonCode(resource, endReasonCode);
+                
+                return entry;
+        }
+
+        /**
+         * Creates a PractitionerRole entry representing an organization-to-individual relationship.
+         * Overload without end reason code - uses template default (CHG).
+         * @param orgInfo source organization mapping data (identifier + type/system)
+         * @param individualInfo related individual/practitioner mapping data (identifier + type/system)
+         * @param relationshipCode relationship type code
+         * @return populated practitioner role entry
+         */
+        public static JSONObject createOrganizationIndividualAffiliation(Map<String,String> orgInfo, Map<String,String> individualInfo, String relationshipCode) {
+                return createOrganizationIndividualAffiliation(orgInfo, individualInfo, relationshipCode, (EndReasonCode) null);
+        }
+
+        /**
+         * Creates a PractitionerRole entry representing an organization-to-individual relationship.
+         * Overload supporting an explicit end-reason code override (e.g. CEASE) that replaces the template default.
+         * @param orgInfo source organization mapping data (identifier + type/system)
+         * @param individualInfo related individual/practitioner mapping data (identifier + type/system)
+         * @param relationshipCode relationship type code
+         * @param endReasonCode optional end reason code (if null template value retained)
+         * @return populated practitioner role entry JSON
+         */
+        public static JSONObject createOrganizationIndividualAffiliation(Map<String,String> orgInfo, Map<String,String> individualInfo, String relationshipCode, EndReasonCode endReasonCode) {
+                JSONObject entry = readJsonTemplate("organization-to-individual-relationship.json");
+                setFullUrl(entry);
+                JSONObject resource = entry.getJSONObject("resource");
+
+                // Organization identifier
+                setIdentifier(resource.getJSONObject("organization"), orgInfo);
+
+                // Practitioner identifier (individual)
+                setIdentifier(resource.getJSONObject("practitioner"), individualInfo);
+
+                // Relationship code in extension
+                if (relationshipCode != null && !relationshipCode.isEmpty()) {
+                        JSONArray extensions = resource.getJSONArray("extension");
+                        JSONObject relationshipExt = findEntry(extensions, "url", RELATIONSHIP_TYPE_EXTENSION_URL);
+                        relationshipExt
+                                .getJSONObject("valueCodeableConcept")
+                                .getJSONArray("coding")
+                                .getJSONObject(0)
+                                .put("code", relationshipCode);
+                }
+
+                // Optional end reason code override
+                applyEndReasonCode(resource, endReasonCode);
+                
+                return entry;
+        }
+
+        /**
+         * Creates a practitioner relationship extension representing an individual-to-individual relationship.
+         * This extension is added to the Practitioner's extension array (not as a separate bundle entry).
+         * Overload without end reason code - uses template default (CHG).
+         * @param targetIdType identifier type for the target practitioner
+         * @param targetIdValue identifier value for the target practitioner
+         * @param relationshipCode relationship type code
+         * @return populated practitioner relationship extension JSON
+         */
+        public static JSONObject createIndividualIndividualRelationship(String targetIdType, String targetIdValue, String relationshipCode) {
+                return createIndividualIndividualRelationship(targetIdType, targetIdValue, relationshipCode, (EndReasonCode) null);
+        }
+
+        /**
+         * Creates a practitioner relationship extension representing an individual-to-individual relationship.
+         * This extension is added to the Practitioner's extension array (not as a separate bundle entry).
+         * Overload supporting an explicit end-reason code override (e.g. CEASE) that replaces the template default.
+         * @param targetIdType identifier type for the target practitioner
+         * @param targetIdValue identifier value for the target practitioner
+         * @param relationshipCode relationship type code
+         * @param endReasonCode optional end reason code (if null template value retained)
+         * @return populated practitioner relationship extension JSON
+         */
+        public static JSONObject createIndividualIndividualRelationship(String targetIdType, String targetIdValue, String relationshipCode, EndReasonCode endReasonCode) {
+                JSONObject extension = readJsonTemplate("individual-to-individual-relationship.json");
+
+                // Set target practitioner identifier
+                JSONArray extensionArray = extension.getJSONArray("extension");
+                JSONObject targetPractitionerExt = findEntry(extensionArray, "url", "targetPractitioner");
+                JSONObject identifier = targetPractitionerExt
+                        .getJSONObject("valueReference")
+                        .getJSONObject("identifier");
+                identifier.put("system", targetIdType);
+                identifier.put("value", targetIdValue);
+
+                // Set relationship type code
+                if (relationshipCode != null && !relationshipCode.isEmpty()) {
+                        JSONObject relationshipTypeExt = findEntry(extensionArray, "url", "relationshipType");
+                        relationshipTypeExt
+                                .getJSONObject("valueCodeableConcept")
+                                .getJSONArray("coding")
+                                .getJSONObject(0)
+                                .put("code", relationshipCode);
+                }
+
+                // Optional end reason code override
+                applyEndReasonCode(extension, endReasonCode);
+                
+                return extension;
         }
 
         /**

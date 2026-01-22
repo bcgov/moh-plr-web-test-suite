@@ -49,9 +49,8 @@ public class IndividualBuilderFactory {
             String[] names = dataGen.generateGivenNames();
             b.setNames(names[0], names[1], names[2]);
         }
-        if (config.isRoleTypeEnabled()) {
-            b.roleType(dataGen.randomRoleType());
-        }
+        // role type always present in config; no conditional needed
+        b.roleType(config.getRoleType());
 
         if (config.isAddressEnabled()) {
             String[] addr = dataGen.generateAddress();
