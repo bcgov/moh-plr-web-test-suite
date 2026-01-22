@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.data.organization;
 
+import java.util.List;
+
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 
@@ -49,6 +51,11 @@ public class OrganizationMaintainConfig {
     private int clinicHoursOfOperationCount; // number of hours entries
     private int clinicOwnerNamesCount;       // number of owner names
     private int payeeNumberCount;            // number of payee numbers
+    private int facilityRelationshipCount;   // number of facility relationships to generate (0 => omit)
+    private List<String> facilityRelationshipNames;  // explicit facility names for relationships (null => random generation)
+    private int organizationRelationshipCount; // number of organization relationships to generate (0 => omit)
+    private int individualRelationshipCount; // number of individual relationships to generate (0 => omit)
+
 
     /**
      * Initializes required attributes by inspecting {@link OrganizationAttribute} enum.
@@ -118,6 +125,15 @@ public class OrganizationMaintainConfig {
                     break;
                 case PAYEE_NUMBER:
                     this.payeeNumberCount = 1;
+                    break;
+                case FACILITY_RELATIONSHIPS:
+                    this.facilityRelationshipCount = 1; // required => at least one
+                    break;
+                case ORGANIZATION_RELATIONSHIPS:
+                    this.organizationRelationshipCount = 1; // required => at least one
+                    break;
+                case INDIVIDUAL_RELATIONSHIPS:
+                    this.individualRelationshipCount = 1; // required => at least one
                     break;
                 default: break; // others currently not required
             }
@@ -237,6 +253,27 @@ public class OrganizationMaintainConfig {
      * @return count of PAYEE_NUMBER entries */
     public int getPayeeNumberCount() { return payeeNumberCount; }
 
+    /** Gets the number of facility relationships configured.\n     * @return facility relationship count */
+    public int getFacilityRelationshipCount() { return facilityRelationshipCount; }
+
+    /** Gets the explicit facility relationship names (if any).\n     * @return list of facility names or null if not set */
+    public List<String> getFacilityRelationshipNames() { return facilityRelationshipNames; }
+
+    /** Checks if facility relationships are configured.\n     * @return true if facilityRelationshipCount > 0 */
+    public boolean hasFacilityRelationships() { return facilityRelationshipCount > 0; }
+
+    /** Gets the number of organization relationships configured.\n     * @return organization relationship count */
+    public int getOrganizationRelationshipCount() { return organizationRelationshipCount; }
+
+    /** Checks if organization relationships are configured.\n     * @return true if organizationRelationshipCount > 0 */
+    public boolean hasOrganizationRelationships() { return organizationRelationshipCount > 0; }
+
+    /** Gets the number of individual relationships configured.\n     * @return individual relationship count */
+    public int getIndividualRelationshipCount() { return individualRelationshipCount; }
+
+    /** Checks if individual relationships are configured.\n     * @return true if individualRelationshipCount > 0 */
+    public boolean hasIndividualRelationships() { return individualRelationshipCount > 0; }
+
     // Fluent enabling ----------------------------------------------------------------------------
     /** Enable identifier attribute. 
      * @return this config */
@@ -316,6 +353,54 @@ public class OrganizationMaintainConfig {
         if (count < minRequired) throw new IllegalArgumentException("payee number count must be >= " + minRequired);
         this.payeeNumberCount = count; return this;
     }
+
+    /** Enable facility relationships with specified count (random facilities).
+     * @param count number of facility relationships to create
+     * @return this config
+     * @throws IllegalArgumentException if count below required minimum */
+    public OrganizationMaintainConfig withFacilityRelationships(int count) {
+        int minRequired = OrganizationAttribute.FACILITY_RELATIONSHIPS.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("facility relationship count must be >= " + minRequired);
+        this.facilityRelationshipCount = count;
+        return this;
+    }
+
+    /** Enable facility relationships with explicit facility names.
+     * @param names list of facility names to create relationships with
+     * @return this config
+     * @throws IllegalArgumentException if provided list size is below required minimum */
+    public OrganizationMaintainConfig withFacilityRelationships(List<String> names) {
+        int count = names != null ? names.size() : 0;
+        int minRequired = OrganizationAttribute.FACILITY_RELATIONSHIPS.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("facility relationship count must be >= " + minRequired);
+        // TODO something involving validation of names (under maximum, etc.)
+        this.facilityRelationshipNames = names;
+        this.facilityRelationshipCount = count;
+        return this;
+    }
+
+    /** Enable organization relationships with specified count (random relationship codes).
+     * @param count number of organization relationships to create
+     * @return this config
+     * @throws IllegalArgumentException if count below required minimum */
+    public OrganizationMaintainConfig withOrganizationRelationships(int count) {
+        int minRequired = OrganizationAttribute.ORGANIZATION_RELATIONSHIPS.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("organization relationship count must be >= " + minRequired);
+        this.organizationRelationshipCount = count;
+        return this;
+    }
+
+    /** Enable individual relationships with specified count (random relationship codes).
+     * @param count number of organization relationships to create
+     * @return this config
+     * @throws IllegalArgumentException if count below required minimum */
+    public OrganizationMaintainConfig withIndividualRelationships(int count) {
+        int minRequired = OrganizationAttribute.INDIVIDUAL_RELATIONSHIPS.isRequired() ? 1 : 0;
+        if (count < minRequired) throw new IllegalArgumentException("organization relationship count must be >= " + minRequired);
+        this.individualRelationshipCount = count;
+        return this;
+    }
+
     /** Enable PCI_FLAG.
      * @return this config */
     public OrganizationMaintainConfig withPciFlag() { this.pciFlag = true; return this; }
@@ -396,8 +481,11 @@ public class OrganizationMaintainConfig {
      * @param hoursCount number of hours of operation entries
      * @param ownerNamesCount number of owner names
      * @param payeeCount number of payee numbers
+     * @param facilityRelationshipCount number of facility relationships
+     * @param organizationRelationshipCount number of organization relationships
+     * @param individualRelationshipCount number of individual relationships
      * @return this config */
-    public OrganizationMaintainConfig withAllAttributes(int noteCount, int statusCount, int addressUnitCount, int hoursCount, int ownerNamesCount, int payeeCount) {
+    public OrganizationMaintainConfig withAllAttributes(int noteCount, int statusCount, int addressUnitCount, int hoursCount, int ownerNamesCount, int payeeCount, int facilityRelationshipCount, int organizationRelationshipCount, int individualRelationshipCount) {
         withIdentifier(); 
         withName(); 
         withRoleType(roleType != null ? roleType : OrgRoleType.HDS); 
@@ -408,6 +496,9 @@ public class OrganizationMaintainConfig {
         withNotes(noteCount); 
         withStatuses(statusCount); 
         withAllOrgProperties(addressUnitCount, hoursCount, ownerNamesCount, payeeCount);
+        withFacilityRelationships(facilityRelationshipCount);
+        withOrganizationRelationships(organizationRelationshipCount);
+        withIndividualRelationships(individualRelationshipCount);
         return this; 
     }
 

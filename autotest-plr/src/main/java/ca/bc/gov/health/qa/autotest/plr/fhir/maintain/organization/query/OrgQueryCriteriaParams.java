@@ -47,7 +47,7 @@ public class OrgQueryCriteriaParams {
      * Gets the organization role type code.
      * @return role type code string or null if not set
      */
-    public String getRoleType() { return type.getRoleType(); }
+    public String getRoleType() { return type != null ? type.getRoleType() : null; }
     
     /**
      * Sets the organization role type filter for the query.

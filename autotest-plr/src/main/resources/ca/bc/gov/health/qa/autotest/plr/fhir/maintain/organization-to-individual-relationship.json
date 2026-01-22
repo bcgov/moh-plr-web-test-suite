@@ -1,0 +1,46 @@
+{
+    "fullUrl": "urn:uuid:0ae7755c-42cd-4583-83c6-8a4fd7a7d05c",
+    "resource": {
+        "resourceType": "PractitionerRole",
+        "id": "Example-PractitionerRole-2-OrgRef-FromPractitioner",
+        "meta": {
+            "profile": [
+                "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-role-relationships"
+            ]
+        },
+        "extension": [
+            {
+                "url": "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-relationship-type-extension",
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "https://terminology.hlth.gov.bc.ca/ProviderLocationRegistry/CodeSystem/bc-relationship-type-code-system",
+                            "code": "CHG"
+                        }
+                    ]
+                }
+            }
+        ],
+        "period": {
+            "start": "2020-01-01"
+        },
+        "practitioner": {
+            "identifier": {
+                "system": "",
+                "value": "",
+                "period": {
+                    "start": "2000-01-01"
+                }
+            }
+        },
+        "organization": {
+            "identifier": {
+                "system": "",
+                "value": "",
+                "period": {
+                    "start": "2000-01-01"
+                }
+            }
+        }
+    }
+}

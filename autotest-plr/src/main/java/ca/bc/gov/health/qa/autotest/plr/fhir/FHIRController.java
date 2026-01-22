@@ -17,12 +17,16 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataG
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PractitionerRelationshipCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.FacilityQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryResponseMapper;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryResponseMapper;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -146,6 +150,7 @@ public class FHIRController implements AutoCloseable {
         return facility.copyWithoutOrgRelationships();
     }
 
+    
     /**
      * Generates organization data with only required fields and submits a maintain request.
      *  @param roleType role type to assign to the organization
@@ -163,41 +168,173 @@ public class FHIRController implements AutoCloseable {
     public MaintainOrgBuilder createOrganization(OrganizationMaintainConfig config) {
         MaintainOrgBuilder builder = organizationFactory.build(config);
 
+        int facilityRelCount = config.getFacilityRelationshipCount();
+
+        // If facilityRelationshipCount > 0 create that many facilities first and attach relationships
+        for (int i = 0; i < facilityRelCount; i++) {
+            //Create a facility and save the identifier
+            MaintainFacilityBuilder facility = createFacility();
+            String facilityIFCId = facility.getIdentifier();
+            String facilityName = facility.getName();
+            builder.addFacilityRelationship(IdentifierType.IFC, facilityIFCId, facilityName);
+        }
+
+        if (config.getFacilityRelationshipNames() != null) {
+            for (String name : config.getFacilityRelationshipNames())
+            {
+                FacilityMaintainConfig facilityConfig = new FacilityMaintainConfig().withName(name);
+                MaintainFacilityBuilder facility = createFacility(facilityConfig);
+                String facilityIFCId = facility.getIdentifier();
+                String facilityName = facility.getName();
+                builder.addFacilityRelationship(IdentifierType.IFC, facilityIFCId, facilityName);
+
+                facilityRelCount++;
+            }
+        }
+
+        int orgRelCount = config.getOrganizationRelationshipCount();
+        
+        // If organizationRelationshipCount > 0 create that many organizations first and attach relationships
+        for (int i = 0; i < orgRelCount; i++) {
+            //Create a related organization and save the identifier
+            OrgRoleType roleType = OrganizationDataGenerator.getInstance().randomOrgRoleType();
+            MaintainOrgBuilder relatedOrg = createOrganization(roleType);
+            String relatedOrgId = relatedOrg.getIdentifier(IdentifierType.IPC);
+            PractitionerRelationshipCode relationshipCode = OrganizationDataGenerator.getInstance().generatePractitionerRelationshipCode();
+            builder.addOrganizationRelationship(IdentifierType.IPC, relatedOrgId, relationshipCode);
+        }
+
+        int individualRelCount = config.getIndividualRelationshipCount();
+        
+        // If individualRelationshipCount > 0 create that many individuals first and attach relationships
+        for (int i = 0; i < individualRelCount; i++) {
+            //Create a related individual and save the identifier
+            MaintainIndividualBuilder relatedIndividual = createIndividual(IndividualDataGenerator.getInstance().randomRoleType(false));
+            String relatedIndividualId = relatedIndividual.getIdentifier(IdentifierType.IPC);
+            PractitionerRelationshipCode relationshipCode = OrganizationDataGenerator.getInstance().generatePractitionerRelationshipCode();
+            builder.addIndividualRelationship(IdentifierType.IPC, relatedIndividualId, relationshipCode);
+        }
+
+
         String id = executor.submitMaintain(builder);
-        LOG.info("Created organization (id={})", id);
+        String logMsg = "";
+        if (facilityRelCount > 0 || orgRelCount > 0 || individualRelCount > 0) {
+            logMsg = " with";
+            if (facilityRelCount > 0) logMsg += " " + facilityRelCount + " facility relationship(s)";
+            if (orgRelCount > 0) logMsg += (facilityRelCount > 0 ? " and" : "") + " " + orgRelCount + " organization relationship(s)";
+            if (individualRelCount > 0) logMsg += ((facilityRelCount > 0 || orgRelCount > 0) ? " and" : "") + " " + individualRelCount + " individual relationship(s)";
+        }
+        LOG.info("Created organization (id={}){}", id, logMsg);
 
         //Set the actual id created by the service (should be an IPC identifier)
         builder.addIdentifier(IdentifierType.IPC, id);
         return builder;
     }
 
-    /*TODO public MaintainOrgBuilder ceaseOrganizationRelationships(MaintainOrgBuilder org){
-        //org.ceaseOrganizationRelationships();
-        String id = executor.submitMaintain(org);
-        LOG.info("Ceased organization relationships (organizationId={}).", id);
+    /**
+     * Submits a pre-configured organization builder directly without generating new data.
+     * Useful when developers want full control over the builder data.
+     * @param builder pre-configured organization builder to submit
+     * @return the submitted builder with updated identifier
+     */
+    public MaintainOrgBuilder submitOrganization(MaintainOrgBuilder builder) {
+        String id = executor.submitMaintain(builder);
+        LOG.info("Submitted organization (id={})", id);
+        builder.addIdentifier(IdentifierType.IPC, id);
+        return builder;
+    }
 
+    /**
+     * Ceases all organization relationships currently configured on the provided organization builder.
+     * @param organization existing organization builder whose relationships should be ceased
+     * @return same builder instance (for fluent chaining)
+     */
+    public MaintainOrgBuilder ceaseOrganizationRelationships(MaintainOrgBuilder organization) {
+        organization.ceaseRelationships();
+        String id = executor.submitMaintain(organization);
+        LOG.info("Ceased all relationships for organization (organizationId={}).", id);
+        
         // Return a copy without organization relationships to reflect post‑cease state.
-        //return org.copyWithoutOrgRelationships();
-        return org;
-    }*/
+        return organization.copyWithoutRelationships();
+    }
+
+    /**
+     * Creates an individual with a specific role type and default configuration.
+     * @param roleType individual role type
+     * @return created individual values as a MaintainIndividualBuilder
+     */
+    public MaintainIndividualBuilder createIndividual(IndividualRoleType roleType) {
+        return createIndividual(new IndividualMaintainConfig(roleType));
+    }
 
     /**
      * Generates individual provider data with customizable fields and submits a maintain request.
      *  @param config configuration of the individual to create
-     * @return created organization values as a MaintainIndividualBuilder
+     * @return created individual values as a MaintainIndividualBuilder
      */
     public MaintainIndividualBuilder createIndividual(IndividualMaintainConfig config) {
         MaintainIndividualBuilder builder = individualFactory.build(config);
 
+        int orgRelCount = config.getOrganizationRelationshipCount();
+        
+        // If organizationRelationshipCount > 0 create that many organizations first and attach relationships
+        for (int i = 0; i < orgRelCount; i++) {
+            //Create a related organization and save the identifier
+            OrgRoleType roleType = OrganizationDataGenerator.getInstance().randomOrgRoleType();
+            MaintainOrgBuilder relatedOrg = createOrganization(roleType);
+            String relatedOrgId = relatedOrg.getIdentifier(IdentifierType.IPC);
+            PractitionerRelationshipCode relationshipCode = IndividualDataGenerator.getInstance().generatePractitionerRelationshipCode();
+            builder.addOrganizationRelationship(IdentifierType.IPC, relatedOrgId, relationshipCode);
+        }
+
+        int individualRelCount = config.getIndividualRelationshipCount();
+        
+        // If individualRelationshipCount > 0 create that many individuals first and attach relationships
+        for (int i = 0; i < individualRelCount; i++) {
+            //Create a related individual and save the identifier
+            MaintainIndividualBuilder relatedIndividual = createIndividual(IndividualDataGenerator.getInstance().randomRoleType(false));
+            String relatedIndividualId = relatedIndividual.getIdentifier(IdentifierType.IPC);
+            PractitionerRelationshipCode relationshipCode = IndividualDataGenerator.getInstance().generatePractitionerRelationshipCode();
+            builder.addIndividualRelationship(IdentifierType.IPC, relatedIndividualId, relationshipCode);
+        }
+
         String id = executor.submitMaintain(builder);
-        LOG.info("Created Individual (id={})", id);
+        String logMsg = "";
+        if (orgRelCount > 0 || individualRelCount > 0) {
+            logMsg = " with";
+            if (orgRelCount > 0) logMsg += " " + orgRelCount + " organization relationship(s)";
+            if (individualRelCount > 0) logMsg += (orgRelCount > 0 ? " and" : "") + " " + individualRelCount + " individual relationship(s)";
+        }
+        LOG.info("Created Individual (id={}){}", id, logMsg);
 
         return builder;
     }
 
-    //TODO: createPractitioner(PracType OOP-Individual|Individual, IndividualMaintainConfig config)
+    /**
+     * Submits a pre-configured individual builder directly without generating new data.
+     * Useful when developers want full control over the builder data.
+     * @param builder pre-configured individual builder to submit
+     * @return the submitted builder with updated identifier
+     */
+    public MaintainIndividualBuilder submitIndividual(MaintainIndividualBuilder builder) {
+        String id = executor.submitMaintain(builder);
+        LOG.info("Submitted individual (id={})", id);
+        return builder;
+    }
 
-    //TODO: ceasePractitioner(IdentifierType identifier)
+    /**
+     * Ceases all relationships for a practitioner by setting the end reason code to CEASE and afterwards, sending a maintain request.
+     * @param practitioner the practitioner builder with relationships to cease
+     * @return updated practitioner builder with relationships marked for cessation
+     */
+    public MaintainIndividualBuilder ceasePractitionerRelationships(MaintainIndividualBuilder practitioner) {
+        practitioner.ceaseRelationships();
+
+        String id = executor.submitMaintain(practitioner);
+        LOG.info("Ceased all relationships for individual (individualId={}).", id);
+        // Return a copy without organization relationships to reflect post‑cease state.
+        return practitioner.copyWithoutRelationships();
+    }
 
     /**
      * Queries FHIR for a facility by identifier type and value.
@@ -245,8 +382,46 @@ public class FHIRController implements AutoCloseable {
 
         
 
-        LOG.info("Organization criteria query (DTO) result={}", response);
+        LOG.info("Organization criteria query result={}", response);
         return OrgQueryResponseMapper.fromQueryBundleAll(response);
+    }
+
+    /**
+     * Queries FHIR for an individual by identifier type and value.
+     *
+     * @param idType the identifier system/type to search by
+     * @param idValue the identifier value to match
+     * @return a builder populated from the FHIR response
+     */
+    public MaintainIndividualBuilder queryIndividualByIdentifier(IdentifierType idType, String idValue) {
+
+        JSONObject response = executor.queryByIdentifier(PlrFhirResourceType.INDIVIDUAL, idType, idValue);
+        LOG.info("Individual identifier query result={}", response);
+
+        return IndividualQueryResponseMapper.fromQueryBundle(response);
+    }
+
+    /**
+     * Queries FHIR for individuals (practitioners) by optional criteria using a DTO.
+     * @param criteria criteria container; only provided values are sent
+     * @return a list of individual builders populated from the FHIR response that match the criteria
+     */
+    public List<MaintainIndividualBuilder> queryIndividualByCriteria(IndividualQueryCriteriaParams criteria) {
+
+        JSONObject response = executor.queryIndividualByCriteria(
+                                                                   criteria.getRoleType(),
+                                                                   criteria.getAddressCity(),
+                                                                   criteria.getFamily(),
+                                                                   criteria.getExpertise(),
+                                                                   criteria.getCommunication(),
+                                                                   criteria.getGiven(),
+                                                                   criteria.getStatusReason(),
+                                                                   criteria.getStatus(),
+                                                                   criteria.getGender(),
+                                                                   criteria.isWithHistory());
+
+        LOG.info("Individual criteria query result={}", response);
+        return IndividualQueryResponseMapper.fromQueryBundleAll(response);
     }
 
     @Override
