@@ -124,7 +124,7 @@ public class ViewProviderTests implements SimpleTest
         ViewHeaderFragment viewHeader = page.getViewHeader();
         assertEquals(viewHeader.grabViewMode(), ViewMode.CURRENT, "Default view mode not current");
 
-        actions.compareRecords(identifier, fhirController);
+        actions.compareRecords(providerType, identifier, fhirController);
     }
 
     /** View Provider : Indicating Current Data Objects */

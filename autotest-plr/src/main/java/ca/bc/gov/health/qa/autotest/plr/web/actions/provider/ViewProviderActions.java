@@ -416,10 +416,11 @@ public class ViewProviderActions
     /**
      * Compares the data block records between the webapp and FHIR endpoint response.
      *
+     * @param providerType  the provider type of the provider to compare
      * @param identifier    the identifier (IPC) of the provider to compare
      * @param fhir          a FHIRController reference
      */
-    public void compareRecords(String identifier, FHIRController fhir) {
+    public void compareRecords(ProviderType providerType, String identifier, FHIRController fhir) {
         ViewProviderPage viewProvider = waitForViewProviderPage();
         MaintainOrgBuilder fhirProvider = fhir.queryOrganizationByIdentifier(IdentifierType.IPC, identifier);
 
