@@ -44,8 +44,9 @@ public class ViewProviderTests implements SimpleTest
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
-    private MaintainOrgBuilder defaultOrganization;
-    private MaintainOrgBuilder minimumOrganization;
+    private FHIRController fhirController;
+    private MaintainOrgBuilder defaultOrg;
+    private MaintainOrgBuilder minimumOrg;
 
     public ViewProviderTests()
     {}
@@ -71,37 +72,37 @@ public class ViewProviderTests implements SimpleTest
     private void beforeTest()
     {
         final IdentifierType ipc = IdentifierType.IPC;
-        final String defaultOrganizationName = "TestDefaultOrganization";
-        final String minimumOrganizationName = "MinimumDataOrganization";
+        final String defaultOrgName = "TestDefaultOrganization";
+        final String minimumOrgName = "MinimumDataOrganization";
 
         final OrganizationMaintainConfig defaultConfig = new OrganizationMaintainConfig(OrgRoleType.BUSINESS)
-                .withName(defaultOrganizationName)
+                .withName(defaultOrgName)
                 .withAddress().withAllTelecom().withNotes(2).withStatuses(2)
                 .withAllOrgProperties(2,2,2,2);
 
-        FHIRController fhir = new FHIRController(UserType.ADMIN);
+        fhirController = new FHIRController(UserType.ADMIN);
 
-        List<MaintainOrgBuilder> defaultOrgQuery = fhir.queryOrganizationByCriteria(
-                new OrgQueryCriteriaParams().setName(defaultOrganizationName).setRoleType(OrgRoleType.BUSINESS));
+        List<MaintainOrgBuilder> defaultOrgQuery = fhirController.queryOrganizationByCriteria(
+                new OrgQueryCriteriaParams().setName(defaultOrgName).setRoleType(OrgRoleType.BUSINESS));
 
         if (defaultOrgQuery.isEmpty())
         {
-            defaultOrganization = fhir.createOrganization(defaultConfig);
-            defaultOrganization = fhir.queryOrganizationByIdentifier(ipc, defaultOrganization.getIdentifier(ipc));
+            defaultOrg = fhirController.createOrganization(defaultConfig);
+            defaultOrg = fhirController.queryOrganizationByIdentifier(ipc, defaultOrg.getIdentifier(ipc));
             // TODO: change and correct some records so history/audit views are covered
             // TODO: add work location, provider relationship, and facility relationships when possible
-        } else defaultOrganization = defaultOrgQuery.getFirst();
+        } else defaultOrg = defaultOrgQuery.getFirst();
 
-        List<MaintainOrgBuilder> minimumOrgQuery = fhir.queryOrganizationByCriteria(
-                new OrgQueryCriteriaParams().setName(minimumOrganizationName).setRoleType(OrgRoleType.ORG));
+        List<MaintainOrgBuilder> minimumOrgQuery = fhirController.queryOrganizationByCriteria(
+                new OrgQueryCriteriaParams().setName(minimumOrgName).setRoleType(OrgRoleType.ORG));
 
         if (minimumOrgQuery.isEmpty())
         {
-            minimumOrganization = fhir.createOrganization(
-                    new OrganizationMaintainConfig(OrgRoleType.ORG).withName(minimumOrganizationName));
-            minimumOrganization = fhir.queryOrganizationByIdentifier(ipc, minimumOrganization.getIdentifier(ipc));
+            minimumOrg = fhirController.createOrganization(
+                    new OrganizationMaintainConfig(OrgRoleType.ORG).withName(minimumOrgName));
+            minimumOrg = fhirController.queryOrganizationByIdentifier(ipc, minimumOrg.getIdentifier(ipc));
         }
-        else minimumOrganization = minimumOrgQuery.getFirst();
+        else minimumOrg = minimumOrgQuery.getFirst();
     }
 
     /** View Provider : Default Provider Detail Screen Record Display */
@@ -111,18 +112,19 @@ public class ViewProviderTests implements SimpleTest
         // Providers must have: current records and inactive records
         final String identifier;
         if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrganization.getIdentifier(IdentifierType.IPC);
+            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
         else
             identifier = PlrData.getProvider(providerType, "default").getString("ipc");
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
+        ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();
 
         // Step 2: Verify Default Provider Detail Screen Record Display
         ViewHeaderFragment viewHeader = page.getViewHeader();
         assertEquals(viewHeader.grabViewMode(), ViewMode.CURRENT, "Default view mode not current");
 
-        // TODO: ensure **all** current records are visible - note them in FHIR query and cross-reference what is visible
+        actions.compareRecords(identifier, fhirController);
     }
 
     /** View Provider : Indicating Current Data Objects */
@@ -131,7 +133,7 @@ public class ViewProviderTests implements SimpleTest
     {
         final String identifier;
         if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrganization.getIdentifier(IdentifierType.IPC);
+            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
         else
             identifier = PlrData.getProvider(providerType, "default").getString("ipc");
 
@@ -149,7 +151,7 @@ public class ViewProviderTests implements SimpleTest
     {
         final String identifier;
         if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrganization.getIdentifier(IdentifierType.IPC);
+            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
         else
             identifier = PlrData.getProvider(providerType, "default").getString("ipc");
 
@@ -184,7 +186,7 @@ public class ViewProviderTests implements SimpleTest
     {
         final String identifier;
         if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrganization.getIdentifier(IdentifierType.IPC);
+            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
         else
             identifier = PlrData.getProvider(providerType, "default").getString("ipc");
 
@@ -216,7 +218,7 @@ public class ViewProviderTests implements SimpleTest
     {
         final String identifier;
         if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrganization.getIdentifier(IdentifierType.IPC);
+            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
         else
             identifier = PlrData.getProvider(providerType, "default").getString("ipc");
 
@@ -256,7 +258,7 @@ public class ViewProviderTests implements SimpleTest
          */
         final String identifier;
         if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = minimumOrganization.getIdentifier(IdentifierType.IPC);
+            identifier = minimumOrg.getIdentifier(IdentifierType.IPC);
         else identifier = PlrData.getProvider(providerType, "minimum").getString("ipc");
 
         // Step 1: Navigate to the View Providers Details Screen by submitting a search
@@ -275,7 +277,7 @@ public class ViewProviderTests implements SimpleTest
         JSONObject provider = PlrData.getProvider(providerType, "default");
         final String identifier;
         if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrganization.getIdentifier(IdentifierType.IPC);
+            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
         else
             identifier = PlrData.getProvider(providerType, "default").getString("ipc");
 
@@ -287,7 +289,7 @@ public class ViewProviderTests implements SimpleTest
         ViewHeaderFragment viewHeader = page.getViewHeader();
         String webAppTitle;
         if (providerType == ProviderType.ORGANIZATION) {
-            webAppTitle = actions.getViewTitle(defaultOrganization);
+            webAppTitle = actions.getViewTitle(defaultOrg);
         } else {
             webAppTitle = actions.getViewTitle(providerType, provider);
         }

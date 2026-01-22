@@ -10,8 +10,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrganizationProperties;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import org.apache.logging.log4j.Logger;
 
@@ -36,6 +38,7 @@ public class ViewProviderActions
 
     private static final Pattern VALUE_CODE_PATTERN =
             Pattern.compile("^.*\\((?<code>[^()]+)\\)\\s*$");
+    private static final Pattern DATA_KEY_PARENS_PATTERN = Pattern.compile("\\((.*)\\)");
 
     private final SeleniumSession selenium_;
     private final URI             uri_;
@@ -408,6 +411,166 @@ public class ViewProviderActions
         return header.grabPrintButtonDisplayed() &&
                 header.grabViewModeButtonDisplayed() &&
                 header.grabExpandAllDisplayed();
+    }
+
+    /**
+     * Compares the data block records between the webapp and FHIR endpoint response.
+     *
+     * @param identifier    the identifier (IPC) of the provider to compare
+     * @param fhir          a FHIRController reference
+     */
+    public void compareRecords(String identifier, FHIRController fhir) {
+        ViewProviderPage viewProvider = waitForViewProviderPage();
+        MaintainOrgBuilder fhirProvider = fhir.queryOrganizationByIdentifier(IdentifierType.IPC, identifier);
+
+        // Identifiers
+        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++) {
+            IdentifierType idType;
+            Map<String, String> idMap = viewProvider.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
+            idType = switch (idMap.get("Type")) {
+                case "Common Party Number (CPN)" -> IdentifierType.CPN;
+                case "Internal Provider Code (IPC)" -> IdentifierType.IPC;
+                case "Organization (ORGID)" -> IdentifierType.ORGID;
+                default -> {
+                    String msg = String.format("Unexpected Identifier type in Webpage (%s)", idMap.get("Type"));
+                    throw new IllegalStateException(msg);
+                }
+            };
+            assertEquals(idMap.get("Identifier"), fhirProvider.getIdentifier(idType),
+                    "Identifier in webapp does not match FHIR response");
+            assertEquals(idMap.get("Data Owner Code"), fhirProvider.getIdentifierOwners().get(idType),
+                    "Identifier owner in webapp does not match FHIR response");
+        }
+
+        // Role Type
+        String roleType = viewProvider.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0)
+                .get("Role Type").split(" ")[0];
+        assertEquals(roleType, fhirProvider.getRoleType().getRoleType(),
+                "Role Type in webapp does not match FHIR response");
+
+        // Statuses
+        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.STATUSES); i++) {
+            Map<String, String> webStatusMap = viewProvider.grabDataBlockContent(ProviderSection.STATUSES, i);
+            Map<String, String> fhirStatusMap = fhirProvider.getStatusList().get(i);
+
+            List<String> statusFields = new ArrayList<>();
+
+            for (String statusField : List.of("Type", "Class", "Reason")) {
+                Matcher statusMatcher = DATA_KEY_PARENS_PATTERN.matcher(webStatusMap.get(statusField));
+                if (statusMatcher.find()) statusFields.add(statusMatcher.group(1));
+                else statusFields.add(null);
+            }
+
+            assertEquals(fhirStatusMap.get("status"), statusFields.get(0),
+                    "Status Type in webapp does not match FHIR response");
+            assertEquals(fhirStatusMap.get("statusClass"), statusFields.get(1),
+                    "Status Class in webapp does not match FHIR response");
+            assertEquals(fhirStatusMap.get("statusReason"), statusFields.get(2),
+                    "Status Reason in webapp does not match FHIR response");
+        }
+
+        // Name
+        String name = viewProvider.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0).get("Name");
+        assertEquals(name, fhirProvider.getName(), "Name in webapp does not match FHIR response");
+
+        // Addresses
+        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.ADDRESSES); i++) {
+            Map<String, String> webAddressMap = viewProvider.grabDataBlockContent(ProviderSection.ADDRESSES, i);
+            Map<String, String> fhirAddressMap = fhirProvider.getAddressList().get(i);
+
+            List<String> addressFields = new ArrayList<>();
+
+            for (String addressField : List.of("Address Type", "Address Purpose")) {
+                Matcher addressMatcher = DATA_KEY_PARENS_PATTERN.matcher(webAddressMap.get(addressField));
+                if (addressMatcher.find()) addressFields.add(addressMatcher.group(1));
+                else addressFields.add(null);
+            }
+
+            assertEquals("" + fhirAddressMap.get("type").toUpperCase().charAt(0), addressFields.get(0),
+                    "Address Type in webapp does not match FHIR response");
+            assertEquals(fhirAddressMap.get("purpose"), addressFields.get(1),
+                    "Address Purpose in webapp does not match FHIR response");
+            assertEquals(fhirAddressMap.get("line1"), webAddressMap.get("Address Line 1"),
+                    "Address Line 1 in webapp does not match FHIR response");
+            assertEquals(fhirAddressMap.get("city"), webAddressMap.get("City"),
+                    "City in webapp does not match FHIR response");
+            assertEquals(fhirAddressMap.get("postalCode"), webAddressMap.get("Postal/Zip Code"),
+                    "Postal Code in webapp does not match FHIR response");
+        }
+
+        // Telecommunications
+        final Map<String, String> telecomType = Map.of(
+                "fax", "FAX",
+                "other", "M",
+                "sms", "MB",
+                "pager", "PG",
+                "phone", "T");
+        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.TELECOMMUNICATIONS); i++) {
+            Map<String, String> webTelecomMap = viewProvider.grabDataBlockContent(ProviderSection.TELECOMMUNICATIONS, i);
+            Map<String, String> fhirTelecomMap = fhirProvider.getTelecomList().get(i);
+
+            List<String> telecomFields = new ArrayList<>();
+
+            for (String telecomField : List.of("Type", "Purpose")) {
+                Matcher telecomMatcher = DATA_KEY_PARENS_PATTERN.matcher(webTelecomMap.get(telecomField));
+                if (telecomMatcher.find()) telecomFields.add(telecomMatcher.group(1));
+                else telecomFields.add(null);
+            }
+
+            assertEquals(telecomType.get(fhirTelecomMap.get("type")), telecomFields.get(0),
+                    "Telecom Type in webapp does not match FHIR response");
+            assertEquals(fhirTelecomMap.get("purpose"), telecomFields.get(1),
+                    "Telecom Purpose in webapp does not match FHIR response");
+            assertEquals(fhirTelecomMap.get("value"),
+                    webTelecomMap.get("Area Code") + webTelecomMap.get("Number") + webTelecomMap.get("Extension"),
+                    "Number in webapp does not match FHIR response");
+        }
+
+        // Notes
+        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.NOTES); i++)
+        {
+            String webNote = viewProvider.grabDataBlockContent(ProviderSection.NOTES, i).get("Note Text");
+            String fhirNote = fhirProvider.getNoteList().get(i).get("text");
+
+            assertEquals(webNote, fhirNote, "Note Text in webapp does not match FHIR response");
+        }
+
+        // Organization Properties
+        OrganizationProperties fhirOrgProp = fhirProvider.getOrganizationProperties();
+        List<List<String>> orgPropLists = List.of(
+                new ArrayList<>(fhirOrgProp.getClinicHoursOfOperation()),
+                new ArrayList<>(fhirOrgProp.getAddressUnit()),
+                new ArrayList<>(fhirOrgProp.getClinicOwnerNames()),
+                new ArrayList<>(fhirOrgProp.getPayeeNumber()));
+
+        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.ORGANIZATION_PROPERTIES); i++)
+        {
+            Map<String,String> webPropMap = viewProvider.grabDataBlockContent(ProviderSection.ORGANIZATION_PROPERTIES, i);
+
+            String propType = webPropMap.get("Property Type");
+            Matcher propMatcher = DATA_KEY_PARENS_PATTERN.matcher(propType);
+            if (propMatcher.find()) propType = propMatcher.group(1);
+
+            String fhirValue = switch (propType)
+            {
+                case "PCI_FLAG" -> fhirOrgProp.getPciFlag().toString();
+                case "CLINIC_TYPE" -> fhirOrgProp.getClinicType().getText();
+                case "CLINIC_SERVICES" -> fhirOrgProp.getClinicServices().getText();
+                case "CLINIC_OWNER_BUSINESS_TYPE" -> fhirOrgProp.getClinicOwnerBusinessType().getText();
+                case "CLINIC_LEGAL_BUSINESS_NAME" -> fhirOrgProp.getClinicLegalBusinessName();
+                case "CLINIC_HOURS_OF_OPERATION" -> orgPropLists.get(0).removeFirst();
+                case "ADDRESS_UNIT" -> orgPropLists.get(1).removeFirst();
+                case "CLINIC_OWNER_NAMES" -> orgPropLists.get(2).removeFirst();
+                case "PAYEE_NUMBER" -> orgPropLists.get(3).removeFirst();
+                default -> {
+                    String msg = String.format("Unexpected property type (%s)", propType);
+                    throw new IllegalStateException(msg);
+                }
+            };
+
+            assertEquals(fhirValue, webPropMap.get("Property Value"),
+                    "Organization Property Value does not match FHIR response");
+        }
     }
 
     private static List<String> extractDataValueList(
