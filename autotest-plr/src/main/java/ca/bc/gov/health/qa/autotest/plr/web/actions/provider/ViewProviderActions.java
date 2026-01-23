@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
@@ -450,42 +451,59 @@ public class ViewProviderActions
      * Compares the data block records between the webapp and FHIR endpoint response.
      *
      * @param providerType  the provider type of the provider to compare
-     * @param identifier    the identifier (IPC) of the provider to compare
-     * @param fhir          a FHIRController reference
      */
-    public void compareRecords(ProviderType providerType, String identifier, FHIRController fhir) {
+    public void compareRecords(ProviderType providerType, MaintainRequestBuilder provider) {
         ViewProviderPage viewProvider = waitForViewProviderPage();
-        MaintainOrgBuilder fhirProvider = fhir.queryOrganizationByIdentifier(IdentifierType.IPC, identifier);
+
+        MaintainOrgBuilder orgProvider = null;
+        MaintainIndividualBuilder indivProvider = null;
+        switch (providerType)
+        {
+            case ORGANIZATION -> orgProvider = (MaintainOrgBuilder) provider;
+            case BC_PRACTITIONER, OOP_PRACTITIONER -> indivProvider = (MaintainIndividualBuilder) provider;
+        }
+        boolean isOrganization = !Objects.isNull(orgProvider);
 
         // Identifiers
-        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++) {
-            IdentifierType idType;
-            Map<String, String> idMap = viewProvider.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
-            idType = switch (idMap.get("Type")) {
-                case "Common Party Number (CPN)" -> IdentifierType.CPN;
-                case "Internal Provider Code (IPC)" -> IdentifierType.IPC;
-                case "Organization (ORGID)" -> IdentifierType.ORGID;
-                default -> {
-                    String msg = String.format("Unexpected Identifier type in Webpage (%s)", idMap.get("Type"));
-                    throw new IllegalStateException(msg);
-                }
-            };
-            assertEquals(idMap.get("Identifier"), fhirProvider.getIdentifier(idType),
-                    "Identifier in webapp does not match FHIR response");
-            assertEquals(idMap.get("Data Owner Code"), fhirProvider.getIdentifierOwners().get(idType),
-                    "Identifier owner in webapp does not match FHIR response");
+        // TODO: skipped on practitioner side due to two IPC codes existing - revisit this
+        if (isOrganization) {
+            for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++) {
+                IdentifierType idType;
+                Map<String, String> idMap = viewProvider.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
+                idType = switch (idMap.get("Type")) {
+                    case "Common Party Number (CPN)" -> IdentifierType.CPN;
+                    case "Internal Provider Code (IPC)" -> IdentifierType.IPC;
+                    case "Organization (ORGID)" -> IdentifierType.ORGID;
+                    default -> {
+                        String msg = String.format("Unexpected Identifier type in Webpage (%s)", idMap.get("Type"));
+                        throw new IllegalStateException(msg);
+                    }
+                };
+
+                final String expectedIdentifier = isOrganization ?
+                        orgProvider.getIdentifier(idType) : indivProvider.getIdentifier(idType);
+                final String expectedOwner = isOrganization ?
+                        orgProvider.getIdentifierOwners().get(idType) : indivProvider.getIdentifierOwners().get(idType);
+
+                assertEquals(idMap.get("Identifier"), expectedIdentifier,
+                        "Identifier in webapp does not match FHIR response");
+                assertEquals(idMap.get("Data Owner Code"), expectedOwner,
+                        "Identifier owner in webapp does not match FHIR response");
+            }
         }
 
         // Role Type
         String roleType = viewProvider.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0)
                 .get("Role Type").split(" ")[0];
-        assertEquals(roleType, fhirProvider.getRoleType().getRoleType(),
-                "Role Type in webapp does not match FHIR response");
+        final String expectedRoleType = isOrganization ?
+                orgProvider.getRoleType().getRoleType() : indivProvider.getRoleType().getRoleType();
+        assertEquals(roleType, expectedRoleType, "Role Type in webapp does not match FHIR response");
 
         // Statuses
         for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.STATUSES); i++) {
             Map<String, String> webStatusMap = viewProvider.grabDataBlockContent(ProviderSection.STATUSES, i);
-            Map<String, String> fhirStatusMap = fhirProvider.getStatusList().get(i);
+            Map<String, String> fhirStatusMap = isOrganization ?
+                    orgProvider.getStatusList().get(i) : indivProvider.getStatusList().get(i);
 
             List<String> statusFields = new ArrayList<>();
 
@@ -503,14 +521,85 @@ public class ViewProviderActions
                     "Status Reason in webapp does not match FHIR response");
         }
 
-        // Name
-        String name = viewProvider.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0).get("Name");
-        assertEquals(name, fhirProvider.getName(), "Name in webapp does not match FHIR response");
+        // Expertise
+        if (!isOrganization)
+        {
+            for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.EXPERTISE); i++) {
+                Map<String,String> webExpertiseMap = viewProvider.grabDataBlockContent(ProviderSection.EXPERTISE, i);
+                Map<String,String> fhirExpertiseMap = indivProvider.getExpertiseList().get(i);
+
+                String expertiseType;
+                Matcher expertiseMatcher = DATA_KEY_PARENS_PATTERN.matcher(webExpertiseMap.get("Type"));
+                if (expertiseMatcher.find()) expertiseType = expertiseMatcher.group(1);
+                else expertiseType = null;
+
+                assertEquals(fhirExpertiseMap.get("code"), expertiseType,
+                        "Expertise Type in webapp does not match FHIR response");
+                assertEquals(fhirExpertiseMap.get("sourceCode"), webExpertiseMap.get("Source's Code"),
+                        "Expertise Source Code in webapp does not match FHIR response");
+            }
+        }
+
+        // Credentials
+        if (!isOrganization)
+        {
+            for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.CREDENTIALS); i++) {
+                Map<String,String> webCredentialMap = viewProvider.grabDataBlockContent(ProviderSection.CREDENTIALS, i);
+                Map<String,String> fhirCredentialMap = indivProvider.getCredentialList().get(i);
+
+                String credentialType;
+                Matcher credentialMatcher = DATA_KEY_PARENS_PATTERN.matcher(webCredentialMap.get("Credential Type"));
+                if (credentialMatcher.find()) credentialType = credentialMatcher.group(1);
+                else credentialType = null;
+
+                final String webEquivalency = switch (webCredentialMap.get("Equivalency Flag")) {
+                    case "Yes" -> "true";
+                    case "No" -> "false";
+                    default -> null;
+                };
+
+                assertEquals(fhirCredentialMap.get("type"), credentialType,
+                        "Credential Type in webapp does not match FHIR response");
+                assertEquals(fhirCredentialMap.get("designation"), webCredentialMap.get("Designation"),
+                        "Credential Designation in webapp does not match FHIR response");
+                assertEquals(fhirCredentialMap.get("registrationNumber"), webCredentialMap.get("Registration Number"),
+                        "Credential Registration Number in webapp does not match FHIR response");
+                assertEquals(fhirCredentialMap.get("institution"), webCredentialMap.get("Granting Institution"),
+                        "Credential Granting Institution in webapp does not match FHIR response");
+                assertEquals(fhirCredentialMap.get("city"), webCredentialMap.get("Institution City"),
+                        "Credential Institution City in webapp does not match FHIR response");
+                assertEquals(fhirCredentialMap.get("year"), webCredentialMap.get("Year Issued"),
+                        "Credential Year Issued in webapp does not match FHIR response");
+                assertEquals(fhirCredentialMap.get("equivalency"), webEquivalency,
+                        "Credential Equivalency Flag in webapp does not match FHIR response");
+            }
+        }
+
+        // Organization/Practitioner Name
+        if (isOrganization)
+        {
+            String name = viewProvider.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0).get("Name");
+            assertEquals(name, orgProvider.getName(), "Name in webapp does not match FHIR response");
+        }
+        else
+        {
+            String surname = viewProvider.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0).get("Surname");
+            List<String> webNames = List.of(
+                    viewProvider.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0).get("First Name"),
+                    viewProvider.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0).get("Second Name"),
+                    viewProvider.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0).get("Third Name")
+            );
+            assertEquals(webNames, Arrays.asList(indivProvider.getNames()),
+                    "First/Middle/Third Names in webapp do not match FHIR response");
+            assertEquals(surname, indivProvider.getFamilyName(),
+                    "Surname in webapp does not match FHIR response");
+        }
 
         // Addresses
         for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.ADDRESSES); i++) {
             Map<String, String> webAddressMap = viewProvider.grabDataBlockContent(ProviderSection.ADDRESSES, i);
-            Map<String, String> fhirAddressMap = fhirProvider.getAddressList().get(i);
+            Map<String, String> fhirAddressMap = isOrganization ?
+                    orgProvider.getAddressList().get(i) : indivProvider.getAddressList().get(i);
 
             List<String> addressFields = new ArrayList<>();
 
@@ -541,7 +630,9 @@ public class ViewProviderActions
                 "phone", "T");
         for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.TELECOMMUNICATIONS); i++) {
             Map<String, String> webTelecomMap = viewProvider.grabDataBlockContent(ProviderSection.TELECOMMUNICATIONS, i);
-            Map<String, String> fhirTelecomMap = fhirProvider.getTelecomList().get(i);
+            // TODO: e-addresses are missing from organization telecomList currently, remember to fix this line once that changes
+            Map<String, String> fhirTelecomMap = isOrganization ?
+                    orgProvider.getTelecomList().get(i) : indivProvider.getTelecomList().get(i+3);
 
             List<String> telecomFields = new ArrayList<>();
 
@@ -560,50 +651,188 @@ public class ViewProviderActions
                     "Number in webapp does not match FHIR response");
         }
 
+        // Electronic Addresses
+        // TODO: electronic addresses are missing from the organization builder telecomList, so individual-only tests currently.
+        if (!isOrganization)
+        {
+            for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.ELECTRONIC_ADDRESSES); i++)
+            {
+                Map<String,String> webTelecomMap = viewProvider.grabDataBlockContent(ProviderSection.ELECTRONIC_ADDRESSES, i);
+                Map<String,String> fhirTelecomMap = isOrganization ?
+                        orgProvider.getTelecomList().get(i) : indivProvider.getTelecomList().get(i);
+
+                List<String> eAddressFields = new ArrayList<>();
+
+                for (String eAddressField : List.of("Type", "Purpose"))
+                {
+                    Matcher eAddressMatcher = DATA_KEY_PARENS_PATTERN.matcher(webTelecomMap.get(eAddressField));
+                    if (eAddressMatcher.find()) eAddressFields.add(eAddressMatcher.group(1));
+                    else eAddressFields.add(null);
+                }
+
+                String fhirAddressType;
+                if (fhirTelecomMap.get("type").equals("email")) fhirAddressType = "E";
+                else if (fhirTelecomMap.get("type").equals("url")) {
+                    if (fhirTelecomMap.get("value").contains("ftp://")) fhirAddressType = "F";
+                    else fhirAddressType = "H";
+                } else fhirAddressType = null;
+
+                assertEquals(fhirAddressType, eAddressFields.get(0), "E-Address Type in webapp does not match FHIR response");
+                assertEquals(fhirTelecomMap.get("purpose"), eAddressFields.get(1), "E-Address Purpose in webapp does not match FHIR response");
+                assertEquals(fhirTelecomMap.get("value"), webTelecomMap.get("Address"), "E-Address value in webapp does not match FHIR response");
+            }
+        }
+
+        // Demographics
+        if (!isOrganization)
+        {
+            Map<String,String> webDemographicMap = viewProvider.grabDataBlockContent(ProviderSection.DEMOGRAPHICS, 0);
+            Map<String,String> fhirDemographicMap = indivProvider.getDemographics();
+
+            List<String> demographicFields = new ArrayList<>();
+
+            for (String demographicField : List.of("Birth Prov/State", "Gender"))
+            {
+                Matcher demographicMatcher = DATA_KEY_PARENS_PATTERN.matcher(webDemographicMap.get(demographicField));
+                if (demographicMatcher.find()) demographicFields.add(demographicMatcher.group(1));
+                else demographicFields.add(null);
+            }
+
+            final String webCountry = webDemographicMap.get("Birth Country").split(" ")[0];
+
+            assertEquals(fhirDemographicMap.get("birthDate"), webDemographicMap.get("Birth Date"),
+                    "Birth Date in webapp does not match FHIR response");
+            assertEquals(fhirDemographicMap.get("deathDate"), webDemographicMap.get("Death Date"),
+                    "Death Date in webapp does not match FHIR response");
+            assertEquals(fhirDemographicMap.get("birthCountry"), webCountry,
+                    "Birth Country in webapp does not match FHIR response");
+            assertEquals(fhirDemographicMap.get("birthProvince"), demographicFields.get(0),
+                    "Birth Province / State in webapp does not match FHIR response");
+            assertEquals(String.valueOf(fhirDemographicMap.get("gender").toUpperCase().charAt(0)),
+                    demographicFields.get(1), "Gender in webapp does not match FHIR response");
+        }
+
+        // TODO: Work Locations
+
+        // Conditions
+        if (!isOrganization)
+        {
+            for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.CONDITIONS); i++)
+            {
+                Map<String,String> webConditionMap = viewProvider.grabDataBlockContent(ProviderSection.CONDITIONS, i);
+                Map<String,String> fhirConditionMap = indivProvider.getConditionList().get(i);
+
+                String webType;
+                Matcher conditionMatcher = DATA_KEY_PARENS_PATTERN.matcher(webConditionMap.get("Type"));
+                if (conditionMatcher.find()) webType = conditionMatcher.group(1);
+                else webType = null;
+
+                final String webRestriction = switch (webConditionMap.get("Restriction Flag")) {
+                    case "Yes" -> "true";
+                    case "No" -> "false";
+                    default -> null;
+                };
+
+                assertEquals(fhirConditionMap.get("type"), webType,
+                        "Condition Type in webapp does not match FHIR response");
+                assertEquals(fhirConditionMap.get("restriction"), webRestriction,
+                        "Restriction Flag in webapp does not match FHIR response");
+                assertEquals(fhirConditionMap.get("explanation"), webConditionMap.get("Restriction Explanation Text"),
+                        "Restriction Explanation Text in webapp does not match FHIR response");
+            }
+        }
+
+        // Disciplinary Actions
+        if (!isOrganization)
+        {
+            for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.DISCIPLINARY_ACTIONS); i++)
+            {
+                Map<String,String> webDispActionMap = viewProvider.grabDataBlockContent(
+                        ProviderSection.DISCIPLINARY_ACTIONS, i);
+                Map<String,String> fhirDispActionMap = indivProvider.getDisciplinaryActionList().get(i);
+
+                final String webDisplay = switch (webDispActionMap.get("Display Flag")) {
+                    case "Yes" -> "true";
+                    case "No" -> "false";
+                    default -> null;
+                };
+
+                assertEquals(fhirDispActionMap.get("display"), webDisplay,
+                        "Display Flag in webapp does not match FHIR response");
+                assertEquals(fhirDispActionMap.get("archiveDate"), webDispActionMap.get("Archive Date"),
+                        "Archive Date in webapp does not match FHIR response");
+                assertEquals(fhirDispActionMap.get("description"), webDispActionMap.get("Description"),
+                        "Disciplinary Action Description in webapp does not match FHIR response");
+            }
+        }
+
+        // TODO: Communication Preferences / Information Routes
+
+        // Confidentiality
+        String webConfidentialityFlag = viewProvider.grabDataBlockContent(ProviderSection.CONFIDENTIALITY, 0)
+                .get("Confidentiality Flag");
+        Boolean webConfidentiality = switch (webConfidentialityFlag) {
+            case "Yes" -> true;
+            case "No" -> false;
+            default -> null;
+        };
+        Boolean fhirConfidentiality = isOrganization ?
+                orgProvider.getConfidentiality() : indivProvider.getConfidentiality();
+
+        assertEquals(fhirConfidentiality, webConfidentiality,
+                "Confidentiality flag does not match FHIR response");
+
+        // TODO: Provider Relationships
+
+        // TODO: Facility Relationships
+
+        // TODO: Registry User Relationships
+
         // Notes
         for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.NOTES); i++)
         {
             String webNote = viewProvider.grabDataBlockContent(ProviderSection.NOTES, i).get("Note Text");
-            String fhirNote = fhirProvider.getNoteList().get(i).get("text");
+            String fhirNote = isOrganization ?
+                    orgProvider.getNoteList().get(i).get("text") : indivProvider.getNoteList().get(i).get("text");
 
             assertEquals(webNote, fhirNote, "Note Text in webapp does not match FHIR response");
         }
 
         // Organization Properties
-        OrganizationProperties fhirOrgProp = fhirProvider.getOrganizationProperties();
-        List<List<String>> orgPropLists = List.of(
-                new ArrayList<>(fhirOrgProp.getClinicHoursOfOperation()),
-                new ArrayList<>(fhirOrgProp.getAddressUnit()),
-                new ArrayList<>(fhirOrgProp.getClinicOwnerNames()),
-                new ArrayList<>(fhirOrgProp.getPayeeNumber()));
+        if (isOrganization) {
+            OrganizationProperties fhirOrgProp = orgProvider.getOrganizationProperties();
+            List<List<String>> orgPropLists = List.of(
+                    new ArrayList<>(fhirOrgProp.getClinicHoursOfOperation()),
+                    new ArrayList<>(fhirOrgProp.getAddressUnit()),
+                    new ArrayList<>(fhirOrgProp.getClinicOwnerNames()),
+                    new ArrayList<>(fhirOrgProp.getPayeeNumber()));
 
-        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.ORGANIZATION_PROPERTIES); i++)
-        {
-            Map<String,String> webPropMap = viewProvider.grabDataBlockContent(ProviderSection.ORGANIZATION_PROPERTIES, i);
+            for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.ORGANIZATION_PROPERTIES); i++) {
+                Map<String, String> webPropMap = viewProvider.grabDataBlockContent(ProviderSection.ORGANIZATION_PROPERTIES, i);
 
-            String propType = webPropMap.get("Property Type");
-            Matcher propMatcher = DATA_KEY_PARENS_PATTERN.matcher(propType);
-            if (propMatcher.find()) propType = propMatcher.group(1);
+                String propType = webPropMap.get("Property Type");
+                Matcher propMatcher = DATA_KEY_PARENS_PATTERN.matcher(propType);
+                if (propMatcher.find()) propType = propMatcher.group(1);
 
-            String fhirValue = switch (propType)
-            {
-                case "PCI_FLAG" -> fhirOrgProp.getPciFlag().toString();
-                case "CLINIC_TYPE" -> fhirOrgProp.getClinicType().getText();
-                case "CLINIC_SERVICES" -> fhirOrgProp.getClinicServices().getText();
-                case "CLINIC_OWNER_BUSINESS_TYPE" -> fhirOrgProp.getClinicOwnerBusinessType().getText();
-                case "CLINIC_LEGAL_BUSINESS_NAME" -> fhirOrgProp.getClinicLegalBusinessName();
-                case "CLINIC_HOURS_OF_OPERATION" -> orgPropLists.get(0).removeFirst();
-                case "ADDRESS_UNIT" -> orgPropLists.get(1).removeFirst();
-                case "CLINIC_OWNER_NAMES" -> orgPropLists.get(2).removeFirst();
-                case "PAYEE_NUMBER" -> orgPropLists.get(3).removeFirst();
-                default -> {
-                    String msg = String.format("Unexpected property type (%s)", propType);
-                    throw new IllegalStateException(msg);
-                }
-            };
+                String fhirValue = switch (propType) {
+                    case "PCI_FLAG" -> fhirOrgProp.getPciFlag().toString();
+                    case "CLINIC_TYPE" -> fhirOrgProp.getClinicType().getText();
+                    case "CLINIC_SERVICES" -> fhirOrgProp.getClinicServices().getText();
+                    case "CLINIC_OWNER_BUSINESS_TYPE" -> fhirOrgProp.getClinicOwnerBusinessType().getText();
+                    case "CLINIC_LEGAL_BUSINESS_NAME" -> fhirOrgProp.getClinicLegalBusinessName();
+                    case "CLINIC_HOURS_OF_OPERATION" -> orgPropLists.get(0).removeFirst();
+                    case "ADDRESS_UNIT" -> orgPropLists.get(1).removeFirst();
+                    case "CLINIC_OWNER_NAMES" -> orgPropLists.get(2).removeFirst();
+                    case "PAYEE_NUMBER" -> orgPropLists.get(3).removeFirst();
+                    default -> {
+                        String msg = String.format("Unexpected property type (%s)", propType);
+                        throw new IllegalStateException(msg);
+                    }
+                };
 
-            assertEquals(fhirValue, webPropMap.get("Property Value"),
-                    "Organization Property Value does not match FHIR response");
+                assertEquals(fhirValue, webPropMap.get("Property Value"),
+                        "Organization Property Value does not match FHIR response");
+            }
         }
     }
 
