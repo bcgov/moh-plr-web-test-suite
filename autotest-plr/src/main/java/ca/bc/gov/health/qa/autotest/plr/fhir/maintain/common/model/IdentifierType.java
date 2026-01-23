@@ -46,9 +46,40 @@ public enum IdentifierType
     ORGID("https://health.gov.bc.ca/fhir/NamingSystem/ca-bc-plr-org-id"),
 
     /**
-     * TODO (AZ) - doc
+     * TODO (EBR) - doc
      */
-    RNID("https://fhir.infoway-inforoute.ca/NamingSystem/ca-bc-license-nurse");
+    RNID("https://fhir.infoway-inforoute.ca/NamingSystem/ca-bc-license-nurse"),
+
+    /**
+     * TODO (EBR) - doc
+     */
+    OPTID("https://fhir.infoway-inforoute.ca/NamingSystem/ca-bc-license-optometrist"),
+
+    /**
+     * TODO (EBR) - doc
+     */
+    RMID("https://fhir.infoway-inforoute.ca/NamingSystem/ca-bc-license-midwife"),
+
+    /**
+     * TODO (EBR) - doc
+     */
+    PHID("https://fhir.infoway-inforoute.ca/NamingSystem/ca-bc-license-pharmacist"),
+
+    /**
+     * TODO (EBR) - doc
+     */
+    POID("https://fhir.infoway-inforoute.ca/NamingSystem/ca-bc-license-podiatric-surgeon"),
+
+    /**
+     * TODO (EBR) - doc
+     */
+    MPID("https://fhir.infoway-inforoute.ca/NamingSystem/ca-bc-msp-billing-id"),
+
+    /**
+     * TODO (EBR) - doc
+     */
+    HAID("https://health.gov.bc.ca/fhir/NamingSystem/ca-bc-health-authority-id");
+
 
     private final String sourceSystem_;
 

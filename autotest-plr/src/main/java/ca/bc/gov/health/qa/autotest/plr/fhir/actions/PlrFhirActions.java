@@ -140,7 +140,9 @@ implements AutoCloseable
                 break;
             }
         }
-        if (resourceId == null) {
+
+        //Facility requires id to be returned in response as ID is generated in the backend.
+        if (resourceId == null && targetType == PlrFhirResourceType.FACILITY) {
             throw new IllegalStateException("Maintain response did not contain a " + desiredWireType + " resource id.");
         }
         return resourceId;

@@ -220,7 +220,8 @@ implements SimpleTest
             individual2.getAddressList(),
             individual2.getRoleType());*/
 
-        MaintainIndividualBuilder queriedIndividual = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
+        IndividualRoleType roleType = individual.getRoleType();
+        MaintainIndividualBuilder queriedIndividual = fhirController.queryIndividualByIdentifier(roleType.getIdentifierType(), individual.getIdentifier(roleType.getIdentifierType()));
 
         LOG.info(
             "Queried Individual identifiers {}, addresses {}, conditions {}, confidentiality {}, credentials {}, disciplinaryActions {}, familyName {}, names {}, demographics {}, expertises {}, notes {}, roleType {}, statuses {}, telecoms {}, org relationships {}, ind relationships {}",
@@ -264,6 +265,7 @@ implements SimpleTest
             individual.getIndividualRelationshipList()
         );
 
+        
         queriedIndividual = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
 
         LOG.info(
@@ -408,6 +410,58 @@ implements SimpleTest
         LOG.info("Updated individual id {}, name {}, status {}, address {}, expertise {}, credentials {}.", individual.getIdentifiers(), individual.getFamilyName() + ", " + Arrays.toString(individual.getNames()), individual.getStatusList(), individual.getAddressList(), individual.getExpertiseList(), individual.getCredentialList());
         
         fhirController.close();
+    }
+
+    @Test
+    public void roletypetestind(){
+        //This test can be used to quickly test any new functionality added to the FHIRController or related classes.
+
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+
+        MaintainIndividualBuilder individual = fhirController.createIndividual(IndividualRoleType.DEN);
+        LOG.info("DEN identifiers {}", individual.getIdentifiers());
+
+        MaintainIndividualBuilder individual2 = fhirController.createIndividual(IndividualRoleType.MD);
+        LOG.info("MD identifiers {}", individual2.getIdentifiers());
+
+        MaintainIndividualBuilder individual3 = fhirController.createIndividual(IndividualRoleType.RN);
+        LOG.info("RN identifiers {}", individual3.getIdentifiers());
+
+        MaintainIndividualBuilder individual4 = fhirController.createIndividual(IndividualRoleType.RNP);
+        LOG.info("RNP identifiers {}", individual4.getIdentifiers());
+
+        MaintainIndividualBuilder individual5 = fhirController.createIndividual(IndividualRoleType.OPT);
+        LOG.info("OPT identifiers {}", individual5.getIdentifiers());
+
+        MaintainIndividualBuilder individual6 = fhirController.createIndividual(IndividualRoleType.RPN);
+        LOG.info("RPN identifiers {}", individual6.getIdentifiers());
+
+        MaintainIndividualBuilder individual7 = fhirController.createIndividual(IndividualRoleType.LPN);
+        LOG.info("LPN identifiers {}", individual7.getIdentifiers());
+
+        MaintainIndividualBuilder individual8 = fhirController.createIndividual(IndividualRoleType.RM);
+        LOG.info("RM identifiers {}", individual8.getIdentifiers());
+
+        MaintainIndividualBuilder individual9 = fhirController.createIndividual(IndividualRoleType.PHARM);
+        LOG.info("PHARM identifiers {}", individual9.getIdentifiers());
+
+        MaintainIndividualBuilder individual10 = fhirController.createIndividual(IndividualRoleType.PO);
+        LOG.info("PO identifiers {}", individual10.getIdentifiers());
+
+        MaintainIndividualBuilder individual11 = fhirController.createIndividual(IndividualRoleType.HA);
+        LOG.info("HA identifiers {}", individual11.getIdentifiers());
+
+        MaintainIndividualBuilder individual12 = fhirController.createIndividual(IndividualRoleType.OOP_MD);
+        LOG.info("OOP_MD identifiers {}", individual12.getIdentifiers());
+
+        MaintainIndividualBuilder individual13 = fhirController.createIndividual(IndividualRoleType.OOP_DEN);
+        LOG.info("OOP_DEN identifiers {}", individual13.getIdentifiers());
+
+        MaintainIndividualBuilder individual14 = fhirController.createIndividual(IndividualRoleType.OOP_RN);
+        LOG.info("OOP_RN identifiers {}", individual14.getIdentifiers());
+
+        fhirController.close();
+
     }
 
 }

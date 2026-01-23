@@ -297,29 +297,45 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         }
         
         // Pick the first available identifier deterministically
-        IdentifierType firstIdentifierType = null;
-        String firstIdentifierValue = null;
-        for (IdentifierType t : IdentifierType.values()) {
-            String v = identifiers_.get(t);
-            if (v != null && !v.isBlank()) {
-                firstIdentifierType = t;
-                firstIdentifierValue = v;
-                break;
+        // Find the identifier to use: prefer role type's identifier type, otherwise use first available
+        IdentifierType selectedIdentifierType = null;
+        String selectedIdentifierValue = null;
+        
+        // First, try to find the identifier matching the role type's identifier type
+        if (roleType_ != null) {
+            IdentifierType roleIdentifierType = roleType_.getIdentifierType();
+            String roleIdentifierValue = identifiers_.get(roleIdentifierType);
+            if (roleIdentifierValue != null && !roleIdentifierValue.isBlank()) {
+                selectedIdentifierType = roleIdentifierType;
+                selectedIdentifierValue = roleIdentifierValue;
             }
         }
-        if(firstIdentifierType != null && firstIdentifierValue != null) {
+        
+        // If no role-specific identifier found, fall back to first available identifier
+        if (selectedIdentifierType == null) {
+            for (IdentifierType t : IdentifierType.values()) {
+                String v = identifiers_.get(t);
+                if (v != null && !v.isBlank()) {
+                    selectedIdentifierType = t;
+                    selectedIdentifierValue = v;
+                    break;
+                }
+            }
+        }
+        
+        if(selectedIdentifierType != null && selectedIdentifierValue != null) {
             // Set Practitioner identifier
             pracJson.getJSONArray("identifier")
                     .getJSONObject(0)
-                    .put("system", firstIdentifierType.getSourceSystem())
-                    .put("value", firstIdentifierValue);
+                    .put("system", selectedIdentifierType.getSourceSystem())
+                    .put("value", selectedIdentifierValue);
             
             // Set PractitionerRole practitioner identifier
             pracRoleJson
                     .getJSONObject("practitioner")
                     .getJSONObject("identifier")
-                    .put("system", firstIdentifierType.getSourceSystem())
-                    .put("value", firstIdentifierValue);
+                    .put("system", selectedIdentifierType.getSourceSystem())
+                    .put("value", selectedIdentifierValue);
         }
         
         if (roleType_ != null)
@@ -419,10 +435,10 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         // Build organization relationships as PractitionerRole entries
         JSONArray entryArray = accessor.getEntryArrayJson();
         
-        if(firstIdentifierType != null && firstIdentifierValue != null) {
+        if(selectedIdentifierType != null && selectedIdentifierValue != null) {
             Map<String,String> individualInfo = new HashMap<>();
-            individualInfo.put("type", firstIdentifierType.getSourceSystem());
-            individualInfo.put("identifier", firstIdentifierValue);
+            individualInfo.put("type", selectedIdentifierType.getSourceSystem());
+            individualInfo.put("identifier", selectedIdentifierValue);
 
             //for each organization relationship, create a PractitionerAffiliation bundle entry
             for (Map<String,String> orgInfo : organizationRelationshipList_)

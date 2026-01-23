@@ -210,9 +210,10 @@ public class FHIRController implements AutoCloseable {
         for (int i = 0; i < individualRelCount; i++) {
             //Create a related individual and save the identifier
             MaintainIndividualBuilder relatedIndividual = createIndividual(IndividualDataGenerator.getInstance().randomRoleType(false));
-            String relatedIndividualId = relatedIndividual.getIdentifier(IdentifierType.IPC);
+            IdentifierType relatedIndividualIdType = relatedIndividual.getRoleType().getIdentifierType();
+            String relatedIndividualId = relatedIndividual.getIdentifier(relatedIndividualIdType);
             PractitionerRelationshipCode relationshipCode = OrganizationDataGenerator.getInstance().generatePractitionerRelationshipCode();
-            builder.addIndividualRelationship(IdentifierType.IPC, relatedIndividualId, relationshipCode);
+            builder.addIndividualRelationship(relatedIndividualIdType, relatedIndividualId, relationshipCode);
         }
 
 
@@ -293,9 +294,10 @@ public class FHIRController implements AutoCloseable {
         for (int i = 0; i < individualRelCount; i++) {
             //Create a related individual and save the identifier
             MaintainIndividualBuilder relatedIndividual = createIndividual(IndividualDataGenerator.getInstance().randomRoleType(false));
-            String relatedIndividualId = relatedIndividual.getIdentifier(IdentifierType.IPC);
+            IdentifierType relatedIndividualIdType = relatedIndividual.getRoleType().getIdentifierType();
+            String relatedIndividualId = relatedIndividual.getIdentifier(relatedIndividualIdType);
             PractitionerRelationshipCode relationshipCode = IndividualDataGenerator.getInstance().generatePractitionerRelationshipCode();
-            builder.addIndividualRelationship(IdentifierType.IPC, relatedIndividualId, relationshipCode);
+            builder.addIndividualRelationship(relatedIndividualIdType, relatedIndividualId, relationshipCode);
         }
 
         String id = executor.submitMaintain(builder);
@@ -306,6 +308,10 @@ public class FHIRController implements AutoCloseable {
             if (individualRelCount > 0) logMsg += (orgRelCount > 0 ? " and" : "") + " " + individualRelCount + " individual relationship(s)";
         }
         LOG.info("Created Individual (id={}){}", id, logMsg);
+
+        //Server will automatically assign an IPC identifier
+        //Note that some individual roletypes will not generate IPC identifiers on the backend
+        builder.addIdentifier(IdentifierType.IPC, id);
 
         return builder;
     }
