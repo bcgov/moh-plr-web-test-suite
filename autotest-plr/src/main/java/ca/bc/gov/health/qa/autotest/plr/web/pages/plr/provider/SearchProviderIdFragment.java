@@ -49,6 +49,13 @@ extends SearchSectionFragment
     {
         selenium_.fillFieldByCss(PROVIDER_ID_FIELD_CSS, providerId);
     }
+    
+    
+    public void clearProviderId()
+    {
+        WebElement providerId=selenium_.findElementByCss(PROVIDER_ID_FIELD_CSS);
+        providerId.clear();
+    }
 
     /**
      * TODO (AZ) - doc

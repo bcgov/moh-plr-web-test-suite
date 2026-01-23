@@ -58,6 +58,12 @@ extends SearchSectionFragment
     {
         selenium_.fillFieldByCss(REGISTRY_ID_FIELD_CSS, registryId);
     }
+    
+    public void clearRegistryId()
+    {
+    	WebElement element=selenium_.findElementByCss(REGISTRY_ID_FIELD_CSS);
+    	element.clear();
+    }
 
     /**
      * TODO (AZ) - doc

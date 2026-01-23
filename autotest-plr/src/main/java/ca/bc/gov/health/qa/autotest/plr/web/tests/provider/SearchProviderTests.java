@@ -15,8 +15,13 @@ import org.testng.annotations.Test;
 import com.google.common.collect.Ordering;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
@@ -34,7 +39,19 @@ public class SearchProviderTests implements SimpleTest{
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
-
+    
+    String errorMsgName = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Name'. Your transaction has not been processed. Correct and resubmit.";
+	String errorMsgOrgRoleType ="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Organizational Provider Role Type'. Your transaction has not been processed. Correct and resubmit.";
+    String errorMsgProiderID = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Provider ID'. Your transaction has not been processed. Correct and resubmit.";
+    String errorMsgCPNIPC = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transactionGRS. The following fields must be supplied: 'CPN or IPC'. Your transaction has not been processed. Correct and resubmit.";
+    String errorMsgIdType="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Identifier Type'. Your transaction has not been processed. Correct and resubmit.";
+	String errorMsgRegIdType="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Registry Identifier Type'. Your transaction has not been processed. Correct and resubmit.";
+	String errorMsgRegIdValue="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Registry Identifier Value'. Your transaction has not been processed. Correct and resubmit.";
+	String errorMsgCPSID="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'College ID or MPID'. Your transaction has not been processed. Correct and resubmit.";
+	
+	String errorEntryError="Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Name or Description or Address Line 1 or City'"; 
+	String warningMAxResult="Maximum search results returned. Please refine your search criteria.";
+    
     private SearchProviderTests(){}
 
     static final int SEARCH_PROVIDER_MAX_RESULTS=20;
@@ -64,6 +81,7 @@ public class SearchProviderTests implements SimpleTest{
  	public void testAlphabeticalSortingRegistryUserSearchResults() {
     	 //This is admin test
  	}
+ 	//todo
 // 	Case Insensitive Search
     @Test(groups = { "SearchProvider"})
  	public void testCaseInsensitiveSearch() {
@@ -98,7 +116,7 @@ public class SearchProviderTests implements SimpleTest{
 		assertTrue(orgMixedCaseSearch.equals(orgUpperCaseSearch),"The search results are not equal");
 		assertTrue(orgUpperCaseSearch.equals(orgLowerCaseSearch),"The search results are not equal");
  	}
-
+//todo
 // 	Provider Search
     @Test(groups = { "SearchProvider"})
  	public void testProviderSearch() {
@@ -126,13 +144,13 @@ public class SearchProviderTests implements SimpleTest{
 	     assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
 	     
  	}
-//
+//todo
 // 	Registry Identifiers UI Suffix is Implied
     @Test(groups = { "SearchProvider"})
  	public void testRegistryIdentifiersUISuffix() {
  		
  	}
-//
+//todo
 // 	Search - Alphabetical Sorting
     @Test(groups = { "SearchProvider"})
  	public void testAlphabeticalSorting() {
@@ -181,66 +199,121 @@ public class SearchProviderTests implements SimpleTest{
         assertTrue(Ordering.natural().isOrdered(names),"Search Results is not Alphabetically sorted");
  		
  	}
-//
+//TODO
 // 	Search - Individual Provider
     @Test(groups = { "SearchProvider"})
  	public void testSearchIndividualProvider() {
     	PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
+    	SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+    	 //FHIR
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+        IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(IndividualDataGenerator.getInstance());
+       
+        IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.MD);
+        MaintainIndividualBuilder individual = individualFactory.build(individualConfig);
+        individual = fhirController.submitIndividual(individual);
+		MaintainIndividualBuilder queriedProvider = fhirController.queryIndividualByIdentifier(IdentifierType.IPC,
+				individual.getIdentifier(IdentifierType.IPC));
+		fhirController.close();
+		
+		IndividualRoleType roleType = queriedProvider.getRoleType();
+		String surname = queriedProvider.getFamilyName();
+		String[] names = queriedProvider.getNames();
+		Map<String, String> address = queriedProvider.getAddressList().get(0);
+		String city = address.get("city");
+		String addressline1 = address.get("line1");
+		
+        //step 1
         SearchProviderResultsFragment searchResults =
-                searchProvider.searchByCriteria("DEN", null, null, null, "Victoria", null, null);
-        List<String> warningMessageList =
-                searchProvider.waitForAlertMessagesFragment().grabWarningMessageList();
+        		searchProviderPage.searchByCriteria(roleType.name(), null, surname, null, city, null, null);
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+      //step 2
+        searchResults =
+        		searchProviderPage.searchByCriteria(roleType.name(), null, null, null, null, null, null);
+        
+       
+      //step 3
+        searchResults =
+        		searchProviderPage.searchByCriteria(null, null, null, null, city, null, null);
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+      //step 4
+        searchResults =
+        		searchProviderPage.searchByCriteria(null, names.toString(), null, null, null, null, null);
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+      //step 5
+        searchResults =
+        		searchProviderPage.searchByCriteria(null, null, null, null, city, null, null);
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+      //step 6
+        searchResults = searchProviderPage.searchByCriteria(null, null, null, "M", null, null,
+				null, null, null);
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+      //step 7
+        searchResults = searchProviderPage.searchByCriteria(null, null, null, null, null, null,null, List.of("AMD1 ", "AMD49 "), null);
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
+      //step 8
+      
+        searchResults = searchProviderPage.searchByCriteria(null, null, null, null, null, null,
+				null, null, List.of("A01 ", "A09 "));
+        assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
  	}
-//
-// 	Search - Minimum Data
+
+    // 	Search - Minimum Data
     @Test(groups = { "SearchProvider"})
  	public void testSearchMinimumData() {
-    	String errorMsg = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Provider ID'. Your transaction has not been processed. Correct and resubmit. Your transaction has not been processed. Correct and resubmit. ";
-    	String errorMsgRegId = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transactionGRS. The following fields must be supplied: 'CPN or IPC'. Your transaction has not been processed. Correct and resubmit.";
-    	String errorMsg03="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Identifier Type'. Your transaction has not been processed. Correct and resubmit. GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'College ID or MPID'. Your transaction has not been processed. Correct and resubmit.";
-    	String errorMsg04="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Registry Identifier Type'. Your transaction has not been processed. Correct and resubmit. GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'CPN or IPC'. Your transaction has not been processed. Correct and resubmit.\r\n"
-    			+ "";
     	PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+        //FHIR
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+        /*IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(IndividualDataGenerator.getInstance());
+       
+        IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.MD);
+        MaintainIndividualBuilder individual = individualFactory.build(individualConfig);
+        individual = fhirController.submitIndividual(individual);*/
+        MaintainIndividualBuilder queriedProvider = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, "IPC.00117991.BC.PRS");
+        fhirController.close();
+		String cpsId = queriedProvider.getIdentifier(IdentifierType.DENID);
+		String cpnNum=UpdateSimpleHelper.getRegIdString("CPN",queriedProvider.getIdentifier(IdentifierType.CPN));
+        //step1
         SearchProviderResultsFragment searchResults =
-                searchProvider.searchByIdentifier("DENID", null);
-        String errMsg = searchResults.grabEmptyResultsMessage();
-        assertTrue(errMsg.equals(errorMsg));
+        		searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), null,false);
+        String errMsg = searchProviderPage.grabPageErrorMessage();
+        assertTrue(errMsg.equals(errorMsgProiderID),"Expected error message not found");
+        //step2
         searchResults =
-                searchProvider.searchByIdentifier("DENID", "54542432424243");
+        		searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), cpsId);
         assertTrue(searchResults.grabResultsRowCount()>0);
-           	
+        //step3
         searchResults =
-                searchProvider.searchByRegistryIdentifier("CPN", null);
-        errMsg = searchResults.grabEmptyResultsMessage();
-        assertTrue(errMsg.equals(errorMsg));
+        		searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), null,false);
+        errMsg = searchProviderPage.grabPageErrorMessage();
+        assertTrue(errMsg.equals(errorMsgRegIdValue),"Expected error message not found");
+        //step4
         searchResults =
-                searchProvider.searchByRegistryIdentifier("CPN", "00059686");
+        		searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), cpnNum);
         assertTrue(searchResults.grabResultsRowCount()>0);
-               
+        //step5
         searchResults =
-                searchProvider.searchByIdentifier("Select One", null);
-        errMsg = searchResults.grabEmptyResultsMessage();
-        assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000")&&errMsg.contains("Identifier Type")&&errMsg.contains("Provider ID"));
+        		searchProviderPage.searchByIdentifier("Select One", null,false);
+        errMsg = searchProviderPage.grabPageErrorMessage();
+        assertTrue(errMsg.contains(errorMsgIdType)&&errMsg.contains(errorMsgProiderID),"Expected error messages not found");
+        //step6
         searchResults =
-                searchProvider.searchByRegistryIdentifier("Select One", null);
-        errMsg = searchResults.grabEmptyResultsMessage();
-        assertTrue(errMsg.contains("GRS.SYS.UNK.UNK.1.0.5000")&&errMsg.contains("Registry Identifier Type")&&errMsg.contains("Registry Identifier Value"));
+        		searchProviderPage.searchByRegistryIdentifier("Select One", null,false);
+        errMsg = searchProviderPage.grabPageErrorMessage();
+        assertTrue(errMsg.contains(errorMsgRegIdType)&&errMsg.contains(errorMsgRegIdValue),"Expected error messages not found");
         
  	}
-//
-// 	Search - Organization Provider
+    
+    // 	Search - Organization Provider
     @Test(groups = { "SearchProvider"})
  	public void testSearchOrganizationProvider() {
     	
-    	String error01 = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Name'. Your transaction has not been processed. Correct and resubmit.";
-    	String error02 ="GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Organizational Provider Role Type'. Your transaction has not been processed. Correct and resubmit.";
     	PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
         //FHIR
         FHIRController fhirController = new FHIRController(UserType.ADMIN);
-        OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG);
+        OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG).withAlias();
         MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
         MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
         fhirController.close();
@@ -249,32 +322,33 @@ public class SearchProviderTests implements SimpleTest{
         Map<String, String> address = orgQueried.getAddressList().get(0);
         String city=address.get("city");
         String addressline1=address.get("line1");
-        String desp="";
+        String desp=orgQueried.getAlias();
         
         //Step 1
-        SearchProviderResultsFragment searchResults = searchProvider.searchForOrganization(roleType.name(), name, null, addressline1,
+        SearchProviderResultsFragment searchResults = searchProviderPage.searchForOrganization(roleType.name(), name, null, addressline1,
         		city);
         assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
         //Step 2
-        searchResults = searchProvider.searchForOrganization(roleType.name(), null, null, null,null);
-        String errMsg = searchResults.grabEmptyResultsMessage();
-        assertTrue(errMsg.equals(error01));
+        searchResults = searchProviderPage.searchForOrganization(roleType.name(), null, null, null,null);
+        String errMsg = searchProviderPage.grabPageErrorMessage();
+        assertTrue(errMsg.equals(errorEntryError),"Expected error message not found");
        //Step 3
-        searchResults = searchProvider.searchForOrganization(roleType.name(), name, null, null,
+        searchResults = searchProviderPage.searchForOrganization(roleType.name(), name, null, null,
 				null);
         assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
         
-        //Step 4: not able to only search by nmae-role type default value "ORG"
+        //Step 4: not able to only search by name. Role type has default value "ORG"
         //Step 5: description not support FHIR
-        searchResults = searchProvider.searchForOrganization(OrgRoleType.ORG.name(), null, "McBride and District Hospital"
+        searchResults = searchProviderPage.searchForOrganization(OrgRoleType.ORG.name(), null, desp
         		, null,	null);
         assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
         //Step 6
-        searchResults = searchProvider.searchForOrganization(roleType.name(), null, null, null,"143 Noack Turnpike");
+        searchResults = searchProviderPage.searchForOrganization(roleType.name(), null, null, addressline1,null);
         assertTrue(searchResults.grabResultsRowCount()>0,"search result has too less rows");
  	}
-//
-// 	Search - Search Results Limit
+
+    //TODO
+    // 	Search - Search Results Limit
     @Test(groups = { "SearchProvider"})
  	public void testSearchResultsLimit() {
     	
@@ -287,7 +361,8 @@ public class SearchProviderTests implements SimpleTest{
         SearchProviderResultsFragment searchResults =
         		searchProviderPage.searchByCriteria("DEN", null, null, null, "Victoria", null, null);
         assertTrue(searchResults.grabResultsRowCount()==SEARCH_PROVIDER_MAX_RESULTS);
-        String errMsg = searchProviderPage.grabPageMessage();
+        String errMsg = searchProviderPage.grabWarningErrorMessage();
+        assertTrue(errMsg.equals(warningMAxResult),"Expected warning message not found");
         // create 22 ORG in vicotria 
        /* FHIRController fhirController = new FHIRController(UserType.ADMIN);
         OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS);
@@ -298,6 +373,7 @@ public class SearchProviderTests implements SimpleTest{
         searchResults = searchProviderPage.searchForOrganization("ORG", null, null, null,
 				"Victoria");
         assertTrue(searchResults.grabResultsRowCount()==SEARCH_PROVIDER_MAX_RESULTS);
+        assertTrue(errMsg.equals(warningMAxResult),"Expected warning message not found");
  	}
 //
 // 	Search - Zero Results
@@ -343,7 +419,7 @@ public class SearchProviderTests implements SimpleTest{
     	//test2
     	 searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), 
       			null, null, null, null); 
-     	  String errMsg = searchProviderPage.grabPageMessage();
+     	  String errMsg = searchProviderPage.grabPageErrorMessage();
      	 assertTrue( errMsg.contains("The following fields must be supplied: 'Name or Description or Address Line 1 or City'"));
      	//test3
      	 searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), 

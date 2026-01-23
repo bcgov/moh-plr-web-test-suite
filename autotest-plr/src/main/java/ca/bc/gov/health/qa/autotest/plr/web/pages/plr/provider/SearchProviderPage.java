@@ -354,9 +354,32 @@ extends BasicWebPage
     {
         SearchProviderIdFragment search = expandSearchIdentifier(true);
         search.selectIdentifierType(identifierTypePrefix);
-        search.fillProviderId(providerId);
+        if(providerId!=null)
+        	search.fillProviderId(providerId);
         search.clickSearchButton();
         return waitForSearchProviderResultsFragment();
+    }
+    
+    
+    /**
+     * @param identifierTypePrefix
+     * @param providerId
+     * @param expectResultFragment
+     * @return
+     */
+    public SearchProviderResultsFragment searchByIdentifier(
+            String identifierTypePrefix,
+            String providerId,boolean expectResultFragment)
+    {
+        SearchProviderIdFragment search = expandSearchIdentifier(true);
+        search.selectIdentifierType(identifierTypePrefix);
+        if(providerId!=null)
+        	search.fillProviderId(providerId);
+        else search.clearProviderId();
+        search.clickSearchButton();
+        if(expectResultFragment)
+        return waitForSearchProviderResultsFragment();
+        else return null;
     }
 
     /**
@@ -375,6 +398,13 @@ extends BasicWebPage
             String registryId)
     {
         return searchByRegistryIdentifier(registryIdentifierTypePrefix, registryId, null);
+    }
+    
+    public SearchProviderResultsFragment searchByRegistryIdentifier(
+            String registryIdentifierTypePrefix,
+            String registryId,boolean expectResultsFragment)
+    {
+        return searchByRegistryIdentifier(registryIdentifierTypePrefix, registryId, null,expectResultsFragment);
     }
 
     /**
@@ -398,34 +428,50 @@ extends BasicWebPage
     {
         SearchProviderRegistryIdFragment search = expandSearchRegistryIdentifier(true);
         search.selectRegistryIdentifierType(registryIdentifierTypePrefix);
+        if(registryId!=null)
+        search.fillRegistryId(registryId);
+        else  search.clearRegistryId();
+        if (registryIdSuffix != null)
+        {
+            search.fillRegistryIdSuffix(registryIdSuffix);
+        };
+        search.clickSearchButton();
+        return waitForSearchProviderResultsFragment();
+    }
+    
+    /**
+     * @param registryIdentifierTypePrefix
+     * @param registryId
+     * @param registryIdSuffix
+     * @param expectResultsFragment
+     * @return
+     */
+    public SearchProviderResultsFragment searchByRegistryIdentifier(
+            String registryIdentifierTypePrefix,
+            String registryId,
+            String registryIdSuffix, boolean expectResultsFragment)
+    {
+        SearchProviderRegistryIdFragment search = expandSearchRegistryIdentifier(true);
+        search.selectRegistryIdentifierType(registryIdentifierTypePrefix);
+        if(registryId!=null)
         search.fillRegistryId(registryId);
         if (registryIdSuffix != null)
         {
             search.fillRegistryIdSuffix(registryIdSuffix);
         }
         search.clickSearchButton();
+        if(expectResultsFragment)
         return waitForSearchProviderResultsFragment();
+        else return null;
     }
 
     /**
-     * TODO (AZ) - doc (all parameters are optional)
-     *
      * @param roleTypePrefix
-     *        ???
-     *
      * @param name
-     *        ???
-     *
      * @param description
-     *        ???
-     *
      * @param addressLine1
-     *        ???
-     *
      * @param city
-     *        ???
-     *
-     * @return ???
+     * @return
      */
     public SearchProviderResultsFragment searchForOrganization(
             String roleTypePrefix,
@@ -439,22 +485,25 @@ extends BasicWebPage
         {
             search.selectRoleType(roleTypePrefix);
         }
-        if (name != null)
-        {
-            search.fillName(name);
-        }
-        if (description != null)
-        {
-            search.fillDescription(description);
-        }
-        if (addressLine1 != null)
-        {
-            search.fillAddressLine1(addressLine1);
-        }
-        if (city != null)
-        {
-            search.fillCity(city);
-        }
+        
+		if (name != null) {
+			search.fillName(name);
+		} else
+			search.clearName();
+		if (description != null) {
+			search.fillDescription(description);
+		} else
+			search.clearDescription();
+
+		if (addressLine1 != null) {
+			search.fillAddressLine1(addressLine1);
+		} else
+			search.clearAddressLine1();
+		if (city != null) {
+			search.fillCity(city);
+		} else
+			search.clearCity();
+		
         search.clickSearchButton();
         return waitForSearchProviderResultsFragment();
     }
@@ -477,24 +526,23 @@ extends BasicWebPage
     	if(hdsType!=null)
          search.selectHdsType(hdsType);
         
-         if (name != null)
-         {
-             search.fillName(name);
-         }else 
-        	 search.clearName();
-         if (description != null)
-         {
-             search.fillDescription(description);
-         }else search.clearDescription();
-        	 
-         if (addressLine1 != null)
-         {
-             search.fillAddressLine1(addressLine1);
-         }else search.clearAddressLine1();
-         if (city != null)
-         {
-             search.fillCity(city);
-         }else search.clearCity();
+		if (name != null) {
+			search.fillName(name);
+		} else
+			search.clearName();
+		if (description != null) {
+			search.fillDescription(description);
+		} else
+			search.clearDescription();
+
+		if (addressLine1 != null) {
+			search.fillAddressLine1(addressLine1);
+		} else
+			search.clearAddressLine1();
+		if (city != null) {
+			search.fillCity(city);
+		} else
+			search.clearCity();
          
          search.clickSearchButton();
          return waitForSearchProviderResultsFragment();
@@ -597,9 +645,20 @@ extends BasicWebPage
         }
     }
 
-	public String grabPageMessage() {
+	public String grabPageErrorMessage() {
 		
 		String alertMsgCss = "span.ui-messages-error-summary";
+		String msgDisplay="";
+		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
+		for (WebElement alertMsg:alertMsgList) {
+			msgDisplay =msgDisplay+ alertMsg.getText();
+		}
+		return msgDisplay;
+	}
+	
+public String grabWarningErrorMessage() {
+		
+		String alertMsgCss = "span.ui-messages-warn-summary";
 		String msgDisplay="";
 		WebElement alertMsg = selenium_.findElement(By.cssSelector(alertMsgCss));
 		if (alertMsg.isDisplayed()) {

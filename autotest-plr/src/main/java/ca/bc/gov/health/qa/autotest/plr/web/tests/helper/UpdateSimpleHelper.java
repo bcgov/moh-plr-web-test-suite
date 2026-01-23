@@ -97,6 +97,22 @@ public class UpdateSimpleHelper {
 
 		return String.valueOf(Long.parseLong(extractedPart));
 	}
+	
+	/**
+	 * @param regIdType
+	 * @param IfcID
+	 * @return
+	 */
+	public static String getRegIdString(String regIdType,String IfcID) {
+		assertFalse(StringUtils.isEmpty(IfcID));
+		assertTrue(IfcID.startsWith(regIdType+".") && IfcID.endsWith(".BC.PRS"));
+
+		int startIndex = IfcID.indexOf('.');
+		int endIndex = IfcID.indexOf('.', startIndex + 1); // Start searching after the first char
+		String extractedPart = IfcID.substring(startIndex + 1, endIndex);
+
+		return extractedPart;
+	}
 
 	public static boolean isStringPositiveInteger(String str) {
 		if (str == null || str.isEmpty()) {
