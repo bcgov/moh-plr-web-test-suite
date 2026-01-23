@@ -805,7 +805,7 @@ public class ViewProviderActions
             else webRelType = null;
 
             Map<String,String> fhirProvRelMap = null;
-            if (OrgRoleType.fromString(webProvRelMap.get("Role of Related Provider")) != null)
+            if (OrgRoleType.resolveRoleType(webProvRelMap.get("Role of Related Provider")) != null)
             {
                 for (Map<String,String> orgRel : fhirOrgRels)
                 {

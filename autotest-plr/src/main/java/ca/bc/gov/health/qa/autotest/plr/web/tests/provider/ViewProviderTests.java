@@ -6,6 +6,7 @@ import static org.testng.Assert.assertTrue;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 
@@ -31,6 +32,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /** Tests class for the View Provider page */
 public class ViewProviderTests implements SimpleTest
@@ -82,7 +84,7 @@ public class ViewProviderTests implements SimpleTest
     public void testDefaultProviderDetail(ProviderType providerType)
     {
         // Providers must have: current records and inactive records
-        final String identifier = defaultProviders.get(providerType).getIdentifier();
+        final String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
@@ -99,7 +101,7 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testIndicatingCurrentDataObj(ProviderType providerType)
     {
-        final String identifier = defaultProviders.get(providerType).getIdentifier();
+        final String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         viewByIdentifier(identifier, workflowManager_);
@@ -113,7 +115,7 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allPlrUserTypesProviderTypes", dataProviderClass = InjectableData.class)
     public void testOptionalDetailScreenViews(UserType userType, ProviderType providerType)
     {
-        final String identifier = defaultProviders.get(providerType).getIdentifier();
+        final String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
@@ -144,7 +146,7 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testRulesCurrentRecords(ProviderType providerType)
     {
-        final String identifier = defaultProviders.get(providerType).getIdentifier();
+        final String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
@@ -172,7 +174,7 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testSortOrder(ProviderType providerType)
     {
-        final String identifier = defaultProviders.get(providerType).getIdentifier();
+        final String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
@@ -208,7 +210,7 @@ public class ViewProviderTests implements SimpleTest
          * After running, ensure these DPS are returned to their original values
          * (likely CGITEST_READWRITE_ALL)
          */
-        final String identifier = minimumProviders.get(providerType).getIdentifier();
+        final String identifier = getIdentifierFromBuilder(minimumProviders, providerType);
 
         // Step 1: Navigate to the View Providers Details Screen by submitting a search
         viewByIdentifier(identifier, workflowManager_);
@@ -223,7 +225,7 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testViewingProviderDetails(ProviderType providerType)
     {
-        final String identifier = defaultProviders.get(providerType).getIdentifier();
+        final String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
 
 
         if (!providerType.equals(ProviderType.ORGANIZATION))

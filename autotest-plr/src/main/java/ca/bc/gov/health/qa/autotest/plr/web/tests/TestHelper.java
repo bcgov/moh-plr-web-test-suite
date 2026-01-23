@@ -1,6 +1,10 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
 import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.ViewProviderActions;
@@ -28,6 +32,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -412,5 +417,21 @@ public final class TestHelper {
         search.openResults(0);
 
         return new ViewProviderPage(workflow.getSeleniumSession());
+    }
+
+    public static String getIdentifierFromBuilder(Map<ProviderType, MaintainRequestBuilder> providerMap, ProviderType providerType)
+    {
+        final IdentifierType ipc = IdentifierType.IPC;
+
+        MaintainOrgBuilder orgBuilder = null;
+        MaintainIndividualBuilder indBuilder = null;
+        switch (providerType)
+        {
+            case ORGANIZATION -> orgBuilder = (MaintainOrgBuilder) providerMap.get(providerType);
+            case BC_PRACTITIONER, OOP_PRACTITIONER -> indBuilder = (MaintainIndividualBuilder) providerMap.get(providerType);
+        }
+        boolean isOrg = !Objects.isNull(orgBuilder);
+
+        return isOrg ? orgBuilder.getIdentifier(ipc) : indBuilder.getIdentifier(ipc);
     }
 }

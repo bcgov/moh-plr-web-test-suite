@@ -111,19 +111,6 @@ public enum IndividualRoleType {
     }
 
     /**
-     * Returns an IndividualRoleType that matches text if it exists, if not null
-     * @param text  the text to match to an IndividualRoleType
-     */
-    public static IndividualRoleType fromString(String text)
-    {
-        for (IndividualRoleType roleType : IndividualRoleType.values())
-        {
-            if (text.equalsIgnoreCase(roleType.getRoleType())) return roleType;
-        }
-        return null;
-    }
-
-    /**
      * Resolves an individual role type from a code string.
      *
      * @param code the role code

@@ -23,12 +23,6 @@ public interface MaintainRequestBuilder {
      */
     PlrFhirResourceType resourceType();
 
-    /**
-     * Returns the base identifier for this builder
-     * @return a string of a default identifier
-     */
-    String getIdentifier();
-
     /*
      * TODO (AZ) - doc
      */
