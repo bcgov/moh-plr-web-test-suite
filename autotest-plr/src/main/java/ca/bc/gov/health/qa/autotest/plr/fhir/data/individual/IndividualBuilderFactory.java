@@ -39,7 +39,7 @@ public class IndividualBuilderFactory {
 
         if (config.isIdentifierEnabled()) {
             Map<IdentifierType,String> ids = new HashMap<>();
-            ids.put(IdentifierType.IPC, dataGen.generateNumericId());
+            ids.put(config.getRoleType().getIdentifierType(), dataGen.generateNumericId());
             b.setIdentifiers(ids);
         }
         if (config.isFamilyNameEnabled()) {
