@@ -6,6 +6,7 @@ import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.*;
@@ -173,7 +174,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
         if (page.grabActiveDataBlockCount(FacilitySection.ORGANIZATION_RELATIONSHIPS, true) == 0)
         {
             MaintainOrgBuilder org = fhirController.createOrganization(new OrganizationMaintainConfig());
-            page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.CPN.getText(),
+            page.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.IPC.getText(),
                     org.getIdentifier(), RelationshipType.LOCATION.getText(), effective_date(), "", false);
         }
 
