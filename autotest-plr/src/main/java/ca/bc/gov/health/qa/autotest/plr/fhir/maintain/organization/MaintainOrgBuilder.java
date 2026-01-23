@@ -370,7 +370,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      * @param confidentiality confidentiality boolean
      * @return this builder
      */
-    public MaintainOrgBuilder confidentiality(boolean confidentiality)
+    public MaintainOrgBuilder confidentiality(Boolean confidentiality)
     {
         confidentiality_ = confidentiality;
         return this;
@@ -715,6 +715,76 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      * @return immutable list of individual relationship maps
      */
     public List<Map<String,String>> getIndividualRelationshipList() { return List.copyOf(individualRelationshipList_); }
+
+    /**
+     * Replaces the address list with the provided list.
+     * @param addressList new list of addresses to set
+     * @return this builder
+     */
+    public MaintainOrgBuilder setAddressList(List<Map<String,String>> addressList) {
+        this.addressList_ = new ArrayList<>(addressList);
+        return this;
+    }
+
+    /**
+     * Replaces the telecom list with the provided list.
+     * @param telecomList new list of telecoms to set
+     * @return this builder
+     */
+    public MaintainOrgBuilder setTelecomList(List<Map<String,String>> telecomList) {
+        this.telecomList_ = new ArrayList<>(telecomList);
+        return this;
+    }
+
+    /**
+     * Replaces the status list with the provided list.
+     * @param statusList new list of statuses to set
+     * @return this builder
+     */
+    public MaintainOrgBuilder setStatusList(List<Map<String,String>> statusList) {
+        this.statusList_ = new ArrayList<>(statusList);
+        return this;
+    }
+
+    /**
+     * Replaces the note list with the provided list.
+     * @param noteList new list of notes to set
+     * @return this builder
+     */
+    public MaintainOrgBuilder setNoteList(List<Map<String,String>> noteList) {
+        this.noteList_ = new ArrayList<>(noteList);
+        return this;
+    }
+
+    /**
+     * Replaces the facility relationship list with the provided list.
+     * @param facilityRelationshipList new list of facility relationships to set
+     * @return this builder
+     */
+    public MaintainOrgBuilder setFacilityRelationshipList(List<Map<String,String>> facilityRelationshipList) {
+        this.facilityRelationshipList_ = new ArrayList<>(facilityRelationshipList);
+        return this;
+    }
+
+    /**
+     * Replaces the organization relationship list with the provided list.
+     * @param organizationRelationshipList new list of organization relationships to set
+     * @return this builder
+     */
+    public MaintainOrgBuilder setOrganizationRelationshipList(List<Map<String,String>> organizationRelationshipList) {
+        this.organizationRelationshipList_ = new ArrayList<>(organizationRelationshipList);
+        return this;
+    }
+
+    /**
+     * Replaces the individual relationship list with the provided list.
+     * @param individualRelationshipList new list of individual relationships to set
+     * @return this builder
+     */
+    public MaintainOrgBuilder setIndividualRelationshipList(List<Map<String,String>> individualRelationshipList) {
+        this.individualRelationshipList_ = new ArrayList<>(individualRelationshipList);
+        return this;
+    }
 
     /**
      * Returns the configured HDS type classification (may be null if not set or role type not HDS).
