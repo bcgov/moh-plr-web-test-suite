@@ -738,12 +738,13 @@ public final class OrgQueryResponseMapper {
 		if (affiliationArray == null) return;
 		for (int i = 0; i < affiliationArray.length(); i++) {
 			JSONObject aff = affiliationArray.optJSONObject(i);
+
 			if (aff == null) continue;
 
-			JSONObject location = aff.optJSONObject("location");
+			JSONArray location = aff.optJSONArray("location");
 			if (location == null) continue;
 
-			JSONObject identifier = location.optJSONObject("identifier");
+			JSONObject identifier = location.optJSONObject(0).optJSONObject("identifier");
 			if (identifier == null) continue;
 
 			String system    = identifier.optString("system", null);

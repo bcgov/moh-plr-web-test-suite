@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
@@ -453,8 +454,10 @@ public class ViewProviderActions
      * Compares the data block records between the webapp and FHIR endpoint response.
      *
      * @param providerType  the provider type of the provider to compare
+     * @param provider      the provider builder (FHIR) to use as a comparison point. can be organization or individual
+     * @param fhir          a FHIRController reference for further queries if necessary
      */
-    public void compareRecords(ProviderType providerType, MaintainRequestBuilder provider) {
+    public void compareRecords(ProviderType providerType, MaintainRequestBuilder provider, FHIRController fhir) {
         ViewProviderPage viewProvider = waitForViewProviderPage();
 
         MaintainOrgBuilder orgProvider = null;
@@ -830,7 +833,23 @@ public class ViewProviderActions
                     "Related Provider Identifier in webapp does not match FHIR response");
         }
 
-        // TODO: Facility Relationships
+        // Facility Relationships
+        if (isOrganization)
+        {
+            for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.FACILITY_RELATIONSHIPS); i++)
+            {
+                Map<String,String> webFacRelMap = viewProvider.grabDataBlockContent(ProviderSection.FACILITY_RELATIONSHIPS, i);
+                Map<String,String> fhirFacRelMap = orgProvider.getFacilityRelationshipList().get(i);
+
+                IdentifierType facilityType = IdentifierType.resolveIdentifierType(fhirFacRelMap.get("type"));
+                MaintainFacilityBuilder facility = fhir.queryFacilityByIdentifier(facilityType, fhirFacRelMap.get("identifier"));
+
+                assertEquals(fhirFacRelMap.get("identifier"), webFacRelMap.get("Related Facility Identifier"),
+                        "Related Facility Identifier in webapp does not match FHIR response");
+                assertEquals(facility.getName(), webFacRelMap.get("Related Facility Name"),
+                        "Related Facility Name in webapp does not match FHIR response");
+            }
+        }
 
         // TODO: Registry User Relationships
 
