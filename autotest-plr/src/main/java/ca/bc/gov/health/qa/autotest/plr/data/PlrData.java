@@ -290,7 +290,8 @@ public class PlrData
             defaultBuilder = defaultBuilder.addIndividualRelationship(
                     IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            defaultOrg = fhir.queryOrganizationByIdentifier(ipc, fhir.submitOrganization(defaultBuilder).getIdentifier(ipc));
+            defaultBuilder = fhir.submitOrganization(defaultBuilder);
+            defaultOrg = fhir.queryOrganizationByIdentifier(ipc, defaultBuilder.getIdentifier(ipc));
         } else defaultOrg = defaultQuery.getFirst();
 
         defaultMap.put(ProviderType.ORGANIZATION, defaultOrg);
