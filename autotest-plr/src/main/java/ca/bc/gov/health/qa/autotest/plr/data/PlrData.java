@@ -168,7 +168,7 @@ public class PlrData
         final MaintainIndividualBuilder defaultBuilder = factory.build(new IndividualMaintainConfig()
                         .withDemographics().withGivenNames().withAllTelecom().withNotes(2).withStatuses(2)
                         .withCredentials(2).withConditions(2).withDisciplinaryActions(2)
-                        .withExpertise(0))
+                        .withExpertise(0).withOrganizationRelationships(2).withIndividualRelationships(2))
                 .familyName(defaultName).roleType(roleType).confidentiality(false)
                 .addExpertise("ENG", dataGen.shortText())
                 .addExpertise("SPAN", dataGen.shortText());
@@ -189,13 +189,6 @@ public class PlrData
         MaintainIndividualBuilder defaultIndiv;
         if (defaultQuery.isEmpty())
         {
-            //
-            String orgRelIdentifier = fhir.createOrganization(OrgRoleType.ORG).getIdentifier(IdentifierType.IPC);
-            defaultBuilder.addOrganizationRelationship(IdentifierType.IPC, orgRelIdentifier, PractitionerRelationshipCode.LOC);
-
-            String indRelIdentifier = fhir.createIndividual(IndividualRoleType.MD).getIdentifier(IdentifierType.IPC);
-            defaultBuilder.addIndividualRelationship(IdentifierType.IPC, indRelIdentifier, PractitionerRelationshipCode.WORKSAT);
-
             defaultIndiv = fhir.queryIndividualByIdentifier(ipc, fhir.submitIndividual(defaultBuilder).getIdentifier(ipc));
         } else defaultIndiv = defaultQuery.getFirst();
 
@@ -237,7 +230,7 @@ public class PlrData
                 .withAddress().withAllTelecom().withNotes(2).withStatuses(2)
                 .withAllOrgProperties(2,2,2,2)
                 .withFacilityRelationships(2)
-                .withOrganizationRelationships(2);
+                .withOrganizationRelationships(2).withIndividualRelationships(2);
         final MaintainOrgBuilder defaultBuilder = factory.build(defaultConfig).confidentiality(false);
 
         // Default
