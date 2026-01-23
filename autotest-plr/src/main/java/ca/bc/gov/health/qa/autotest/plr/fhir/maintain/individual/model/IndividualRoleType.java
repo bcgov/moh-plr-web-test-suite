@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
+
 /**
  * Enumeration of PLR Individual (Practitioner) role type codes used when composing FHIR Practitioner
  * resources in maintain requests. The enum constant name matches the conceptual role while
@@ -95,6 +97,19 @@ public enum IndividualRoleType {
     public String getRoleType()
     {
         return roleType_;
+    }
+
+    /**
+     * Returns an IndividualRoleType that matches text if it exists, if not null
+     * @param text  the text to match to an IndividualRoleType
+     */
+    public static IndividualRoleType fromString(String text)
+    {
+        for (IndividualRoleType roleType : IndividualRoleType.values())
+        {
+            if (text.equalsIgnoreCase(roleType.getRoleType())) return roleType;
+        }
+        return null;
     }
 
     /**

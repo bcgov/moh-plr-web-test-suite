@@ -15,6 +15,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrganizationProperties;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +31,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.json.JSONObject;
+import org.testng.Assert;
 
 /**
  * Actions class for the View Provider page/functions
@@ -782,7 +784,48 @@ public class ViewProviderActions
         assertEquals(fhirConfidentiality, webConfidentiality,
                 "Confidentiality flag does not match FHIR response");
 
-        // TODO: Provider Relationships
+        // Provider Relationships
+        List<Map<String,String>> fhirOrgRels = isOrganization ?
+                orgProvider.getOrganizationRelationshipList() : indivProvider.getOrganizationRelationshipList();
+        List<Map<String,String>> fhirIndRels = isOrganization ?
+                orgProvider.getIndividualRelationshipList() : indivProvider.getIndividualRelationshipList();
+        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS); i++)
+        {
+            Map<String,String> webProvRelMap = viewProvider.grabDataBlockContent(ProviderSection.PROVIDER_RELATIONSHIPS, i);
+
+            String webRelType;
+            Matcher provRelMatcher = DATA_KEY_PARENS_PATTERN.matcher(webProvRelMap.get("Relationship Type"));
+            if (provRelMatcher.find()) webRelType = provRelMatcher.group(1);
+            else webRelType = null;
+
+            Map<String,String> fhirProvRelMap = null;
+            if (OrgRoleType.fromString(webProvRelMap.get("Role of Related Provider")) != null)
+            {
+                for (Map<String,String> orgRel : fhirOrgRels)
+                {
+                    if (orgRel.get("code").equals(webRelType)) {
+                        fhirProvRelMap = orgRel;
+                        break;
+                    }
+                }
+            } else
+            {
+                for (Map<String,String> indRel : fhirIndRels)
+                {
+                    if (indRel.get("code").equals(webRelType)) {
+                        fhirProvRelMap = indRel;
+                        break;
+                    }
+                }
+            }
+
+            if (fhirProvRelMap == null) Assert.fail("Provider Relationship in webapp not found in FHIR response");
+
+            assertEquals(fhirProvRelMap.get("code"), webRelType,
+                    "Provider Relationship Type in webapp does not match FHIR response");
+            assertEquals(fhirProvRelMap.get("identifier"), webProvRelMap.get("Related Provider Identifier"),
+                    "Related Provider Identifier in webapp does not match FHIR response");
+        }
 
         // TODO: Facility Relationships
 

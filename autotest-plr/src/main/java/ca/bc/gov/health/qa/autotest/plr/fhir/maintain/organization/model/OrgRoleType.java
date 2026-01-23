@@ -33,6 +33,19 @@ public enum OrgRoleType {
     }
 
     /**
+     * Returns an OrgRoleType that matches text if it exists, if not null
+     * @param text  the text to match to an OrgRoleType
+     */
+    public static OrgRoleType fromString(String text)
+    {
+        for (OrgRoleType roleType : OrgRoleType.values())
+        {
+            if (text.equalsIgnoreCase(roleType.getRoleType())) return roleType;
+        }
+        return null;
+    }
+
+    /**
      * Resolves an organization role type from a code string.
      *
      * @param code the role code
