@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrganizationProperties;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
@@ -170,8 +171,10 @@ public class ViewProviderActions
 
                 if (result == 0)
                 {
-                    // Compare dates in descending order.
-                    result = TextUtils.compareStringLists(dateList, previousDateList);
+                    // Compare dates in descending order (except if it's an identifier)
+                    if (section.equals(ProviderSection.IDENTIFIERS))
+                        result = TextUtils.compareStringLists(previousDateList, dateList);
+                    else result = TextUtils.compareStringLists(dateList, previousDateList);
                 }
                 if (result > 0)
                 {
@@ -246,12 +249,12 @@ public class ViewProviderActions
             String noRecordsNotice = viewProvider.grabSectionNoRecordsNotice(section);
             if (section.isRequired())
             {
-                LOG.info(section);
                 if (!noPerms || section.equals(ProviderSection.REGISTRY_IDENTIFIERS)) assertNull(noRecordsNotice, "Section contains data.");
                 else assertEquals(noRecordsNotice, "No permissions to view this record.");
             }
             else
             {
+                LOG.info(section);
                 assertTrue(noRecordsNotice.startsWith("There are no "), "No records to display.");
             }
         }
@@ -291,12 +294,13 @@ public class ViewProviderActions
     }
 
     /**
-     * Gets the expected view header title for a view provider page
+     * Gets the expected view header title for a view provider page based on a JSONObject
      *
      * @param providerType  the provider type to model the title after
      * @param provider      the provider JSONObject with expected information
      * @return              the expected view title for the view provider page as a string
      */
+    @Deprecated
     public String getViewTitle(ProviderType providerType, JSONObject provider)
     {
         return switch (providerType) {
@@ -324,14 +328,37 @@ public class ViewProviderActions
         };
     }
 
+    /**
+     * Gets the expected view header title for the view provider page for an organization
+     *
+     * @param org   a MaintainOrgBuilder reference (FHIR) to model the title after
+     * @return      the expected view header title
+     */
     public String getViewTitle(MaintainOrgBuilder org)
     {
         String status = org.getStatusList().getFirst().get("status");
-        status = status.charAt(0) + status.substring(1).toLowerCase();
+        status = " - " + status.charAt(0) + status.substring(1).toLowerCase();
 
         return org.getName() +
-                "(" + org.getIdentifierOwners().get(IdentifierType.ORGID) + ")" +
-                " - " + status;
+                "(" + org.getIdentifierOwners().get(IdentifierType.ORGID) + ")" + status;
+    }
+
+    /**
+     * Gets the expected view header title for the view provider page for an organization
+     *
+     * @param ind   a MaintainIndividualBuilder reference (FHIR) to model the title after
+     * @return      the expected view header title
+     */
+    public String getViewTitle(MaintainIndividualBuilder ind)
+    {
+        String status = ind.getStatusList().getFirst().get("status");
+        status = " - " + status.charAt(0) + status.substring(1).toLowerCase();
+
+
+        String name = ind.getFamilyName() + ", " + ind.getNames()[0];
+        if (!ind.getNames()[1].isEmpty()) name = name + " " + ind.getNames()[1];
+
+        return name + " - " + ind.getIdentifier(IdentifierType.CPN) + "(CDS)" + status;
     }
 
     /**
@@ -367,6 +394,12 @@ public class ViewProviderActions
         for (ProviderSection section : getProviderSectionSet(providerType, userType_))
         {
             if (section.equals(ProviderSection.ROLE_TYPE)) continue;
+
+            //TODO: the following sections should be addressed later when update provider page objects have been developed
+            if (section.equals(ProviderSection.WORK_LOCATIONS)) continue;
+            if (section.equals(ProviderSection.COMMUNICATION_PREFERENCE)) continue;
+            if (section.equals(ProviderSection.REGISTRY_USER_RELATIONSHIPS)) continue;
+
             viewProvider.scrollToSection(section);
             assertTrue(
                     viewProvider.grabSectionDisplayed(section),

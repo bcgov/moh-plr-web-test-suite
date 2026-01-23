@@ -5,13 +5,11 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
+
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
@@ -31,8 +29,8 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
-import java.security.Provider;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Tests class for the View Provider page */
 public class ViewProviderTests implements SimpleTest
@@ -45,8 +43,8 @@ public class ViewProviderTests implements SimpleTest
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
     private FHIRController fhirController;
-    private MaintainOrgBuilder defaultOrg;
-    private MaintainOrgBuilder minimumOrg;
+    private final Map<ProviderType, MaintainRequestBuilder> defaultProviders = new LinkedHashMap<>();
+    private final Map<ProviderType, MaintainRequestBuilder> minimumProviders = new LinkedHashMap<>();
 
     public ViewProviderTests()
     {}
@@ -71,38 +69,12 @@ public class ViewProviderTests implements SimpleTest
     @BeforeTest
     private void beforeTest()
     {
-        final IdentifierType ipc = IdentifierType.IPC;
-        final String defaultOrgName = "TestDefaultOrganization";
-        final String minimumOrgName = "MinimumDataOrganization";
-
-        final OrganizationMaintainConfig defaultConfig = new OrganizationMaintainConfig(OrgRoleType.BUSINESS)
-                .withName(defaultOrgName)
-                .withAddress().withAllTelecom().withNotes(2).withStatuses(2)
-                .withAllOrgProperties(2,2,2,2);
-
         fhirController = new FHIRController(UserType.ADMIN);
 
-        List<MaintainOrgBuilder> defaultOrgQuery = fhirController.queryOrganizationByCriteria(
-                new OrgQueryCriteriaParams().setName(defaultOrgName).setRoleType(OrgRoleType.BUSINESS));
-
-        if (defaultOrgQuery.isEmpty())
-        {
-            defaultOrg = fhirController.createOrganization(defaultConfig);
-            defaultOrg = fhirController.queryOrganizationByIdentifier(ipc, defaultOrg.getIdentifier(ipc));
-            // TODO: change and correct some records so history/audit views are covered
-            // TODO: add work location, provider relationship, and facility relationships when possible
-        } else defaultOrg = defaultOrgQuery.getFirst();
-
-        List<MaintainOrgBuilder> minimumOrgQuery = fhirController.queryOrganizationByCriteria(
-                new OrgQueryCriteriaParams().setName(minimumOrgName).setRoleType(OrgRoleType.ORG));
-
-        if (minimumOrgQuery.isEmpty())
-        {
-            minimumOrg = fhirController.createOrganization(
-                    new OrganizationMaintainConfig(OrgRoleType.ORG).withName(minimumOrgName));
-            minimumOrg = fhirController.queryOrganizationByIdentifier(ipc, minimumOrg.getIdentifier(ipc));
-        }
-        else minimumOrg = minimumOrgQuery.getFirst();
+        // TODO: CHG and CORR some records in these methods for automated history/audit view testing
+        PlrData.setupPractitioner(fhirController, ProviderType.BC_PRACTITIONER, defaultProviders, minimumProviders);
+        PlrData.setupPractitioner(fhirController, ProviderType.OOP_PRACTITIONER, defaultProviders, minimumProviders);
+        PlrData.setupOrgProvider(fhirController, defaultProviders, minimumProviders);
     }
 
     /** View Provider : Default Provider Detail Screen Record Display */
@@ -110,11 +82,7 @@ public class ViewProviderTests implements SimpleTest
     public void testDefaultProviderDetail(ProviderType providerType)
     {
         // Providers must have: current records and inactive records
-        final String identifier;
-        if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
-        else
-            identifier = PlrData.getProvider(providerType, "default").getString("ipc");
+        final String identifier = defaultProviders.get(providerType).getIdentifier();
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
@@ -131,11 +99,7 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testIndicatingCurrentDataObj(ProviderType providerType)
     {
-        final String identifier;
-        if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
-        else
-            identifier = PlrData.getProvider(providerType, "default").getString("ipc");
+        final String identifier = defaultProviders.get(providerType).getIdentifier();
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         viewByIdentifier(identifier, workflowManager_);
@@ -149,11 +113,7 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allPlrUserTypesProviderTypes", dataProviderClass = InjectableData.class)
     public void testOptionalDetailScreenViews(UserType userType, ProviderType providerType)
     {
-        final String identifier;
-        if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
-        else
-            identifier = PlrData.getProvider(providerType, "default").getString("ipc");
+        final String identifier = defaultProviders.get(providerType).getIdentifier();
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
@@ -184,11 +144,7 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testRulesCurrentRecords(ProviderType providerType)
     {
-        final String identifier;
-        if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
-        else
-            identifier = PlrData.getProvider(providerType, "default").getString("ipc");
+        final String identifier = defaultProviders.get(providerType).getIdentifier();
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
@@ -216,11 +172,7 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testSortOrder(ProviderType providerType)
     {
-        final String identifier;
-        if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
-        else
-            identifier = PlrData.getProvider(providerType, "default").getString("ipc");
+        final String identifier = defaultProviders.get(providerType).getIdentifier();
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
@@ -256,10 +208,7 @@ public class ViewProviderTests implements SimpleTest
          * After running, ensure these DPS are returned to their original values
          * (likely CGITEST_READWRITE_ALL)
          */
-        final String identifier;
-        if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = minimumOrg.getIdentifier(IdentifierType.IPC);
-        else identifier = PlrData.getProvider(providerType, "minimum").getString("ipc");
+        final String identifier = minimumProviders.get(providerType).getIdentifier();
 
         // Step 1: Navigate to the View Providers Details Screen by submitting a search
         viewByIdentifier(identifier, workflowManager_);
@@ -274,12 +223,16 @@ public class ViewProviderTests implements SimpleTest
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testViewingProviderDetails(ProviderType providerType)
     {
-        JSONObject provider = PlrData.getProvider(providerType, "default");
-        final String identifier;
-        if (providerType.equals(ProviderType.ORGANIZATION))
-            identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
-        else
-            identifier = PlrData.getProvider(providerType, "default").getString("ipc");
+        final String identifier = defaultProviders.get(providerType).getIdentifier();
+
+
+        if (!providerType.equals(ProviderType.ORGANIZATION))
+        {
+            MaintainIndividualBuilder test;
+            test = (MaintainIndividualBuilder) defaultProviders.get(providerType);
+            LOG.info("here there is ");
+            LOG.info(test.getIdentifierOwners());
+        }
 
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
@@ -289,9 +242,9 @@ public class ViewProviderTests implements SimpleTest
         ViewHeaderFragment viewHeader = page.getViewHeader();
         String webAppTitle;
         if (providerType == ProviderType.ORGANIZATION) {
-            webAppTitle = actions.getViewTitle(defaultOrg);
+            webAppTitle = actions.getViewTitle((MaintainOrgBuilder) defaultProviders.get(providerType));
         } else {
-            webAppTitle = actions.getViewTitle(providerType, provider);
+            webAppTitle = actions.getViewTitle((MaintainIndividualBuilder) defaultProviders.get(providerType));
         }
         assertEquals(viewHeader.grabViewTitle(), webAppTitle,
                 "Provider View Title does not match expected result");

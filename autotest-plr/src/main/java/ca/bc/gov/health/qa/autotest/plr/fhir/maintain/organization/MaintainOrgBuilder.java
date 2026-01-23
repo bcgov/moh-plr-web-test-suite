@@ -390,10 +390,18 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         return this;
     }
 
+    /**
+     * Sets an identifier value for a specific identifier type, and specifies the owner (auxiliary data in query)
+     *
+     * @param identifierType    type of identifier (e.g., IPC, ORGID)
+     * @param identifierValue   identifier string
+     * @param ownerValue        data owner code for identifier, string
+     * @return                  this builder
+     */
     public MaintainOrgBuilder addIdentifier(IdentifierType identifierType, String identifierValue, String ownerValue)
     {
         if (identifierType != null && identifierValue != null) identifiers_.put(identifierType, identifierValue);
-        if (ownerValue != null) identifierOwners_.put(identifierType, ownerValue);
+        if (identifierType != null && ownerValue != null) identifierOwners_.put(identifierType, ownerValue);
         return this;
     }
 

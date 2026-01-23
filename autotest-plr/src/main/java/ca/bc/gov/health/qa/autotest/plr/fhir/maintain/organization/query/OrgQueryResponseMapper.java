@@ -60,6 +60,8 @@ public final class OrgQueryResponseMapper {
 	private static final String CLINIC_PAYEE_NUMBER_URL       = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-payee-number-extension";
 	/** Canonical extension URL for relationship type */
 	private static final String RELATIONSHIP_TYPE_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-relationship-type-extension";
+	/** Canonical extension ULR for data owner code  */
+	private static final String BC_OWNER_EXTENSION_URL		  = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension";
 
 	/** OrganizationAffiliation resourceType constant. */
 	private static final String ORG_AFFILIATION_TYPE = "OrganizationAffiliation";
@@ -69,8 +71,6 @@ public final class OrgQueryResponseMapper {
 
 	/** Organization resourceType constant. */
 	private static final String ORGANIZATION_TYPE = "Organization";
-	/** Canonical extension ULR for */
-	private static final String BC_OWNER_URL				  = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension";
 
 	/**
      * Convert a organization query bundle into a MaintainOrgBuilder.
@@ -245,7 +245,7 @@ public final class OrgQueryResponseMapper {
 
 			String owner = null;
 
-			if (ext.optString("url", null).equals(BC_OWNER_URL))
+			if (ext.optString("url", null).equals(BC_OWNER_EXTENSION_URL))
 			{
 				owner = ext.getJSONObject("valueIdentifier").getJSONObject("assigner")
 						.optString("display", null);
