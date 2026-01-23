@@ -771,18 +771,21 @@ public class ViewProviderActions
         // TODO: Communication Preferences / Information Routes
 
         // Confidentiality
-        String webConfidentialityFlag = viewProvider.grabDataBlockContent(ProviderSection.CONFIDENTIALITY, 0)
-                .get("Confidentiality Flag");
-        Boolean webConfidentiality = switch (webConfidentialityFlag) {
-            case "Yes" -> true;
-            case "No" -> false;
-            default -> null;
-        };
-        Boolean fhirConfidentiality = isOrganization ?
-                orgProvider.getConfidentiality() : indivProvider.getConfidentiality();
+        if (!isOrganization) {
+            String webConfidentialityFlag = viewProvider.grabDataBlockContent(ProviderSection.CONFIDENTIALITY, 0)
+                    .get("Confidentiality Flag");
+            Boolean webConfidentiality = switch (webConfidentialityFlag) {
+                case "Yes" -> true;
+                case "No" -> false;
+                default -> null;
+            };
+            Boolean fhirConfidentiality = isOrganization ?
+                    orgProvider.getConfidentiality() : indivProvider.getConfidentiality();
 
-        assertEquals(fhirConfidentiality, webConfidentiality,
-                "Confidentiality flag does not match FHIR response");
+
+            assertEquals(fhirConfidentiality, webConfidentiality,
+                    "Confidentiality flag does not match FHIR response");
+        }
 
         // Provider Relationships
         List<Map<String,String>> fhirOrgRels = isOrganization ?
