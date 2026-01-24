@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumUtils;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
@@ -100,6 +101,10 @@ extends BasicWebPageFragment
     {
         return selectItem(itemPrefix, true);
     }
+    
+    public void clearItem(String itemPrefix) {
+    	 selectItem(itemPrefix, false);
+	}
 
     /**
      * TODO (AZ) - doc
@@ -186,8 +191,25 @@ extends BasicWebPageFragment
         return item;
     }
 
+    /**
+     * @param item
+     * @return
+     */
     private boolean grabItemSelected(WebElement item)
     {
         return SeleniumUtils.grabElementClassSet(item).contains("ui-state-highlight");
     }
+
+	/**
+	 * @return
+	 */
+	public String clearAllItem() {
+		List<String> itemList = this.grabItemList();
+		for(String exp:itemList ){
+			selectItem(UpdateSimpleHelper.grabPrefix(exp),false);
+		}
+		return null;
+	}
+
+	
 }

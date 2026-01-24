@@ -114,6 +114,10 @@ public class UpdateSimpleHelper {
 		return extractedPart;
 	}
 
+	/**
+	 * @param str
+	 * @return
+	 */
 	public static boolean isStringPositiveInteger(String str) {
 		if (str == null || str.isEmpty()) {
 			return false;
@@ -138,6 +142,21 @@ public class UpdateSimpleHelper {
 		if (StringUtils.isEmpty(name))return "*" ;
 		int cutLength = Math.min(name.length(), length);
         return name.substring(0, cutLength)+"*";
+	}
+	
+	/**
+	 * @param item
+	 * @return
+	 */
+	public static String grabPrefix(String item) {
+		assertFalse(StringUtils.isEmpty(item));
+	
+		int endIndex = item.indexOf('-'); 
+		String extractedPart = item.substring(0, endIndex).strip();
+
+		return extractedPart;
+		
+		
 	}
 
 }

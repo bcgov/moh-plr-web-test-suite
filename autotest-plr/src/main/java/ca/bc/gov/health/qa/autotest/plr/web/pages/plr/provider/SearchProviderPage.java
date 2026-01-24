@@ -285,34 +285,32 @@ extends BasicWebPage
             Collection<String> languagePrefixCollection)
     {
         SearchProviderCriteriaFragment search = expandSearchCriteria(true);
-        if (roleTypePrefix != null)
-        {
-            search.selectRoleType(roleTypePrefix);
-        }
-        if (firstName != null)
-        {
-            search.fillFirstName(firstName);
-        }
-        if (lastName != null)
-        {
-            search.fillLastName(lastName);
-        }
-        if (genderPrefix != null)
-        {
-            search.selectGender(genderPrefix);
-        }
-        if (city != null)
-        {
-            search.fillCity(city);
-        }
-        if (statusCodePrefix != null)
-        {
-            search.selectStatusCode(statusCodePrefix);
-        }
-        if (statusReasonCodePrefix != null)
-        {
-            search.selectStatusReasonCode(statusReasonCodePrefix);
-        }
+		if (roleTypePrefix != null) {
+			search.selectRoleType(roleTypePrefix);
+		} 
+		
+		if (firstName != null) {
+			search.fillFirstName(firstName);
+		} else
+			search.clearFirstName();
+		if (lastName != null) {
+			search.fillLastName(lastName);
+		} else
+			search.clearLastName();
+		if (genderPrefix != null) {
+			search.selectGender(genderPrefix);
+		} 
+		
+		if (city != null) {
+			search.fillCity(city);
+		} else
+			search.clearCity();
+		if (statusCodePrefix != null) {
+			search.selectStatusCode(statusCodePrefix);
+		}
+		if (statusReasonCodePrefix != null) {
+			search.selectStatusReasonCode(statusReasonCodePrefix);
+		}
         if (expertisePrefixCollection != null)
         {
             for (String expertisePrefix : expertisePrefixCollection)
@@ -371,15 +369,17 @@ extends BasicWebPage
             String identifierTypePrefix,
             String providerId,boolean expectResultFragment)
     {
-        SearchProviderIdFragment search = expandSearchIdentifier(true);
-        search.selectIdentifierType(identifierTypePrefix);
-        if(providerId!=null)
-        	search.fillProviderId(providerId);
-        else search.clearProviderId();
-        search.clickSearchButton();
-        if(expectResultFragment)
-        return waitForSearchProviderResultsFragment();
-        else return null;
+		SearchProviderIdFragment search = expandSearchIdentifier(true);
+		search.selectIdentifierType(identifierTypePrefix);
+		if (providerId != null)
+			search.fillProviderId(providerId);
+		else
+			search.clearProviderId();
+		search.clickSearchButton();
+		if (expectResultFragment)
+			return waitForSearchProviderResultsFragment();
+		else
+			return null;
     }
 
     /**
@@ -428,15 +428,16 @@ extends BasicWebPage
     {
         SearchProviderRegistryIdFragment search = expandSearchRegistryIdentifier(true);
         search.selectRegistryIdentifierType(registryIdentifierTypePrefix);
-        if(registryId!=null)
-        search.fillRegistryId(registryId);
-        else  search.clearRegistryId();
-        if (registryIdSuffix != null)
-        {
-            search.fillRegistryIdSuffix(registryIdSuffix);
-        };
-        search.clickSearchButton();
-        return waitForSearchProviderResultsFragment();
+		if (registryId != null)
+			search.fillRegistryId(registryId);
+		else
+			search.clearRegistryId();
+		if (registryIdSuffix != null) {
+			search.fillRegistryIdSuffix(registryIdSuffix);
+		}
+		;
+		search.clickSearchButton();
+		return waitForSearchProviderResultsFragment();
     }
     
     /**
@@ -450,15 +451,16 @@ extends BasicWebPage
             String registryIdentifierTypePrefix,
             String registryId,
             String registryIdSuffix, boolean expectResultsFragment)
-    {
-        SearchProviderRegistryIdFragment search = expandSearchRegistryIdentifier(true);
-        search.selectRegistryIdentifierType(registryIdentifierTypePrefix);
-        if(registryId!=null)
-        search.fillRegistryId(registryId);
-        if (registryIdSuffix != null)
-        {
-            search.fillRegistryIdSuffix(registryIdSuffix);
-        }
+	{
+		SearchProviderRegistryIdFragment search = expandSearchRegistryIdentifier(true);
+		search.selectRegistryIdentifierType(registryIdentifierTypePrefix);
+		if (registryId != null)
+			search.fillRegistryId(registryId);
+		else
+			search.clearRegistryId();
+		if (registryIdSuffix != null) {
+			search.fillRegistryIdSuffix(registryIdSuffix);
+		}
         search.clickSearchButton();
         if(expectResultsFragment)
         return waitForSearchProviderResultsFragment();
@@ -646,25 +648,65 @@ extends BasicWebPage
     }
 
 	public String grabPageErrorMessage() {
-		
-		String alertMsgCss = "span.ui-messages-error-summary";
-		String msgDisplay="";
-		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
-		for (WebElement alertMsg:alertMsgList) {
-			msgDisplay =msgDisplay+ alertMsg.getText();
-		}
-		return msgDisplay;
-	}
-	
-public String grabWarningErrorMessage() {
-		
-		String alertMsgCss = "span.ui-messages-warn-summary";
-		String msgDisplay="";
-		WebElement alertMsg = selenium_.findElement(By.cssSelector(alertMsgCss));
-		if (alertMsg.isDisplayed()) {
-			msgDisplay = alertMsg.getText();
 
+		String alertMsgCss = "span.ui-messages-error-summary";
+		String msgDisplay = "";
+		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
+		for (WebElement alertMsg : alertMsgList) {
+			msgDisplay = msgDisplay + alertMsg.getText();
 		}
 		return msgDisplay;
 	}
+
+	public String grabWarningErrorMessage() {
+
+		String alertMsgCss = "span.ui-messages-warn-summary";
+		String msgDisplay = "";
+		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
+		for (WebElement alertMsg : alertMsgList) {
+			msgDisplay = msgDisplay + alertMsg.getText();
+		}
+		return msgDisplay;
+	}
+
+	/**
+	 * clear All Exprtise
+	 */
+	public void clearAllExprtise() {
+		SearchProviderCriteriaFragment search = expandSearchCriteria(true);
+		search.clearAllExpertise();
+
+	}
+
+	/**
+	 * @param expertisePrefixCollection
+	 */
+	public void clearExprtise(List<String> expertisePrefixCollection) {
+		SearchProviderCriteriaFragment search = expandSearchCriteria(true);
+		if (expertisePrefixCollection != null) {
+			for (String expertisePrefix : expertisePrefixCollection) {
+				if (expertisePrefix != null) {
+					search.clearExpertise(expertisePrefix);
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * clear Gender
+	 */
+	public void clearGender() {
+		SearchProviderCriteriaFragment search = expandSearchCriteria(true);
+		search.clearGender();
+	}
+
+	/**
+	 * clear Role Type
+	 */
+	public void clearRoleType() {
+		SearchProviderCriteriaFragment search = expandSearchCriteria(true);
+		search.clearRoleType();
+	}
+
 }

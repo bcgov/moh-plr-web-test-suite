@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -87,6 +88,12 @@ extends SearchSectionFragment
         }
         waitForCityPanelVisible(false);
     }
+    
+    
+    public void clearCity() {
+    	WebElement element=selenium_.findElementByCss(CITY_FIELD_CSS);
+   	 element.clear();
+    }
 
     /**
      * TODO (AZ) - doc
@@ -97,6 +104,12 @@ extends SearchSectionFragment
     public void fillFirstName(String firstName)
     {
         selenium_.fillFieldByCss(FIRST_NAME_FIELD_CSS, firstName);
+    }
+    
+    public void clearFirstName()
+    {
+    	 WebElement element=selenium_.findElementByCss(FIRST_NAME_FIELD_CSS);
+    	 element.clear();
     }
 
     /**
@@ -109,6 +122,11 @@ extends SearchSectionFragment
     {
         selenium_.fillFieldByCss(LAST_NAME_FIELD_CSS, lastName);
     }
+    
+    public void clearLastName(){
+    	WebElement element=selenium_.findElementByCss(LAST_NAME_FIELD_CSS);
+   	 element.clear();
+    }
 
     /**
      * TODO (AZ) - doc
@@ -117,7 +135,9 @@ extends SearchSectionFragment
      */
     public ListBoxMenu getExpertiseMenu()
     {
-        return new ListBoxMenu(selenium_, By.cssSelector(EXPERTISE_MENU_CSS));
+    	 return new ListBoxMenu(
+                 selenium_,
+                 By.cssSelector("div#accordian\\:searchByCriteriaForm\\:expertise"));
     }
 
     /**
@@ -197,6 +217,22 @@ extends SearchSectionFragment
     {
         return getExpertiseMenu().selectItem(expertisePrefix);
     }
+    
+    
+    /**
+     * @return
+     */
+    public String clearAllExpertise()
+    {
+        return getExpertiseMenu().clearAllItem();
+    }
+    
+    /**
+     * @param expertisePrefix
+     */
+    public void clearExpertise(String expertisePrefix) {
+    	 getExpertiseMenu().clearItem(expertisePrefix);
+	}
 
     /**
      * TODO (AZ) - doc
@@ -209,6 +245,12 @@ extends SearchSectionFragment
     public String selectGender(String genderPrefix)
     {
         return getGenderMenu().selectItem(genderPrefix);
+    }
+    
+    public void clearGender()
+    {
+        if(!getGenderMenu().grabSelectedItem().equals("Select One"))
+        		getGenderMenu().selectItem("Select One");
     }
 
     /**
@@ -238,8 +280,24 @@ extends SearchSectionFragment
         WebElement expertiseMenu =
                 selenium_.findElement(By.cssSelector(EXPERTISE_MENU_CSS));
         String selectedItem = getRoleTypeMenu().selectItem(roleTypePrefix);
-        selenium_.waitUntil(ExpectedConditions.stalenessOf(expertiseMenu));
+		try {
+			selenium_.waitUntil(ExpectedConditions.stalenessOf(expertiseMenu));
+		} catch (org.openqa.selenium.TimeoutException e) {
+
+		}
         return selectedItem;
+    }
+    
+    public void clearRoleType() {
+    	
+    	 WebElement expertiseMenu =
+                 selenium_.findElement(By.cssSelector(EXPERTISE_MENU_CSS));
+         String selectedItem = getRoleTypeMenu().selectItem("Select One");
+         try {
+ 			selenium_.waitUntil(ExpectedConditions.stalenessOf(expertiseMenu));
+ 		} catch (org.openqa.selenium.TimeoutException e) {
+
+ 		}
     }
 
     /**
@@ -297,4 +355,6 @@ extends SearchSectionFragment
             selenium_.waitUntil(ExpectedConditions.invisibilityOf(cityPanel));
         }
     }
+
+	
 }
