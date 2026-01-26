@@ -3,18 +3,24 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Ordering;
 
+import ca.bc.gov.health.qa.autotest.core.util.config.Config;
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
@@ -42,21 +48,22 @@ public class SearchProviderTests implements SimpleTest {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
 	private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
-
-	String errorMsgName = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Name'. Your transaction has not been processed. Correct and resubmit.";
-	String errorMsgOrgRoleType = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Organizational Provider Role Type'. Your transaction has not been processed. Correct and resubmit.";
-	String errorMsgProiderID = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Provider ID'. Your transaction has not been processed. Correct and resubmit.";
-	String errorMsgCPNIPC = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transactionGRS. The following fields must be supplied: 'CPN or IPC'. Your transaction has not been processed. Correct and resubmit.";
-	String errorMsgIdType = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Identifier Type'. Your transaction has not been processed. Correct and resubmit.";
-	String errorMsgRegIdType = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Registry Identifier Type'. Your transaction has not been processed. Correct and resubmit.";
-	String errorMsgRegIdValue = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Registry Identifier Value'. Your transaction has not been processed. Correct and resubmit.";
-	String errorMsgCPSID = "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'College ID or MPID'. Your transaction has not been processed. Correct and resubmit.";
-
-	String errorEntryError = "Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Name or Description or Address Line 1 or City'";
-	String warningMaxResult = "Maximum search results returned. Please refine your search criteria.";
-	String errorMissingData="Missing mandatory search data: please provide First Name and Last Name or one of City, Expertise and Language.";
-
+	private static final Config config_ = ConfigProvider.get().getConfig();
+    private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
+    private static JSONObject errorList,warningList;
+    
 	private SearchProviderTests() {
+		
+		try
+        {
+            errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
+            warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
+        }
+        catch (IOException e)
+        {
+            String msg = String.format("Failed to read JSON data (%s).", errorPath);
+            throw new IllegalStateException(msg, e);
+        }
 	}
 
 	static final int SEARCH_PROVIDER_MAX_RESULTS = 20;
@@ -293,6 +300,7 @@ public class SearchProviderTests implements SimpleTest {
 	// Search - Individual Provider
 	@Test(groups = { "SearchProvider" })
 	public void testSearchIndividualProvider() {
+		final String errorMissingData = errorList.getString("errorMissingData");
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
@@ -354,6 +362,10 @@ public class SearchProviderTests implements SimpleTest {
 	// Search - Minimum Data
 	@Test(groups = { "SearchProvider" })
 	public void testSearchMinimumData() {
+		final String errorMsgProiderID=errorList.getString("errorMsgProiderID");
+		final String errorMsgRegIdValue=errorList.getString("errorMsgRegIdValue");
+		final String errorMsgIdType=errorList.getString("errorMsgIdType");
+		final String errorMsgRegIdType=errorList.getString("errorMsgRegIdType");
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
@@ -401,7 +413,7 @@ public class SearchProviderTests implements SimpleTest {
 	// Search - Organization Provider
 	@Test(groups = { "SearchProvider" })
 	public void testSearchOrganizationProvider() {
-
+		final String errorEntryError=errorList.getString("errorEntryError");
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
@@ -443,7 +455,7 @@ public class SearchProviderTests implements SimpleTest {
 	// Search - Search Results Limit
 	@Test(groups = { "SearchProvider" })
 	public void testSearchResultsLimit() {
-
+	    final String warningMaxResult = warningList.getString("maximumResults");
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
