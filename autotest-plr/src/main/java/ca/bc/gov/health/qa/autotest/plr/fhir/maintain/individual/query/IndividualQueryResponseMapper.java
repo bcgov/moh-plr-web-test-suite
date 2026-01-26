@@ -47,6 +47,8 @@ public final class IndividualQueryResponseMapper {
 	private static final String RELATIONSHIP_TYPE_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-relationship-type-extension";
 	/** Canonical extension URL for practitioner-to-practitioner relationships */
 	private static final String PRACTITIONER_RELATIONSHIP_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-practitioner-relationship-extension";
+	/** Canonical extension ULR for data owner code  */
+	private static final String BC_OWNER_EXTENSION_URL		 = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension";
 
 	/** PractitionerRole resourceType constant. */
 	private static final String PRACTITIONER_ROLE_TYPE = "PractitionerRole";
@@ -245,6 +247,16 @@ public final class IndividualQueryResponseMapper {
         
 		for (int i = 0; i < identifiers.length(); i++) {
 			JSONObject id = identifiers.optJSONObject(i);
+			JSONObject ext = id.getJSONArray("extension").getJSONObject(0);
+
+			String owner = null;
+
+			if (ext.optString("url", null).equals(BC_OWNER_EXTENSION_URL))
+			{
+				owner = ext.getJSONObject("valueIdentifier").getJSONObject("assigner")
+						.optString("display", null);
+			} else continue;
+
 			String system = id.optString("system", null);
 			String value = id.optString("value", null);
 
@@ -253,7 +265,7 @@ public final class IndividualQueryResponseMapper {
 			// Store all recognized identifier types into the builder
 			for (IdentifierType t : IdentifierType.values()) {
 				if (t.getSourceSystem().equals(system)) {
-					b.addIdentifier(t, value);
+					b.addIdentifier(t, value, owner);
 					break;
 				}
 			}

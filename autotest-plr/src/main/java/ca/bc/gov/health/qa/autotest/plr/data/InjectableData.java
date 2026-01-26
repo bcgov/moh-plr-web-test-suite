@@ -3,6 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import org.testng.annotations.DataProvider;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
@@ -47,13 +48,13 @@ public class InjectableData
         }
         return toArray(data);
     }
-    
-    @DataProvider(name = "facilityTestUserTypes")
+
     /**
      * Provides a matrix of user types for facility tests.
      *
      * @return a two-dimensional array of test parameters
      */
+    @DataProvider(name = "facilityTestUserTypes")
     public static Object[][] getFacilityTestUserTypes()
     {
         List<Object[]> data = new ArrayList<>();

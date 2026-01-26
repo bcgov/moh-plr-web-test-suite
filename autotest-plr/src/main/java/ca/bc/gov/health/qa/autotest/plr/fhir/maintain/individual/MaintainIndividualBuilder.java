@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Identifier;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -38,6 +40,7 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
     private String                     familyName_             = null;
     private String[]                   names_                  = null; //Array with format [firstName, middleName, thirdName]
     private Map<IdentifierType,String> identifiers_            = new HashMap<>();
+    private Map<IdentifierType,String> identifierOwners_       = new HashMap<>();
     private Map<String,String>         demographics_           = null; //date of birth, date of death, birth country, birth province, gender 
     private List<Map<String,String>>   expertiseList_          = new ArrayList<>();
     private List<Map<String,String>>   noteList_               = new ArrayList<>();
@@ -270,6 +273,21 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
         if (identifierType != null && identifierValue != null) {
             identifiers_.put(identifierType, identifierValue);
         }
+        return this;
+    }
+
+    /**
+     * Sets an identifier value for a specific identifier type, and specifies the owner (auxiliary data in query)
+     *
+     * @param idType        type of identifier (e.g., IPC, ORGID)
+     * @param idValue       identifier string
+     * @param ownerValue    data owner code for identifier, string
+     * @return              this builder
+     */
+    public MaintainIndividualBuilder addIdentifier(IdentifierType idType, String idValue, String ownerValue)
+    {
+        if (idType != null && idValue != null) identifiers_.put(idType, idValue);
+        if (idType != null && ownerValue != null) identifierOwners_.put(idType, ownerValue);
         return this;
     }
 
@@ -650,7 +668,16 @@ public class MaintainIndividualBuilder implements MaintainRequestBuilder
      * @return map copy of identifier values keyed by type
      */
     public Map<IdentifierType,String> getIdentifiers() { return Map.copyOf(identifiers_); }
-    
+
+    /**
+     * Returns an immutable snapshot of owner of identifiers. (auxiliary data only used by query)
+     * @return  map copy of identifier owner values keyed by type
+     */
+    public Map<IdentifierType,String> getIdentifierOwners() { return Map.copyOf(identifierOwners_); }
+
+    @Deprecated
+    public String getIdentifier() { return getIdentifier(IdentifierType.IPC); }
+
     /**
      * Returns the identifier value for the specified identifier type (or null if not present).
      * @param type identifier type enum

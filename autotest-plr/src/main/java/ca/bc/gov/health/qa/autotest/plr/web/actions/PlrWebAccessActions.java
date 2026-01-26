@@ -80,6 +80,8 @@ public class PlrWebAccessActions
         home.waitForReady();
         LOG.info("Application version ({}).", home.grabApplicationVersion());
         home.openPlr();
+        selenium_.bringToFront();
+        selenium_.getDriver().manage().window().maximize();
         return waitForSearchProviderPage();
     }
 

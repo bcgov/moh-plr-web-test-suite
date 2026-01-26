@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TODO (AZ) - doc
+ * Utility holder for provider section data field ordering and keys.
  */
 public class ProviderDataFields
 {
@@ -16,6 +16,7 @@ public class ProviderDataFields
         Map<ProviderSection,List<String>> map = new EnumMap<>(ProviderSection.class);
         map.put(ProviderSection.REGISTRY_IDENTIFIERS,        List.of("Type"));
         map.put(ProviderSection.IDENTIFIERS,                 List.of("Type"));
+        map.put(ProviderSection.ROLE_TYPE,                   List.of());
         map.put(ProviderSection.STATUSES,                    List.of());
         map.put(ProviderSection.EXPERTISE,                   List.of("Type"));
         map.put(ProviderSection.CREDENTIALS,                 List.of("Credential Type"));
@@ -29,13 +30,13 @@ public class ProviderDataFields
         map.put(ProviderSection.WORK_LOCATIONS,              List.of("Identifier"));
         map.put(ProviderSection.CONDITIONS,                  List.of("Type"));
         map.put(ProviderSection.DISCIPLINARY_ACTIONS,        List.of("Identifier"));
-        map.put(ProviderSection.COMMUNICATION_PREFERENCE,    List.of("Content Type"));
-        map.put(ProviderSection.CONFIDENTIALITY,             List.of());
-        map.put(ProviderSection.PROVIDER_RELATIONSHIPS,      List.of("Relationship Type"));
+        map.put(ProviderSection.COMMUNICATION_PREFERENCE,    List.of()); // Only DB Created
+        map.put(ProviderSection.CONFIDENTIALITY,             List.of()); // Only 1 data block can exist
+        map.put(ProviderSection.PROVIDER_RELATIONSHIPS,      List.of("Related Provider Identifier", "Relationship Type"));
         map.put(ProviderSection.FACILITY_RELATIONSHIPS,      List.of("Relationship Type"));
         map.put(ProviderSection.REGISTRY_USER_RELATIONSHIPS, List.of("Type"));
         map.put(ProviderSection.NOTES,                       List.of("Note Identifier"));
-        map.put(ProviderSection.ORGANIZATION_PROPERTIES,     List.of());
+        map.put(ProviderSection.ORGANIZATION_PROPERTIES,     List.of()); // PRPTY Business Key, not visible on site
         SORT_KEY_MAP = Collections.unmodifiableMap(map);
     }
 
@@ -55,7 +56,6 @@ public class ProviderDataFields
         map.put(ProviderSection.IDENTIFIERS, List.of(
                 "Identifier",
                 "Type",
-                "Role Type",
                 "Hds Type",
                 "Effective From",
                 "Effective To",
@@ -64,6 +64,9 @@ public class ProviderDataFields
                 "DB Created",
                 "DB Expired",
                 "Data Owner Code"));
+        map.put(ProviderSection.ROLE_TYPE, List.of(
+           "Role Type"
+        ));
         map.put(ProviderSection.STATUSES, List.of(
                 "Type",
                 "Class",
@@ -303,12 +306,10 @@ public class ProviderDataFields
     {}
 
     /**
-     * TODO (AZ) - doc
+     * Gets a list of field names for a particular provider section
      *
-     * @param section
-     *        ???
-     *
-     * @return ???
+     * @param section   the provider section to retrieve a list of inner data field names for
+     * @return          the list of field names for the provider section specified
      */
     public static List<String> getFieldNameList(ProviderSection section)
     {
@@ -316,12 +317,10 @@ public class ProviderDataFields
     }
 
     /**
-     * TODO (AZ) - doc
+     * Returns the sort order key list for a provider section.
      *
-     * @param section
-     *        ???
-     *
-     * @return ???
+     * @param section   the facility section enum
+     * @return          list of field keys used for ordering
      */
     public static List<String> getSortKey(ProviderSection section)
     {

@@ -46,7 +46,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		super(selenium, By.cssSelector("span#facilityDetailsGroup"), "View Facility Details", uri);
 		viewHeader_ = new ViewHeaderFragment(selenium);
 	}
-	
+
 	//public void refreshPage() { selenium_.getDriver().navigate().refresh(); }
 
 	public void maxWindow() {
@@ -55,9 +55,9 @@ public class ViewFacilityPage extends BasicWebPage {
 
 
     /**
-     * expand All data blocks
+     * Expand All data blocks
      *
-     * @param expand
+     * @param expand	whether to expand (true) or collapse (false) all data blocks
      */
 	public void expandAll(boolean expand) {
 		viewHeader_.expandAll(expand);
@@ -133,7 +133,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return getDataBlockSelector(section, index) + "> div.ui-panel-content";
 	}
 
-	
+
 
 	/**
 	 * Finds the content panel for a specific "data block" in a facility section
@@ -147,7 +147,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return selenium_.findElementByCss(getDataBlockContentSelector(section, index));
 	}
 
-	
+
 	/**
 	 * Determines whether a specific "data block"'s content panel in a facility
 	 * section is displayed or not
@@ -288,7 +288,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return headerTitle.getText();
 	}
 
-	
+
 
     /**
      * Removes the colon and parentheses from data fields for easier reference
@@ -333,7 +333,7 @@ public class ViewFacilityPage extends BasicWebPage {
      * @param section               the facility section to get content from
      * @param index                 the index of block within the facility section to get content from
      * @param dataMap               the hash map to fill with data block fields/associated values
-     * @param dataRowElementList
+     * @param dataRowElementList	a list of web elements of each row of data block fields.
      * @return                      a hash map mapping data block fields (String) to its associated values (String)
      */
 	public LinkedHashMap<String, String> grabBlockContent(FacilitySection section, int index,
@@ -368,7 +368,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		dataMap.put(formatDataKey(dataEntryList.get(index).findElement(By.cssSelector("td")).getText()),
 				dataEntryList.get(index + 1).findElement(By.cssSelector("td")).getText());
 	}
-	
+
 	private void addFieldDataMapSplit(LinkedHashMap<String, String> dataMap, List<WebElement> dataEntryList, int index) {
 		String[] provParts=dataEntryList.get(index).findElement(By.cssSelector("td")).getText().split(":");
 		String[] countyParts=dataEntryList.get(index + 1).findElement(By.cssSelector("td")).getText().split(":");
@@ -396,7 +396,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	/**
 	 * Scroll To Section
 	 *
-	 * @param section
+	 * @param section	the FacilitySection to scroll to
 	 * 
 	 */
 	public void scrollToSection(FacilitySection section) {
@@ -404,13 +404,14 @@ public class ViewFacilityPage extends BasicWebPage {
 		selenium_.scrollIntoView(selenium_.findElementByCss(getSectionSelector(section)));
 	}
 
-	
+
 
 	/**
-	 * get section displayed
+	 * Gets whether a facility section is displayed (true) or not (false)
 	 *
-	 * @param section
-	 * 
+	 * @param section   the facility section to check
+	 *
+	 * @return          whether the provider section is visible (true) or not (false)
 	 */
 	public boolean grabSectionDisplayed(FacilitySection section) {
 		return selenium_.grabElementVisibleByCss(getSectionSelector(section));
@@ -439,7 +440,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return count;
 	}
 
-	
+
 	/**
 	 * check data block active or not *
 	 * 
@@ -464,7 +465,7 @@ public class ViewFacilityPage extends BasicWebPage {
 		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions > span > img[title='Active']";
 	}
 
-	
+
 
 	private LinkedHashMap<String, String> grabCivicAddressBlockContent(LinkedHashMap<String, String> dataMap,
 			List<WebElement> dataRowElementList) {
@@ -487,7 +488,7 @@ public class ViewFacilityPage extends BasicWebPage {
 				addFieldDataMapSplit(dataMap, dataEntryList.getFirst().findElements(By.cssSelector("td" + TABLE_ROWS_SELECTOR)),
 						0);
 			}else {
-			
+
 				String msg = String.format("Invalid data row (%d: %s).", dataColumnCount, dataRow.getText());
 				throw new IllegalStateException(msg);
 			}

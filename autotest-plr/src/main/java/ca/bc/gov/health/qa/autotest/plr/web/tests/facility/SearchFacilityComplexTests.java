@@ -32,6 +32,7 @@ import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.searchByIdentifier;
 import static org.testng.Assert.*;
 
+/** Tests class (complex) for the Search Facility page */
 public class SearchFacilityComplexTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
@@ -45,7 +46,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
-    public SearchFacilityComplexTests() {
+    private SearchFacilityComplexTests() {
         try
         {
             warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
@@ -58,7 +59,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
     }
 
     @AfterClass
-    public void teardown() {
+    private void teardown() {
         fhirController.close();
 
         workflowManager_.logoutAllAndClose();
@@ -66,7 +67,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
     }
 
     @BeforeTest
-    public void beforeTest() {
+    private void beforeTest() {
         fhirController = new FHIRController(UserType.ADMIN);
 
         FacilityMaintainConfig dummyCfg = new FacilityMaintainConfig();
@@ -75,7 +76,7 @@ public class SearchFacilityComplexTests implements SimpleTest {
     }
 
     @BeforeMethod
-    public void before(Object[] parameters)
+    private void before(Object[] parameters)
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn())
@@ -84,8 +85,8 @@ public class SearchFacilityComplexTests implements SimpleTest {
         }
     }
 
+    /** F1-010. Facility Search Rules */
     @Test
-    // F1-010. Facility Search Rules
     public void testFacilitySearchRules()
     {
         final SearchFacilityActions actions = workflowManager_.getSelectedWorkflow().getSearchFacilityActions();
@@ -138,8 +139,8 @@ public class SearchFacilityComplexTests implements SimpleTest {
         }
     }
 
+    /** F1-012. Alphabetical Sorting of Facility Search Results */
     @Test
-    // F1-012. Alphabetical Sorting of Facility Search Results
     public void testAlphabeticalSorting()
     {
         final String uniqueSuffix = generateAlphabetString(5);
@@ -188,8 +189,8 @@ public class SearchFacilityComplexTests implements SimpleTest {
                 "Returned search results and sorted search results do not match.");
     }
 
+    /** F1-015. Maximum Search Results */
     @Test
-    // F1-015. Maximum Search Results
     public void testMaximumResults()
     {
         /* TODO: very costly - a fhir endpoint query for criteria would save a lot on unnecessary facility creation
@@ -214,8 +215,8 @@ public class SearchFacilityComplexTests implements SimpleTest {
                 "Form result does not match expected maximum search results.");
     }
 
+    /** F1-016. Search Results Limited By Data Permissions */
     @Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class)
-    // F1-016. Search Results Limited By Data Permissions
     public void testDataPermissions(UserType userType)
     {
         final List<String> queryFields = Arrays.asList("IFC", dummyFacility.getIdentifier());
