@@ -34,6 +34,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
     private String                     alias_           = null;
     private Boolean                    confidentiality_ = null;
     private Map<IdentifierType,String> identifiers_    = new HashMap<>();
+    private Map<IdentifierType,String> identifierOwners_ = new HashMap<>();
     private String                     name_            = null;
     private List<Map<String,String>>   noteList_        = new ArrayList<>();
     private OrgRoleType                roleType_        = null; // must be explicitly set
@@ -267,16 +268,16 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
 
         // For each facility relationship create a distinct OrganizationAffiliation bundle entry
         JSONArray bundleEntryArray = accessor.getEntryArrayJson();
-        
+
         // Create organization info map for the OrganizationAffiliation
         if (firstIdentifierValue != null && firstIdentifierType != null) {
             Map<String,String> orgInfo = new HashMap<>();
             orgInfo.put("type", firstIdentifierType.getSourceSystem());
             orgInfo.put("identifier", firstIdentifierValue);
-            
+
             // For each facility relationship create a distinct OrganizationAffiliation bundle entry
-            
-            for (Map<String,String> facilityInfo : facilityRelationshipList_) 
+
+            for (Map<String,String> facilityInfo : facilityRelationshipList_)
             {
                 String facilityIdentifier = facilityInfo.get("identifier");
                 if (ceaseRelationships_) {
@@ -285,7 +286,7 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
                     bundleEntryArray.put(MaintainUtils.createFacilityOrgAffiliation(orgInfo, facilityIdentifier));
                 }
             }
-            
+
             // For each organization relationship create a distinct OrganizationAffiliation bundle entry
             for (Map<String,String> relatedOrgInfo : organizationRelationshipList_)
             {
@@ -386,6 +387,21 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         if (identifierType != null && identifierValue != null) {
             identifiers_.put(identifierType, identifierValue);
         }
+        return this;
+    }
+
+    /**
+     * Sets an identifier value for a specific identifier type, and specifies the owner (auxiliary data in query)
+     *
+     * @param identifierType    type of identifier (e.g., IPC, ORGID)
+     * @param identifierValue   identifier string
+     * @param ownerValue        data owner code for identifier, string
+     * @return                  this builder
+     */
+    public MaintainOrgBuilder addIdentifier(IdentifierType identifierType, String identifierValue, String ownerValue)
+    {
+        if (identifierType != null && identifierValue != null) identifiers_.put(identifierType, identifierValue);
+        if (identifierType != null && ownerValue != null) identifierOwners_.put(identifierType, ownerValue);
         return this;
     }
 
@@ -628,7 +644,13 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
      */
     public Map<IdentifierType,String> getIdentifiers() { return Map.copyOf(identifiers_); }
 
-	/**
+    /**
+     * Returns an immutable snapshot of owner of identifiers. (auxiliary data only used by query)
+     * @return  map copy of identifier owner values keyed by type
+     */
+    public Map<IdentifierType,String> getIdentifierOwners() { return Map.copyOf(identifierOwners_); }
+
+    /**
      * Organization name configured.
      * @return name value or null if not provided
      */
@@ -791,35 +813,35 @@ public class MaintainOrgBuilder implements MaintainRequestBuilder
         copy.roleType_ = this.roleType_;
         copy.hdsType_ = this.hdsType_;
         copy.orgProperties_ = this.orgProperties_;
-        
+
         // Deep copy identifiers
         copy.identifiers_ = new HashMap<>(this.identifiers_);
-        
+
         // Deep copy address list
         for (Map<String,String> address : this.addressList_) {
             copy.addressList_.add(new HashMap<>(address));
         }
-        
+
         // Deep copy telecom list
         for (Map<String,String> telecom : this.telecomList_) {
             copy.telecomList_.add(new HashMap<>(telecom));
         }
-        
+
         // Deep copy status list
         for (Map<String,String> status : this.statusList_) {
             copy.statusList_.add(new HashMap<>(status));
         }
-        
+
         // Deep copy notes
         for (Map<String,String> note : this.noteList_) {
             copy.noteList_.add(new HashMap<>(note));
         }
-        
+
         // facilityRelationshipList_ intentionally left empty
         // Future P2P and O2F relationship lists also left empty
         copy.ceaseRelationships_ = false; // explicit
-        
+
         return copy;
     }
-    
+
 }

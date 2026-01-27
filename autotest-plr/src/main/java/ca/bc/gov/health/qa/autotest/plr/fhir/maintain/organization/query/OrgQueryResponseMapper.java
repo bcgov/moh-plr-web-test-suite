@@ -60,6 +60,8 @@ public final class OrgQueryResponseMapper {
 	private static final String CLINIC_PAYEE_NUMBER_URL       = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-organization-clinic-payee-number-extension";
 	/** Canonical extension URL for relationship type */
 	private static final String RELATIONSHIP_TYPE_EXTENSION_URL = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-relationship-type-extension";
+	/** Canonical extension ULR for data owner code  */
+	private static final String BC_OWNER_EXTENSION_URL		  = "http://hlth.gov.bc.ca/fhir/provider/StructureDefinition/bc-owner-extension";
 
 	/** OrganizationAffiliation resourceType constant. */
 	private static final String ORG_AFFILIATION_TYPE = "OrganizationAffiliation";
@@ -235,10 +237,19 @@ public final class OrgQueryResponseMapper {
 	private static void mapIdentifiers(JSONObject org, MaintainOrgBuilder b) {
 		JSONArray identifiers = org.optJSONArray("identifier");
 
-		if (identifiers == null || identifiers.length() == 0) return;
+		if (identifiers == null || identifiers.isEmpty()) return;
         
 		for (int i = 0; i < identifiers.length(); i++) {
 			JSONObject id = identifiers.optJSONObject(i);
+			JSONObject ext = id.getJSONArray("extension").getJSONObject(0);
+
+			String owner = null;
+
+			if (ext.optString("url", null).equals(BC_OWNER_EXTENSION_URL))
+			{
+				owner = ext.getJSONObject("valueIdentifier").getJSONObject("assigner")
+						.optString("display", null);
+			} else continue;
 
 			String system = id.optString("system", null);
 			String value = id.optString("value", null);
@@ -248,7 +259,7 @@ public final class OrgQueryResponseMapper {
 			// Store all recognized identifier types into the builder
 			for (IdentifierType t : IdentifierType.values()) {
 				if (t.getSourceSystem().equals(system)) {
-					b.addIdentifier(t, value);
+					b.addIdentifier(t, value, owner);
 					break;
 				}
 			}
@@ -727,12 +738,13 @@ public final class OrgQueryResponseMapper {
 		if (affiliationArray == null) return;
 		for (int i = 0; i < affiliationArray.length(); i++) {
 			JSONObject aff = affiliationArray.optJSONObject(i);
+
 			if (aff == null) continue;
 
-			JSONObject location = aff.optJSONObject("location");
+			JSONArray location = aff.optJSONArray("location");
 			if (location == null) continue;
 
-			JSONObject identifier = location.optJSONObject("identifier");
+			JSONObject identifier = location.optJSONObject(0).optJSONObject("identifier");
 			if (identifier == null) continue;
 
 			String system    = identifier.optString("system", null);

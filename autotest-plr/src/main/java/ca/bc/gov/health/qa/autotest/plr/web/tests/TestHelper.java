@@ -1,6 +1,13 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests;
 
+import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
@@ -25,6 +32,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -397,5 +405,33 @@ public final class TestHelper {
         String allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
         return generateRandomString(length, allowedChars);
+    }
+
+    public static ViewProviderPage viewByIdentifier(String identifier, PlrWebWorkflowManager workflowManager)
+    {
+        final PlrWebWorkflow workflow = workflowManager.getSelectedWorkflow();
+
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier(
+                "IPC", identifier);
+        search.openResults(0);
+
+        return new ViewProviderPage(workflow.getSeleniumSession());
+    }
+
+    public static String getIdentifierFromBuilder(Map<ProviderType, MaintainRequestBuilder> providerMap, ProviderType providerType)
+    {
+        final IdentifierType ipc = IdentifierType.IPC;
+
+        MaintainOrgBuilder orgBuilder = null;
+        MaintainIndividualBuilder indBuilder = null;
+        switch (providerType)
+        {
+            case ORGANIZATION -> orgBuilder = (MaintainOrgBuilder) providerMap.get(providerType);
+            case BC_PRACTITIONER, OOP_PRACTITIONER -> indBuilder = (MaintainIndividualBuilder) providerMap.get(providerType);
+        }
+        boolean isOrg = !Objects.isNull(orgBuilder);
+
+        return isOrg ? orgBuilder.getIdentifier(ipc) : indBuilder.getIdentifier(ipc);
     }
 }

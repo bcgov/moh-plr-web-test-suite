@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -18,20 +20,21 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 
 /**
- * TODO (AZ) - doc
+ * A page object class for the View Provider page.
  */
 public class ViewProviderPage
 extends BasicWebPage
 {
+    private static final Logger LOG = ExecutionLogManager.getLogger();
+
     private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
 
     private final ViewHeaderFragment viewHeader_;
 
     /**
-     * TODO (AZ) - doc
+     * Initializes page object, overloaded constructor for no specified URL
      *
-     * @param selenium
-     *        ???
+     * @param selenium the current SeleniumSession
      */
     public ViewProviderPage(SeleniumSession selenium)
     {
@@ -39,13 +42,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Initializes page object and changes selenium's main locator to View Provider
+     * Details heading
      *
-     * @param selenium
-     *        ???
-     *
-     * @param uri
-     *        ???
+     * @param selenium the current SeleniumSession
+     * @param uri      the URL to navigate to in inherited methods if applicable
      */
     public ViewProviderPage(SeleniumSession selenium, URI uri)
     {
@@ -57,16 +58,13 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Expands/collapses a "data block" or a specific instance of data within a
+     * provider section
      *
-     * @param section
-     *        ???
-     *
-     * @param index
-     *        ???
-     *
-     * @param expand
-     *        ???
+     * @param section the provider section to select
+     * @param index   the index of the data block within the provider section to
+     *                select
+     * @param expand  whether to expand (true) or collapse (false) the data block
      */
     public void expandDataBlock(ProviderSection section, int index, boolean expand)
     {
@@ -99,9 +97,51 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Grabs whether a work entity data block is expanded or not
      *
-     * @return ???
+     * @param workEntity    a WebElement reference to the work entity data block panel
+     * @return              a boolean - true if the work entity data block is expanded, false otherwise.
+     */
+    private boolean grabWorkEntityBlockExpanded(WebElement workEntity)
+    {
+        return workEntity.findElement(By.cssSelector("div.ui-widget-content")).isDisplayed();
+    }
+
+    /**
+     * Expands a work locations' inner data block
+     *
+     * @param workEntity    a WebElement reference to the work entity subpanel
+     * @param expand        whether to expand (true) or collapse (false) the work entity data block
+     */
+    private void expandWorkEntityBlock(WebElement workEntity, boolean expand)
+    {
+        if (grabWorkEntityBlockExpanded(workEntity) != expand)
+        {
+            WebElement expandCollapseButton = workEntity.findElement(By.cssSelector(
+                    "div.ui-widget-header > a[title='Expand/Collapse']"));
+            selenium_.scrollIntoView(expandCollapseButton);
+            expandCollapseButton.click();
+
+            WebElement content = workEntity.findElement(By.cssSelector("div.ui-widget-content"));
+
+            if (expand)
+            {
+                selenium_.waitUntil(ExpectedConditions.visibilityOf(content));
+
+                selenium_.waitUntil(
+                        ExpectedConditions.attributeToBe(content, "overflow", "visible"));
+            }
+            else
+            {
+                selenium_.waitUntil(ExpectedConditions.invisibilityOf(content));
+            }
+        }
+    }
+
+    /**
+     * Gets the view header
+     *
+     * @return a ViewHeaderFragment reference for the current page
      */
     public ViewHeaderFragment getViewHeader()
     {
@@ -109,15 +149,13 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the count of active data blocks within a provider section
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to count within
      *
-     * @param active
-     *        ???
+     * @param active    whether to count active (true) or inactive (false) blocks
      *
-     * @return ???
+     * @return          a count of active/inactive data blocks within a provider section
      */
     public int grabActiveDataBlockCount(ProviderSection section, boolean active)
     {
@@ -143,15 +181,13 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets whether a data block is active (true) or inactive (false)
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to check
      *
-     * @param index
-     *        ???
+     * @param index     the index of data block to check
      *
-     * @return ???
+     * @return          whether the specified index and section of data block is active (true) or inactive (false)
      */
     public boolean grabDataBlockActive(ProviderSection section, int index)
     {
@@ -160,16 +196,76 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Adds inner content of a Work Location data block to a data map
      *
-     * @param section
-     *        ???
-     *
-     * @param index
-     *        ???
-     *
-     * @return ???
+     * @param index     the index of work location data block to consider
+     * @param dataMap   the dataMap of the work location
      */
+    @SuppressWarnings("fallthrough")
+    private void grabWorkLocationContent(int index, LinkedHashMap<String,String> dataMap)
+    {
+        final ProviderSection section = ProviderSection.WORK_LOCATIONS;
+
+        List<WebElement> wlEntityList = selenium_.findElements(By.cssSelector(getWorkLocationSubpanelsSelector(index)));
+        for (WebElement subPanel : wlEntityList)
+        {
+            String subPanelName = subPanel.findElement(By.cssSelector(
+                    "div.ui-widget-header > span.ui-panel-title")).getText() + "-";
+            List<WebElement> workEntityBlockList = subPanel.findElements(By.cssSelector(
+                    "div.ui-widget-content > div.ui-widget-content > table > tbody > tr > td > div.ui-subpanel"
+            ));
+            int workEntityIndex = 0;
+            for (WebElement workEntity : workEntityBlockList)
+            {
+                List<WebElement> dataRowElementList = workEntity.findElements(By.cssSelector(
+                        "div.ui-widget-content > table > tbody > tr"
+                ));
+                expandWorkEntityBlock(workEntity, true);
+
+                if (!dataRowElementList.isEmpty()) selenium_.scrollIntoView(dataRowElementList.getFirst());
+
+                for (WebElement dataRow : dataRowElementList)
+                {
+                    List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td"));
+                    int dataColumnCount = dataEntryList.size();
+                    switch (dataColumnCount)
+                    {
+                        case 4:
+                            dataMap.put(formatDataKey(subPanelName + workEntityIndex + "-"
+                                            + dataEntryList.get(2).getText()),
+                                    dataEntryList.get(3).getText());
+                            // fall through
+                        case 2:
+                            dataMap.put(formatDataKey(subPanelName + workEntityIndex + "-"
+                                            + dataEntryList.get(0).getText()),
+                                    dataEntryList.get(1).getText());
+                            break;
+                        default:
+                            String msg = String.format(
+                                    "Invalid data row (%s: %d: %s).",
+                                    section.getTitle(),
+                                    index,
+                                    dataRow.getText());
+                            throw new IllegalStateException(msg);
+                    }
+                }
+                workEntityIndex++;
+            }
+        }
+    }
+
+    /**
+     * Gets the content from a specific data block within a provider section.
+     *
+     * @param section the provider section to get content from
+     * @param index   the index of data block within the facility section to get
+     *                content from
+     * @return a hash map mapping data block fields (String) to its associated
+     *         values (String)
+     * @throws IllegalStateException If a specific row of data in the block is
+     *                               formatted unexpectedly
+     */
+    @SuppressWarnings("fallthrough")
     public LinkedHashMap<String,String> grabDataBlockContent(ProviderSection section, int index)
     {
         LinkedHashMap<String,String> dataMap = new LinkedHashMap<>();
@@ -178,44 +274,44 @@ extends BasicWebPage
                 getDataBlockContentSelector(section, index) + " > table > tbody > tr"));
         if (!dataRowElementList.isEmpty())
         {
-            selenium_.scrollIntoView(dataRowElementList.get(0));
+            selenium_.scrollIntoView(dataRowElementList.getFirst());
         }
         for (WebElement dataRow : dataRowElementList)
         {
             List<WebElement> dataEntryList = dataRow.findElements(By.cssSelector("td"));
             int dataColumnCount = dataEntryList.size();
-            if (dataColumnCount == 2 || dataColumnCount == 4)
+            switch (dataColumnCount)
             {
-                dataMap.put(
-                        formatDataKey(dataEntryList.get(0).getText()),
-                        dataEntryList.get(1).getText());
-                if (dataColumnCount == 4)
-                {
+                case 4:
                     dataMap.put(
                             formatDataKey(dataEntryList.get(2).getText()),
                             dataEntryList.get(3).getText());
-                }
-            }
-            else
-            {
-                String msg = String.format(
-                        "Invalid data row (%s: %d: %s).",
-                        section.getTitle(),
-                        index,
-                        dataRow.getText());
-                throw new IllegalStateException(msg);
+                    // fall through
+                case 2:
+                    dataMap.put(
+                            formatDataKey(dataEntryList.get(0).getText()),
+                            dataEntryList.get(1).getText());
+                    break;
+                default:
+                    String msg = String.format(
+                            "Invalid data row (%s: %d: %s).",
+                            section.getTitle(),
+                            index,
+                            dataRow.getText());
+                    throw new IllegalStateException(msg);
             }
         }
+        if (section.equals(ProviderSection.WORK_LOCATIONS)) grabWorkLocationContent(index, dataMap);
+
         return dataMap;
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines the number of data blocks in a specific provider section.
      *
-     * @param section
-     *        ???
-     *
-     * @return ???
+     * @param section the provider section to find the number of records for.
+     * @return an integer of the number of records for a particular facility
+     *         section.
      */
     public int grabDataBlockCount(ProviderSection section)
     {
@@ -223,15 +319,12 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether a specific "data block"'s content panel in a provider
+     * section is displayed or not
      *
-     * @param section
-     *        ???
-     *
-     * @param index
-     *        ???
-     *
-     * @return ???
+     * @param section the provider section to select
+     * @param index   the index of data block to specifically select
+     * @return whether the data block is displayed (true) or not displayed (false)
      */
     public boolean grabDataBlockExpanded(ProviderSection section, int index)
     {
@@ -239,15 +332,13 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the title of a data block
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to check
      *
-     * @param index
-     *        ???
+     * @param index     the index of data block within the section to retrieve the data block title from
      *
-     * @return ???
+     * @return          a string of the title of the data block at the specified index within the provider section
      */
     public String grabDataBlockTitle(ProviderSection section, int index)
     {
@@ -258,12 +349,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets a list of the titles of each data block within a section
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to collect data block titles from
      *
-     * @return ???
+     * @return          a list of data block titles from the specified provider section
      */
     public List<String> grabDataBlockTitleList(ProviderSection section)
     {
@@ -278,12 +368,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets whether a provider section is displayed (true) or not (false)
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to check
      *
-     * @return ???
+     * @return          whether the provider section is visible (true) or not (false)
      */
     public boolean grabSectionDisplayed(ProviderSection section)
     {
@@ -291,12 +380,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the text within the notice that typically details that no records are available
      *
-     * @param section
-     *        ???
+     * @param section   the section to check for the no records notice within
      *
-     * @return ???
+     * @return          a string of the notice (typically either no records found or no permission to view)
      */
     public String grabSectionNoRecordsNotice(ProviderSection section)
     {
@@ -317,12 +405,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the title of a provider section
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to get the title of
      *
-     * @return ???
+     * @return          a string of the provider section title
      */
     public String grabSectionTitle(ProviderSection section)
     {
@@ -332,20 +419,18 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Opens a provider given its internal provider ID
      *
-     * @param pauthId
-     *        internal provider ID
+     * @param authId                internal provider ID
      *
-     * @throws NullPointerException
-     *         if {@code pauthId} is {@code null}
+     * @throws NullPointerException if {@code pauthId} is {@code null}
      */
-    public void openProvider(String pauthId)
+    public void openProvider(String authId)
     {
-        requireNonNull(pauthId);
+        requireNonNull(authId);
         if (uri_ != null)
         {
-            selenium_.getDriver().get(UriUtils.getUriWithQuery(uri_, "p=" + pauthId).toString());
+            selenium_.getDriver().get(UriUtils.getUriWithQuery(uri_, "p=" + authId).toString());
             waitForReady();
         }
         else
@@ -355,10 +440,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Scrolls the view to a specific provider section
      *
-     * @param section
-     *        ???
+     * @param section   the provider section to scroll to
      */
     public void scrollToSection(ProviderSection section)
     {
@@ -366,7 +450,7 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Overrides normal waitForReady to ensure both the view header and page itself are ready on the page.
      */
     @Override
     public void waitForReady()
@@ -383,6 +467,12 @@ extends BasicWebPage
     private static String formatDataKey(String key)
     {
         return DATA_KEY_SUFFIX_PATTERN.matcher(key).replaceAll("");
+    }
+
+    private String getWorkLocationSubpanelsSelector(int index)
+    {
+        return getDataBlockContentSelector(ProviderSection.WORK_LOCATIONS, index) +
+                " > div.ui-widget-content > div.ui-widget-content > div.ui-subpanel";
     }
 
     private String getDataBlockContentSelector(ProviderSection section, int index)
@@ -424,9 +514,8 @@ extends BasicWebPage
 
     private String getDataBlocksSelector(ProviderSection section)
     {
-        String selector = getSectionContentSelector(section)
+        return getSectionContentSelector(section)
                 + " > table.recordDetailsPanels > tbody > tr > td > div.ui-panel";
-        return selector;
     }
 
     private String getSectionContentSelector(ProviderSection section)

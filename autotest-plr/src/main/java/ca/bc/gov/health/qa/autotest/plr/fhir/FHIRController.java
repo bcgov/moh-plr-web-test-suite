@@ -246,6 +246,18 @@ public class FHIRController implements AutoCloseable {
     }
 
     /**
+     * TODO
+     * @param builder
+     * @return
+     */
+    public MaintainFacilityBuilder submitFacility(MaintainFacilityBuilder builder) {
+        String id = executor.submitMaintain(builder);
+        LOG.info("Submitted organization (id={})", id);
+        builder.identifier(id);
+        return builder;
+    }
+
+    /**
      * Ceases all organization relationships currently configured on the provided organization builder.
      * @param organization existing organization builder whose relationships should be ceased
      * @return same builder instance (for fluent chaining)

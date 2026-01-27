@@ -81,9 +81,9 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets whether some data blocks are expanded (true) or all are collapsed (false)
      *
-     * @return ???
+     * @return a boolean whether the collapse all button is visible (true) or not (false)
      */
     public boolean grabExpandedAll()
     {
@@ -154,6 +154,20 @@ extends BasicWebPageFragment
     {
         return selenium_.grabElementVisible(By.cssSelector(PRINT_CSS));
     }
+
+    /**
+     * TODO (AMV) - doc
+     *
+     * @return
+     */
+    public boolean grabExpandAllDisplayed() { return selenium_.grabElementVisible(By.cssSelector(EXPAND_ALL_CSS)); }
+
+    /**
+     * TODO (AMV) - doc
+     *
+     * @return
+     */
+    public boolean grabViewModeButtonDisplayed() { return selenium_.grabElementVisible(By.cssSelector(VIEW_MODE_BUTTON_CSS)); }
 
     /**
      * TODO (AZ) - doc
