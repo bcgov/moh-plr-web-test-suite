@@ -9,7 +9,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 /**
- * TODO (AZ) - doc
+ * Fragment class for the Provider Search by Registry Identifier section.
  */
 public class SearchProviderRegistryIdFragment
 extends SearchSectionFragment
@@ -27,10 +27,9 @@ extends SearchSectionFragment
             "div#accordian\\:searchByRegistryIdForm\\:registryIdentifierTypeCode_panel";
 
     /**
-     * TODO (AZ) - doc
+     * Initializes fragment and changes selenium's main locator to the search by registry identifier tab container
      *
-     * @param selenium
-     *        ???
+     * @param selenium the current SeleniumSession
      */
     public SearchProviderRegistryIdFragment(SeleniumSession selenium)
     {
@@ -38,7 +37,7 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Clicks the search button to submit the search by registry identifier query
      */
     public void clickSearchButton()
     {
@@ -49,10 +48,9 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Fills in the Registry ID field
      *
-     * @param registryId
-     *        ???
+     * @param registryId the registry ID to fill in
      */
     public void fillRegistryId(String registryId)
     {
@@ -60,10 +58,18 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Clears the Registry ID field
+     */
+    public void clearRegistryId()
+    {
+    	WebElement element=selenium_.findElementByCss(REGISTRY_ID_FIELD_CSS);
+    	element.clear();
+    }
+
+    /**
+     * Fills in the Registry ID Suffix field
      *
-     * @param registryIdSuffix
-     *        ???
+     * @param registryIdSuffix the registry ID suffix to fill in
      */
     public void fillRegistryIdSuffix(String registryIdSuffix)
     {
@@ -71,9 +77,9 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the Registry Identifier Type dropdown menu component
      *
-     * @return ???
+     * @return a DropDownMenu component for the Registry Identifier Type
      */
     public DropDownMenu getRegistryIdentifierTypeMenu()
     {
@@ -84,12 +90,10 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Selects an item from the Registry Identifier Type dropdown menu
      *
-     * @param registryIdentifierTypePrefix
-     *        ???
-     *
-     * @return ???
+     * @param registryIdentifierTypePrefix the first few characters to match when selecting the menu option
+     * @return                             a string of the full matched registry identifier type
      */
     public String selectRegistryIdentifierType(String registryIdentifierTypePrefix)
     {

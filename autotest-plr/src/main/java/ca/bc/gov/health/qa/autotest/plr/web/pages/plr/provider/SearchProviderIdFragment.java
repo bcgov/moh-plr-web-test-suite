@@ -9,19 +9,17 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 /**
- * TODO (AZ) - doc
+ * Fragment class for the Search by Identifier section when searching by provider
  */
 public class SearchProviderIdFragment
 extends SearchSectionFragment
 {
-    private static final String PROVIDER_ID_FIELD_CSS =
-            "input#accordian\\:searchByIdForm\\:identifier";
+    private static final String PROVIDER_ID_FIELD_CSS = "input#accordian\\:searchByIdForm\\:identifier";
 
     /**
-     * TODO (AZ) - doc
+     * Initializes fragment and changes selenium's main locator to the search by identifier tab container
      *
-     * @param selenium
-     *        ???
+     * @param selenium The current SeleniumSession
      */
     public SearchProviderIdFragment(SeleniumSession selenium)
     {
@@ -29,7 +27,7 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Finds and clicks the search button to submit the search by identifier query
      */
     public void clickSearchButton()
     {
@@ -40,10 +38,9 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Fills in the Provider ID field
      *
-     * @param providerId
-     *        ???
+     * @param providerId The provider ID to fill in
      */
     public void fillProviderId(String providerId)
     {
@@ -51,9 +48,18 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Clears the Provider ID field
+     */
+    public void clearProviderId()
+    {
+        WebElement providerId = selenium_.findElementByCss(PROVIDER_ID_FIELD_CSS);
+        providerId.clear();
+    }
+
+    /**
+     * Gets the Identifier Type dropdown menu component
      *
-     * @return ???
+     * @return a DropDownMenu component for the Identifier Type
      */
     public DropDownMenu getIdentifierTypeMenu()
     {
@@ -64,12 +70,10 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Selects the identifier type in the Provider Identifier Type dropdown based on a prefix
      *
-     * @param identifierTypePrefix
-     *        ???
-     *
-     * @return ???
+     * @param identifierTypePrefix the first few characters to match when selecting the menu option
+     * @return                     a string of the full matched identifier type
      */
     public String selectIdentifierType(String identifierTypePrefix)
     {

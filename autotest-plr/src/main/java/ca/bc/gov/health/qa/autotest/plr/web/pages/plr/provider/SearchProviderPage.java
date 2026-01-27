@@ -1,9 +1,12 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 
 import java.util.Collection;
+import java.util.List;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
@@ -12,7 +15,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumUtils;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 
 /**
- * TODO (AZ) - doc
+ * A page object representing the Search Provider page.
  */
 public class SearchProviderPage
 extends BasicWebPage
@@ -33,12 +36,13 @@ extends BasicWebPage
 
     private static final String REGISTRY_IDENTIFIER_XPATH =
             getSearchSectionXPath("Search by Registry Identifier");
+    
+    private static final String ALERT_ERROR_CSS = "";
 
     /**
-     * TODO (AZ) - doc
+     * Initializes page object and changes selenium's main locator to the Search Provider heading.
      *
-     * @param selenium
-     *        ???
+     * @param selenium the current SeleniumSession
      */
     public SearchProviderPage(SeleniumSession selenium)
     {
@@ -74,11 +78,10 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Expands or collapses the Search by Criteria section.
      *
-     * @param expand ???
-     *
-     * @return ???
+     * @param expand whether the section is to be expanded (true) or collapsed (false)
+     * @return the search by criteria fragment class for the section
      */
     public SearchProviderCriteriaFragment expandSearchCriteria(boolean expand)
     {
@@ -90,11 +93,10 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Expands or collapses the Search by Identifier section.
      *
-     * @param expand ???
-     *
-     * @return ???
+     * @param expand whether the section is to be expanded (true) or collapsed (false)
+     * @return       the search by identifier fragment class for the section
      */
     public SearchProviderIdFragment expandSearchIdentifier(boolean expand)
     {
@@ -106,11 +108,10 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Expands or collapses the Search for Organization section.
      *
-     * @param expand ???
-     *
-     * @return ???
+     * @param expand whether the section is to be expanded (true) or collapsed (false)
+     * @return       the search for organization fragment class for the section
      */
     public SearchProviderOrganizationFragment expandSearchOrganization(boolean expand)
     {
@@ -122,11 +123,10 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Expands or collapses the Search by Registry Identifier section.
      *
-     * @param expand ???
-     *
-     * @return ???
+     * @param expand whether the section is to be expanded (true) or collapsed (false)
+     * @return       the search by registry identifier fragment class for the section
      */
     public SearchProviderRegistryIdFragment expandSearchRegistryIdentifier(boolean expand)
     {
@@ -152,9 +152,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the Search by Criteria section is expanded or not.
      *
-     * @return ???
+     * @return boolean indicating whether the Search by Criteria section is expanded (true) or not (false)
      */
     public boolean grabSearchCriteriaExpanded()
     {
@@ -162,9 +162,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the Search by Criteria section is visible or not.
      *
-     * @return ???
+     * @return boolean indicating whether the Search by Criteria section is visible (true) or invisible (false)
      */
     public boolean grabSearchCriteriaVisible()
     {
@@ -172,9 +172,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the Search by Identifier section is expanded or not.
      *
-     * @return ???
+     * @return boolean indicating whether the Search by Identifier section is expanded (true) or not (false)
      */
     public boolean grabSearchIdentifierExpanded()
     {
@@ -182,9 +182,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the Search by Identifier section is visible or not.
      *
-     * @return ???
+     * @return boolean indicating whether the Search by Identifier section is visible (true) or invisible (false)
      */
     public boolean grabSearchIdentifierVisible()
     {
@@ -192,9 +192,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the Search for Organization section is expanded or not.
      *
-     * @return ???
+     * @return boolean indicating whether the Search for Organization section is expanded (true) or not (false)
      */
     public boolean grabSearchOrganizationExpanded()
     {
@@ -202,9 +202,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the Search for Organization section is visible or not.
      *
-     * @return ???
+     * @return boolean indicating whether the Search for Organization section is visible (true) or invisible (false)
      */
     public boolean grabSearchOrganizationVisible()
     {
@@ -212,9 +212,9 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the Search by Registry Identifier section is expanded or not.
      *
-     * @return ???
+     * @return boolean indicating whether the Search by Registry Identifier section is expanded (true) or not (false)
      */
     public boolean grabSearchRegistryIdentifierExpanded()
     {
@@ -222,40 +222,27 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Determines whether the Search by Registry Identifier section is visible or not.
      *
-     * @return ???
+     * @return boolean indicating whether the Search by Registry Identifier section is visible (true) or invisible (false)
      */
     public boolean grabSearchRegistryIdentifierVisible()
     {
         return grabSearchSectionVisible(REGISTRY_IDENTIFIER_XPATH);
     }
 
+   
     /**
-     * TODO (AZ) - doc
+     * Submits a search by criteria query with the specified parameters.
      *
-     * @param roleTypePrefix
-     *        ???
-     *
-     * @param firstName
-     *        ???
-     *
-     * @param lastName
-     *        ???
-     *
-     * @param genderPrefix
-     *        ???
-     *
-     * @param city
-     *        ???
-     *
-     * @param statusCodePrefix
-     *        ???
-     *
-     * @param statusReasonCodePrefix
-     *        ???
-     *
-     * @return ???
+     * @param roleTypePrefix            the first few characters of the role type to select
+     * @param firstName                 the first name to fill in
+     * @param lastName                  the last name to fill in
+     * @param genderPrefix              the first few characters of the gender to select
+     * @param city                      the city to fill in
+     * @param statusCodePrefix          the first few characters of the status code to select
+     * @param statusReasonCodePrefix    the first few characters of the status reason code to select
+     * @return                          the search provider results fragment for the associated search results
      */
     public SearchProviderResultsFragment searchByCriteria(
             String roleTypePrefix,
@@ -279,36 +266,18 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc (parameters are optional)
+     * Submits a search by criteria query with the specified parameters.
      *
-     * @param roleTypePrefix
-     *        ???
-     *
-     * @param firstName
-     *        ???
-     *
-     * @param lastName
-     *        ???
-     *
-     * @param genderPrefix
-     *        ???
-     *
-     * @param city
-     *        ???
-     *
-     * @param statusCodePrefix
-     *        ???
-     *
-     * @param statusReasonCodePrefix
-     *        ???
-     *
-     * @param expertisePrefixCollection
-     *        ???
-     *
-     * @param languagePrefixCollection
-     *        ???
-     *
-     * @return ???
+     * @param roleTypePrefix                the first few characters of the role type to select
+     * @param firstName                     the first name to fill in
+     * @param lastName                      the last name to fill in
+     * @param genderPrefix                  the first few characters of the gender to select
+     * @param city                          the city to fill in
+     * @param statusCodePrefix              the first few characters of the status code to select
+     * @param statusReasonCodePrefix        the first few characters of the status reason code to select
+     * @param expertisePrefixCollection     a collection of expertise prefixes to use to select expertise options
+     * @param languagePrefixCollection      a collection of language prefixes to use to select language options
+     * @return                              the search provider results fragment for the associated search results
      */
     public SearchProviderResultsFragment searchByCriteria(
             String roleTypePrefix,
@@ -322,34 +291,32 @@ extends BasicWebPage
             Collection<String> languagePrefixCollection)
     {
         SearchProviderCriteriaFragment search = expandSearchCriteria(true);
-        if (roleTypePrefix != null)
-        {
-            search.selectRoleType(roleTypePrefix);
-        }
-        if (firstName != null)
-        {
-            search.fillFirstName(firstName);
-        }
-        if (lastName != null)
-        {
-            search.fillLastName(lastName);
-        }
-        if (genderPrefix != null)
-        {
-            search.selectGender(genderPrefix);
-        }
-        if (city != null)
-        {
-            search.fillCity(city);
-        }
-        if (statusCodePrefix != null)
-        {
-            search.selectStatusCode(statusCodePrefix);
-        }
-        if (statusReasonCodePrefix != null)
-        {
-            search.selectStatusReasonCode(statusReasonCodePrefix);
-        }
+		if (roleTypePrefix != null) {
+			search.selectRoleType(roleTypePrefix);
+		} 
+		
+		if (firstName != null) {
+			search.fillFirstName(firstName);
+		} else
+			search.clearFirstName();
+		if (lastName != null) {
+			search.fillLastName(lastName);
+		} else
+			search.clearLastName();
+		if (genderPrefix != null) {
+			search.selectGender(genderPrefix);
+		} 
+		
+		if (city != null) {
+			search.fillCity(city);
+		} else
+			search.clearCity();
+		if (statusCodePrefix != null) {
+			search.selectStatusCode(statusCodePrefix);
+		}
+		if (statusReasonCodePrefix != null) {
+			search.selectStatusReasonCode(statusReasonCodePrefix);
+		}
         if (expertisePrefixCollection != null)
         {
             for (String expertisePrefix : expertisePrefixCollection)
@@ -375,15 +342,11 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Submits a search by identifier query with the specified parameters.
      *
-     * @param identifierTypePrefix
-     *        ???
-     *
-     * @param providerId
-     *        ???
-     *
-     * @return ???
+     * @param identifierTypePrefix the first few characters of the identifier type to select
+     * @param providerId           the provider ID to fill in
+     * @return                     the search provider results fragment for the associated search results
      */
     public SearchProviderResultsFragment searchByIdentifier(
             String identifierTypePrefix,
@@ -391,21 +354,44 @@ extends BasicWebPage
     {
         SearchProviderIdFragment search = expandSearchIdentifier(true);
         search.selectIdentifierType(identifierTypePrefix);
-        search.fillProviderId(providerId);
+        if(providerId!=null)
+        	search.fillProviderId(providerId);
         search.clickSearchButton();
         return waitForSearchProviderResultsFragment();
     }
+    
+    
+    /**
+     * Submits a search by identifier query with the specified parameters.
+     *
+     * @param identifierTypePrefix the first few characters of the identifier type to select
+     * @param providerId           the provider ID to fill in
+     * @param expectResultFragment whether to expect a search results fragment or not
+     * @return                     the search provider results fragment for the associated search results (or null)
+     */
+    public SearchProviderResultsFragment searchByIdentifier(
+            String identifierTypePrefix,
+            String providerId,boolean expectResultFragment)
+    {
+		SearchProviderIdFragment search = expandSearchIdentifier(true);
+		search.selectIdentifierType(identifierTypePrefix);
+		if (providerId != null)
+			search.fillProviderId(providerId);
+		else
+			search.clearProviderId();
+		search.clickSearchButton();
+		if (expectResultFragment)
+			return waitForSearchProviderResultsFragment();
+		else
+			return null;
+    }
 
     /**
-     * TODO (AZ) - doc
+     * Submits a search by registry identifier query with the specified parameters.
      *
-     * @param registryIdentifierTypePrefix
-     *        ???
-     *
-     * @param registryId
-     *        ???
-     *
-     * @return ???
+     * @param registryIdentifierTypePrefix the first few characters of the registry identifier type to select
+     * @param registryId                   the registry ID to fill in
+     * @return                             the search provider results fragment for the associated search results
      */
     public SearchProviderResultsFragment searchByRegistryIdentifier(
             String registryIdentifierTypePrefix,
@@ -415,18 +401,27 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Submits a search by registry identifier query with the specified parameters.
      *
-     * @param registryIdentifierTypePrefix
-     *        ???
+     * @param registryIdentifierTypePrefix the first few characters of the registry identifier type to select
+     * @param registryId                   the registry ID to fill in
+     * @param expectResultsFragment        whether to expect a results fragment or not
+     * @return                             the search provider results fragment for the associated search results (or null)
+     */
+    public SearchProviderResultsFragment searchByRegistryIdentifier(
+            String registryIdentifierTypePrefix,
+            String registryId,boolean expectResultsFragment)
+    {
+        return searchByRegistryIdentifier(registryIdentifierTypePrefix, registryId, null,expectResultsFragment);
+    }
+
+    /**
+     * Submits a search by registry identifier query with the specified parameters.
      *
-     * @param registryId
-     *        ???
-     *
-     * @param registryIdSuffix
-     *        ??? (optional)
-     *
-     * @return ???
+     * @param registryIdentifierTypePrefix the first few characters of the registry identifier type to select
+     * @param registryId                   the registry ID to fill in
+     * @param registryIdSuffix             the registry ID suffix to fill in
+     * @return                             the search provider results fragment for the associated search results
      */
     public SearchProviderResultsFragment searchByRegistryIdentifier(
             String registryIdentifierTypePrefix,
@@ -435,34 +430,56 @@ extends BasicWebPage
     {
         SearchProviderRegistryIdFragment search = expandSearchRegistryIdentifier(true);
         search.selectRegistryIdentifierType(registryIdentifierTypePrefix);
-        search.fillRegistryId(registryId);
-        if (registryIdSuffix != null)
-        {
-            search.fillRegistryIdSuffix(registryIdSuffix);
-        }
+		if (registryId != null)
+			search.fillRegistryId(registryId);
+		else
+			search.clearRegistryId();
+		if (registryIdSuffix != null) {
+			search.fillRegistryIdSuffix(registryIdSuffix);
+		}
+
+		search.clickSearchButton();
+		return waitForSearchProviderResultsFragment();
+    }
+    
+    /**
+     * Submits a search by registry identifier query with the specified parameters.
+     *
+     * @param registryIdentifierTypePrefix the first few characters of the registry identifier type to select
+     * @param registryId                   the registry ID to fill in
+     * @param registryIdSuffix             the registry ID suffix to fill in
+     * @param expectResultsFragment        whether to expect a results fragment or not
+     * @return                             the search provider results fragment for the associated search results (or null)
+     */
+    public SearchProviderResultsFragment searchByRegistryIdentifier(
+            String registryIdentifierTypePrefix,
+            String registryId,
+            String registryIdSuffix, boolean expectResultsFragment)
+	{
+		SearchProviderRegistryIdFragment search = expandSearchRegistryIdentifier(true);
+		search.selectRegistryIdentifierType(registryIdentifierTypePrefix);
+		if (registryId != null)
+			search.fillRegistryId(registryId);
+		else
+			search.clearRegistryId();
+		if (registryIdSuffix != null) {
+			search.fillRegistryIdSuffix(registryIdSuffix);
+		}
         search.clickSearchButton();
+        if(expectResultsFragment)
         return waitForSearchProviderResultsFragment();
+        else return null;
     }
 
     /**
-     * TODO (AZ) - doc (all parameters are optional)
+     * Submits a search for organization query with the specified parameters.
      *
-     * @param roleTypePrefix
-     *        ???
-     *
-     * @param name
-     *        ???
-     *
-     * @param description
-     *        ???
-     *
-     * @param addressLine1
-     *        ???
-     *
-     * @param city
-     *        ???
-     *
-     * @return ???
+     * @param roleTypePrefix the first few characters of the role type to select
+     * @param name           the name to fill in
+     * @param description    the description to fill in
+     * @param addressLine1   the address line 1 to fill in
+     * @param city           the city to fill in
+     * @return               the search provider results fragment for the associated search results
      */
     public SearchProviderResultsFragment searchForOrganization(
             String roleTypePrefix,
@@ -476,30 +493,84 @@ extends BasicWebPage
         {
             search.selectRoleType(roleTypePrefix);
         }
-        if (name != null)
-        {
-            search.fillName(name);
-        }
-        if (description != null)
-        {
-            search.fillDescription(description);
-        }
-        if (addressLine1 != null)
-        {
-            search.fillAddressLine1(addressLine1);
-        }
-        if (city != null)
-        {
-            search.fillCity(city);
-        }
+        
+		if (name != null) {
+			search.fillName(name);
+		} else
+			search.clearName();
+		if (description != null) {
+			search.fillDescription(description);
+		} else
+			search.clearDescription();
+
+		if (addressLine1 != null) {
+			search.fillAddressLine1(addressLine1);
+		} else
+			search.clearAddressLine1();
+		if (city != null) {
+			search.fillCity(city);
+		} else
+			search.clearCity();
+		
         search.clickSearchButton();
         return waitForSearchProviderResultsFragment();
     }
 
     /**
-     * TODO (AZ) - doc
+     * Submits a search for HDS organization query with the specified parameters.
      *
-     * @return ???
+     * @param hdsType       the first few characters of the HDS type to select
+     * @param name          the name to fill in
+     * @param description   the description to fill in
+     * @param city          the city to fill in
+     * @param addressLine1  the address line 1 to fill in
+     * @return              the search provider results fragment for the associated search results
+     */
+    public SearchProviderResultsFragment searchHDSOrganization(
+            String hdsType,
+            String name,
+            String description,
+            String city,
+            String addressLine1) {
+    	 SearchProviderOrganizationFragment search = expandSearchOrganization(true);
+    	 
+        
+    	 search.selectRoleType("HDS");
+    	 WebElement visibleElement = selenium_
+ 				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("accordian:searchByOrganizationForm:hds")));
+    	// WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("accordian\\:searchByOrganizationForm\\:hds")));
+
+    
+    	if(hdsType!=null)
+         search.selectHdsType(hdsType);
+        
+		if (name != null) {
+			search.fillName(name);
+		} else
+			search.clearName();
+		if (description != null) {
+			search.fillDescription(description);
+		} else
+			search.clearDescription();
+
+		if (addressLine1 != null) {
+			search.fillAddressLine1(addressLine1);
+		} else
+			search.clearAddressLine1();
+		if (city != null) {
+			search.fillCity(city);
+		} else
+			search.clearCity();
+         
+         search.clickSearchButton();
+         return waitForSearchProviderResultsFragment();
+    	
+    }
+
+    /**
+     * Waits for and returns the alert messages fragment.
+     *
+     * @return the alert messages fragment
      */
     public AlertMessagesFragment waitForAlertMessagesFragment()
     {
@@ -509,9 +580,10 @@ extends BasicWebPage
     }
 
     /**
-     * TODO (AZ) - doc
+     * Waits for the include history checkbox to be enabled or disabled.
      *
-     * @param enabled ???
+     * @param enabled {@code true}  to wait for the include history checkbox to be enabled,
+     *                {@code false} to wait for it to be disabled
      */
     public void waitForIncludeHistoryEnabled(boolean enabled)
     {
@@ -539,12 +611,10 @@ extends BasicWebPage
 
     private static String getSearchSectionXPath(String title)
     {
-        return new StringBuilder()
-                .append("//div[@id='accordian']")
-                .append("/div[contains(@class,'ui-accordion-header') and contains(text(),'")
-                .append(title)
-                .append("')]")
-                .toString();
+        return "//div[@id='accordian']" +
+                "/div[contains(@class,'ui-accordion-header') and contains(text(),'" +
+                title +
+                "')]";
     }
 
     private boolean grabSearchSectionExpanded(String xpath)
@@ -591,4 +661,78 @@ extends BasicWebPage
                     locator, ACTIVE_UI_STATE_CLASS_NAME));
         }
     }
+
+    /**
+     * Grabs all error messages displayed on the page.
+     *
+     * @return a string of concatenated error messages
+     */
+	public String grabPageErrorMessage() {
+
+		String alertMsgCss = "span.ui-messages-error-summary";
+		StringBuilder msgDisplay = new StringBuilder();
+		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
+		for (WebElement alertMsg : alertMsgList) {
+			msgDisplay.append(alertMsg.getText());
+		}
+		return msgDisplay.toString();
+	}
+
+    /**
+     * Grabs all warning messages displayed on the page.
+     *
+     * @return a string of concatenated warning messages
+     */
+	public String grabWarningErrorMessage() {
+
+		String alertMsgCss = "span.ui-messages-warn-summary";
+		StringBuilder msgDisplay = new StringBuilder();
+		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
+		for (WebElement alertMsg : alertMsgList) {
+			msgDisplay.append(alertMsg.getText());
+		}
+		return msgDisplay.toString();
+	}
+
+	/**
+	 * clear All Expertise
+	 */
+	public void clearAllExpertise() {
+		SearchProviderCriteriaFragment search = expandSearchCriteria(true);
+		search.clearAllExpertise();
+	}
+
+	/**
+     * Clears the expertise selections matching the provided prefixes.
+     *
+	 * @param expertisePrefixCollection a collection of expertises to clear by prefix
+	 */
+	public void clearExpertise(List<String> expertisePrefixCollection) {
+		SearchProviderCriteriaFragment search = expandSearchCriteria(true);
+		if (expertisePrefixCollection != null) {
+			for (String expertisePrefix : expertisePrefixCollection) {
+				if (expertisePrefix != null) {
+					search.clearExpertise(expertisePrefix);
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * clear Gender
+	 */
+	public void clearGender() {
+		SearchProviderCriteriaFragment search = expandSearchCriteria(true);
+		search.clearGender();
+	}
+
+	/**
+	 * clear Role Type
+	 */
+	public void clearRoleType() {
+		SearchProviderCriteriaFragment search = expandSearchCriteria(true);
+		search.clearRoleType();
+	}
+
 }

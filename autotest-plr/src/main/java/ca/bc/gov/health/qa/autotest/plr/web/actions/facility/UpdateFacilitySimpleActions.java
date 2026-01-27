@@ -112,7 +112,7 @@ public class UpdateFacilitySimpleActions {
 	 * @return an UpdateFacilityPage reference to the opened organization page
 	 */
 	public UpdateFacilityPage openFacility(MaintainFacilityBuilder facility) {
-		String fauthId = UpdateSimpleHelper.getFaultId(facility.getIdentifier());
+		String fauthId = UpdateSimpleHelper.getFacilityId(facility.getIdentifier());
 		LOG.info("Open facility({}).", fauthId);
 		UpdateFacilityPage updateFacilityPage = new UpdateFacilityPage(selenium_,
 				uri_.resolve("plr/FacilityDetails.xhtml"));
