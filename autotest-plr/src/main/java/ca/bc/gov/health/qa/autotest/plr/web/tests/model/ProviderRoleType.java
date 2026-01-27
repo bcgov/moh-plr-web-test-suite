@@ -1,5 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 
+/**
+ * Enum representing different types of Provider Roles.
+ */
 public enum ProviderRoleType {
 	
 	DEN("DEN - Dentist"), 
@@ -42,10 +45,19 @@ public enum ProviderRoleType {
 		this.text = text;
 	}
 
+	/**
+	 * Gets the text representation of the ProviderRoleType.
+	 * @return the text representation
+	 */
 	public String getText() {
 		return this.text;
 	}
 
+	/**
+	 * Converts a string to its corresponding ProviderRoleType enum value.
+	 * @param text  the string representation of the ProviderRoleType
+	 * @return 		the corresponding ProviderRoleType enum value, or null if not found
+	 */
 	public static ProviderRoleType fromString(String text) {
 		for (ProviderRoleType b : ProviderRoleType.values()) {
 			if (b.text.equalsIgnoreCase(text)) {

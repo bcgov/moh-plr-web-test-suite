@@ -2,7 +2,6 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.SearchSectionFragment;
 import org.openqa.selenium.By;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
@@ -10,7 +9,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 /**
- * TODO (AZ) - doc
+ * Fragment class for the Search by Organization section when searching by provider
  */
 public class SearchProviderOrganizationFragment
 extends SearchSectionFragment
@@ -31,10 +30,9 @@ extends SearchSectionFragment
             "input#accordian\\:searchByOrganizationForm\\:orgName";
 
     /**
-     * TODO (AZ) - doc
+     * Initializes fragment and changes selenium's main locator to the search by organization tab container
      *
-     * @param selenium
-     *        ???
+     * @param selenium The current SeleniumSession
      */
     public SearchProviderOrganizationFragment(SeleniumSession selenium)
     {
@@ -42,7 +40,7 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Clicks the search button to submit the search by organization query
      */
     public void clickSearchButton()
     {
@@ -53,10 +51,9 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Fills in the Address Line 1 field
      *
-     * @param addressLine1
-     *        ???
+     * @param addressLine1 The address line 1 to fill in
      */
     public void fillAddressLine1(String addressLine1)
     {
@@ -64,10 +61,9 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Fills in the City field
      *
-     * @param city
-     *        ???
+     * @param city The city to fill in
      */
     public void fillCity(String city)
     {
@@ -78,19 +74,15 @@ extends SearchSectionFragment
         		waitForCityPanelVisible(true);
         		selenium_.clickByCss(CITY_FIELD_CSS);
             }
-        	catch (org.openqa.selenium.TimeoutException e) {
-        		
-        	}
-            
+        	catch (org.openqa.selenium.TimeoutException ignored) {}
         }
         waitForCityPanelVisible(false);
     }
 
     /**
-     * TODO (AZ) - doc
+     * Fills in the Description field
      *
-     * @param description
-     *        ???
+     * @param description The description to fill in
      */
     public void fillDescription(String description)
     {
@@ -98,10 +90,9 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Fills in the Name field
      *
-     * @param name
-     *        ???
+     * @param name The name to fill in
      */
     public void fillName(String name)
     {
@@ -109,9 +100,9 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the Role Type dropdown menu component
      *
-     * @return ???
+     * @return a DropDownMenu component for the Role Type
      */
     public DropDownMenu getRoleTypeMenu()
     {
@@ -121,7 +112,11 @@ extends SearchSectionFragment
                 By.cssSelector("div#accordian\\:searchByOrganizationForm\\:providerType_panel"));
     }
     
-    
+    /**
+     * Gets the HDS Type dropdown menu component
+     *
+     * @return a DropDownMenu component for the HDS Type
+     */
     public DropDownMenu getHdsTypeMenu()
     {
         return new DropDownMenu(
@@ -131,10 +126,10 @@ extends SearchSectionFragment
     }
 
     /**
-     * Select roel type code
+     * Select role type code
      * 
-     * @param roleTypePrefix
-     * @return Role Type
+     * @param roleTypePrefix the first few characters of the role type to select
+     * @return               the role type selected as a string
      */
     public String selectRoleType(String roleTypePrefix)
     {
@@ -142,10 +137,10 @@ extends SearchSectionFragment
     }
     
     /**
-     * Select Hds Type code
+     * Select HDS Type code
      * 
-     * @param hdsType
-     * @return HDS type 
+     * @param hdsType   the first few characters of the HDS type to select
+     * @return          the HDS type selected as a string
      */
     public String selectHdsType(String hdsType)
     {
@@ -153,10 +148,9 @@ extends SearchSectionFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Waits for the city panel to be visible or not visible
      *
-     * @param visible
-     *        ???
+     * @param visible true to wait for visible, false to wait for invisible
      */
     public void waitForCityPanelVisible(boolean visible)
     {
@@ -177,23 +171,35 @@ extends SearchSectionFragment
         }
     }
 
+    /**
+     * Clears the Name field
+     */
 	public void clearName() {
 		WebElement name=selenium_.findElementByCss(NAME_FIELD_CSS);
 		name.clear();
 	}
 
+    /**
+     * Clears the Description field
+     */
 	public void clearDescription() {
 		WebElement des=selenium_.findElementByCss(DESCRIPTION_FIELD_CSS);
 		des.clear();
 		
 	}
 
+    /**
+     * Clears the Address Line 1 field
+     */
 	public void clearAddressLine1() {
 		WebElement addrLine1=selenium_.findElementByCss(ADDRESS_LINE_1_FIELD);
 		addrLine1.clear();
 		
 	}
 
+    /**
+     * Clears the City field
+     */
 	public void clearCity() {
 		WebElement city=selenium_.findElementByCss(CITY_FIELD_CSS);
 		city.clear();

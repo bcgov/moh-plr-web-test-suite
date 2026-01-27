@@ -1,5 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 
+/**
+ * Enum representing different status reason codes.
+ */
 public enum StatusReasonCodeOption {
 	RET("RET - Retired"), 
 	PRAC("PRAC - Practising"),
@@ -35,10 +38,19 @@ public enum StatusReasonCodeOption {
 		this.text = text;
 	}
 
+	/**
+	 * Gets the text representation of the StatusReasonCodeOption.
+	 * @return the text representation
+	 */
 	public String getText() {
 		return this.text;
 	}
 
+	/**
+	 * Converts a string to its corresponding StatusReasonCodeOption enum value.
+	 * @param text  the string representation of the StatusReasonCodeOption
+	 * @return 		the corresponding StatusReasonCodeOption enum value, or null if not found
+	 */
 	public static StatusReasonCodeOption fromString(String text) {
 		for (StatusReasonCodeOption b : StatusReasonCodeOption.values()) {
 			if (b.text.equalsIgnoreCase(text)) {

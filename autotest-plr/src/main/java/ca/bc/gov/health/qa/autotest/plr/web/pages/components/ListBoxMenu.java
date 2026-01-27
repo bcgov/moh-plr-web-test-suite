@@ -15,7 +15,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumUtils;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
 
 /**
- * TODO (AZ) - doc
+ * Fragment class representing a select list box menu component.
  */
 public class ListBoxMenu
 extends BasicWebPageFragment
@@ -24,13 +24,10 @@ extends BasicWebPageFragment
             Pattern.compile("[\\x20-\\x7E&&[^\"\\\\]]+");
 
     /**
-     * TODO (AZ) - doc
+     * Initializes a list box menu fragment.
      *
-     * @param selenium
-     *        ???
-     *
-     * @param mainLocator
-     *        ???
+     * @param selenium     the current selenium session
+     * @param mainLocator  the locator for the main div element of the list box menu
      */
     public ListBoxMenu(SeleniumSession selenium, By mainLocator)
     {
@@ -38,9 +35,9 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Grabs the list of all item labels in the list box menu (including unselected and selected).
      *
-     * @return ???
+     * @return the list of all item labels (as strings)
      */
     public List<String> grabItemList()
     {
@@ -48,12 +45,10 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Grabs the list of item labels in the list box menu.
      *
-     * @param selectedOnly
-     *        ???
-     *
-     * @return ???
+     * @param selectedOnly  whether to grab only selected items (true) or not (false)
+     * @return              the list of item labels (as strings)
      */
     public List<String> grabItemList(boolean selectedOnly)
     {
@@ -77,12 +72,10 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Grabs whether the item specified is selected.
      *
-     * @param itemPrefix
-     *        ???
-     *
-     * @return ???
+     * @param itemPrefix  the first few characters of the item to check
+     * @return            whether the specified item is selected (true) or not (false)
      */
     public boolean grabItemSelected(String itemPrefix)
     {
@@ -90,32 +83,31 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Selects the specified menu item.
      *
-     * @param itemPrefix
-     *        ???
-     *
-     * @return ???
+     * @param itemPrefix the first few characters of the item to select
+     * @return           the full label of the item selected
      */
     public String selectItem(String itemPrefix)
     {
         return selectItem(itemPrefix, true);
     }
-    
+
+    /**
+     * Deselects the specified menu item.
+     *
+     * @param itemPrefix the first few characters of the item to deselect
+     */
     public void clearItem(String itemPrefix) {
     	 selectItem(itemPrefix, false);
 	}
 
     /**
-     * TODO (AZ) - doc
+     * Selects or deselects the specified menu item.
      *
-     * @param itemPrefix
-     *        ???
-     *
-     * @param select
-     *        ???
-     *
-     * @return ???
+     * @param itemPrefix    the first few characters of the item to select/deselect
+     * @param select        whether to select (true) or deselect (false) the item
+     * @return              the full label of the item selected/deselected
      */
     public String selectItem(String itemPrefix, boolean select)
     {
@@ -135,7 +127,7 @@ extends BasicWebPageFragment
     }
 
     /**
-     * TODO (AZ) - doc
+     * Finds the menu item element matching the specified prefix.
      *
      * @param itemPrefix
      *        the prefix of the item to find
@@ -161,20 +153,19 @@ extends BasicWebPageFragment
 
         // NOTE: The menu item prefix may contain apostrophes (').
         By menuItemXPath = By.xpath(
-                new StringBuilder(".//li[contains(@class, 'ui-selectlistbox-item')]")
-                        .append("[starts-with(text(),\"")
-                        .append(itemPrefix)
-                        .append("\")]")
-                        .toString());
+                ".//li[contains(@class, 'ui-selectlistbox-item')]" +
+                        "[starts-with(text(),\"" +
+                        itemPrefix +
+                        "\")]");
 
         WebElement item;
         List<WebElement> itemList =
                 selenium_.findElement(mainLocator_).findElements(menuItemXPath);
         if (itemList.size() == 1)
         {
-            item = itemList.get(0);
+            item = itemList.getFirst();
         }
-        else if (itemList.size() == 0)
+        else if (itemList.isEmpty())
         {
             String msg = String.format("Menu item not found (%s).", itemPrefix);
             throw new IllegalStateException(msg);
@@ -192,21 +183,25 @@ extends BasicWebPageFragment
     }
 
     /**
-     * @param item
-     * @return
+     * Grabs whether the specified item element is selected.
+     *
+     * @param item the item element to check
+     * @return     whether the item is selected (true) or not (false)
      */
     private boolean grabItemSelected(WebElement item)
     {
         return SeleniumUtils.grabElementClassSet(item).contains("ui-state-highlight");
     }
 
-	/**
-	 * @return
-	 */
+    /**
+     * Clear all selected items in the list box menu.
+     *
+     * @return the null string
+     */
 	public String clearAllItem() {
 		List<String> itemList = this.grabItemList();
 		for(String exp:itemList ){
-			selectItem(UpdateSimpleHelper.grabPrefix(exp),false);
+			clearItem(UpdateSimpleHelper.grabPrefix(exp));
 		}
 		return null;
 	}
