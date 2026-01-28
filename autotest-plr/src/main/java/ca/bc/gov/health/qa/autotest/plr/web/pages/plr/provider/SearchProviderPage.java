@@ -491,7 +491,10 @@ extends BasicWebPage
         SearchProviderOrganizationFragment search = expandSearchOrganization(true);
         if (roleTypePrefix != null)
         {
-            search.selectRoleType(roleTypePrefix);
+            WebElement orgPanel = selenium_.findElement(By.id("accordian:searchByOrganizationForm:provider_identifier_panel"));
+            String currentRoleType = search.getRoleTypeMenu().grabSelectedItem();
+            if (!currentRoleType.equals(search.selectRoleType(roleTypePrefix)))
+                selenium_.waitUntil(ExpectedConditions.stalenessOf(orgPanel));
         }
         
 		if (name != null) {

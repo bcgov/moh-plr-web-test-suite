@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.SearchProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
@@ -559,28 +560,41 @@ public class SearchProviderTests implements SimpleTest {
 	public void testConfidentialRecordAttributeSearch()
 	{
 		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		final IndividualDataGenerator dataGen = IndividualDataGenerator.getInstance();
 
 		// FHIR Prep (if needed)
-		List<MaintainOrgBuilder> query = fhirController.queryOrganizationByCriteria(
+		List<MaintainOrgBuilder> orgQuery = fhirController.queryOrganizationByCriteria(
 				new OrgQueryCriteriaParams().setName("ConfidentialRecord"));
 
-		if (query.isEmpty())
+		if (orgQuery.isEmpty())
 		{
-			MaintainOrgBuilder org = fhirController.createOrganization(
-					new OrganizationMaintainConfig(OrgRoleType.ORG).withName("ConfidentialRecord").withConfidentiality());
+			fhirController.createOrganization(new OrganizationMaintainConfig(OrgRoleType.ORG)
+					.withName("ConfidentialRecord").withConfidentiality());
+		}
+
+		List<MaintainIndividualBuilder> indQuery = fhirController.queryIndividualByCriteria(
+				new IndividualQueryCriteriaParams().setFamily("ConfidentialRecord").setExpertise("ENG"));
+
+		if (indQuery.isEmpty())
+		{
+			MaintainIndividualBuilder ind = new IndividualBuilderFactory(dataGen)
+					.build(new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality())
+					.familyName("ConfidentialRecord").addExpertise("ENG", dataGen.shortText());
+			fhirController.submitIndividual(ind);
 		}
 
 		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
 
 		// Search by Criteria
-		provider.searchByCriteria(OrgRoleType.ORG.name(), "ConfidentialRecord",
-				null, null, null, null, null);
+		provider.searchByCriteria(IndividualRoleType.MD.name(), null, "ConfidentialRecord",
+				null, null, null, null,
+				null, List.of("ENG"));
 		assertEquals(warningList.get("confidentialRecordFound"), provider.grabWarningErrorMessage(),
 				"Expected warning message not found");
 
 		// Search by Organization
-		provider.searchForOrganization(OrgRoleType.ORG.name(), "ConfidentialRecord",
-				null, null, null);
+		provider.searchForOrganization(null, "ConfidentialRecord", null,
+				null, null);
 		assertEquals(warningList.get("confidentialRecordFound"), provider.grabWarningErrorMessage(),
 				"Expected warning message not found");
 	}
