@@ -27,12 +27,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import static java.util.Objects.requireNonNull;
-import java.util.ArrayList;
+
+import java.util.*;
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -433,5 +431,22 @@ public final class TestHelper {
         boolean isOrg = !Objects.isNull(orgBuilder);
 
         return isOrg ? orgBuilder.getIdentifier(ipc) : indBuilder.getIdentifier(ipc);
+    }
+
+    /**
+     * get Random Number
+     * @param min	the min number
+     * @param max 	the max number
+     * @return 		random number between min and max
+     */
+    public static int getRandomNumber(int min, int max) {
+        // Create a Random object
+        Random random = new Random();
+
+        // Generate the random number
+        // nextInt((max - min) + 1) generates a number between 0 and 4
+        // Adding min (2) shifts the range to be between 2 and 6 (exclusive of 6)
+        return random.nextInt((max - min) + 1) + min;
+
     }
 }
