@@ -7,16 +7,10 @@ import static org.testng.Assert.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.SearchProviderActions;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
@@ -597,5 +591,36 @@ public class SearchProviderTests implements SimpleTest {
 				null, null);
 		assertEquals(warningList.get("confidentialRecordFound"), provider.grabWarningErrorMessage(),
 				"Expected warning message not found");
+	}
+
+	// Confidential Record ID Search
+	@Test(groups = { "SearchProvider" })
+	public void testConfidentialRecordIDSearch()
+	{
+		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+
+		// FHIR Prep
+		MaintainIndividualBuilder confidentialInd = fhirController.createIndividual(
+				new IndividualMaintainConfig().withConfidentiality());
+
+		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
+
+		// Search by Identifier
+		SearchProviderResultsFragment results = provider.searchByIdentifier("IPC",
+				confidentialInd.getIdentifier(IdentifierType.IPC));
+		List<String> resultInfo = results.grabResultsRow(0);
+		assertTrue(Objects.nonNull(resultInfo),
+				"Search by Identifier for confidential record was unsuccessful");
+
+		// Search by Registry Identifier
+		String ipcID = UpdateSimpleHelper.getRegIdString(IdentifierType.IPC.name(),
+				confidentialInd.getIdentifier(IdentifierType.IPC));
+		results = provider.searchByRegistryIdentifier("IPC", ipcID);
+		resultInfo = results.grabResultsRow(0);
+		assertTrue(Objects.nonNull(resultInfo),
+				"Search by Registry Identifier for confidential record was unsuccessful");
+
+		// Search by Criteria / Search by Organization
+		testConfidentialRecordAttributeSearch();
 	}
 }
