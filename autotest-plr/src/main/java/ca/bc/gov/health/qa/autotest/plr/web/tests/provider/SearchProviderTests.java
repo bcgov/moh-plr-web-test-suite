@@ -1,8 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.getRandomNumber;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,6 +9,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
@@ -554,25 +554,31 @@ public class SearchProviderTests implements SimpleTest {
 	}
 
 	// Confidential Mask
-	@Test(groups = { "SearchProvider" }, dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
-	public void testConfidentialMask(ProviderType providerType)
+	@Test(groups = { "SearchProvider" }, dataProvider = "indOrgBuilderTypes", dataProviderClass = InjectableData.class)
+	public void testConfidentialMask(ProviderType providerType, MaintainRequestBuilder confidentialRecord)
 	{
 		final PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.SECONDARY);
 		if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
 		final SearchProviderActions actions = workflowManager_.getSelectedWorkflow().getSearchProviderActions();
 
-		// FHIR Prep
+		// FHIR Prep - if confidentialRecord is set use that record instead of creating anything new
+		boolean isOrganization;
 		MaintainIndividualBuilder confInd = null;
 		MaintainOrgBuilder confOrg = null;
-		switch (providerType)
-		{
-			case BC_PRACTITIONER -> confInd = fhirController.createIndividual(
-					new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
-            case ORGANIZATION -> confOrg = fhirController.createOrganization(
-					new OrganizationMaintainConfig(OrgRoleType.ORG).withConfidentiality());
-			default -> throw new IllegalStateException("Unsupported provider type " + providerType.name());
-        }
-		boolean isOrganization = !Objects.isNull(confOrg);
+		if (confidentialRecord == null) {
+			switch (providerType) {
+				case BC_PRACTITIONER -> confInd = fhirController.createIndividual(
+						new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
+				case ORGANIZATION -> confOrg = fhirController.createOrganization(
+						new OrganizationMaintainConfig(OrgRoleType.ORG).withConfidentiality());
+				default -> throw new IllegalStateException("Unsupported provider type " + providerType.name());
+			}
+			isOrganization = !Objects.isNull(confOrg);
+		} else {
+			isOrganization = confidentialRecord instanceof MaintainOrgBuilder;
+			if (isOrganization) confOrg = (MaintainOrgBuilder) confidentialRecord;
+			else confInd = (MaintainIndividualBuilder) confidentialRecord;
+		}
 
 		// Test Start
 		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
@@ -681,5 +687,60 @@ public class SearchProviderTests implements SimpleTest {
 
 		// Search by Criteria / Search by Organization
 		testConfidentialRecordAttributeSearch();
+	}
+
+	// Viewing Permissions for Confidential Provider Records
+	@Test(groups = { "SearchProvider" }, dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
+	public void testViewPermissionsConfidentialRecords(ProviderType providerType)
+	{
+		// FHIR Prep
+		final FHIRController primaryController = new FHIRController(UserType.PRIMARY);
+		MaintainIndividualBuilder confInd = null;
+		MaintainOrgBuilder confOrg = null;
+		switch (providerType)
+		{
+			case BC_PRACTITIONER -> confInd = primaryController.createIndividual(
+					new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
+			case ORGANIZATION -> confOrg = primaryController.createOrganization(
+					new OrganizationMaintainConfig(OrgRoleType.ORG).withConfidentiality());
+			default -> throw new IllegalStateException("Unsupported provider type " + providerType.name());
+		}
+		boolean isOrganization = !Objects.isNull(confOrg);
+
+		// Test Start (checking Reg-Admin access to anything and Primary access to its own confidential record)
+		for (UserType userType : List.of(UserType.ADMIN, UserType.PRIMARY))
+		{
+			final PlrWebWorkflow workflow = workflowManager_.selectWorkflow(userType);
+			if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
+			final SearchProviderActions actions = workflowManager_.getSelectedWorkflow().getSearchProviderActions();
+
+			SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
+
+			String identifier;
+			if (isOrganization) identifier = confOrg.getIdentifier(IdentifierType.IPC);
+			else identifier = confInd.getIdentifier(IdentifierType.IPC);
+
+			SearchProviderResultsFragment results = provider.searchByIdentifier("IPC", identifier);
+			List<String> resultInfo = results.grabResultsRow(0);
+			assertNotEquals(resultInfo.getFirst(), "Link to View Provider",
+					"Record name confidentially masked unexpectedly");
+
+			ViewProviderPage page = actions.openSearchResults(0);
+
+			assertNotEquals(page.getViewHeader().grabViewTitle().split(" ")[0], "Confidential",
+					"Record name in title confidentially masked unexpectedly");
+
+			for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
+			{
+				if (!section.isRequired()) continue;
+				if (userType.equals(UserType.PRIMARY) && section.equals(ProviderSection.REGISTRY_IDENTIFIERS)) continue;
+
+				assertTrue(page.grabDataBlockCount(section) > 0,
+						"Expected record data not found in section: " + section.name());
+			}
+		}
+
+		// checking secondary
+		testConfidentialMask(providerType, isOrganization ? confOrg : confInd);
 	}
 }
