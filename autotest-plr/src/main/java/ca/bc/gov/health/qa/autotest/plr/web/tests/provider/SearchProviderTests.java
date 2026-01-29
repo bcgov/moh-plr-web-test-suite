@@ -9,8 +9,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
+import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.SearchProviderActions;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
@@ -79,7 +84,6 @@ public class SearchProviderTests implements SimpleTest {
 
 	@BeforeMethod
 	public void before(Object[] parameters) {
-
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
 		if (!workflow.isLoggedIn()) {
 			workflow.login().openPlr();
@@ -549,6 +553,61 @@ public class SearchProviderTests implements SimpleTest {
 
 	}
 
+	// Confidential Mask
+	@Test(groups = { "SearchProvider" }, dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
+	public void testConfidentialMask(ProviderType providerType)
+	{
+		final PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.SECONDARY);
+		if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
+		final SearchProviderActions actions = workflowManager_.getSelectedWorkflow().getSearchProviderActions();
+
+		// FHIR Prep
+		MaintainIndividualBuilder confInd = null;
+		MaintainOrgBuilder confOrg = null;
+		switch (providerType)
+		{
+			case BC_PRACTITIONER -> confInd = fhirController.createIndividual(
+					new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
+            case ORGANIZATION -> confOrg = fhirController.createOrganization(
+					new OrganizationMaintainConfig(OrgRoleType.ORG).withConfidentiality());
+			default -> throw new IllegalStateException("Unsupported provider type " + providerType.name());
+        }
+		boolean isOrganization = !Objects.isNull(confOrg);
+
+		// Test Start
+		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
+
+		String identifier;
+		if (isOrganization) identifier = confOrg.getIdentifier(IdentifierType.IPC);
+		else identifier = confInd.getIdentifier(IdentifierType.IPC);
+
+		SearchProviderResultsFragment results = provider.searchByIdentifier("IPC", identifier);
+		List<String> resultInfo = results.grabResultsRow(0);
+		assertEquals(resultInfo.getFirst(), "Link to View Provider", "Record name not confidentially masked");
+
+		ViewProviderPage page = actions.openSearchResults(0);
+
+		assertEquals(page.getViewHeader().grabViewTitle().split(" ")[0], "Confidential",
+				"Record name in title not confidentially masked");
+
+		// Verify confidential sections are masked
+		for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
+		{
+			switch (section)
+			{
+				case IDENTIFIERS, ROLE_TYPE:
+					continue;
+				case PRACTITIONER_NAMES, ORGANIZATION_NAMES:
+					String nameField = section.equals(ProviderSection.ORGANIZATION_NAMES) ? "Name" : "Surname";
+					String name = page.grabDataBlockContent(section, 0).get(nameField);
+					assertEquals(name, "Confidential", "Surname not set as confidential");
+					continue;
+			}
+            assertEquals(page.grabDataBlockCount(section), 0,
+					"Confidential record data found in section: " + section.name());
+		}
+	}
+
 	// Confidential Record Attribute Search
 	@Test(groups = { "SearchProvider" })
 	public void testConfidentialRecordAttributeSearch()
@@ -601,7 +660,7 @@ public class SearchProviderTests implements SimpleTest {
 
 		// FHIR Prep
 		MaintainIndividualBuilder confidentialInd = fhirController.createIndividual(
-				new IndividualMaintainConfig().withConfidentiality());
+				new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
 
 		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
 
