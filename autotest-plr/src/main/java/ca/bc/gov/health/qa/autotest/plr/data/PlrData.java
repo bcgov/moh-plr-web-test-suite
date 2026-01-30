@@ -16,7 +16,6 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataG
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PractitionerRelationshipCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
@@ -24,7 +23,6 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.Individua
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.model.facility.Identifier;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
@@ -36,7 +34,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
 /**
- * TODO (AZ) - doc
+ * PLR Data utility class for getting and setting up PLR test data.
  */
 public class PlrData
 {
@@ -90,9 +88,9 @@ public class PlrData
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the PLR FHIR keystore path.
      *
-     * @return ???
+     * @return the keystore path
      */
     public static Path getKeyStorePath()
     {
@@ -120,18 +118,12 @@ public class PlrData
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets provider data for the given provider type and key.
      *
-     * @param providerType
-     *        ???
-     *
-     * @param key
-     *        ???
-     *
-     * @return ???
-     *
-     * @throws IllegalStateException
-     *         if the provider type is not supported
+     * @param providerType              the provider type
+     * @param key                       the provider key
+     * @return                          provider data as JSON object
+     * @throws IllegalStateException    if the provider type is not supported
      */
     @Deprecated
     public static JSONObject getProvider(ProviderType providerType, String key)
@@ -311,7 +303,7 @@ public class PlrData
     }
 
     /**
-     * TODO (KD) - doc
+     * Gets facility data for the given key.
      *
      * @param key the configuration key name
      * @return the string value for the given key, or null if absent
