@@ -42,7 +42,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	public ViewFacilitySimpleTests() {}
 
 	@AfterClass
-	public void teardown() {
+	private void teardown() {
 		dummyFacility.ceaseOrganizationRelationships();
 		fhirController.close();
 
@@ -51,7 +51,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	}
 
 	@BeforeTest
-	public void beforeTest()
+	private void beforeTest()
 	{
 		fhirController = new FHIRController(UserType.ADMIN);
 
@@ -63,7 +63,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	}
 
 	@BeforeMethod
-	public void before(Object[] parameters) {
+	private void before(Object[] parameters) {
 		 PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
 		 if (!workflow.isLoggedIn()) workflow.login().openPlr();
 	}

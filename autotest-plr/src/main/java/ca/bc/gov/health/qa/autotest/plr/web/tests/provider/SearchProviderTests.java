@@ -49,6 +49,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
+/** Tests class for the Search Provider page */
 public class SearchProviderTests implements SimpleTest {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
@@ -60,7 +61,6 @@ public class SearchProviderTests implements SimpleTest {
 	private static FHIRController fhirController;
     
 	private SearchProviderTests() {
-		
 		try
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
@@ -77,13 +77,13 @@ public class SearchProviderTests implements SimpleTest {
 	private final String NORECORDFOUND = "No records found.";
 
 	@AfterClass
-	public void teardown() {
+	private void teardown() {
 		workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
 	@BeforeMethod
-	public void before(Object[] parameters) {
+	private void before(Object[] parameters) {
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
 		if (!workflow.isLoggedIn()) {
 			workflow.login().openPlr();
@@ -91,7 +91,7 @@ public class SearchProviderTests implements SimpleTest {
 	}
 
 	@BeforeTest
-	public void beforeTest() {
+	private void beforeTest() {
 		fhirController = new FHIRController(UserType.ADMIN);
 	}
 
