@@ -297,6 +297,142 @@ public class SearchProviderTests implements SimpleTest {
 
 	}
 
+	// Search - Confidential Mask
+	@Test(groups = { "SearchProvider" }, dataProvider = "indOrgBuilderTypes", dataProviderClass = InjectableData.class)
+	public void testConfidentialMask(ProviderType providerType, MaintainRequestBuilder confidentialRecord)
+	{
+		final PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.SECONDARY);
+		if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
+		final SearchProviderActions actions = workflowManager_.getSelectedWorkflow().getSearchProviderActions();
+
+		// FHIR Prep - if confidentialRecord is set use that record instead of creating anything new
+		boolean isOrganization;
+		MaintainIndividualBuilder confInd = null;
+		MaintainOrgBuilder confOrg = null;
+		if (confidentialRecord == null) {
+			switch (providerType) {
+				case BC_PRACTITIONER -> confInd = fhirController.createIndividual(
+						new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
+				case ORGANIZATION -> confOrg = fhirController.createOrganization(
+						new OrganizationMaintainConfig(OrgRoleType.ORG).withConfidentiality());
+				default -> throw new IllegalStateException("Unsupported provider type " + providerType.name());
+			}
+			isOrganization = !Objects.isNull(confOrg);
+		} else {
+			isOrganization = confidentialRecord instanceof MaintainOrgBuilder;
+			if (isOrganization) confOrg = (MaintainOrgBuilder) confidentialRecord;
+			else confInd = (MaintainIndividualBuilder) confidentialRecord;
+		}
+
+		// Test Start
+		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
+
+		String identifier;
+		if (isOrganization) identifier = confOrg.getIdentifier(IdentifierType.IPC);
+		else identifier = confInd.getIdentifier(IdentifierType.IPC);
+
+		SearchProviderResultsFragment results = provider.searchByIdentifier("IPC", identifier);
+		List<String> resultInfo = results.grabResultsRow(0);
+		assertEquals(resultInfo.getFirst(), "Link to View Provider", "Record name not confidentially masked");
+
+		ViewProviderPage page = actions.openSearchResults(0);
+
+		assertEquals(page.getViewHeader().grabViewTitle().split(" ")[0], "Confidential",
+				"Record name in title not confidentially masked");
+
+		// Verify confidential sections are masked
+		for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
+		{
+			switch (section)
+			{
+				case IDENTIFIERS, ROLE_TYPE:
+					continue;
+				case PRACTITIONER_NAMES, ORGANIZATION_NAMES:
+					String nameField = section.equals(ProviderSection.ORGANIZATION_NAMES) ? "Name" : "Surname";
+					String name = page.grabDataBlockContent(section, 0).get(nameField);
+					assertEquals(name, "Confidential", "Surname not set as confidential");
+					continue;
+			}
+			assertEquals(page.grabDataBlockCount(section), 0,
+					"Confidential record data found in section: " + section.name());
+		}
+	}
+
+	// Search - Confidential Record Attribute Search
+	@Test(groups = { "SearchProvider" })
+	public void testConfidentialRecordAttributeSearch()
+	{
+		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		final IndividualDataGenerator dataGen = IndividualDataGenerator.getInstance();
+
+		// FHIR Prep (if needed)
+		List<MaintainOrgBuilder> orgQuery = fhirController.queryOrganizationByCriteria(
+				new OrgQueryCriteriaParams().setName("ConfidentialRecord"));
+
+		if (orgQuery.isEmpty())
+		{
+			fhirController.createOrganization(new OrganizationMaintainConfig(OrgRoleType.ORG)
+					.withName("ConfidentialRecord").withConfidentiality());
+		}
+
+		List<MaintainIndividualBuilder> indQuery = fhirController.queryIndividualByCriteria(
+				new IndividualQueryCriteriaParams().setFamily("ConfidentialRecord").setExpertise("ENG"));
+
+		if (indQuery.isEmpty())
+		{
+			MaintainIndividualBuilder ind = new IndividualBuilderFactory(dataGen)
+					.build(new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality())
+					.familyName("ConfidentialRecord").addExpertise("ENG", dataGen.shortText());
+			fhirController.submitIndividual(ind);
+		}
+
+		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
+
+		// Search by Criteria
+		provider.searchByCriteria(IndividualRoleType.MD.name(), null, "ConfidentialRecord",
+				null, null, null, null,
+				null, List.of("ENG"));
+		assertEquals(warningList.get("confidentialRecordFound"), provider.grabWarningErrorMessage(),
+				"Expected warning message not found");
+
+		// Search by Organization
+		provider.searchForOrganization(null, "ConfidentialRecord", null,
+				null, null);
+		assertEquals(warningList.get("confidentialRecordFound"), provider.grabWarningErrorMessage(),
+				"Expected warning message not found");
+	}
+
+	// Search - Confidential Record ID Search
+	@Test(groups = { "SearchProvider" })
+	public void testConfidentialRecordIDSearch()
+	{
+		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+
+		// FHIR Prep
+		MaintainIndividualBuilder confidentialInd = fhirController.createIndividual(
+				new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
+
+		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
+
+		// Search by Identifier
+		SearchProviderResultsFragment results = provider.searchByIdentifier("IPC",
+				confidentialInd.getIdentifier(IdentifierType.IPC));
+		List<String> resultInfo = results.grabResultsRow(0);
+		assertTrue(Objects.nonNull(resultInfo),
+				"Search by Identifier for confidential record was unsuccessful");
+
+		// Search by Registry Identifier
+		String ipcID = UpdateSimpleHelper.getRegIdString(IdentifierType.IPC.name(),
+				confidentialInd.getIdentifier(IdentifierType.IPC));
+		results = provider.searchByRegistryIdentifier("IPC", ipcID);
+		resultInfo = results.grabResultsRow(0);
+		assertTrue(Objects.nonNull(resultInfo),
+				"Search by Registry Identifier for confidential record was unsuccessful");
+
+		// Search by Criteria / Search by Organization
+		testConfidentialRecordAttributeSearch();
+	}
+
 	// Search - Individual Provider
 	@Test(groups = { "SearchProvider" })
 	public void testSearchIndividualProvider() {
@@ -551,142 +687,6 @@ public class SearchProviderTests implements SimpleTest {
 		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, null, addressline1);
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
 
-	}
-
-	// Confidential Mask
-	@Test(groups = { "SearchProvider" }, dataProvider = "indOrgBuilderTypes", dataProviderClass = InjectableData.class)
-	public void testConfidentialMask(ProviderType providerType, MaintainRequestBuilder confidentialRecord)
-	{
-		final PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.SECONDARY);
-		if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
-		final SearchProviderActions actions = workflowManager_.getSelectedWorkflow().getSearchProviderActions();
-
-		// FHIR Prep - if confidentialRecord is set use that record instead of creating anything new
-		boolean isOrganization;
-		MaintainIndividualBuilder confInd = null;
-		MaintainOrgBuilder confOrg = null;
-		if (confidentialRecord == null) {
-			switch (providerType) {
-				case BC_PRACTITIONER -> confInd = fhirController.createIndividual(
-						new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
-				case ORGANIZATION -> confOrg = fhirController.createOrganization(
-						new OrganizationMaintainConfig(OrgRoleType.ORG).withConfidentiality());
-				default -> throw new IllegalStateException("Unsupported provider type " + providerType.name());
-			}
-			isOrganization = !Objects.isNull(confOrg);
-		} else {
-			isOrganization = confidentialRecord instanceof MaintainOrgBuilder;
-			if (isOrganization) confOrg = (MaintainOrgBuilder) confidentialRecord;
-			else confInd = (MaintainIndividualBuilder) confidentialRecord;
-		}
-
-		// Test Start
-		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
-
-		String identifier;
-		if (isOrganization) identifier = confOrg.getIdentifier(IdentifierType.IPC);
-		else identifier = confInd.getIdentifier(IdentifierType.IPC);
-
-		SearchProviderResultsFragment results = provider.searchByIdentifier("IPC", identifier);
-		List<String> resultInfo = results.grabResultsRow(0);
-		assertEquals(resultInfo.getFirst(), "Link to View Provider", "Record name not confidentially masked");
-
-		ViewProviderPage page = actions.openSearchResults(0);
-
-		assertEquals(page.getViewHeader().grabViewTitle().split(" ")[0], "Confidential",
-				"Record name in title not confidentially masked");
-
-		// Verify confidential sections are masked
-		for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
-		{
-			switch (section)
-			{
-				case IDENTIFIERS, ROLE_TYPE:
-					continue;
-				case PRACTITIONER_NAMES, ORGANIZATION_NAMES:
-					String nameField = section.equals(ProviderSection.ORGANIZATION_NAMES) ? "Name" : "Surname";
-					String name = page.grabDataBlockContent(section, 0).get(nameField);
-					assertEquals(name, "Confidential", "Surname not set as confidential");
-					continue;
-			}
-            assertEquals(page.grabDataBlockCount(section), 0,
-					"Confidential record data found in section: " + section.name());
-		}
-	}
-
-	// Confidential Record Attribute Search
-	@Test(groups = { "SearchProvider" })
-	public void testConfidentialRecordAttributeSearch()
-	{
-		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-		final IndividualDataGenerator dataGen = IndividualDataGenerator.getInstance();
-
-		// FHIR Prep (if needed)
-		List<MaintainOrgBuilder> orgQuery = fhirController.queryOrganizationByCriteria(
-				new OrgQueryCriteriaParams().setName("ConfidentialRecord"));
-
-		if (orgQuery.isEmpty())
-		{
-			fhirController.createOrganization(new OrganizationMaintainConfig(OrgRoleType.ORG)
-					.withName("ConfidentialRecord").withConfidentiality());
-		}
-
-		List<MaintainIndividualBuilder> indQuery = fhirController.queryIndividualByCriteria(
-				new IndividualQueryCriteriaParams().setFamily("ConfidentialRecord").setExpertise("ENG"));
-
-		if (indQuery.isEmpty())
-		{
-			MaintainIndividualBuilder ind = new IndividualBuilderFactory(dataGen)
-					.build(new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality())
-					.familyName("ConfidentialRecord").addExpertise("ENG", dataGen.shortText());
-			fhirController.submitIndividual(ind);
-		}
-
-		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
-
-		// Search by Criteria
-		provider.searchByCriteria(IndividualRoleType.MD.name(), null, "ConfidentialRecord",
-				null, null, null, null,
-				null, List.of("ENG"));
-		assertEquals(warningList.get("confidentialRecordFound"), provider.grabWarningErrorMessage(),
-				"Expected warning message not found");
-
-		// Search by Organization
-		provider.searchForOrganization(null, "ConfidentialRecord", null,
-				null, null);
-		assertEquals(warningList.get("confidentialRecordFound"), provider.grabWarningErrorMessage(),
-				"Expected warning message not found");
-	}
-
-	// Confidential Record ID Search
-	@Test(groups = { "SearchProvider" })
-	public void testConfidentialRecordIDSearch()
-	{
-		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-
-		// FHIR Prep
-		MaintainIndividualBuilder confidentialInd = fhirController.createIndividual(
-				new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
-
-		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
-
-		// Search by Identifier
-		SearchProviderResultsFragment results = provider.searchByIdentifier("IPC",
-				confidentialInd.getIdentifier(IdentifierType.IPC));
-		List<String> resultInfo = results.grabResultsRow(0);
-		assertTrue(Objects.nonNull(resultInfo),
-				"Search by Identifier for confidential record was unsuccessful");
-
-		// Search by Registry Identifier
-		String ipcID = UpdateSimpleHelper.getRegIdString(IdentifierType.IPC.name(),
-				confidentialInd.getIdentifier(IdentifierType.IPC));
-		results = provider.searchByRegistryIdentifier("IPC", ipcID);
-		resultInfo = results.grabResultsRow(0);
-		assertTrue(Objects.nonNull(resultInfo),
-				"Search by Registry Identifier for confidential record was unsuccessful");
-
-		// Search by Criteria / Search by Organization
-		testConfidentialRecordAttributeSearch();
 	}
 
 	// Viewing Permissions for Confidential Provider Records
