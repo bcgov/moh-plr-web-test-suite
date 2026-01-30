@@ -480,7 +480,7 @@ extends BasicWebPage
         return getDataBlockSelector(section, index) + " > div.ui-panel-content";
     }
 
-    private String getDataBlockHeaderActiveSelector(ProviderSection section, int index)
+    protected String getDataBlockHeaderActiveSelector(ProviderSection section, int index)
     {
         return getDataBlockHeaderSelector(section, index)
                 + " > div.ui-panel-actions > span > img[title='Active']";
@@ -492,12 +492,12 @@ extends BasicWebPage
                 + " > a[title='Expand/Collapse']";
     }
 
-    private String getDataBlockHeaderSelector(ProviderSection section, int index)
+    protected String getDataBlockHeaderSelector(ProviderSection section, int index)
     {
         return getDataBlockSelector(section, index) + " > div.ui-panel-titlebar";
     }
 
-    private String getDataBlockSelector(ProviderSection section, int index)
+    protected String getDataBlockSelector(ProviderSection section, int index)
     {
         if (index < 0)
         {
@@ -512,13 +512,13 @@ extends BasicWebPage
         return getDataBlocksSelector(section) + " > div.ui-panel-titlebar";
     }
 
-    private String getDataBlocksSelector(ProviderSection section)
+    protected String getDataBlocksSelector(ProviderSection section)
     {
         return getSectionContentSelector(section)
                 + " > table.recordDetailsPanels > tbody > tr > td > div.ui-panel";
     }
 
-    private String getSectionContentSelector(ProviderSection section)
+    protected String getSectionContentSelector(ProviderSection section)
     {
         return getSectionSelector(section) + "_content";
     }
@@ -528,7 +528,7 @@ extends BasicWebPage
         return getSectionSelector(section) + "_header";
     }
 
-    private String getSectionSelector(ProviderSection section)
+    protected String getSectionSelector(ProviderSection section)
     {
         return "div#" + section.getPanelId();
     }
