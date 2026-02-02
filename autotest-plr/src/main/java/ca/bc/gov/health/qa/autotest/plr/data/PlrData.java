@@ -224,7 +224,7 @@ public class PlrData
     /**
      * Finds organizations with expected properties for tests, or creates them if they don't exist.
      *
-     * @param fhir          the FHIRController reference for fhir endpoint use
+     * @param fhir          the FHIRController reference for FHIR endpoint use
      * @param defaultMap    a map of default data set provider builders based on provider type
      * @param minimumMap    a map of minimum data set provider builders based on provider type
      */

@@ -51,6 +51,10 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
 /** Tests class for the Search Provider page */
 public class SearchProviderTests implements SimpleTest {
+	// NOTE: The following test cases *WILL NOT* be automated:
+	// - Search Provider : Configurable The Number of Search Results
+	// - Search Provider : Limiting The Number of Search Records Returned By The DB
+
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
 	private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
@@ -78,6 +82,7 @@ public class SearchProviderTests implements SimpleTest {
 
 	@AfterClass
 	private void teardown() {
+		fhirController.close();
 		workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
@@ -431,6 +436,76 @@ public class SearchProviderTests implements SimpleTest {
 
 		// Search by Criteria / Search by Organization
 		testConfidentialRecordAttributeSearch();
+	}
+
+	// Search - HDS Organization Provider
+	@Test(groups = { "SearchProvider" })
+	public void testHDSOrganizationProvider() {
+		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+
+		/* This test case cannot ensure there is an HDS organization of type CLINIC existing in the system.
+		 * It will create one if an HDS type organization with the other parameters does not exist -
+		 * but if one already exists, it cannot guarantee it is of type CLINIC (which is used for testing HDS Type) */
+		List<MaintainOrgBuilder> hdsQuery = fhirController.queryOrganizationByCriteria(
+				new OrgQueryCriteriaParams().setRoleType(OrgRoleType.HDS)
+						.setName("HDSOrgTest")
+						.setDescription("HDSOrgDesc")
+						.setAddressLine1("1175 DOUGLAS ST")
+						.setAddressCity("Victoria"));
+
+		if (hdsQuery == null)
+		{
+			final OrganizationDataGenerator dataGen = OrganizationDataGenerator.getInstance();
+			OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS).withName("HDSOrgTest");
+			MaintainOrgBuilder builder = new OrganizationBuilderFactory(dataGen).build(orgConfig)
+					.hdsType(HdsType.CLINIC)
+					.alias("HDSOrgDesc")
+					.setAddressList(List.of())
+					.addAddress("physical", "BC", "1175 DOUGLAS ST", "Victoria", "V8W 2E1");
+			fhirController.submitOrganization(builder);
+		}
+
+		// Test Start
+		SearchProviderPage providerPage = workflow.getPlrWebAccessActions().openSearchProvider();
+		SearchProviderResultsFragment results = providerPage.searchHDSOrganization(
+				HdsType.CLINIC.name(),
+				"HDSOrgTest",
+				"HDSOrgDesc",
+				"Victoria",
+				"1175 DOUGLAS ST");
+		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
+		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
+
+		// Role Type + HDS Type only
+		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(),
+				"", "", "", "");
+		assertEquals(results.grabResultsRowCount(), 0, "Search results returned records unexpectedly");
+		assertEquals(providerPage.grabPageErrorMessage(), errorList.get("errorEntryError"),
+				"Expected error message not found");
+
+		// City + Address Line 1 blank
+		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(), "HDSOrgTest", "HDSOrgDesc",
+				"", "");
+		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
+		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
+
+		// City only
+		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(), "", "",
+				"Victoria", "");
+		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
+		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
+
+		// Description only
+		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(), "", "HDSOrgDesc",
+				"", "");
+		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
+		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
+
+		// Address Line 1 only
+		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(), "", "",
+				"", "1175 DOUGLAS ST");
+		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
+		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
 	}
 
 	// Search - Individual Provider

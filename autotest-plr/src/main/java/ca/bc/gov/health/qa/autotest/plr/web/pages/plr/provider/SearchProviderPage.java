@@ -497,26 +497,7 @@ extends BasicWebPage
                 selenium_.waitUntil(ExpectedConditions.stalenessOf(orgPanel));
         }
         
-		if (name != null) {
-			search.fillName(name);
-		} else
-			search.clearName();
-		if (description != null) {
-			search.fillDescription(description);
-		} else
-			search.clearDescription();
-
-		if (addressLine1 != null) {
-			search.fillAddressLine1(addressLine1);
-		} else
-			search.clearAddressLine1();
-		if (city != null) {
-			search.fillCity(city);
-		} else
-			search.clearCity();
-		
-        search.clickSearchButton();
-        return waitForSearchProviderResultsFragment();
+        return fillCommonOrganizationFields(search, name, description, city, addressLine1);
     }
 
     /**
@@ -546,28 +527,35 @@ extends BasicWebPage
     
     	if(hdsType!=null)
          search.selectHdsType(hdsType);
-        
-		if (name != null) {
-			search.fillName(name);
-		} else
-			search.clearName();
-		if (description != null) {
-			search.fillDescription(description);
-		} else
-			search.clearDescription();
 
-		if (addressLine1 != null) {
-			search.fillAddressLine1(addressLine1);
-		} else
-			search.clearAddressLine1();
-		if (city != null) {
-			search.fillCity(city);
-		} else
-			search.clearCity();
-         
-         search.clickSearchButton();
-         return waitForSearchProviderResultsFragment();
-    	
+        return fillCommonOrganizationFields(search, name, description, city, addressLine1);
+    }
+
+    public SearchProviderResultsFragment fillCommonOrganizationFields(SearchProviderOrganizationFragment search,
+                                                                      String name,
+                                                                      String description,
+                                                                      String city,
+                                                                      String addressLine1) {
+        if (name != null) {
+            search.fillName(name);
+        } else
+            search.clearName();
+        if (description != null) {
+            search.fillDescription(description);
+        } else
+            search.clearDescription();
+
+        if (addressLine1 != null) {
+            search.fillAddressLine1(addressLine1);
+        } else
+            search.clearAddressLine1();
+        if (city != null) {
+            search.fillCity(city);
+        } else
+            search.clearCity();
+
+        search.clickSearchButton();
+        return waitForSearchProviderResultsFragment();
     }
 
     /**
