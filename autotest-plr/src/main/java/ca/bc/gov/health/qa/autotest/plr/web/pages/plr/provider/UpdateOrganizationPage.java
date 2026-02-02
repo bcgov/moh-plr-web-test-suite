@@ -84,6 +84,41 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	}
 
 	/**
+	 * Override parent's method to use the child's DIALOG_MAP which includes ORGANIZATION_PROPERTIES
+	 * Clicks the update button for a data block and waits for the dialog to appear
+	 *
+	 * @param section the provider section
+	 * @param index the index of the data block to update
+	 */
+	@Override
+	public void clickDataBlockUpdateButton(ProviderSection section, int index) {
+		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
+		WebElement updateButton = selenium_.waitUntil(ExpectedConditions
+				.elementToBeClickable(By.cssSelector(selectCss)));
+		selenium_.scrollIntoView(updateButton);
+
+		try {
+			updateButton.click();
+		} catch (StaleElementReferenceException e) {
+			waitSeconds(2);
+			updateButton.click();
+		}
+		
+		// Use child's DIALOG_MAP which includes ORGANIZATION_PROPERTIES
+		String dialogCss;
+		if (section == ProviderSection.ORGANIZATION_PROPERTIES) {
+			dialogCss = getOrgDialogCss(section);
+		} else {
+			// For other sections, use parent's DIALOG_MAP directly
+			String dialogName = UpdateProviderPage.DIALOG_MAP.get(section).getDialogName();
+			String formName = UpdateProviderPage.DIALOG_MAP.get(section).getFormName();
+			dialogCss = "div#" + dialogName + " > div#" + dialogName + "_content" + " > form#" + formName;
+		}
+			
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
+
+	/**
 	 * Pick current date for Effective From field by clicking the datepicker "Today" button
 	 *
 	 * @param section the provider section
@@ -331,6 +366,10 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 
 		clickHeaderAddOrgPropertyButton(ProviderSection.ORGANIZATION_PROPERTIES);
 
+        // Wait for dialog to be visible and stable
+        selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+        waitSeconds(2);
+
 		// Set property type dropdown
 		setOrgDropdownListByVisibleText(ProviderSection.ORGANIZATION_PROPERTIES, "PropertyType", propertyType.getDisplayName());
 
@@ -366,30 +405,30 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	/**
 	 * Attempts to update an organization property data block with provided values
 	 *
+	 * @param propertyType the organization property type enum
 	 * @param propertyValue the property value to update
-	 * @param effectiveFrom the effective from date
-	 * @param effectiveTo the effective to date
 	 * @param endReason the end reason to specify when updating
 	 * @param index the index of the data block to update
 	 * @param expectError whether an error is anticipated
 	 * @return a string of the error message, if expectError is true. otherwise an empty string
 	 */
-	public String updateOrganizationPropertyDataBlock(String propertyValue, String effectiveFrom, String effectiveTo,
+	public String updateOrganizationPropertyDataBlock(OrganizationProperties propertyType, String propertyValue,
 			EndReason endReason, int index, boolean expectError) {
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_PROPERTIES).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_PROPERTIES);
 
 		clickDataBlockUpdateButton(ProviderSection.ORGANIZATION_PROPERTIES, index);
-		waitSeconds(2);
+		
+        // Wait for dialog to be visible and stable
+        selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+        waitSeconds(2);
 
-		// Set property value
-		//findAndFillOrgField(dialogCss, formName, propertyValue, "propertyValue");
+		// Set property value based on field type
+		setOrgPropertyValueByType(dialogCss, formName, propertyValue, propertyType);
 
 		if (endReason != null)
 			setOrgEndReasonByVisibleText(ProviderSection.ORGANIZATION_PROPERTIES, endReason.getText());
-
-		setOrgDialogEffectiveFromAndEffectiveTo(ProviderSection.ORGANIZATION_PROPERTIES, effectiveFrom, effectiveTo);
 
 		clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_PROPERTIES);
 
@@ -399,7 +438,6 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-
 	/**
 	 * set End Reason By Visible Text for organization properties
 	 * 

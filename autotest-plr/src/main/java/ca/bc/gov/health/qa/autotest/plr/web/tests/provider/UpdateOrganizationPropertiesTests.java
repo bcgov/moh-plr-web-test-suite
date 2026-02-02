@@ -46,6 +46,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateOrganizatio
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationProperties;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -63,6 +64,10 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
     private static JSONObject errorList,warningList;
     private static MaintainOrgBuilder defaultOrg = null;
     private static UpdateOrganizationPage defaultOrgPage = null;
+
+
+    private String errorInvFormatClinicHours = "GRS.PRV.PRO.MTN.1.0.9017: Invalid characters entered:Clinic Hours of Operation. Each line will record one time frame for a given day and reference a 24hr clock. Must be in exact format:\"DDD HH:MM-HH:MM\". Re-enter acceptable characters and format to proceed. Example: MON 13:00-17:30.";
+    private String errorDuplicateClinicHours = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Hours of Operation";
 
 	private UpdateOrganizationPropertiesTests() {
 		
@@ -91,7 +96,7 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
 
 	@AfterClass
 	public void teardown() {
-		workflowManager_.logoutAllAndClose();
+		//workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
@@ -111,26 +116,63 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
 	@Test(groups = { "UpdateProvider", "UpdateOrganization", "OrganizationProperties"})
 	public void testAddClinicHoursOfOperation() {
         //Step 3 - Make a Search by Identifier, make sure Clinic Hours of Operation is displayed correctly in View screen
-		String validHours = organizationDataGenerator.generateClinicHourEntry();
-		
-		String errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
-			OrganizationProperties.CLINIC_HOURS_OF_OPERATION, 
-			validHours);
+		Map<String, String> result = createOrganizationProperty(OrganizationProperties.CLINIC_HOURS_OF_OPERATION);
+		String validHours = result.get("value");
+		String errorMsg = result.get("error");
 		
 		assertTrue(errorMsg.isEmpty(), 
 			"Failed to add Clinic Hours of Operation: " + errorMsg);
-		LOG.info("Successfully added Clinic Hours of Operation property");
 
         //Step 4 - Update Clinic Hours of Operation property to a valid value
+		String updatedHours = organizationDataGenerator.generateClinicHourEntry();
+		errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+			OrganizationProperties.CLINIC_HOURS_OF_OPERATION, 
+			updatedHours, 
+            EndReason.CHG, 
+			0, 
+            false);
+		
+		assertTrue(errorMsg.isEmpty(), 
+			"Failed to update Clinic Hours of Operation: " + errorMsg);
 
         //Step 7 - Try to update Hours of operation block with invalid day format "Monday" instead of "Mon"
+        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+			OrganizationProperties.CLINIC_HOURS_OF_OPERATION, 
+			"Monday 09:00-17:00", 
+            EndReason.CHG, 
+			0, 
+            true);
+		
+		assertEquals(errorMsg, errorInvFormatClinicHours,
+			"Error should be displayed when updating Clinic Hours with in valid format");
 
         //Step 8 - Try to create a duplicate clinic hours of operation block
+        errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+            OrganizationProperties.CLINIC_HOURS_OF_OPERATION,
+            updatedHours);
+
+        assertEquals(errorMsg, errorDuplicateClinicHours,
+            "Error should be displayed when adding duplicate Clinic Hours of Operation block");
 
         //Step 5 - Cease Clinic Hours of Operation property
+        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+            OrganizationProperties.CLINIC_HOURS_OF_OPERATION,
+            updatedHours,
+            EndReason.CEASE,
+            0, 
+            false);
+
+        assertTrue(errorMsg.isEmpty(), 
+			"Failed to cease Clinic Hours of Operation: " + errorMsg);
 
         //Step 6 - Try adding an Hours of operation block with invalid characters at start and end of days of week
+        String invalidClinicHours = "*/" + organizationDataGenerator.generateClinicHourEntry() + "*/";
+        errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+            OrganizationProperties.CLINIC_HOURS_OF_OPERATION,
+            invalidClinicHours);
 
+        assertEquals(errorMsg, errorInvFormatClinicHours,
+            "Error should be displayed when adding Clinic Hours with invalid format");
 	}
 
     // 002. Add property Clinic Ownership Type
@@ -352,5 +394,107 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
         
         //Step 5 - Repeat step 2-4 for all other org properties
     }
+
+	/**
+	 * Generic method to create an organization property based on the property type.
+	 * Follows the flow pattern established by the clinic hours of operation test.
+	 * Uses OrganizationDataGenerator methods to generate appropriate test data.
+	 * 
+	 * @param propertyType the type of organization property to create
+	 * @return Map with keys "value" (generated property value) and "error" (error message, empty if successful)
+	 */
+	private Map<String, String> createOrganizationProperty(OrganizationProperties propertyType) {
+		String generatedValue = "";
+		String errorMsg = "";
+		
+		switch (propertyType) {
+			case CLINIC_HOURS_OF_OPERATION:
+				generatedValue = organizationDataGenerator.generateClinicHourEntry();
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.CLINIC_HOURS_OF_OPERATION, 
+					generatedValue);
+				break;
+				
+			case CLINIC_OWNER_BUSINESS_TYPE:
+				generatedValue = organizationDataGenerator.randomClinicOwnerBusinessType().getText();
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.CLINIC_OWNER_BUSINESS_TYPE, 
+					generatedValue);
+				break;
+				
+			case CLINIC_SERVICE_DELIVERY_TYPE:
+				generatedValue = organizationDataGenerator.randomClinicServices().getText();
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.CLINIC_SERVICE_DELIVERY_TYPE, 
+					generatedValue);
+				break;
+				
+			case CLINIC_TYPE:
+				generatedValue = organizationDataGenerator.randomClinicType().getText();
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.CLINIC_TYPE, 
+					generatedValue);
+				break;
+				
+			case PCI_FLAG:
+				boolean pciValue = organizationDataGenerator.generatePciFlag();
+				generatedValue = String.valueOf(pciValue);
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.PCI_FLAG, 
+					generatedValue);
+				break;
+				
+			case CLINIC_OWNER_NAMES:
+				generatedValue = organizationDataGenerator.generateClinicOwnerName();
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.CLINIC_OWNER_NAMES, 
+					generatedValue);
+				break;
+				
+			case CLINIC_LEGAL_BUSINESS_NAME:
+				generatedValue = organizationDataGenerator.generateClinicLegalBusinessName();
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.CLINIC_LEGAL_BUSINESS_NAME, 
+					generatedValue);
+				break;
+				
+			case PAYEE_NUMBER:
+				generatedValue = organizationDataGenerator.generatePayeeNumber();
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.PAYEE_NUMBER, 
+					generatedValue);
+				break;
+				
+			case ADDRESS_UNIT:
+				generatedValue = organizationDataGenerator.generateAddressUnit();
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.ADDRESS_UNIT, 
+					generatedValue);
+				break;
+				
+			case HDS_SUB_TYPE:
+				// HDS_SUB_TYPE requires HDS organization type
+				// For now, we'll use a placeholder - this may need special handling
+				generatedValue = "HDS"; // TODO: Implement proper HDS sub type generation
+				errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+					OrganizationProperties.HDS_SUB_TYPE, 
+					generatedValue);
+				LOG.warn("HDS_SUB_TYPE generation may require special handling for HDS organizations");
+				break;
+				
+			default:
+				errorMsg = "Unknown property type: " + propertyType;
+				LOG.error(errorMsg);
+				break;
+		}
+		
+		if (errorMsg.isEmpty()) {
+			LOG.info("Successfully created {} property with value: {}", propertyType.getDisplayName(), generatedValue);
+		} else {
+			LOG.warn("Failed to create {} property. Error: {}", propertyType.getDisplayName(), errorMsg);
+		}
+		
+		return Map.of("value", generatedValue, "error", errorMsg);
+	}
 
 }
