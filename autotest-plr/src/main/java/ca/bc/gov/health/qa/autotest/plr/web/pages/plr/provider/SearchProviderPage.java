@@ -654,36 +654,41 @@ extends BasicWebPage
     }
 
     /**
+     * Grabs all alert messages displayed on the page.
+     *
+     * @param alertMsgCss   the CSS selector for the alert messages
+     * @return              a string of concatenated alert messages
+     */
+    private String grabAlertMessage(String alertMsgCss)
+    {
+        StringBuilder msgDisplay = new StringBuilder();
+        List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
+        for (WebElement alertMsg : alertMsgList) {
+            msgDisplay.append(alertMsg.getText());
+        }
+        return msgDisplay.toString();
+    }
+
+    /**
      * Grabs all error messages displayed on the page.
      *
      * @return a string of concatenated error messages
      */
-	public String grabPageErrorMessage() {
-
-		String alertMsgCss = "span.ui-messages-error-summary";
-		StringBuilder msgDisplay = new StringBuilder();
-		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
-		for (WebElement alertMsg : alertMsgList) {
-			msgDisplay.append(alertMsg.getText());
-		}
-		return msgDisplay.toString();
-	}
+	public String grabPageErrorMessage() { return grabAlertMessage("span.ui-messages-error-summary"); }
 
     /**
      * Grabs all warning messages displayed on the page.
      *
      * @return a string of concatenated warning messages
      */
-	public String grabWarningErrorMessage() {
+	public String grabWarningErrorMessage() { return grabAlertMessage("span.ui-messages-warn-summary"); }
 
-		String alertMsgCss = "span.ui-messages-warn-summary";
-		StringBuilder msgDisplay = new StringBuilder();
-		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
-		for (WebElement alertMsg : alertMsgList) {
-			msgDisplay.append(alertMsg.getText());
-		}
-		return msgDisplay.toString();
-	}
+    /**
+     * Grabs all info messages displayed on the page.
+     *
+     * @return a string of concatenated info messages
+     */
+    public String grabInfoMessage() { return grabAlertMessage("span.ui-messages-info-summary"); }
 
 	/**
 	 * clear All Expertise

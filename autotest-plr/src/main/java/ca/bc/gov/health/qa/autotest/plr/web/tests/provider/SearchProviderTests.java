@@ -60,7 +60,7 @@ public class SearchProviderTests implements SimpleTest {
 	private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 	private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
-    private static JSONObject errorList,warningList;
+    private static JSONObject errorList, warningList, infoList;
 
 	private static FHIRController fhirController;
     
@@ -69,6 +69,7 @@ public class SearchProviderTests implements SimpleTest {
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
             warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
+			infoList = new JSONObject(Files.readString(errorPath)).getJSONObject("infos");
         }
         catch (IOException e)
         {
@@ -83,7 +84,7 @@ public class SearchProviderTests implements SimpleTest {
 	@AfterClass
 	private void teardown() {
 		fhirController.close();
-		workflowManager_.logoutAllAndClose();
+		//workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
@@ -724,44 +725,38 @@ public class SearchProviderTests implements SimpleTest {
 
 	}
 
-// 	Search by HDS is not in ALM yes, need to be added based on Legacy selenium
+	// Search Results Limited by Data Permissions
 	@Test(groups = { "SearchProvider" })
-	public void testSearchHDS() {
-		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS).withAlias();
-		MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
-		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
-				org.getIdentifier(IdentifierType.IPC));
-		fhirController.close();
-		HdsType hdsType = orgQueried.getHdsType();
-		String name = orgQueried.getName();
-		Map<String, String> address = orgQueried.getAddressList().getFirst();
-		String city = address.get("city");
-		String addressline1 = address.get("line1");
-		String desp = orgQueried.getAlias();
-		// test1
-		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
-		SearchProviderResultsFragment searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), name,
-				desp, city, addressline1);
-		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
-		// test2
-		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, null, null);
-		String errMsg = searchProviderPage.grabPageErrorMessage();
-		assertTrue(errMsg
-				.contains("The following fields must be supplied: 'Name or Description or Address Line 1 or City'"));
-		// test3
-		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), name, desp, null, null);
-		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
-		// test4
-		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, city, null);
-		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
-		// test5
-		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, desp, null, null);
-		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
-		// test 6
-		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, null, addressline1);
-		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+	public void testSearchResultsDataPermissions()
+	{
+		final PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.CONSUMER);
+		if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
 
+		final IndividualDataGenerator dataGen = IndividualDataGenerator.getInstance();
+
+		// FHIR Prep - create providers outside of Consumer's data permission scope
+		List<MaintainIndividualBuilder> optQuery = fhirController.queryIndividualByCriteria(
+				new IndividualQueryCriteriaParams()
+						.setRoleType(IndividualRoleType.OPT).setFamily("TestScopeOpt").setExpertise("ENG"));
+
+		if (optQuery.isEmpty())
+		{
+			MaintainIndividualBuilder ind = new IndividualBuilderFactory(dataGen)
+					.build(new IndividualMaintainConfig(IndividualRoleType.OPT))
+					.familyName("TestScopeOpt").addExpertise("ENG", dataGen.shortText());
+			fhirController.submitIndividual(ind);
+		} else {
+			optQuery.getFirst();
+		}
+
+		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
+		SearchProviderResultsFragment results = provider.searchByCriteria(null, null,
+				"TestScopeOpt", null, null, null, null,
+				null, List.of("ENG"));
+		assertEquals(results.grabResultsRowCount(), 0,
+				"Search results returned records outside of data permission scope unexpectedly");
+		assertEquals(provider.grabInfoMessage(), infoList.get("permissionRules"),
+				"Permission info message not found");
 	}
 
 	// Viewing Permissions for Confidential Provider Records
@@ -817,5 +812,45 @@ public class SearchProviderTests implements SimpleTest {
 
 		// checking secondary
 		testConfidentialMask(providerType, isOrganization ? confOrg : confInd);
+	}
+
+// 	Search by HDS is not in ALM yes, need to be added based on Legacy selenium
+	@Test(groups = { "SearchProvider" })
+	public void testSearchHDS() {
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS).withAlias();
+		MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
+		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
+				org.getIdentifier(IdentifierType.IPC));
+		fhirController.close();
+		HdsType hdsType = orgQueried.getHdsType();
+		String name = orgQueried.getName();
+		Map<String, String> address = orgQueried.getAddressList().getFirst();
+		String city = address.get("city");
+		String addressline1 = address.get("line1");
+		String desp = orgQueried.getAlias();
+		// test1
+		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+		SearchProviderResultsFragment searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), name,
+				desp, city, addressline1);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		// test2
+		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, null, null);
+		String errMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(errMsg
+				.contains("The following fields must be supplied: 'Name or Description or Address Line 1 or City'"));
+		// test3
+		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), name, desp, null, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		// test4
+		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, city, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		// test5
+		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, desp, null, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		// test 6
+		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, null, addressline1);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+
 	}
 }

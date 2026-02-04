@@ -73,5 +73,8 @@
     "duplicateFacilityFound": "PRS.SYS.ADR.UNK.1.0.7055: An existing facility address was found, can not create duplicate facility.",
     "civicAddressRecommendation": "PRS.SYS.ADR.UNK.1.0.7052: Civic Address is not valid - Recommendation is provided.",
     "confidentialRecordFound": "The search criteria matched confidential records that are not shown. Please search by identifier to view confidential record details."
+  },
+  "infos": {
+    "permissionRules": "Some results were removed under data permission rules."
   }
 }
