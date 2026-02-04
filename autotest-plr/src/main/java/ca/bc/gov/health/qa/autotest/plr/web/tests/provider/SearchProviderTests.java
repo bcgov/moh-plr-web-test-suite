@@ -258,7 +258,7 @@ public class SearchProviderTests implements SimpleTest {
 		        individualAddress.put("line1", getRandomNumber(2,500) + " Oak Avenue");
 		        individualAddress.put("city", "Custom City");
 		        individual.setAddressList(List.of(individualAddress));
-			individual = fhirController.submitIndividual(individual);
+			fhirController.submitIndividual(individual);
 		}
 		// test
 		SearchProviderResultsFragment searchResults = searchProvider.searchByCriteria(IndividualRoleType.DEN.name(), null, null, null,
@@ -284,7 +284,7 @@ public class SearchProviderTests implements SimpleTest {
 			address.put("line1", getRandomNumber(2,500) + " Main St");
 			address.put("city", "Sample City");
 			org.setAddressList(List.of(address));
-			org = fhirController.submitOrganization(org);
+			fhirController.submitOrganization(org);
 		}
 		fhirController.close();
 		//test
@@ -537,25 +537,25 @@ public class SearchProviderTests implements SimpleTest {
 				surname, null, city, null, null);
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
 		// step 2
-		searchResults = searchProviderPage.searchByCriteria(roleType.name(), null, null, null, null, null, null);
+		searchProviderPage.searchByCriteria(roleType.name(), null, null, null, null, null, null);
 		String errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMissingData, errMsg, "Expected error message not found");
 		searchProviderPage.clearRoleType();
 		// step 3
-		searchResults = searchProviderPage.searchByCriteria(null,null,surname, null,null, null, null);
+		searchProviderPage.searchByCriteria(null,null,surname, null,null, null, null);
 		errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMissingData, errMsg, "Expected error message not found");
 		// step 4
-		searchResults = searchProviderPage.searchByCriteria(null, firstname,null, null, null, null, null);
+		searchProviderPage.searchByCriteria(null, firstname,null, null, null, null, null);
 		errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMissingData, errMsg, "Expected error message not found");
 		// step 5
-		searchResults = searchProviderPage.searchByCriteria(null, null, null, null, city, null, null);
+		searchProviderPage.searchByCriteria(null, null, null, null, city, null, null);
 		errMsg = searchProviderPage.grabPageErrorMessage();
 		//search with "City Only" will return providers in that city 
 		//assertTrue(errMsg.equals(errorMissingData), "Expected error message not found");
 		// step 6
-		searchResults = searchProviderPage.searchByCriteria(null, null, null, "M", null, null, null);
+		searchProviderPage.searchByCriteria(null, null, null, "M", null, null, null);
 		errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMissingData, errMsg, "Expected error message not found");
 		searchProviderPage.clearGender();
@@ -593,27 +593,27 @@ public class SearchProviderTests implements SimpleTest {
 		String cpnString = queriedIndividual.getIdentifier(IdentifierType.CPN);
 		String cpnNum = UpdateSimpleHelper.getRegIdString("CPN", cpnString);
 		// step1
-		SearchProviderResultsFragment searchResults = searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(),
-				null, false);
+		SearchProviderResultsFragment searchResults;
+		searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), null, false);
 		String errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMsgProiderID, errMsg, "Expected error message not found");
 		// step2
 		searchResults = searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), providerId);
 		assertTrue(searchResults.grabResultsRowCount() > 0);
 		// step3
-		searchResults = searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), null, false);
+		searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), null, false);
 		errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMsgRegIdValue, errMsg, "Expected error message not found");
 		// step4
 		searchResults = searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), cpnNum);
 		assertTrue(searchResults.grabResultsRowCount() > 0);
 		// step5
-		searchResults = searchProviderPage.searchByIdentifier("Select One", null, false);
+		searchProviderPage.searchByIdentifier("Select One", null, false);
 		errMsg = searchProviderPage.grabPageErrorMessage();
 		assertTrue(errMsg.contains(errorMsgIdType) && errMsg.contains(errorMsgProiderID),
 				"Expected error messages not found");
 		// step6
-		searchResults = searchProviderPage.searchByRegistryIdentifier("Select One", null, false);
+		searchProviderPage.searchByRegistryIdentifier("Select One", null, false);
 		errMsg = searchProviderPage.grabPageErrorMessage();
 		assertTrue(errMsg.contains(errorMsgRegIdType) && errMsg.contains(errorMsgRegIdValue),
 				"Expected error messages not found");
@@ -644,7 +644,7 @@ public class SearchProviderTests implements SimpleTest {
 				null, addressline1, city);
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
 		// Step 2
-		searchResults = searchProviderPage.searchForOrganization(roleType.name(), null, null, null, null);
+		searchProviderPage.searchForOrganization(roleType.name(), null, null, null, null);
 		String errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorEntryError, errMsg, "Expected error message not found");
 		// Step 3
@@ -678,7 +678,7 @@ public class SearchProviderTests implements SimpleTest {
 			individualAddress.put("line1", getRandomNumber(2, 500) + " Main Avenue");
 			individualAddress.put("city", "Custom City");
 			individual.setAddressList(List.of(individualAddress));
-			individual = fhirController.submitIndividual(individual);
+			fhirController.submitIndividual(individual);
 		}
 		// test
 		
@@ -697,7 +697,7 @@ public class SearchProviderTests implements SimpleTest {
 			address.put("line1", getRandomNumber(2, 500) + " Oak St");
 			address.put("city", "Sample City");
 			org.setAddressList(List.of(address));
-			org = fhirController.submitOrganization(org);
+			fhirController.submitOrganization(org);
 		}
 		fhirController.close();
 		// test
@@ -835,7 +835,7 @@ public class SearchProviderTests implements SimpleTest {
 				desp, city, addressline1);
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
 		// test2
-		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, null, null);
+		searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, null, null);
 		String errMsg = searchProviderPage.grabPageErrorMessage();
 		assertTrue(errMsg
 				.contains("The following fields must be supplied: 'Name or Description or Address Line 1 or City'"));
