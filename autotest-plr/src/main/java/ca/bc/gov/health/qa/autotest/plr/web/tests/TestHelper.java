@@ -12,6 +12,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityAd
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateOrganizationPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -415,6 +416,18 @@ public final class TestHelper {
         search.openResults(0);
 
         return new ViewProviderPage(workflow.getSeleniumSession());
+    }
+
+    public static UpdateOrganizationPage viewByIdentifierAsUpdateOrg(String identifier, PlrWebWorkflowManager workflowManager) {
+        final PlrWebWorkflow workflow = workflowManager.getSelectedWorkflow();
+
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier(
+                "IPC", identifier);
+        search.openResults(0);
+        
+        return new UpdateOrganizationPage(workflow.getSeleniumSession(), 
+                                        workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
     }
 
     public static String getIdentifierFromBuilder(Map<ProviderType, MaintainRequestBuilder> providerMap, ProviderType providerType)
