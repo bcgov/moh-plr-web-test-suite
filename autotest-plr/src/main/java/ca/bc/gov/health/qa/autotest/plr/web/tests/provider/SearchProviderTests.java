@@ -1,6 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.getRandomNumber;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static org.testng.Assert.*;
 
 import java.io.IOException;
@@ -14,8 +14,9 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.Individua
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.SearchProviderActions;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.*;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
@@ -41,8 +42,6 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBu
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -84,7 +83,7 @@ public class SearchProviderTests implements SimpleTest {
 	@AfterClass
 	private void teardown() {
 		fhirController.close();
-		//workflowManager_.logoutAllAndClose();
+		workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
@@ -759,6 +758,102 @@ public class SearchProviderTests implements SimpleTest {
 				"Permission info message not found");
 	}
 
+	// Searching Incorrect Data
+	@Test(groups = { "SearchProvider" })
+	public void testSearchingIncorrectData() {
+		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+
+		UpdateOrganizationPage page;
+		SearchProviderPage provider;
+		SearchProviderResultsFragment results;
+
+		// FHIR Prep
+		MaintainOrgBuilder org;
+		List<MaintainOrgBuilder> orgQuery = fhirController.queryOrganizationByCriteria(
+				new OrgQueryCriteriaParams().setName("TestOrgIncorrectData"));
+		if (orgQuery.isEmpty()) {
+			MaintainOrgBuilder builder = new OrganizationBuilderFactory(OrganizationDataGenerator.getInstance())
+					.build(new OrganizationMaintainConfig(OrgRoleType.ORG).withName("TestOrgIncorrectData"))
+					.addIdentifier(IdentifierType.ORGID, UpdateSimpleHelper.generateNumericString(16));
+			String identifier = fhirController.submitOrganization(builder).getIdentifier(IdentifierType.IPC);
+			org = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, identifier);
+		} else org = orgQuery.getFirst();
+
+		MaintainIndividualBuilder ind;
+		List<MaintainIndividualBuilder> indQuery = fhirController.queryIndividualByCriteria(
+				new IndividualQueryCriteriaParams().setFamily("TestIndIncorrectData").setAddressCity("Victoria"));
+		if (indQuery.isEmpty()) {
+			MaintainIndividualBuilder builder = new IndividualBuilderFactory(IndividualDataGenerator.getInstance())
+					.build(new IndividualMaintainConfig(IndividualRoleType.MD)).familyName("TestIndIncorrectData")
+					.setAddressList(List.of(Map.of(
+							"type", "physical",
+							"purpose", "BC",
+							"line1", "1175 DOUGLAS ST",
+							"city", "Victoria",
+							"postalCode", "V8W 2E1")));
+			builder = fhirController.submitIndividual(builder);
+			LOG.info("here we have");
+			LOG.info(builder);
+			LOG.info(builder.getIdentifiers());
+			String identifier = builder.getIdentifier(IdentifierType.IPC);
+			LOG.info(identifier);
+			LOG.info("^^^ should not be null");
+			ind = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, identifier);
+		} else ind = indQuery.getFirst();
+
+		// Criteria Name Correction
+		UpdateProviderPage indPage = viewByIdentifierAsUpdateIndividual(ind.getIdentifier(IdentifierType.IPC), workflowManager_);
+		indPage.updatePractitionerNameDataBlock("", "Test", "", "",
+				"InactiveNewName", "", EndReason.CORR, 0, false);
+		provider = workflow.getPlrWebAccessActions().openSearchProvider();
+		results = provider.searchByCriteria(IndividualRoleType.MD.name(), null, "TestIndIncorrectData",
+				null, "Victoria", null, null);
+		assertEquals(results.grabResultsRowCount(), 0,
+				"Search results returned a record for incorrect name unexpectedly");
+
+		// Identifier Correction
+		final String orgID = org.getIdentifier(IdentifierType.ORGID);
+		page = viewByIdentifierAsUpdateOrg(org.getIdentifier(IdentifierType.IPC), workflowManager_);
+		// assumes the identifier order is CPN, IPC, ORGID - adjust if method of adding identifiers through FHIR changes this
+		page.updateIdentifierDataBlock("9999999999999999", EndReason.CORR, 2, false);
+		provider = workflow.getPlrWebAccessActions().openSearchProvider();
+		results = provider.searchByIdentifier(IdentifierType.ORGID.name(), orgID);
+		assertEquals(results.grabResultsRowCount(), 0,
+				"Search results returned a record for incorrect identifier unexpectedly");
+
+		// Registry Identifier Correction
+		final String regID = org.getIdentifier(IdentifierType.CPN);
+		page = viewByIdentifierAsUpdateOrg(org.getIdentifier(IdentifierType.IPC), workflowManager_);
+		// assumes the identifier order is CPN, IPC - adjust if method of adding identifiers through FHIR changes this
+		page.updateRegistryIdentifierDataBlock("99999999", EndReason.CORR, 0, false);
+		provider = workflow.getPlrWebAccessActions().openSearchProvider();
+		results = provider.searchByRegistryIdentifier(
+				IdentifierType.CPN.name(), StringUtils.getDigits(regID));
+		assertEquals(results.grabResultsRowCount(), 0,
+				"Search results returned a record for incorrect registry identifier unexpectedly");
+
+		// Organization Name Correction
+		page = viewByIdentifierAsUpdateOrg(org.getIdentifier(IdentifierType.IPC), workflowManager_);
+		page.updateOrganizationNameDataBlock("InactiveNewName", "", EndReason.CORR, 0, false);
+		provider = workflow.getPlrWebAccessActions().openSearchProvider();
+		results = provider.searchForOrganization(
+				OrgRoleType.ORG.name(), "TestOrgIncorrectData", null, null, null);
+		assertEquals(results.grabResultsRowCount(), 0,
+				"Search results returned a record for incorrect name unexpectedly");
+
+		// Cleanup
+		org.name("TestOrgIncorrectData");
+		fhirController.submitOrganization(org);
+		page = viewByIdentifierAsUpdateOrg(org.getIdentifier(IdentifierType.IPC), workflowManager_);
+		page.updateIdentifierDataBlock(orgID, EndReason.CORR, 2, false);
+		page.updateRegistryIdentifierDataBlock(StringUtils.getDigits(regID), EndReason.CORR, 0, false);
+		//ind.familyName("TestIndIncorrectData");
+		//fhirController.submitIndividual(ind);
+		indPage = viewByIdentifierAsUpdateIndividual(ind.getIdentifier(IdentifierType.IPC), workflowManager_);
+		indPage.updatePractitionerNameDataBlock("", "Test", "", "",
+				"TestIndIncorrectData", "", EndReason.CORR, 0, false);
+	}
+
 	// Viewing Permissions for Confidential Provider Records
 	@Test(groups = { "SearchProvider" }, dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
 	public void testViewPermissionsConfidentialRecords(ProviderType providerType)
@@ -775,6 +870,7 @@ public class SearchProviderTests implements SimpleTest {
 					new OrganizationMaintainConfig(OrgRoleType.ORG).withConfidentiality());
 			default -> throw new IllegalStateException("Unsupported provider type " + providerType.name());
 		}
+		primaryController.close();
 		boolean isOrganization = !Objects.isNull(confOrg);
 
 		// Test Start (checking Reg-Admin access to anything and Primary access to its own confidential record)

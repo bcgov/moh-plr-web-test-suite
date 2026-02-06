@@ -338,6 +338,7 @@ public class FHIRController implements AutoCloseable {
     public MaintainIndividualBuilder submitIndividual(MaintainIndividualBuilder builder) {
         String id = executor.submitMaintain(builder);
         LOG.info("Submitted individual (id={})", id);
+        builder.addIdentifier(IdentifierType.IPC, id);
         return builder;
     }
 
