@@ -1,7 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model;
 
 /**
- * Enumeration of Health Delivery Site (HDS) subtype classifications used only when
+ * Enumeration of Health Delivery Site (HDS) ype classifications used only when
  * an organization's role type is {@link OrgRoleType#HDS}. The enum constant name is
  * serialized directly as the coding.code value in the specialized _type extension block.
  */

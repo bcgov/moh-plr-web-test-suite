@@ -36,6 +36,9 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierTyp
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicOwnerBusinessType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicServices;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
@@ -68,8 +71,10 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
 
     private String errorInvFormatClinicHours = "GRS.PRV.PRO.MTN.1.0.9017: Invalid characters entered:Clinic Hours of Operation. Each line will record one time frame for a given day and reference a 24hr clock. Must be in exact format:\"DDD HH:MM-HH:MM\". Re-enter acceptable characters and format to proceed. Example: MON 13:00-17:30.";
     private String errorDuplicateClinicHours = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Hours of Operation";
-
-	private UpdateOrganizationPropertiesTests() {
+    private String errorDuplicateClinicOwnershipType = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Owner Business Type";
+	private String errorDuplicateClinicServiceDeliveryType = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Service Delivery Type";
+    
+    private UpdateOrganizationPropertiesTests() {
 		
 		try
         {
@@ -179,48 +184,175 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
 	@Test(groups = { "UpdateProvider", "UpdateOrganization", "OrganizationProperties"})
 	public void testAddClinicOwnershipType() {
         //Step1-3 Create Org and afterwards add Clinic Ownership Type property, then cease block and repeat adding property with all different valid values
+        for (ClinicOwnerBusinessType type : ClinicOwnerBusinessType.values()) {
+            // Create the property block
+            String errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+                OrganizationProperties.CLINIC_OWNER_BUSINESS_TYPE,
+                type.getText());
+            
+            assertTrue(errorMsg.isEmpty(), 
+                "Failed to add Clinic Owner Business Type '" + type.getText() + "': " + errorMsg);
+            
+            // Cease the property block
+            errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+                OrganizationProperties.CLINIC_OWNER_BUSINESS_TYPE,
+                type.getText(),
+                EndReason.CEASE,
+                0, 
+                false);
 
-        //Step 4 - Try to add a second clinic ownership type block when one is already active
-
+            assertTrue(errorMsg.isEmpty(), 
+                "Failed to cease Clinic Owner Business Type: " + errorMsg);
+        }
 
 	}
 
     //003. Validate Clinic Ownership Type
     @Test(groups = { "UpdateProvider", "UpdateOrganization", "OrganizationProperties"})
     public void testValidateClinicOwnershipType() {
-        //Step 1 and 2 - create org through FHIR with Clinic Ownership Type.
+        //Step 1 and 2 - create org and add Clinic Ownership Type.
+        Map<String, String> result = createOrganizationProperty(OrganizationProperties.CLINIC_OWNER_BUSINESS_TYPE);
+        String validOwnershipType = result.get("value");
+		String errorMsg = result.get("error");
+
+        assertTrue(errorMsg.isEmpty(), 
+			"Failed to add Clinic Owner Business Type: " + errorMsg);
 
         //Step 3 - Update value with CHG
+        //get a different valid ownership type
+        String updatedType = differentOwnershipType(validOwnershipType);
 
+        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+            OrganizationProperties.CLINIC_OWNER_BUSINESS_TYPE, 
+            updatedType, 
+            EndReason.CHG, 
+            0, 
+            false);
+
+        assertTrue(errorMsg.isEmpty(), 
+			"Failed to CHG Clinic Owner Business Type: " + errorMsg);
+        
         //Step 4 - Update value with CORR
+        updatedType = differentOwnershipType(updatedType);
+
+        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+            OrganizationProperties.CLINIC_OWNER_BUSINESS_TYPE, 
+            updatedType, 
+            EndReason.CORR, 
+            0, 
+            false);
+
+        assertTrue(errorMsg.isEmpty(), 
+			"Failed to CORR Clinic Owner Business Type: " + errorMsg);
+
+        //Step 9 - Try to add a second clinic ownership type block when one is already active
+        updatedType = differentOwnershipType(updatedType);
+
+        errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+            OrganizationProperties.CLINIC_OWNER_BUSINESS_TYPE,
+            updatedType);
+
+        assertEquals(errorMsg, errorDuplicateClinicOwnershipType, 
+            "Error should be displayed when adding duplicate Clinic Owner Business Type block");
 
         //Step 5 - Cease value
+        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+            OrganizationProperties.CLINIC_OWNER_BUSINESS_TYPE, 
+            updatedType, 
+            EndReason.CEASE, 
+            0, 
+            false);
 
-        //Step 6-9 N/A
+        assertTrue(errorMsg.isEmpty(), 
+			"Failed to CEASE Clinic Owner Business Type: " + errorMsg);
+
+        //Step 6-8 N/A
     }
 
     //004. Add property Clinic Service Delivery Type
     @Test(groups = { "UpdateProvider", "UpdateOrganization", "OrganizationProperties"})
     public void testAddClinicServiceDeliveryType() {
-        //Step 1 and 2 - create org and add Clinic Service Delivery Type.
+        //Step 1 - 3 - create org and add Clinic Service Delivery Type. Cease and add block with all different valid values
 
-        //Step 3 - Cease and add block with all other valid values
+        for (ClinicServices type : ClinicServices.values()) {
+            // Create the property block
+            String errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+                OrganizationProperties.CLINIC_SERVICE_DELIVERY_TYPE,
+                type.getText());
+            
+            assertTrue(errorMsg.isEmpty(), 
+                "Failed to add Clinic Service Delivery Type '" + type.getText() + "': " + errorMsg);
+            
+            // Cease the property block
+            errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+                OrganizationProperties.CLINIC_SERVICE_DELIVERY_TYPE,
+                type.getText(),
+                EndReason.CEASE,
+                0, 
+                false);
 
-        //Step 4 - Try to add a second clinic service delivery type block when one is already active
+            assertTrue(errorMsg.isEmpty(), 
+                "Failed to cease Clinic Service Delivery Type: " + errorMsg);
+        }
+        
+        //Step 4 - Present in testValidateClinicServiceDeliveryType
     }
 
     //005. Validate Clinic Service Delivery Type
     @Test(groups = { "UpdateProvider", "UpdateOrganization", "OrganizationProperties"})
     public void testValidateClinicServiceDeliveryType() {
         //Step 1 and 2 -Create org through FHIR with Clinic Service Delivery Type.
+        Map<String, String> result = createOrganizationProperty(OrganizationProperties.CLINIC_SERVICE_DELIVERY_TYPE);
+        String validServiceDeliveryType = result.get("value");
+		String errorMsg = result.get("error");
 
+        assertTrue(errorMsg.isEmpty(), 
+			"Failed to add Clinic Service Delivery Type: " + errorMsg);
+            
         //Step 3 - Update value with CHG
+        String updatedType = differentClinicServiceDeliveryType(validServiceDeliveryType);
+
+        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+                OrganizationProperties.CLINIC_SERVICE_DELIVERY_TYPE,
+                updatedType,
+                EndReason.CHG,
+                0, 
+                false);
+
+        assertTrue(errorMsg.isEmpty(), 
+            "Failed to update Clinic Service Delivery Type with CHG: " + errorMsg);
 
         //Step 4 - Update value with CORR
+        updatedType = differentClinicServiceDeliveryType(updatedType);
+
+        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+                OrganizationProperties.CLINIC_SERVICE_DELIVERY_TYPE,
+                updatedType,
+                EndReason.CORR,
+                0, 
+                false);
+
+        assertTrue(errorMsg.isEmpty(), 
+            "Failed to update Clinic Service Delivery Type with CORR: " + errorMsg);
 
         //Step 8 - Try to add a second duplicate block when one is already active
+        errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+            OrganizationProperties.CLINIC_SERVICE_DELIVERY_TYPE,
+            updatedType);
 
+        assertEquals(errorMsg, errorDuplicateClinicServiceDeliveryType,
+            "Error should be displayed when adding duplicate Clinic Service Delivery Type block");
+        
         //Step 5 - Cease value
+        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+                OrganizationProperties.CLINIC_SERVICE_DELIVERY_TYPE,
+                updatedType,
+                EndReason.CEASE,
+                0, 
+                false);
+
+        assertTrue(errorMsg.isEmpty(), 
+            "Failed to update Clinic Service Delivery Type with CEASE: " + errorMsg);
 
         //Step 6-7 N/A
  
@@ -234,7 +366,28 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
 
         //Step 3 - Cease and add block with all other valid values
 
-        //Step 4 - Try to add a second clinic type block when one is already active
+        for (ClinicType type : ClinicType.values()) {
+            // Create the property block
+            String errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
+                OrganizationProperties.CLINIC_TYPE,
+                type.getText());
+            
+            assertTrue(errorMsg.isEmpty(), 
+                "Failed to add Clinic Type '" + type.getText() + "': " + errorMsg);
+            
+            // Cease the property block
+            errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
+                OrganizationProperties.CLINIC_TYPE,
+                type.getText(),
+                EndReason.CEASE,
+                0, 
+                false);
+
+            assertTrue(errorMsg.isEmpty(), 
+                "Failed to cease Clinic Type: " + errorMsg);
+        }
+
+        //Step 4 - Present in testValidateClinicType
     }
 
     //007. Validate Clinic Type
@@ -496,5 +649,30 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
 		
 		return Map.of("value", generatedValue, "error", errorMsg);
 	}
+
+    /* Returns a different random valid ownership type to the one sent as parameter
+     */
+    private String differentOwnershipType(String validOwnershipType) {
+
+        String updatedType;
+        do {
+            updatedType = organizationDataGenerator.randomClinicOwnerBusinessType().getText();
+
+        } while (updatedType.equals(validOwnershipType));
+
+        return updatedType;
+    }
+
+    /* Returns a different random valid clinic service delivery type to the one sent as parameter
+     */
+    private String differentClinicServiceDeliveryType(String validServiceDeliveryType) {
+
+        String updatedType;
+        do {
+            updatedType = organizationDataGenerator.randomClinicServices().getText();
+        } while (updatedType.equals(validServiceDeliveryType));
+
+        return updatedType;
+    }
 
 }
