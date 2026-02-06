@@ -278,6 +278,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		String inputNameCss = dialogCss + " >input#" + formName + "\\:" + fieldCss;
 		// Wait for the input field to be visible
 		WebElement inputName = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+        waitSeconds(1);
+
 		inputName.clear();
 		if (!StringUtils.isEmpty(field))
 			inputName.sendKeys(field);
@@ -295,6 +297,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		String textAreaCss = dialogCss + " >textarea#" + formName + "\\:" + fieldCss;
 		// Wait for the textarea field to be visible
 		WebElement textArea = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(textAreaCss)));
+        waitSeconds(1);
+
 		textArea.clear();
 		if (!StringUtils.isEmpty(field))
 			textArea.sendKeys(field);
@@ -338,15 +342,48 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @param checked whether to check or uncheck the checkbox
 	 */
 	private void setOrgCheckboxValue(String dialogCss, String formName, String fieldCss, boolean checked) {
-		String checkboxCss = dialogCss + " >div#" + formName + "\\:" + fieldCss + " >div.ui-chkbox-box";
-		// Wait for the checkbox to be visible
-		WebElement checkbox = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(checkboxCss)));
-		
-		boolean isChecked = checkbox.getAttribute("class").contains("ui-state-active");
-		
-		// Only click if the state needs to change
-		if (isChecked != checked) {
-			checkbox.click();
+		// First try selectBooleanButton (used by PCI Flag)
+		String buttonCss = dialogCss + " > div#" + formName + "\\:" + fieldCss;
+		WebElement buttonElement = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(buttonCss)));
+		waitSeconds(1);
+
+		// Check if it's a selectBooleanButton
+		if (buttonElement.getAttribute("class").contains("ui-selectbooleanbutton")) {
+			boolean isChecked = buttonElement.getAttribute("class").contains("ui-state-active");
+			
+			// Only click if the state needs to change
+			if (isChecked != checked) {
+				buttonElement.click();
+			}
+		} else {
+			// Handle regular checkbox
+			String checkboxCss = buttonCss + " > div.ui-chkbox-box";
+			WebElement checkbox = selenium_.findElement(By.cssSelector(checkboxCss));
+			
+			boolean isChecked = checkbox.getAttribute("class").contains("ui-state-active");
+			
+			// Only click if the state needs to change
+			if (isChecked != checked) {
+				checkbox.click();
+			}
+		}
+	}
+
+	/**
+	 * Attempts to close a dialog by clicking the Cancel button
+	 * Silently handles any exceptions if the dialog is not open or Cancel button is unavailable
+	 *
+	 * @param dialogCss the dialog CSS selector
+	 */
+	private void attemptToCloseDialog(String dialogCss) {
+		try {
+			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+			if (cancelButton.isDisplayed()) {
+				cancelButton.click();
+				selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+			}
+		} catch (Exception e) {
+			// Modal might not be open or Cancel button not available, ignore
 		}
 	}
 
@@ -364,30 +401,37 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_PROPERTIES).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_PROPERTIES);
 
-		clickHeaderAddOrgPropertyButton(ProviderSection.ORGANIZATION_PROPERTIES);
+		try {
+			clickHeaderAddOrgPropertyButton(ProviderSection.ORGANIZATION_PROPERTIES);
 
-        // Wait for dialog to be visible and stable
-        selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
-        waitSeconds(2);
+			// Wait for dialog to be visible and stable
+			selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+			waitSeconds(2);
 
-		// Set property type dropdown
-		setOrgDropdownListByVisibleText(ProviderSection.ORGANIZATION_PROPERTIES, "PropertyType", propertyType.getDisplayName());
+			// Set property type dropdown
+			setOrgDropdownListByVisibleText(ProviderSection.ORGANIZATION_PROPERTIES, "PropertyType", propertyType.getDisplayName());
 
-		// Set property value based on field type
-		setOrgPropertyValueByType(dialogCss, formName, propertyValue, propertyType);
+			// Set property value based on field type
+			setOrgPropertyValueByType(dialogCss, formName, propertyValue, propertyType);
 
-		setOrgDialogEffectiveFromAndEffectiveTo(ProviderSection.ORGANIZATION_PROPERTIES, effectiveFrom, effectiveTo);
+			setOrgDialogEffectiveFromAndEffectiveTo(ProviderSection.ORGANIZATION_PROPERTIES, effectiveFrom, effectiveTo);
 
-		clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_PROPERTIES);
+			clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_PROPERTIES);
 
-		msgDisplay = getDialogMessages(ProviderSection.ORGANIZATION_PROPERTIES);
+			msgDisplay = getDialogMessages(ProviderSection.ORGANIZATION_PROPERTIES);
 
-		if (!StringUtils.isEmpty(msgDisplay)) {
-			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
-			cancelButton.click();
+			if (!StringUtils.isEmpty(msgDisplay)) {
+				WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+				cancelButton.click();
+			}
+
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		} catch (Exception e) {
+			// If any exception occurs, attempt to close the modal before propagating the exception
+			attemptToCloseDialog(dialogCss);
+			// Re-throw the original exception
+			throw e;
 		}
-
-		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
 
@@ -418,24 +462,37 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_PROPERTIES).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_PROPERTIES);
 
-		clickDataBlockUpdateButton(ProviderSection.ORGANIZATION_PROPERTIES, index);
-		
-        // Wait for dialog to be visible and stable
-        selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
-        waitSeconds(2);
+		try {
+			clickDataBlockUpdateButton(ProviderSection.ORGANIZATION_PROPERTIES, index);
+			
+			// Wait for dialog to be visible and stable
+			selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+			waitSeconds(2);
 
-		// Set property value based on field type
-		setOrgPropertyValueByType(dialogCss, formName, propertyValue, propertyType);
+			// Set property value based on field type
+			setOrgPropertyValueByType(dialogCss, formName, propertyValue, propertyType);
 
-		if (endReason != null)
-			setOrgEndReasonByVisibleText(ProviderSection.ORGANIZATION_PROPERTIES, endReason.getText());
+			if (endReason != null)
+				setOrgEndReasonByVisibleText(ProviderSection.ORGANIZATION_PROPERTIES, endReason.getText());
 
-		clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_PROPERTIES);
+			clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_PROPERTIES);
 
-		if (expectError)
-			msgDisplay = waitOrgErrorMessage(ProviderSection.ORGANIZATION_PROPERTIES);
+			if (expectError)
+				msgDisplay = waitOrgErrorMessage(ProviderSection.ORGANIZATION_PROPERTIES);
 
-		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+			try {
+				selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+			} catch (Exception e) {
+				//If we are not expecting an error, but one occurs, the dialog may still be present, so we may want to fetch the error message.
+				msgDisplay = waitOrgErrorMessage(ProviderSection.ORGANIZATION_PROPERTIES);
+			}
+		} catch (Exception e) {
+			// If any exception occurs, attempt to close the modal before propagating the exception
+			attemptToCloseDialog(dialogCss);
+			// Re-throw the original exception
+			throw e;
+		}
+	
 		return msgDisplay;
 	}
 	/**
@@ -471,7 +528,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		// Wait for the dropdown label to be clickable before creating the DropDownMenu
 		By labelLocator = By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label");
 		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(labelLocator));
-		
+		waitSeconds(1);
+
 		DropDownMenu dropdownMenu = 
 			new DropDownMenu(selenium_,
 				labelLocator,
@@ -513,18 +571,24 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	public void ceaseOrganizationPropertyDataBlock(int index) {
 		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_PROPERTIES).getFormName();
 		String submitButtonName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_PROPERTIES).getSubmitButtonName();
-
-		clickDataBlockUpdateButton(ProviderSection.ORGANIZATION_PROPERTIES, index);
-		waitSeconds(2);
-
 		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_PROPERTIES);
 
-		setOrgEndReasonByVisibleText(ProviderSection.ORGANIZATION_PROPERTIES, EndReason.CEASE.getText());
+		try {
+			clickDataBlockUpdateButton(ProviderSection.ORGANIZATION_PROPERTIES, index);
+			waitSeconds(2);
 
-		String buttonCss = dialogCss + " > div.formControls" + " > button#" + formName + "\\:" + submitButtonName;
-		WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
-		button.click();
-		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+			setOrgEndReasonByVisibleText(ProviderSection.ORGANIZATION_PROPERTIES, EndReason.CEASE.getText());
+
+			String buttonCss = dialogCss + " > div.formControls" + " > button#" + formName + "\\:" + submitButtonName;
+			WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
+			button.click();
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		} catch (Exception e) {
+			// If any exception occurs, attempt to close the modal before propagating the exception
+			attemptToCloseDialog(dialogCss);
+			// Re-throw the original exception
+			throw e;
+		}
 	}
 
 	/**
