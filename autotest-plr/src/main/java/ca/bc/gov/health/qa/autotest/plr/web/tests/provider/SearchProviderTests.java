@@ -83,7 +83,7 @@ public class SearchProviderTests implements SimpleTest {
 	@AfterClass
 	private void teardown() {
 		fhirController.close();
-		workflowManager_.logoutAllAndClose();
+		//workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
@@ -330,20 +330,7 @@ public class SearchProviderTests implements SimpleTest {
 		}
 
 		// Test Start
-		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
-
-		String identifier;
-		if (isOrganization) identifier = confOrg.getIdentifier(IdentifierType.IPC);
-		else identifier = confInd.getIdentifier(IdentifierType.IPC);
-
-		SearchProviderResultsFragment results = provider.searchByIdentifier("IPC", identifier);
-		List<String> resultInfo = results.grabResultsRow(0);
-		assertEquals(resultInfo.getFirst(), "Link to View Provider", "Record name not confidentially masked");
-
-		ViewProviderPage page = actions.openSearchResults(0);
-
-		assertEquals(page.getViewHeader().grabViewTitle().split(" ")[0], "Confidential",
-				"Record name in title not confidentially masked");
+		ViewProviderPage page = actions.openConfidentialRecord(workflow, isOrganization, confOrg, confInd);
 
 		// Verify confidential sections are masked
 		for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
@@ -847,11 +834,8 @@ public class SearchProviderTests implements SimpleTest {
 		page = viewByIdentifierAsUpdateOrg(org.getIdentifier(IdentifierType.IPC), workflowManager_);
 		page.updateIdentifierDataBlock(orgID, EndReason.CORR, 2, false);
 		page.updateRegistryIdentifierDataBlock(StringUtils.getDigits(regID), EndReason.CORR, 0, false);
-		//ind.familyName("TestIndIncorrectData");
-		//fhirController.submitIndividual(ind);
-		indPage = viewByIdentifierAsUpdateIndividual(ind.getIdentifier(IdentifierType.IPC), workflowManager_);
-		indPage.updatePractitionerNameDataBlock("", "Test", "", "",
-				"TestIndIncorrectData", "", EndReason.CORR, 0, false);
+		ind.familyName("TestIndIncorrectData");
+		fhirController.submitIndividual(ind);
 	}
 
 	// Viewing Permissions for Confidential Provider Records
@@ -880,21 +864,7 @@ public class SearchProviderTests implements SimpleTest {
 			if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
 			final SearchProviderActions actions = workflowManager_.getSelectedWorkflow().getSearchProviderActions();
 
-			SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
-
-			String identifier;
-			if (isOrganization) identifier = confOrg.getIdentifier(IdentifierType.IPC);
-			else identifier = confInd.getIdentifier(IdentifierType.IPC);
-
-			SearchProviderResultsFragment results = provider.searchByIdentifier("IPC", identifier);
-			List<String> resultInfo = results.grabResultsRow(0);
-			assertNotEquals(resultInfo.getFirst(), "Link to View Provider",
-					"Record name confidentially masked unexpectedly");
-
-			ViewProviderPage page = actions.openSearchResults(0);
-
-			assertNotEquals(page.getViewHeader().grabViewTitle().split(" ")[0], "Confidential",
-					"Record name in title confidentially masked unexpectedly");
+			ViewProviderPage page = actions.openConfidentialRecord(workflow, isOrganization, confOrg, confInd);
 
 			for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
 			{
