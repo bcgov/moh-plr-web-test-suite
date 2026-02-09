@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
@@ -142,5 +143,104 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     public void fillIdentifier(String identifier)
     {
         if (identifier != null) selenium_.fillFieldByCss(IDENTIFIER_FIELD_CSS, identifier);
+    }
+
+    /**
+     * Constructs a DropDownMenu component for the HDS Type field,
+     * @return a DropDownMenu component for the HDS Type field
+     */
+    private DropDownMenu getHdsTypeMenu()
+    {
+        return new DropDownMenu(
+                selenium_,
+                By.cssSelector("label#form\\:hdsTypeId_label"),
+                By.cssSelector("div#form\\:hdsTypeId_panel")
+        );
+    }
+
+    /**
+     * Gets the value currently selected in the HDS Type field
+     * @return a string of the value currently selected as HDS Type
+     */
+    public String getHdsType() { return getHdsTypeMenu().grabSelectedItem(); }
+
+    /**
+     * Gets all available options in the HDS Type dropdown
+     * @return a list of strings of all HDS type options
+     */
+    public List<String> getHdsTypeOptions()
+    {
+        DropDownMenu menu = getHdsTypeMenu();
+        menu.expandItemPanel(true);
+        return menu.grabItemList();
+    }
+
+    /**
+     * Selects the given option in the HDS Type dropdown, then returns the value now selected in the dropdown
+     * @param hdsType the HDS type option to select in the dropdown
+     * @return a string of the value currently selected as HDS Type after selecting the given option
+     */
+    public String selectHdsType(String hdsType)
+    {
+        DropDownMenu menu = getHdsTypeMenu();
+        menu.expandItemPanel(true);
+        menu.selectItem(hdsType);
+        return menu.grabSelectedItem();
+    }
+
+    /**
+     * Selects the given option in the HDS Type dropdown, then returns the value now selected in the dropdown
+     * @param hdsType the HDS type option to select in the dropdown as an HdsType enum
+     * @return a string of the value currently selected as HDS Type after selecting the given option
+     */
+    public String selectHdsType(HdsType hdsType)
+    {
+        DropDownMenu menu = getHdsTypeMenu();
+        menu.expandItemPanel(true);
+        menu.selectItem(hdsType.getText());
+        return menu.grabSelectedItem();
+    }
+
+    /**
+     * Constructs a DropDownMenu component for the HDS Sub Type field,
+     * @return a DropDownMenu component for the HDS Sub Type field
+     */
+    private DropDownMenu getHdsSubTypeMenu()
+    {
+        return new DropDownMenu(
+                selenium_,
+                By.cssSelector("label#form\\:hdsSubTypeId_label"),
+                By.cssSelector("div#form\\:hdsSubTypeId_panel")
+        );
+    }
+
+    /**
+     * Gets the value currently selected in the HDS Sub Type field
+     * @return a string of the value currently selected as HDS Sub Type
+     */
+    public String getHdsSubType() { return getHdsSubTypeMenu().grabSelectedItem(); }
+
+    /**
+     * Gets all available options in the HDS Sub Type dropdown
+     * @return a list of strings of all HDS sub type options
+     */
+    public List<String> getHdsSubTypeOptions()
+    {
+        DropDownMenu menu = getHdsSubTypeMenu();
+        menu.expandItemPanel(true);
+        return menu.grabItemList();
+    }
+
+    /**
+     * Selects the given option in the HDS Sub Type dropdown, then returns the value now selected in the dropdown
+     * @param hdsSubType the HDS sub type option to select in the dropdown
+     * @return a string of the value currently selected as HDS Sub Type after selecting the given option
+     */
+    public String selectHdsSubType(String hdsSubType)
+    {
+        DropDownMenu menu = getHdsSubTypeMenu();
+        menu.expandItemPanel(true);
+        menu.selectItem(hdsSubType);
+        return menu.grabSelectedItem();
     }
 }
