@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Base fragment class for the Add Facility Steps (Identifier, Name, Address, Summary)
+ * Base fragment class for the Add Provider Steps (Identifier/Status, Name, Contact, Credential/Expertise)
  */
-public class AddFacilityStepFragment extends BasicWebPageFragment {
+public class AddProviderStepFragment extends BasicWebPageFragment {
 
     /**
      * CSS prefix used to locate Effective From date fields within the form.
@@ -25,12 +25,11 @@ public class AddFacilityStepFragment extends BasicWebPageFragment {
     public String STEP_PREFIX;
 
     /**
-     * Initializes fragment and changes selenium's main locator to header of the step type form
-     *
-     * @param selenium      the current SeleniumSession
-     * @param stepType      the step to be searched for in the form header (to be supplied by subclass)
+     * Initializes fragment and changes selenium's main locator to header of the step form
+     * @param selenium the current SeleniumSession
+     * @param stepType the step to be searched for in the form header (to be supplied by subclass)
      */
-    public AddFacilityStepFragment(SeleniumSession selenium, String stepType)
+    public AddProviderStepFragment(SeleniumSession selenium, String stepType)
     {
         super(selenium,
                 By.xpath(String.format("//table//tbody//tr//td//div//div//span[contains(text(),'%s')]", stepType)));

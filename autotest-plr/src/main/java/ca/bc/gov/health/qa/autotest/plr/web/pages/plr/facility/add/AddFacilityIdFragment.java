@@ -27,7 +27,6 @@ public class AddFacilityIdFragment extends AddFacilityStepFragment {
     {
         super(selenium, "Identifier");
         STEP_PREFIX = "identifier";
-
     }
 
     /**
