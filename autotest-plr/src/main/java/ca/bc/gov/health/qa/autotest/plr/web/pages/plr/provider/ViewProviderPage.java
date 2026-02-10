@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -25,8 +23,6 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 public class ViewProviderPage
 extends BasicWebPage
 {
-    private static final Logger LOG = ExecutionLogManager.getLogger();
-
     private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
 
     private final ViewHeaderFragment viewHeader_;
@@ -480,7 +476,7 @@ extends BasicWebPage
         return getDataBlockSelector(section, index) + " > div.ui-panel-content";
     }
 
-    private String getDataBlockHeaderActiveSelector(ProviderSection section, int index)
+    protected String getDataBlockHeaderActiveSelector(ProviderSection section, int index)
     {
         return getDataBlockHeaderSelector(section, index)
                 + " > div.ui-panel-actions > span > img[title='Active']";
@@ -492,12 +488,12 @@ extends BasicWebPage
                 + " > a[title='Expand/Collapse']";
     }
 
-    private String getDataBlockHeaderSelector(ProviderSection section, int index)
+    protected String getDataBlockHeaderSelector(ProviderSection section, int index)
     {
         return getDataBlockSelector(section, index) + " > div.ui-panel-titlebar";
     }
 
-    private String getDataBlockSelector(ProviderSection section, int index)
+    protected String getDataBlockSelector(ProviderSection section, int index)
     {
         if (index < 0)
         {
@@ -512,13 +508,13 @@ extends BasicWebPage
         return getDataBlocksSelector(section) + " > div.ui-panel-titlebar";
     }
 
-    private String getDataBlocksSelector(ProviderSection section)
+    protected String getDataBlocksSelector(ProviderSection section)
     {
         return getSectionContentSelector(section)
                 + " > table.recordDetailsPanels > tbody > tr > td > div.ui-panel";
     }
 
-    private String getSectionContentSelector(ProviderSection section)
+    protected String getSectionContentSelector(ProviderSection section)
     {
         return getSectionSelector(section) + "_content";
     }
@@ -528,7 +524,7 @@ extends BasicWebPage
         return getSectionSelector(section) + "_header";
     }
 
-    private String getSectionSelector(ProviderSection section)
+    protected String getSectionSelector(ProviderSection section)
     {
         return "div#" + section.getPanelId();
     }

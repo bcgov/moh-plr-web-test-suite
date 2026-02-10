@@ -4,14 +4,23 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
  * Enum representing different types of Health Delivery Services (HDS).
  */
 public enum HdsType {
-	CLINIC("CLINIC - Clinic"), 
+	/** Clinic */
+	CLINIC("CLINIC - Clinic"),
+	/** Pharmacy */
 	PHARMACY("PHARMACY - Pharmacy"),
+	/** Hospital */
 	HOSPITAL("HOSPITAL - Hospital"),
+	/** Emergency */
 	EMERGENCY("EMERGENCY - Emergency"),
+	/** Laboratory */
 	LAB("LAB - Laboratory"),
+	/** General Care */
 	GENERAL_CARE("GENERAL_CARE - General Care"),
+	/** Inpatient */
 	INPATIENT("INPATIENT - Inpatient"),
+	/** Housing */
 	HOUSING("HOUSING - Housing"),
+	/** Outpatient */
 	OUTPATIENT("OUTPATIENT - Outpatient");
 	
 	private String text;

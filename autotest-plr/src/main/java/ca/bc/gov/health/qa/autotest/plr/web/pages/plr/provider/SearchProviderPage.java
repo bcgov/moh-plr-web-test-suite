@@ -491,29 +491,13 @@ extends BasicWebPage
         SearchProviderOrganizationFragment search = expandSearchOrganization(true);
         if (roleTypePrefix != null)
         {
-            search.selectRoleType(roleTypePrefix);
+            WebElement orgPanel = selenium_.findElement(By.id("accordian:searchByOrganizationForm:provider_identifier_panel"));
+            String currentRoleType = search.getRoleTypeMenu().grabSelectedItem();
+            if (!currentRoleType.equals(search.selectRoleType(roleTypePrefix)))
+                selenium_.waitUntil(ExpectedConditions.stalenessOf(orgPanel));
         }
         
-		if (name != null) {
-			search.fillName(name);
-		} else
-			search.clearName();
-		if (description != null) {
-			search.fillDescription(description);
-		} else
-			search.clearDescription();
-
-		if (addressLine1 != null) {
-			search.fillAddressLine1(addressLine1);
-		} else
-			search.clearAddressLine1();
-		if (city != null) {
-			search.fillCity(city);
-		} else
-			search.clearCity();
-		
-        search.clickSearchButton();
-        return waitForSearchProviderResultsFragment();
+        return fillCommonOrganizationFields(search, name, description, city, addressLine1);
     }
 
     /**
@@ -543,28 +527,35 @@ extends BasicWebPage
     
     	if(hdsType!=null)
          search.selectHdsType(hdsType);
-        
-		if (name != null) {
-			search.fillName(name);
-		} else
-			search.clearName();
-		if (description != null) {
-			search.fillDescription(description);
-		} else
-			search.clearDescription();
 
-		if (addressLine1 != null) {
-			search.fillAddressLine1(addressLine1);
-		} else
-			search.clearAddressLine1();
-		if (city != null) {
-			search.fillCity(city);
-		} else
-			search.clearCity();
-         
-         search.clickSearchButton();
-         return waitForSearchProviderResultsFragment();
-    	
+        return fillCommonOrganizationFields(search, name, description, city, addressLine1);
+    }
+
+    public SearchProviderResultsFragment fillCommonOrganizationFields(SearchProviderOrganizationFragment search,
+                                                                      String name,
+                                                                      String description,
+                                                                      String city,
+                                                                      String addressLine1) {
+        if (name != null) {
+            search.fillName(name);
+        } else
+            search.clearName();
+        if (description != null) {
+            search.fillDescription(description);
+        } else
+            search.clearDescription();
+
+        if (addressLine1 != null) {
+            search.fillAddressLine1(addressLine1);
+        } else
+            search.clearAddressLine1();
+        if (city != null) {
+            search.fillCity(city);
+        } else
+            search.clearCity();
+
+        search.clickSearchButton();
+        return waitForSearchProviderResultsFragment();
     }
 
     /**
@@ -663,36 +654,41 @@ extends BasicWebPage
     }
 
     /**
+     * Grabs all alert messages displayed on the page.
+     *
+     * @param alertMsgCss   the CSS selector for the alert messages
+     * @return              a string of concatenated alert messages
+     */
+    private String grabAlertMessage(String alertMsgCss)
+    {
+        StringBuilder msgDisplay = new StringBuilder();
+        List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
+        for (WebElement alertMsg : alertMsgList) {
+            msgDisplay.append(alertMsg.getText());
+        }
+        return msgDisplay.toString();
+    }
+
+    /**
      * Grabs all error messages displayed on the page.
      *
      * @return a string of concatenated error messages
      */
-	public String grabPageErrorMessage() {
-
-		String alertMsgCss = "span.ui-messages-error-summary";
-		StringBuilder msgDisplay = new StringBuilder();
-		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
-		for (WebElement alertMsg : alertMsgList) {
-			msgDisplay.append(alertMsg.getText());
-		}
-		return msgDisplay.toString();
-	}
+	public String grabPageErrorMessage() { return grabAlertMessage("span.ui-messages-error-summary"); }
 
     /**
      * Grabs all warning messages displayed on the page.
      *
      * @return a string of concatenated warning messages
      */
-	public String grabWarningErrorMessage() {
+	public String grabWarningErrorMessage() { return grabAlertMessage("span.ui-messages-warn-summary"); }
 
-		String alertMsgCss = "span.ui-messages-warn-summary";
-		StringBuilder msgDisplay = new StringBuilder();
-		List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
-		for (WebElement alertMsg : alertMsgList) {
-			msgDisplay.append(alertMsg.getText());
-		}
-		return msgDisplay.toString();
-	}
+    /**
+     * Grabs all info messages displayed on the page.
+     *
+     * @return a string of concatenated info messages
+     */
+    public String grabInfoMessage() { return grabAlertMessage("span.ui-messages-info-summary"); }
 
 	/**
 	 * clear All Expertise

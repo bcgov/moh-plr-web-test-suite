@@ -10,9 +10,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
@@ -27,12 +25,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import static java.util.Objects.requireNonNull;
-import java.util.ArrayList;
+
+import java.util.*;
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -419,6 +415,30 @@ public final class TestHelper {
         return new ViewProviderPage(workflow.getSeleniumSession());
     }
 
+    public static UpdateOrganizationPage viewByIdentifierAsUpdateOrg(String identifier, PlrWebWorkflowManager workflowManager) {
+        final PlrWebWorkflow workflow = workflowManager.getSelectedWorkflow();
+
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier(
+                "IPC", identifier);
+        search.openResults(0);
+        
+        return new UpdateOrganizationPage(workflow.getSeleniumSession(), 
+                                        workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
+    }
+
+    public static UpdateProviderPage viewByIdentifierAsUpdateIndividual(String identifier, PlrWebWorkflowManager workflowManager) {
+        final PlrWebWorkflow workflow = workflowManager.getSelectedWorkflow();
+
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier(
+                "IPC", identifier);
+        search.openResults(0);
+
+        return new UpdateProviderPage(workflow.getSeleniumSession(),
+                                        workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
+    }
+
     public static String getIdentifierFromBuilder(Map<ProviderType, MaintainRequestBuilder> providerMap, ProviderType providerType)
     {
         final IdentifierType ipc = IdentifierType.IPC;
@@ -433,5 +453,22 @@ public final class TestHelper {
         boolean isOrg = !Objects.isNull(orgBuilder);
 
         return isOrg ? orgBuilder.getIdentifier(ipc) : indBuilder.getIdentifier(ipc);
+    }
+
+    /**
+     * get Random Number
+     * @param min	the min number
+     * @param max 	the max number
+     * @return 		random number between min and max
+     */
+    public static int getRandomNumber(int min, int max) {
+        // Create a Random object
+        Random random = new Random();
+
+        // Generate the random number
+        // nextInt((max - min) + 1) generates a number between 0 and 4
+        // Adding min (2) shifts the range to be between 2 and 6 (exclusive of 6)
+        return random.nextInt((max - min) + 1) + min;
+
     }
 }
