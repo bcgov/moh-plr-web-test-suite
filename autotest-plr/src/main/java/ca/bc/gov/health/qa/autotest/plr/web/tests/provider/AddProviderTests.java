@@ -3,6 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -32,7 +33,11 @@ public class AddProviderTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
 
-        page.changeProviderType(ProviderType.OOP_PRACTITIONER);
-        page.changeProviderType(ProviderType.ORGANIZATION);
+        page = page.changeProviderType(ProviderType.ORGANIZATION);
+
+        page.fillIdentifier(OrganizationalProviderRoleType.HDS, HdsType.CLINIC, "BHACH", "ORGID", "252525", null);
+        page.fillStatus("AE", StatusCodeOption.CANCELLED, StatusReasonCodeOption.LAP, null);
+
+        page.clickNext("Status", "");
     }
 }

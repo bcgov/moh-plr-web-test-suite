@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
@@ -68,6 +69,70 @@ public class AddProviderPage extends BasicWebPage {
     {
         AlertMessagesFragment fragment = new AlertMessagesFragment(selenium_);
         fragment.waitForReady();
+        return fragment;
+    }
+
+    /**
+     * Fills the identifier form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param roleType the provider role type to select in the form, or null to not select any provider role type.
+     *                 will be explicitly cast to either ProviderRoleType or OrganizationalProviderRoleType based on the provider type of the page
+     * @param identifierType the identifier type to select in the form, or null to not select any identifier type
+     * @param identifier the identifier to fill in the form, or null to not fill any identifier
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [day, month, year], or null to not fill an effective from date
+     * @return the AddProviderIdFragment object after filling the form with the provided information
+     */
+    public AddProviderIdFragment fillIdentifier(Object roleType, HdsType hdsType, String hdsSubType,
+                                                String identifierType, String identifier, List<Integer> effectiveFrom)
+    {
+        AddProviderIdFragment fragment = new AddProviderIdFragment(selenium_, providerType);
+
+        if (roleType != null) {
+            if (providerType.equals(ProviderType.ORGANIZATION))
+                fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
+            else fragment.selectProviderRoleType((ProviderRoleType) roleType);
+
+            WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
+            selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+
+            if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
+                selenium_.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));
+
+                fragment.selectHdsType(hdsType);
+                if (hdsSubType != null) fragment.selectHdsSubType(hdsSubType);
+            }
+        }
+        if (identifierType != null) fragment.selectIdentifierType(identifierType);
+        if (identifier != null) fragment.fillIdentifier(identifier);
+        if (effectiveFrom != null)
+            fragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        else
+            fragment.effectiveFromCurrentDate();
+
+        return fragment;
+    }
+
+    /**
+     * Fills the status form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param statusClassCode the status class code to select in the form, or null to not select any status class code
+     * @param statusCode the status code to select in the form, or null to not select any status code
+     * @param statusReasonCode the status reason code to select in the form, or null to not select any status reason code
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [day, month, year], or null to not fill an effective from date
+     * @return the AddProviderStatusFragment object after filling the form with the provided information
+     */
+    public AddProviderStatusFragment fillStatus(String statusClassCode, StatusCodeOption statusCode, StatusReasonCodeOption statusReasonCode, List<Integer> effectiveFrom)
+    {
+        AddProviderStatusFragment fragment = new AddProviderStatusFragment(selenium_);
+
+        if (statusClassCode != null) fragment.selectStatusClassCode(statusClassCode);
+        if (statusCode != null) fragment.selectStatusCode(statusCode.getText());
+        if (statusReasonCode != null) fragment.selectStatusReasonCode(statusReasonCode.getText());
+        if (effectiveFrom != null)
+            fragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        else
+            fragment.effectiveFromCurrentDate();
+
         return fragment;
     }
 
