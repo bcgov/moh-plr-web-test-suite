@@ -3,7 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 /**
  * Enum representing different types of Provider Roles.
  */
-public enum ProviderRoleType {
+public enum ProviderRoleTypeOptions {
 	
 	DEN("DEN - Dentist"), 
 	MD("MD - Medical Doctor"), 
@@ -12,9 +12,9 @@ public enum ProviderRoleType {
 	OOPMD("OOP-MD - OOP Medical Doctor"), 
 	OOPDEN("OOP-DEN - OOP Dentist"), 
 	OOPRN("OOP-RN - OOP Registered Nurse"), 
-	OOPRNP("OOP-RNP - OOP Registered Nurse Practitione"), 
+	OOPRNP("OOP-RNP - OOP Registered Nurse Practitioner"), 
 	OOPPHARM("OOP-PHARM - OOP Pharmacist"), 
-	OOPOPT("OOP-OPT - OOP Optometris"), 
+	OOPOPT("OOP-OPT - OOP Optometrist"), 
 	OPT("OPT - Optometrist"), 
 	RPN("RPN - Registered Psychiatric Nurse"), 
 	OOPRM("OOP-RM - OOP Registered Midwife"), 
@@ -41,7 +41,7 @@ public enum ProviderRoleType {
 
 	private String text;
 
-	ProviderRoleType(String text) {
+	ProviderRoleTypeOptions(String text) {
 		this.text = text;
 	}
 
@@ -58,8 +58,8 @@ public enum ProviderRoleType {
 	 * @param text  the string representation of the ProviderRoleType
 	 * @return 		the corresponding ProviderRoleType enum value, or null if not found
 	 */
-	public static ProviderRoleType fromString(String text) {
-		for (ProviderRoleType b : ProviderRoleType.values()) {
+	public static ProviderRoleTypeOptions fromString(String text) {
+		for (ProviderRoleTypeOptions b : ProviderRoleTypeOptions.values()) {
 			if (b.text.equalsIgnoreCase(text)) {
 				return b;
 			}
