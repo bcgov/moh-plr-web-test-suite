@@ -4,6 +4,7 @@ import java.net.URI;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.HomePage;
@@ -105,6 +106,17 @@ public class PlrWebAccessActions
     {
         waitForPlrNavigationMenuFragment().openItem(Item.SEARCH_FACILITY);
         return waitForSearchFacilityPage();
+    }
+
+    /**
+     * Opens the Add Provider page
+     *
+     * @return an AddProviderPage object for the add provider page
+     */
+    public AddProviderPage openAddProvider()
+    {
+        waitForPlrNavigationMenuFragment().openItem(Item.ADD_PROVIDER);
+        return new AddProviderPage(selenium_, "(BC Practitioner)");
     }
 
     /**
