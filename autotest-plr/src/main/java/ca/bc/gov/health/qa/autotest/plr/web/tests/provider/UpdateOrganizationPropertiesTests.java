@@ -1,18 +1,13 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.viewByIdentifier;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
@@ -20,36 +15,21 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.google.common.collect.Ordering;
-
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
-import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicOwnerBusinessType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicServices;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsSubType;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
-import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateOrganizationPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationProperties;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -65,25 +45,22 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
     private OrganizationDataGenerator organizationDataGenerator;
 	private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
-    private static JSONObject errorList,warningList;
+    private static JSONObject errorList;
     private static MaintainOrgBuilder defaultOrg = null;
     private static UpdateOrganizationPage defaultOrgPage = null;
 
 
-    private String errorInvFormatClinicHours = "GRS.PRV.PRO.MTN.1.0.9017: Invalid characters entered:Clinic Hours of Operation. Each line will record one time frame for a given day and reference a 24hr clock. Must be in exact format:\"DDD HH:MM-HH:MM\". Re-enter acceptable characters and format to proceed. Example: MON 13:00-17:30.";
-    private String errorDuplicateClinicHours = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Hours of Operation";
-    private String errorDuplicateClinicOwnershipType = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Owner Business Type";
-	private String errorDuplicateClinicServiceDeliveryType = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Service Delivery Type";
-	private String errorDuplicateClinicType = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Type";
-	private String errorDuplicatePciFlag = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate PCI Flag";
-	private String errorMaxLengthClinicOwner = "";
-	private String errorDuplicateClinicOwner = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Owner Names";
-	private String errorDuplicateClinicLegalName = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Legal Business Name";
-	private String errorMaxLengthClinicLegalName = "";
-	private String errorInvCharsPayeeNumber = "GRS.PRV.PRO.MTN.1.0.9017: Invalid characters entered: Payee Number.";
-	private String errorMaxLengthPayeeNumber = "";
-	private String errorDuplicatePayeeNumber = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Payee Number";
-	private String errorDuplicateHdsSubType = "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate HDS Sub Type";
+    private final String errorInvFormatClinicHours;
+    private final String errorDuplicateClinicHours;
+    private final String errorDuplicateClinicOwnershipType;
+	private final String errorDuplicateClinicServiceDeliveryType;
+	private final String errorDuplicateClinicType;
+	private final String errorDuplicatePciFlag;
+	private final String errorDuplicateClinicOwner;
+	private final String errorDuplicateClinicLegalName;
+	private final String errorInvCharsPayeeNumber;
+	private final String errorDuplicatePayeeNumber;
+	private final String errorDuplicateHdsSubType;
     
     private UpdateOrganizationPropertiesTests() {
 		
@@ -92,7 +69,19 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
             organizationDataGenerator = OrganizationDataGenerator.getInstance();
             
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
-            warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
+            
+            // Initialize error messages from JSON file
+            errorInvFormatClinicHours = errorList.getString("errorInvFormatClinicHours");
+            errorDuplicateClinicHours = errorList.getString("errorDuplicateClinicHours");
+            errorDuplicateClinicOwnershipType = errorList.getString("errorDuplicateClinicOwnershipType");
+            errorDuplicateClinicServiceDeliveryType = errorList.getString("errorDuplicateClinicServiceDeliveryType");
+            errorDuplicateClinicType = errorList.getString("errorDuplicateClinicType");
+            errorDuplicatePciFlag = errorList.getString("errorDuplicatePciFlag");
+            errorDuplicateClinicOwner = errorList.getString("errorDuplicateClinicOwner");
+            errorDuplicateClinicLegalName = errorList.getString("errorDuplicateClinicLegalName");
+            errorInvCharsPayeeNumber = errorList.getString("errorInvCharsPayeeNumber");
+            errorDuplicatePayeeNumber = errorList.getString("errorDuplicatePayeeNumber");
+            errorDuplicateHdsSubType = errorList.getString("errorDuplicateHdsSubType");
         }
         catch (IOException e)
         {
@@ -668,17 +657,7 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
         assertTrue(errorMsg.isEmpty(), 
 			"Failed to update Clinic Owner with CORR: " + errorMsg);
 
-        //Step 7 - Try to update block with more than 400 characters - To be confirmed if it applies
-        /*String longOwner = "A".repeat(401);
-        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
-            OrganizationProperties.CLINIC_OWNER_NAMES,
-            longOwner,
-            EndReason.CHG,
-            0,
-            true);
-
-        assertEquals(errorMsg, errorMaxLengthClinicOwner,
-            "Error should be displayed when updating Clinic Owner with more than 400 characters");*/
+        //Step 7 - NA
 
         //Step 8 - Try to add a second duplicate block
         errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
@@ -783,18 +762,7 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
         assertTrue(errorMsg.isEmpty(), 
 			"Failed to update Clinic Legal Business Name with CORR: " + errorMsg);
 
-        //Step 7 - Try to update block with more than 400 characters - To be confirmed if it applies
-        /*String longLegalName = "A".repeat(401);
-        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
-            OrganizationProperties.CLINIC_LEGAL_BUSINESS_NAME,
-            longLegalName,
-            EndReason.CHG,
-            0,
-            true);
-
-        assertEquals(errorMsg, errorMaxLengthClinicLegalName,
-            "Error should be displayed when updating Clinic Legal Business Name with more than 400 characters");*/
-
+        //Step 7 - NA
         //Step 8 - Try to add a second duplicate block
         errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
             OrganizationProperties.CLINIC_LEGAL_BUSINESS_NAME,
@@ -901,17 +869,7 @@ public class UpdateOrganizationPropertiesTests implements SimpleTest {
         assertEquals(errorMsg, errorInvCharsPayeeNumber,
             "Error should be displayed when updating Payee Number with invalid characters");
 
-        //Step 7 - Try to update block with more than 400 characters - To be confirmed if it applies
-        /*String longPayeeNumber = "1".repeat(401);
-        errorMsg = defaultOrgPage.updateOrganizationPropertyDataBlock(
-            OrganizationProperties.PAYEE_NUMBER,
-            longPayeeNumber,
-            EndReason.CHG,
-            0,
-            true);
-
-        assertEquals(errorMsg, errorMaxLengthPayeeNumber,
-            "Error should be displayed when updating Payee Number with more than 400 characters");*/
+        //Step 7 - NA
 
         //Step 8 - Try to add a second duplicate block
         errorMsg = defaultOrgPage.addOrganizationPropertyDataBlock(
