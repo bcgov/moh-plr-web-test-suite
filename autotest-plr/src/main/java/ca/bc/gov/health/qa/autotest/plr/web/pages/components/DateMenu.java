@@ -25,13 +25,12 @@ public class DateMenu extends BasicWebPageFragment {
      *
      * @param selenium              the current selenium session
      * @param mainLocator           the main locator, which should be set to the span encompassing the field/menu button
-     * @param stepPrefix            the
+     * @param inputLocator          the CSS selector for the input field within the date menu span (used to retrieve the value after picking a date)
      */
-    public DateMenu(SeleniumSession selenium, By mainLocator, String stepPrefix)
+    public DateMenu(SeleniumSession selenium, By mainLocator, String inputLocator)
     {
         super(selenium, mainLocator);
-        stepPrefix = requireNonNull(stepPrefix, "Missing step prefix.");
-        inputLocator_ = By.cssSelector(String.format("input#form\\:effectiveFromDate_%s_input", stepPrefix));
+        inputLocator_ = By.cssSelector(inputLocator);
     }
 
     /**

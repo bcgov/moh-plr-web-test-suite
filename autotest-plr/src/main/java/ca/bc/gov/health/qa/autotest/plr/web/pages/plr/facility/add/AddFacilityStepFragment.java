@@ -49,7 +49,9 @@ public class AddFacilityStepFragment extends BasicWebPageFragment {
      */
     public DateMenu getEffectiveFromDateMenu()
     {
-        return new DateMenu(selenium_, By.cssSelector(DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX), this.STEP_PREFIX);
+        return new DateMenu(selenium_,
+                By.cssSelector(DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX),
+                String.format("input#form\\:effectiveFromDate_%s_input", this.STEP_PREFIX));
     }
 
     /**

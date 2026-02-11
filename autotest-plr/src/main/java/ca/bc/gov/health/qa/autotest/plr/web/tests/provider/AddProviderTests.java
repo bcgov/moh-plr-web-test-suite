@@ -33,11 +33,13 @@ public class AddProviderTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
 
-        page = page.changeProviderType(ProviderType.ORGANIZATION);
+        page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
-        page.fillIdentifier(OrganizationalProviderRoleType.HDS, HdsType.CLINIC, "BHACH", "ORGID", "252525", null);
-        page.fillStatus("AE", StatusCodeOption.CANCELLED, StatusReasonCodeOption.LAP, null);
+        page.fillIdentifier(ProviderRoleType.OOPMD, null, null, "OOPID", "252525");
+        page.fillStatus("AE", StatusCodeOption.CANCELLED, StatusReasonCodeOption.LAP);
 
         page.clickNext("Status", "");
+        page.waitForAddProviderStep("Personal Information", true);
+        page.fillPI("Dr.", "Test", "Provider", null, "Smith");
     }
 }
