@@ -79,7 +79,7 @@ public class AddProviderPage extends BasicWebPage {
      * @param identifierType the identifier type to select in the form, or null to not select any identifier type
      * @param identifier the identifier to fill in the form, or null to not fill any identifier
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
-     *                      [day, month, year], or null to not fill an effective from date
+     *                      [year, month, day], or null to not fill an effective from date
      * @return the AddProviderIdFragment object after filling the form with the provided information
      */
     public AddProviderIdFragment fillIdentifier(Object roleType, HdsType hdsType, String hdsSubType,
@@ -151,7 +151,7 @@ public class AddProviderPage extends BasicWebPage {
      * @param statusCode the status code to select in the form, or null to not select any status code
      * @param statusReasonCode the status reason code to select in the form, or null to not select any status reason code
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
-     *                      [day, month, year], or null to not fill an effective from date
+     *                      [year, month, day], or null to not fill an effective from date
      * @return the AddProviderStatusFragment object after filling the form with the provided information
      */
     public AddProviderStatusFragment fillStatus(String statusClassCode, StatusCodeOption statusCode, StatusReasonCodeOption statusReasonCode, List<Integer> effectiveFrom)
@@ -217,7 +217,7 @@ public class AddProviderPage extends BasicWebPage {
      * @param thirdName the third name to fill in the form, or null to not fill a third name
      * @param surname the surname to fill in the form, or null to not fill a surname
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
-     *                      [day, month, year], or null to not fill an effective from date
+     *                      [year, month, day], or null to not fill an effective from date
      * @return the AddProviderPIFragment object after filling the form with the provided information
      */
     public AddProviderPIFragment fillPI(String prefix, String firstName, String secondName, String thirdName, String surname, List<Integer> effectiveFrom)
@@ -229,6 +229,48 @@ public class AddProviderPage extends BasicWebPage {
         if (secondName != null) fragment.fillSecondName(secondName);
         if (thirdName != null) fragment.fillThirdName(thirdName);
         if (surname != null) fragment.fillSurname(surname);
+        if (effectiveFrom != null)
+            fragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return fragment;
+    }
+
+    /**
+     * Fills the demographics form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param dateOfBirth the date of birth to fill in the form as a list of integers
+     *                    in the format [year, month, day], or null to not fill date of birth
+     * @param gender the gender to select in the radio menu, or null to not select any gender
+     * @return the AddProviderDemographicFragment object after filling the form with the provided information
+     */
+    public AddProviderDemographicFragment fillDemographics(List<Integer> dateOfBirth, String gender)
+    {
+        AddProviderDemographicFragment fragment = new AddProviderDemographicFragment(selenium_);
+
+        if (dateOfBirth != null)
+            fragment.dateOfBirthSpecificDate(dateOfBirth.get(0), dateOfBirth.get(1), dateOfBirth.get(2));
+        if (gender != null) fragment.getGenderMenu().selectItem(gender);
+        fragment.effectiveFromCurrentDate();
+
+        return fragment;
+    }
+
+    /**
+     * Fills the demographics form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param dateOfBirth the date of birth to fill in the form as a list of integers
+     *                    in the format [year, month, day], or null to not fill date of birth
+     * @param gender the gender to select in the radio menu, or null
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [year, month, day], or null to not fill an effective from date
+     * @return the AddProviderDemographicFragment object after filling the form with the provided information
+     */
+    public AddProviderDemographicFragment fillDemographics(List<Integer> dateOfBirth, String gender, List<Integer> effectiveFrom)
+    {
+        AddProviderDemographicFragment fragment = new AddProviderDemographicFragment(selenium_);
+
+        if (dateOfBirth != null)
+            fragment.dateOfBirthSpecificDate(dateOfBirth.get(0), dateOfBirth.get(1), dateOfBirth.get(2));
+        if (gender != null) fragment.getGenderMenu().selectItem(gender);
+
         if (effectiveFrom != null)
             fragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 

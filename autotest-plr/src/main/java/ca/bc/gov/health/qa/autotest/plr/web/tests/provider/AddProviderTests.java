@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderDemographicFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -11,6 +12,8 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.List;
 
 public class AddProviderTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -41,5 +44,6 @@ public class AddProviderTests implements SimpleTest {
         page.clickNext("Status", "");
         page.waitForAddProviderStep("Personal Information", true);
         page.fillPI("Dr.", "Test", "Provider", null, "Smith");
+        page.fillDemographics(List.of(2011,1,1), "U");
     }
 }
