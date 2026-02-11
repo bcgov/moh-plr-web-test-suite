@@ -730,5 +730,10 @@ extends BasicWebPage
 		SearchProviderCriteriaFragment search = expandSearchCriteria(true);
 		search.clearRoleType();
 	}
+	
+	/**
+	 * refresh web page
+	 */
+	public void refreshPage() { selenium_.getDriver().navigate().refresh(); }
 
 }

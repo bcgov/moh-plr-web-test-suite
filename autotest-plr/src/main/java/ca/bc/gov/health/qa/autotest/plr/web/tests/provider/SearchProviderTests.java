@@ -1,6 +1,5 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.logIn;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -8,9 +7,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,8 +44,10 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderCri
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateOrganizationPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderIdentifierTypeConsumerOptions;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderIdentifierTypeOptions;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderIdentifierTypeSecondaryOptions;
@@ -769,6 +767,7 @@ public class SearchProviderTests implements SimpleTest {
 				IndividualDataGenerator.getInstance());
 		MaintainIndividualBuilder provider = individualFactory.build(individualConfig);
 		provider = fhirController.submitIndividual(provider);
+		
 		//test 1 name
 		String lastname = provider.getFamilyName();
 		String firstname = provider.getNames()[0];
@@ -786,16 +785,18 @@ public class SearchProviderTests implements SimpleTest {
 		String resultMsg = searchResults.grabEmptyResultsMessage();
 		assertTrue(resultMsg.equals(NORECORDFOUND));
 		//test 2 identifier
+		
 		String providerId = provider.getIdentifier(IdentifierType.DENID);
-		searchResults=searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), providerId);
+		searchResults = searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), providerId);
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
-		//Map<IdentifierType, String> map=new HashMap<IdentifierType, String>();
-		//map.put(IdentifierType.DENID,UpdateSimpleHelper.generateNumericString(12));
-		//provider.setIdentifiers(map);
-		//provider = fhirController.submitIndividual(provider);
-		//searchResults=searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), providerId);
-		//resultMsg = searchResults.grabEmptyResultsMessage();
-		//assertTrue(resultMsg.equals(NORECORDFOUND));
+		// update id through a web updating 
+		updateProviderIdentifier(provider, 1);
+		//resume the testing  
+		searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+		searchProviderPage.refreshPage();
+		searchResults=searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), providerId);
+		resultMsg = searchResults.grabEmptyResultsMessage();
+		assertTrue(resultMsg.equals(NORECORDFOUND));
 		//FHIR organization
 		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG).withAlias();
 		OrganizationBuilderFactory organizationFactory = new OrganizationBuilderFactory(
@@ -898,6 +899,14 @@ public class SearchProviderTests implements SimpleTest {
 		}
 		providerRoleTypeOptions.add("Select One");
 		return providerRoleTypeOptions;
+		
+	}
+	
+	
+	private void updateProviderIdentifier(MaintainIndividualBuilder provider, int inxdex ) {
+		// borrow organization identifier updating  
+		UpdateOrganizationPage defaultOrgPage = TestHelper.viewByIdentifierAsUpdateOrg(provider.getIdentifier(IdentifierType.IPC), workflowManager_);
+ 		defaultOrgPage.updateIdentifierDataBlock(UpdateSimpleHelper.generateNumericString(10), EndReason.CORR, 1, false);
 		
 	}
 	
