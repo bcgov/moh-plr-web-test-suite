@@ -51,5 +51,6 @@ public class AddProviderTests implements SimpleTest {
 
         page.fillAddress(List.of("123 Test St", "Unit 1", ""), "Victoria", "BC", "CA", "V9V9V9");
         page.fillPhone("250", "5551234", "123");
+        page.fillFax("250", "5555678");
     }
 }

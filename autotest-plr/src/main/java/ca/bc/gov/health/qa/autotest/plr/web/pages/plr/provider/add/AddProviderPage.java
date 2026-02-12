@@ -413,6 +413,42 @@ public class AddProviderPage extends BasicWebPage {
     }
 
     /**
+     * Fills the fax number form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param areaCode the area code to fill in the form, or null to not fill an area code
+     * @param faxNumber the fax number to fill in the form, or null to not fill a fax number
+     * @return the AddProviderFaxFragment object after filling the form with the provided information
+     */
+    public AddProviderFaxFragment fillFax(String areaCode, String faxNumber)
+    {
+        AddProviderFaxFragment faxFragment = new AddProviderFaxFragment(selenium_);
+
+        if (areaCode != null) faxFragment.fillAreaCode(areaCode);
+        if (faxNumber != null) faxFragment.fillFaxNumber(faxNumber);
+        faxFragment.effectiveFromCurrentDate();
+
+        return faxFragment;
+    }
+
+    /**
+     * Fills the fax number form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param areaCode the area code to fill in the form, or null to not fill an area code
+     * @param faxNumber the fax number to fill in the form, or null to not fill a fax number
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [year, month, day], or null to not fill an effective from date
+     * @return the AddProviderFaxFragment object after filling the form with the provided information
+     */
+    public AddProviderFaxFragment fillFax(String areaCode, String faxNumber, List<Integer> effectiveFrom)
+    {
+        AddProviderFaxFragment faxFragment = new AddProviderFaxFragment(selenium_);
+
+        if (areaCode != null) faxFragment.fillAreaCode(areaCode);
+        if (faxNumber != null) faxFragment.fillFaxNumber(faxNumber);
+        if (effectiveFrom != null) faxFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return faxFragment;
+    }
+
+    /**
      * Waits for a step in the Add Provider flow to be available
      *
      * @param step      the title of the step to be locating (header of the div form, e.g. Identifier, Status, etc.)

@@ -40,12 +40,12 @@ public class AddProviderPhoneFragment extends AddProviderStepFragment {
             getPhoneChoiceMenu().selectItem("Yes");
 
             selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithoutClass(
-                    By.cssSelector("input#form\\:areaCode"), "ui-state-disabled"));
+                    By.cssSelector(AREA_CODE_FIELD_CSS), "ui-state-disabled"));
         } else {
             getPhoneChoiceMenu().selectItem("No");
 
             selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithClass(
-                    By.cssSelector("input#form\\:areaCode"), "ui-state-disabled"));
+                    By.cssSelector(AREA_CODE_FIELD_CSS), "ui-state-disabled"));
         }
     }
 
