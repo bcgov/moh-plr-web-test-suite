@@ -373,6 +373,46 @@ public class AddProviderPage extends BasicWebPage {
     }
 
     /**
+     * Fills the phone number form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param areaCode the area code to fill in the form, or null to not fill an area code
+     * @param phoneNumber the phone number to fill in the form, or null to not fill a phone number
+     * @param extension the extension to fill in the form, or null to not fill an extension
+     * @return the AddProviderPhoneFragment object after filling the form with the provided information
+     */
+    public AddProviderPhoneFragment fillPhone(String areaCode, String phoneNumber, String extension)
+    {
+        AddProviderPhoneFragment phoneFragment = new AddProviderPhoneFragment(selenium_);
+
+        if (areaCode != null) phoneFragment.fillAreaCode(areaCode);
+        if (phoneNumber != null) phoneFragment.fillPhoneNumber(phoneNumber);
+        if (extension != null) phoneFragment.fillExtension(extension);
+        phoneFragment.effectiveFromCurrentDate();
+
+        return phoneFragment;
+    }
+
+    /**
+     * Fills the phone number form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param areaCode the area code to fill in the form, or null to not fill an area code
+     * @param phoneNumber the phone number to fill in the form, or null to not fill a phone number
+     * @param extension the extension to fill in the form, or null to not fill an extension
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [year, month, day], or null to not fill an effective from date
+     * @return the AddProviderPhoneFragment object after filling the form with the provided information
+     */
+    public AddProviderPhoneFragment fillPhone(String areaCode, String phoneNumber, String extension, List<Integer> effectiveFrom)
+    {
+        AddProviderPhoneFragment phoneFragment = new AddProviderPhoneFragment(selenium_);
+
+        if (areaCode != null) phoneFragment.fillAreaCode(areaCode);
+        if (phoneNumber != null) phoneFragment.fillPhoneNumber(phoneNumber);
+        if (extension != null) phoneFragment.fillExtension(extension);
+        if (effectiveFrom != null) phoneFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return phoneFragment;
+    }
+
+    /**
      * Waits for a step in the Add Provider flow to be available
      *
      * @param step      the title of the step to be locating (header of the div form, e.g. Identifier, Status, etc.)

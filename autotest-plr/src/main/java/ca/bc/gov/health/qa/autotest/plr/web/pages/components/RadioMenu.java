@@ -1,7 +1,9 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.components;
 
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
@@ -12,6 +14,8 @@ import java.util.Objects;
  * Page object for a radio menu component, which is a table with labels in the cells and radio buttons as inputs.
  */
 public class RadioMenu extends BasicWebPageFragment  {
+
+    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     /**
      * Initializes a radio menu fragment.
