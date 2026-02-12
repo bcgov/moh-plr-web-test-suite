@@ -278,6 +278,101 @@ public class AddProviderPage extends BasicWebPage {
     }
 
     /**
+     * Fills the address form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param addressLines a list of strings representing the address lines to fill in the form,
+     *                     where the first element is the address line 1,
+     *                     the second element is the address line 2,
+     *                     and the third element is the address line 3.
+     *                     If an element is null, that address line will not be filled.
+     * @param city the city to fill in the form, or null to not fill a city
+     * @param province the province to select in the form, or null to not select a province
+     * @param country the country to select in the form, or null to not select a country
+     * @param postalCode the postal code to fill in the form, or null to not fill a postal code
+     * @return the AddProviderAddressFragment object after filling the form with the provided information
+     */
+    public AddProviderAddressFragment fillAddress(
+            List<String> addressLines, String city, String province, String country, String postalCode)
+    {
+        return fillAddress(addressLines, city, province, country, postalCode, null);
+    }
+
+    /**
+     * Fills the address form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param addressLines a list of strings representing the address lines to fill in the form,
+     *                     where the first element is the address line 1,
+     *                     the second element is the address line 2,
+     *                     and the third element is the address line 3.
+     *                     If an element is null, that address line will not be filled.
+     * @param city the city to fill in the form, or null to not fill a city
+     * @param province the province to select in the form, or null to not select a province
+     * @param country the country to select in the form, or null to not select a country
+     * @param postalCode the postal code to fill in the form, or null to not fill a postal code
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [year, month, day], or null to fill the current date as the effective from date
+     * @return the AddProviderAddressFragment object after filling the form with the provided information
+     */
+    public AddProviderAddressFragment fillAddress(
+            List<String> addressLines, String city, String province, String country,
+            String postalCode, List<Integer> effectiveFrom)
+    {
+        AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(selenium_);
+
+        addressFragment.fillAddressLine1(addressLines.get(0));
+        addressFragment.fillAddressLine2(addressLines.get(1));
+        addressFragment.fillAddressLine3(addressLines.get(2));
+        addressFragment.fillCity(city);
+        if (province != null) addressFragment.selectProvinceState(province);
+        if (country != null) addressFragment.selectCountry(country);
+        addressFragment.fillPostalCode(postalCode);
+
+        if (effectiveFrom == null) addressFragment.effectiveFromCurrentDate();
+        else  addressFragment.effectiveFromSpecificDate(
+                effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return addressFragment;
+    }
+
+    /**
+     * Fills the address form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param addressAutocompleteField the address to fill in the autocomplete field, or null to not fill any address
+     * @param addressAutocompletePrefix the prefix to use when filling in the autocomplete field, or null to not fill any address.
+     *                                  This is used to specify a unique portion of the address to ensure the correct address is selected from the autocomplete dropdown.
+     * @return the AddProviderAddressFragment object after filling the form with the provided information
+     */
+    public AddProviderAddressFragment fillAddress(String addressAutocompleteField, String addressAutocompletePrefix)
+    {
+        AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(selenium_);
+
+        addressFragment.fillAddressAutocomplete(addressAutocompleteField, addressAutocompletePrefix);
+
+        addressFragment.effectiveFromCurrentDate();
+
+        return addressFragment;
+    }
+
+    /**
+     * Fills the address form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param addressAutocompleteField the address to fill in the autocomplete field, or null to not fill any address
+     * @param addressAutocompletePrefix the prefix to use when filling in the autocomplete field, or null to not fill any address.
+     *                                  This is used to specify a unique portion of the address to ensure the correct address is selected from the autocomplete dropdown.
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [year, month, day], or null to not fill an effective from date
+     * @return the AddProviderAddressFragment object after filling the form with the provided information
+     */
+    public AddProviderAddressFragment fillAddress(
+            String addressAutocompleteField, String addressAutocompletePrefix, List<Integer> effectiveFrom)
+    {
+        AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(selenium_);
+
+        addressFragment.fillAddressAutocomplete(addressAutocompleteField, addressAutocompletePrefix);
+
+        if (effectiveFrom != null)
+            addressFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return addressFragment;
+    }
+
+    /**
      * Waits for a step in the Add Provider flow to be available
      *
      * @param step      the title of the step to be locating (header of the div form, e.g. Identifier, Status, etc.)

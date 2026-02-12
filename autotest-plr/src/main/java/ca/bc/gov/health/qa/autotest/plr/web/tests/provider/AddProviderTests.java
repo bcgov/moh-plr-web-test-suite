@@ -43,7 +43,13 @@ public class AddProviderTests implements SimpleTest {
 
         page.clickNext("Status", "");
         page.waitForAddProviderStep("Personal Information", true);
+
         page.fillPI("Dr.", "Test", "Provider", null, "Smith");
         page.fillDemographics(List.of(2011,1,1), "U");
+
+        page.clickNext("Personal Information", "");
+        page.waitForAddProviderStep("Address", true);
+
+        page.fillAddress(List.of("123 Test St", "Unit 1", ""), "Victoria", "BC", "CA", "V9V9V9");
     }
 }

@@ -137,12 +137,7 @@ public class AddFacilityAddressFragment extends AddFacilityStepFragment {
         );
     }
 
-    /**
-     * Constructs an AutocompleteMenu component for the Address Auto Complete field
-     *
-     * @return  an AutocompleteMenu component for the Address Auto Complete field
-     */
-    public AutocompleteMenu getAddressAutocompleteMenu()
+    private AutocompleteMenu getAddressAutocompleteMenu()
     {
         return new AutocompleteMenu(
                 selenium_,
