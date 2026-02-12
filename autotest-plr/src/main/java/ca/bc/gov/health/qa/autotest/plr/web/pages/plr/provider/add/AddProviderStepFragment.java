@@ -39,7 +39,12 @@ public class AddProviderStepFragment extends BasicWebPageFragment {
      * Gets the CSS selector for the date field associated with this step.
      * @return the CSS selector string for the date field
      */
-    public String getDateFieldCss() { return DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX; }
+    public String getDateFieldCss()
+    {
+        String dateFieldCss = DATE_FIELD_PREFIX_CSS;
+        if (this.STEP_PREFIX.equals("Email")) dateFieldCss = dateFieldCss.replace("FromDate_", "StartDate");
+        return dateFieldCss + this.STEP_PREFIX;
+    }
 
     /**
      * Creates a DateMenu reference for the Effective From Date field
@@ -48,8 +53,14 @@ public class AddProviderStepFragment extends BasicWebPageFragment {
      */
     public DateMenu getEffectiveFromDateMenu()
     {
+        if (this.STEP_PREFIX.equals("Email")) {
+            return new DateMenu(selenium_,
+                    By.cssSelector(getDateFieldCss()),
+                    "input#form\\:effectiveStartDateEmail_input");
+        }
+
         return new DateMenu(selenium_,
-                By.cssSelector(DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX),
+                By.cssSelector(getDateFieldCss()),
                 String.format("input#form\\:effectiveFromDate_%s_input", this.STEP_PREFIX));
     }
 
@@ -80,7 +91,7 @@ public class AddProviderStepFragment extends BasicWebPageFragment {
      */
     public void typeEffectiveFromRaw(String rawDate)
     {
-        if (rawDate != null) selenium_.fillFieldByCss(DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX + " > input", rawDate);
+        if (rawDate != null) selenium_.fillFieldByCss(getDateFieldCss() + " > input", rawDate);
     }
 
     /**

@@ -449,6 +449,38 @@ public class AddProviderPage extends BasicWebPage {
     }
 
     /**
+     * Fills the email form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param emailAddress the email address to fill in the form, or null to not fill an email address
+     * @return the AddProviderEmailFragment object after filling the form with the provided information
+     */
+    public AddProviderEmailFragment fillEmail(String emailAddress)
+    {
+        AddProviderEmailFragment emailFragment = new AddProviderEmailFragment(selenium_);
+
+        if (emailAddress != null) emailFragment.fillEmailAddress(emailAddress);
+        emailFragment.effectiveFromCurrentDate();
+
+        return emailFragment;
+    }
+
+    /**
+     * Fills the email form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param emailAddress the email address to fill in the form, or null to not fill an email address
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [year, month, day], or null to not fill an effective from date
+     * @return the AddProviderEmailFragment object after filling the form with the provided information
+     */
+    public AddProviderEmailFragment fillEmail(String emailAddress, List<Integer> effectiveFrom)
+    {
+        AddProviderEmailFragment emailFragment = new AddProviderEmailFragment(selenium_);
+
+        if (emailAddress != null) emailFragment.fillEmailAddress(emailAddress);
+        if (effectiveFrom != null) emailFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return emailFragment;
+    }
+
+    /**
      * Waits for a step in the Add Provider flow to be available
      *
      * @param step      the title of the step to be locating (header of the div form, e.g. Identifier, Status, etc.)

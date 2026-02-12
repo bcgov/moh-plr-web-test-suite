@@ -12,7 +12,7 @@ public class AddProviderFaxFragment extends AddProviderStepFragment {
     private static final String FAX_NUMBER_FIELD_CSS = "input#form\\:faxNumber";
 
     /**
-     * Initializes page object and changes selenium's main locator to the Phone Number heading
+     * Initializes page object and changes selenium's main locator to the Fax Number heading
      * @param selenium the selenium session
      */
     public AddProviderFaxFragment(SeleniumSession selenium)
@@ -29,8 +29,8 @@ public class AddProviderFaxFragment extends AddProviderStepFragment {
     }
 
     /**
-     * Selects whether to add a phone number for the provider or not.
-     * @param enable true to enable phone number fields, false to leave the phone number fields blank and disabled
+     * Selects whether to add a fax number for the provider or not.
+     * @param enable true to enable fax number fields, false to leave the fax number fields blank and disabled
      */
     public void enableFax(boolean enable)
     {
@@ -66,8 +66,8 @@ public class AddProviderFaxFragment extends AddProviderStepFragment {
     public void fillAreaCode(String areaCode) { selenium_.fillFieldByCss(AREA_CODE_FIELD_CSS, areaCode); }
 
     /**
-     * Fills in the fax Number field.
-     * @param faxNumber the fax number to fill in
+     * Fills in the Fax Number field.
+     * @param faxNumber the Fax number to fill in
      */
     public void fillFaxNumber(String faxNumber) { selenium_.fillFieldByCss(FAX_NUMBER_FIELD_CSS, faxNumber); }
 }
