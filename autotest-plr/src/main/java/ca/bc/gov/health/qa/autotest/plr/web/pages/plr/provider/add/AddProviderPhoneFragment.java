@@ -1,15 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.RadioMenu;
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 
 public class AddProviderPhoneFragment extends AddProviderStepFragment {
-
-    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private static final String AREA_CODE_FIELD_CSS = "input#form\\:areaCode";
 
