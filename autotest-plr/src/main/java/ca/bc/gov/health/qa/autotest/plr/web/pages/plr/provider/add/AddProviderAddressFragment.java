@@ -5,6 +5,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityStepFragment;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
@@ -25,6 +26,8 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
     private static final String COUNTRY_FIELD_CSS = "label#form\\:country_label";
 
     private static final String POSTAL_CODE_FIELD_CSS = "input#form\\:postalCode";
+
+    private static final String WIDGET_TITLE_SPAN_CSS = "div.ui-dialog-titlebar > span.ui-dialog-title";
 
     /**
      * Initializes fragment and changes selenium's main locator to header of the Address form
@@ -283,5 +286,52 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
         menu.expandItemPanel(true);
         menu.selectItem(country);
         return getCountry();
+    }
+
+    /**
+     * Finds the desired widget form based on a given prefix
+     *
+     * @param widgetTitlePrefix     a string of (unique) characters to be found in the desired widget title
+     * @return                      a WebElement of a widget form matching the widgetTitlePrefix
+     */
+    private WebElement getWidget(String widgetTitlePrefix)
+    {
+        for (WebElement elem : selenium_.findElementsByCss("div[role='dialog']")) {
+            String title;
+            try { title = elem.findElement(By.cssSelector(WIDGET_TITLE_SPAN_CSS)).getAttribute("innerHTML"); }
+            catch (org.openqa.selenium.NoSuchElementException ignore) { continue; }
+            if (!title.contains(widgetTitlePrefix)) continue;
+            // Skip hidden/inactive dialogs
+            String ariaHidden = elem.getAttribute("aria-hidden");
+            if ("true".equals(ariaHidden) || !elem.isDisplayed()) continue;
+            return elem;
+        }
+        throw new IllegalStateException("Visible widget with title containing '" + widgetTitlePrefix + "' not found.");
+    }
+
+    /**
+     * Finds and clicks the button to close the widget
+     *
+     * @param errorWidget   string of the type of widget (same as in waitForWidgetVisibility)
+     */
+    public void handleWidgetButton(String errorWidget)
+    {
+        String buttonCSS = "div.ui-widget-content > ";
+        buttonCSS += "button:first-of-type";
+
+        WebElement widget = getWidget(errorWidget);
+        By buttonSelector = By.cssSelector(buttonCSS);
+
+        try {
+            widget.findElement(buttonSelector).click();
+            return;
+        } catch (org.openqa.selenium.NoSuchElementException e) {
+
+            // Generic fallback: first displayed & enabled button
+            for (WebElement btn : widget.findElements(By.tagName("button"))) {
+                if (btn.isDisplayed() && btn.isEnabled()) { btn.click(); return; }
+            }
+            throw new IllegalStateException("No interactable button found in visible widget '" + errorWidget + "'.");
+        }
     }
 }

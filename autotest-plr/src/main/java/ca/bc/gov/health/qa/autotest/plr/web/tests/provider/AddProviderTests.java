@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -30,8 +31,9 @@ public class AddProviderTests implements SimpleTest {
         }
     }
 
+    // sample test to aid in development of page objects and workflow for Add Provider. Does not correspond to any test case in ALM.
     @Test
-    public void testAddProviderPageLoads() {
+    public void testAddProviderSampleTest() {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
 
@@ -49,9 +51,13 @@ public class AddProviderTests implements SimpleTest {
         page.clickNext("Personal Information", "");
         page.waitForAddProviderStep("Address", true);
 
-        page.fillAddress(List.of("123 Test St", "Unit 1", ""), "Victoria", "BC", "CA", "V9V9V9");
+        AddProviderAddressFragment address = page.fillAddress("P", "HC", List.of("123 Test St", "Unit 1", ""),
+                "Victoria", "BC", "CA", "V9V9V9");
         page.fillPhone("250", "5551234", "123");
         page.fillFax("250", "5555678");
         page.fillEmail("test@example.com");
+
+        page.clickNext("Address", "Address Invalid");
+        address.handleWidgetButton("Address Invalid");
     }
 }

@@ -279,6 +279,8 @@ public class AddProviderPage extends BasicWebPage {
 
     /**
      * Fills the address form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param addressType the address type to select in the form, or null to not select any address type
+     * @param addressPurpose the address purpose to select in the form, or null to not select any address purpose
      * @param addressLines a list of strings representing the address lines to fill in the form,
      *                     where the first element is the address line 1,
      *                     the second element is the address line 2,
@@ -290,14 +292,16 @@ public class AddProviderPage extends BasicWebPage {
      * @param postalCode the postal code to fill in the form, or null to not fill a postal code
      * @return the AddProviderAddressFragment object after filling the form with the provided information
      */
-    public AddProviderAddressFragment fillAddress(
+    public AddProviderAddressFragment fillAddress(String addressType, String addressPurpose,
             List<String> addressLines, String city, String province, String country, String postalCode)
     {
-        return fillAddress(addressLines, city, province, country, postalCode, null);
+        return fillAddress(addressType, addressPurpose, addressLines, city, province, country, postalCode, null);
     }
 
     /**
      * Fills the address form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param addressType the address type to select in the form, or null to not select any address type
+     * @param addressPurpose the address purpose to select in the form, or null to not select any address purpose
      * @param addressLines a list of strings representing the address lines to fill in the form,
      *                     where the first element is the address line 1,
      *                     the second element is the address line 2,
@@ -311,12 +315,14 @@ public class AddProviderPage extends BasicWebPage {
      *                      [year, month, day], or null to fill the current date as the effective from date
      * @return the AddProviderAddressFragment object after filling the form with the provided information
      */
-    public AddProviderAddressFragment fillAddress(
+    public AddProviderAddressFragment fillAddress(String addressType, String addressPurpose,
             List<String> addressLines, String city, String province, String country,
             String postalCode, List<Integer> effectiveFrom)
     {
         AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(selenium_);
 
+        if (addressType != null) addressFragment.selectAddressType(addressType);
+        if (addressPurpose != null) addressFragment.selectAddressPurpose(addressPurpose);
         addressFragment.fillAddressLine1(addressLines.get(0));
         addressFragment.fillAddressLine2(addressLines.get(1));
         addressFragment.fillAddressLine3(addressLines.get(2));
@@ -334,15 +340,19 @@ public class AddProviderPage extends BasicWebPage {
 
     /**
      * Fills the address form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param addressType the address type to select in the form, or null to not select any address type
+     * @param addressPurpose the address purpose to select in the form, or null to not select any address purpose
      * @param addressAutocompleteField the address to fill in the autocomplete field, or null to not fill any address
      * @param addressAutocompletePrefix the prefix to use when filling in the autocomplete field, or null to not fill any address.
      *                                  This is used to specify a unique portion of the address to ensure the correct address is selected from the autocomplete dropdown.
      * @return the AddProviderAddressFragment object after filling the form with the provided information
      */
-    public AddProviderAddressFragment fillAddress(String addressAutocompleteField, String addressAutocompletePrefix)
+    public AddProviderAddressFragment fillAddress(String addressType, String addressPurpose, String addressAutocompleteField, String addressAutocompletePrefix)
     {
         AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(selenium_);
 
+        if (addressType != null) addressFragment.selectAddressType(addressType);
+        if (addressPurpose != null) addressFragment.selectAddressPurpose(addressPurpose);
         addressFragment.fillAddressAutocomplete(addressAutocompleteField, addressAutocompletePrefix);
 
         addressFragment.effectiveFromCurrentDate();
@@ -352,6 +362,8 @@ public class AddProviderPage extends BasicWebPage {
 
     /**
      * Fills the address form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param addressType the address type to select in the form, or null to not select any address type
+     * @param addressPurpose the address purpose to select in the form, or null to not select any address purpose
      * @param addressAutocompleteField the address to fill in the autocomplete field, or null to not fill any address
      * @param addressAutocompletePrefix the prefix to use when filling in the autocomplete field, or null to not fill any address.
      *                                  This is used to specify a unique portion of the address to ensure the correct address is selected from the autocomplete dropdown.
@@ -359,11 +371,13 @@ public class AddProviderPage extends BasicWebPage {
      *                      [year, month, day], or null to not fill an effective from date
      * @return the AddProviderAddressFragment object after filling the form with the provided information
      */
-    public AddProviderAddressFragment fillAddress(
+    public AddProviderAddressFragment fillAddress(String addressType, String addressPurpose,
             String addressAutocompleteField, String addressAutocompletePrefix, List<Integer> effectiveFrom)
     {
         AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(selenium_);
 
+        if (addressType != null) addressFragment.selectAddressType(addressType);
+        if (addressPurpose != null) addressFragment.selectAddressPurpose(addressPurpose);
         addressFragment.fillAddressAutocomplete(addressAutocompleteField, addressAutocompletePrefix);
 
         if (effectiveFrom != null)
