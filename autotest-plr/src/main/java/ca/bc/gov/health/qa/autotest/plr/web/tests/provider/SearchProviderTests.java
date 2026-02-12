@@ -83,7 +83,7 @@ public class SearchProviderTests implements SimpleTest {
 	@AfterClass
 	private void teardown() {
 		fhirController.close();
-		//workflowManager_.logoutAllAndClose();
+		workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
@@ -330,7 +330,7 @@ public class SearchProviderTests implements SimpleTest {
 		}
 
 		// Test Start
-		ViewProviderPage page = actions.openConfidentialRecord(workflow, isOrganization, confOrg, confInd);
+		ViewProviderPage page = actions.openConfidentialRecord(workflow, UserType.SECONDARY, isOrganization, confOrg, confInd);
 
 		// Verify confidential sections are masked
 		for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
@@ -864,7 +864,7 @@ public class SearchProviderTests implements SimpleTest {
 			if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
 			final SearchProviderActions actions = workflowManager_.getSelectedWorkflow().getSearchProviderActions();
 
-			ViewProviderPage page = actions.openConfidentialRecord(workflow, isOrganization, confOrg, confInd);
+			ViewProviderPage page = actions.openConfidentialRecord(workflow, userType, isOrganization, confOrg, confInd);
 
 			for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
 			{
