@@ -169,7 +169,8 @@ public class ViewProviderActions
                 int result;
 
                 // Compare values in ascending order (except if it's a facility relationship)
-                if (section.equals(ProviderSection.FACILITY_RELATIONSHIPS))
+                if (section.equals(ProviderSection.FACILITY_RELATIONSHIPS) ||
+                        section.equals(ProviderSection.PROVIDER_RELATIONSHIPS))
                     result = TextUtils.compareStringLists(valueList, previousValueList);
                 else result = TextUtils.compareStringLists(previousValueList, valueList);
 
