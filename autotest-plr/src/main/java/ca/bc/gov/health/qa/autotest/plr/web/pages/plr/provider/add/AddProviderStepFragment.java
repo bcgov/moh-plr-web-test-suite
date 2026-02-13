@@ -42,7 +42,8 @@ public class AddProviderStepFragment extends BasicWebPageFragment {
     public String getDateFieldCss()
     {
         String dateFieldCss = DATE_FIELD_PREFIX_CSS;
-        if (this.STEP_PREFIX.equals("Email")) dateFieldCss = dateFieldCss.replace("FromDate_", "StartDate");
+        if (this.STEP_PREFIX.equals("Email") || this.STEP_PREFIX.equals("Cred"))
+            dateFieldCss = dateFieldCss.replace("FromDate_", "StartDate");
         return dateFieldCss + this.STEP_PREFIX;
     }
 
@@ -53,10 +54,10 @@ public class AddProviderStepFragment extends BasicWebPageFragment {
      */
     public DateMenu getEffectiveFromDateMenu()
     {
-        if (this.STEP_PREFIX.equals("Email")) {
+        if (this.STEP_PREFIX.equals("Email") || this.STEP_PREFIX.equals("Cred")) {
             return new DateMenu(selenium_,
                     By.cssSelector(getDateFieldCss()),
-                    "input#form\\:effectiveStartDateEmail_input");
+                    String.format("input#form\\:effectiveStartDate%s_input", this.STEP_PREFIX));
         }
 
         return new DateMenu(selenium_,

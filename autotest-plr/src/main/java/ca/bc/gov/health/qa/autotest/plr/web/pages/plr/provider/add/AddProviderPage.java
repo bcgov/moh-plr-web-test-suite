@@ -495,6 +495,75 @@ public class AddProviderPage extends BasicWebPage {
     }
 
     /**
+     * Fills the credential form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param credentialType the credential type to select in the form, or null to not select any credential type
+     * @param designation the designation to fill in the form, or null to not fill a designation
+     * @param registrationNumber the registration number to fill in the form, or null to not fill a registration number
+     * @param institution the institution to fill in the form, or null to not fill an institution
+     * @param city the city to fill in the form, or null to not fill a city
+     * @param country the country to select in the form, or null to not select a country
+     * @param provinceState the province/state to select in the form, or null to not select a province/state
+     * @param equivalency whether to enable equivalency in the form
+     * @return the AddProviderCredentialFragment object after filling the form with the provided information
+     */
+    public AddProviderCredentialFragment fillCredentials(String credentialType, String designation,
+                                                         String registrationNumber, String institution,
+                                                         String city, String country, String provinceState,
+                                                         boolean equivalency, String year)
+    {
+        AddProviderCredentialFragment credentialFragment = new AddProviderCredentialFragment(selenium_);
+
+        if (credentialType != null) credentialFragment.selectCredentialType(credentialType);
+        if (designation != null) credentialFragment.fillDesignation(designation);
+        if (registrationNumber != null) credentialFragment.fillRegistrationNumber(registrationNumber);
+        if (institution != null) credentialFragment.fillInstitution(institution);
+        if (city != null) credentialFragment.fillCity(city);
+        if (country != null) credentialFragment.selectCountry(country);
+        if (provinceState != null) credentialFragment.selectProvinceState(provinceState);
+        credentialFragment.enableEquivalency(equivalency);
+        if (year != null) credentialFragment.fillYear(year);
+        credentialFragment.effectiveFromCurrentDate();
+
+        return credentialFragment;
+    }
+
+    /**
+     * Fills the credential form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param credentialType the credential type to select in the form, or null to not select any credential type
+     * @param designation the designation to fill in the form, or null to not fill a designation
+     * @param registrationNumber the registration number to fill in the form, or null to not fill a registration number
+     * @param institution the institution to fill in the form, or null to not fill an institution
+     * @param city the city to fill in the form, or null to not fill a city
+     * @param country the country to select in the form, or null to not select a country
+     * @param provinceState the province/state to select in the form, or null to not select a province/state
+     * @param equivalency whether to enable equivalency in the form
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [year, month, day], or null to not fill an effective from date
+     * @return the AddProviderCredentialFragment object after filling the form with the provided information
+     */
+    public AddProviderCredentialFragment fillCredentials(String credentialType, String designation,
+                                                         String registrationNumber, String institution,
+                                                         String city, String country, String provinceState,
+                                                         boolean equivalency, String year, List<Integer> effectiveFrom)
+    {
+        AddProviderCredentialFragment credentialFragment = new AddProviderCredentialFragment(selenium_);
+
+        if (credentialType != null) credentialFragment.selectCredentialType(credentialType);
+        if (designation != null) credentialFragment.fillDesignation(designation);
+        if (registrationNumber != null) credentialFragment.fillRegistrationNumber(registrationNumber);
+        if (institution != null) credentialFragment.fillInstitution(institution);
+        if (city != null) credentialFragment.fillCity(city);
+        if (country != null) credentialFragment.selectCountry(country);
+        if (provinceState != null) credentialFragment.selectProvinceState(provinceState);
+        credentialFragment.enableEquivalency(equivalency);
+        if (year != null) credentialFragment.fillYear(year);
+        if (effectiveFrom != null)
+            credentialFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return credentialFragment;
+    }
+
+    /**
      * Waits for a step in the Add Provider flow to be available
      *
      * @param step      the title of the step to be locating (header of the div form, e.g. Identifier, Status, etc.)

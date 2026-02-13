@@ -10,7 +10,7 @@ public class AddProviderEmailFragment extends AddProviderStepFragment {
     private static final String EMAIL_ADDRESS_FIELD_CSS = "input#form\\:emailAddress";
 
     /**
-     * Initializes page object and changes selenium's main locator to the Phone Number heading
+     * Initializes page object and changes selenium's main locator to the Email Address heading
      * @param selenium the selenium session
      */
     public AddProviderEmailFragment(SeleniumSession selenium)

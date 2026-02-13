@@ -59,5 +59,9 @@ public class AddProviderTests implements SimpleTest {
 
         page.clickNext("Address", "Address Invalid");
         address.handleWidgetButton("Address Invalid");
+        page.waitForAddProviderStep("Credential", true);
+
+        page.fillCredentials("BD", "Test", "5358", "TestInst",
+                "Victoria", "CA", "BC", true, "2001");
     }
 }
