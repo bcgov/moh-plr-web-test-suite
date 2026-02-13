@@ -169,18 +169,11 @@ public class ViewProviderActions
                 int result;
 
                 // Compare values in ascending order (except if it's a facility relationship)
-                if (section.equals(ProviderSection.FACILITY_RELATIONSHIPS) ||
-                        section.equals(ProviderSection.PROVIDER_RELATIONSHIPS))
+                if (section.equals(ProviderSection.FACILITY_RELATIONSHIPS))
                     result = TextUtils.compareStringLists(valueList, previousValueList);
                 else result = TextUtils.compareStringLists(previousValueList, valueList);
 
-                if (result == 0)
-                {
-                    // Compare dates in descending order (except if it's an identifier)
-                    if (section.equals(ProviderSection.IDENTIFIERS))
-                        result = TextUtils.compareStringLists(previousDateList, dateList);
-                    else result = TextUtils.compareStringLists(dateList, previousDateList);
-                }
+                if (result == 0) result = TextUtils.compareStringLists(dateList, previousDateList);
                 if (result > 0)
                 {
                     String msg = String.format("Incorrect data block order (%s:%d).", section, i);
