@@ -4,9 +4,12 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
  * Enumerates gender codes used in the system.
  */
 public enum GenderCode {
-	 U("U - Unknown"), 
-	 F("F - Female"),
-	 M("M - Male");
+	/** Unknown */
+	U("U - Unknown"),
+	/** Female */
+	F("F - Female"),
+	/** Male */
+	M("M - Male");
 
 	private String text;
 
