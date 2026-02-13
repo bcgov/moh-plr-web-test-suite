@@ -42,7 +42,9 @@ public class AddProviderStepFragment extends BasicWebPageFragment {
     public String getDateFieldCss()
     {
         String dateFieldCss = DATE_FIELD_PREFIX_CSS;
-        if (this.STEP_PREFIX.equals("Email") || this.STEP_PREFIX.equals("Cred"))
+
+        // Uppercase step prefixes (Email, Cred) seem to use a different format for the date field ID
+        if (Character.isUpperCase(this.STEP_PREFIX.charAt(0)))
             dateFieldCss = dateFieldCss.replace("FromDate_", "StartDate");
         return dateFieldCss + this.STEP_PREFIX;
     }
@@ -54,7 +56,8 @@ public class AddProviderStepFragment extends BasicWebPageFragment {
      */
     public DateMenu getEffectiveFromDateMenu()
     {
-        if (this.STEP_PREFIX.equals("Email") || this.STEP_PREFIX.equals("Cred")) {
+        // Uppercase step prefixes (Email, Cred) seem to use a different format for the date field ID
+        if (Character.isUpperCase(this.STEP_PREFIX.charAt(0))) {
             return new DateMenu(selenium_,
                     By.cssSelector(getDateFieldCss()),
                     String.format("input#form\\:effectiveStartDate%s_input", this.STEP_PREFIX));

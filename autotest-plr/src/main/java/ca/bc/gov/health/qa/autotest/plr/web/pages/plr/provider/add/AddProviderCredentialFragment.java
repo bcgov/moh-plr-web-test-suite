@@ -2,7 +2,6 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.components.ListBoxMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.RadioMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -10,7 +9,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
-import java.util.Objects;
 
 public class AddProviderCredentialFragment extends AddProviderStepFragment {
 

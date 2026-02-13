@@ -564,6 +564,43 @@ public class AddProviderPage extends BasicWebPage {
     }
 
     /**
+     * Fills the expertise form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param expertise the expertise to select in the form, or null to not select any expertise
+     * @param sourceCode the source code to fill in the form, or null to not fill a source code
+     * @return the AddProviderExpertiseFragment object after filling the form with the provided information
+     */
+    public AddProviderExpertiseFragment fillExpertise(String expertise, String sourceCode)
+    {
+        AddProviderExpertiseFragment expertiseFragment = new AddProviderExpertiseFragment(selenium_);
+
+        if (expertise != null) expertiseFragment.selectExpertise(expertise);
+        if (sourceCode != null) expertiseFragment.fillSourceCode(sourceCode);
+        expertiseFragment.effectiveFromCurrentDate();
+
+        return expertiseFragment;
+    }
+
+    /**
+     * Fills the expertise form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
+     * @param expertise the expertise to select in the form, or null to not select any expertise
+     * @param sourceCode the source code to fill in the form, or null to not fill a source code
+     * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
+     *                      [year, month, day], or null to not fill an effective from date
+     * @return the AddProviderExpertiseFragment object after filling the form with the provided information
+     */
+    public AddProviderExpertiseFragment fillExpertise(String expertise, String sourceCode, List<Integer> effectiveFrom)
+    {
+        AddProviderExpertiseFragment expertiseFragment = new AddProviderExpertiseFragment(selenium_);
+
+        if (expertise != null) expertiseFragment.selectExpertise(expertise);
+        if (sourceCode != null) expertiseFragment.fillSourceCode(sourceCode);
+        if (effectiveFrom != null)
+            expertiseFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return expertiseFragment;
+    }
+
+    /**
      * Waits for a step in the Add Provider flow to be available
      *
      * @param step      the title of the step to be locating (header of the div form, e.g. Identifier, Status, etc.)

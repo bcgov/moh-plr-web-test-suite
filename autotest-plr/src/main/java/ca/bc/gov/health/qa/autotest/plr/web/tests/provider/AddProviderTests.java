@@ -63,5 +63,6 @@ public class AddProviderTests implements SimpleTest {
 
         page.fillCredentials("BD", "Test", "5358", "TestInst",
                 "Victoria", "CA", "BC", true, "2001");
+        page.fillExpertise("ENG", "2500");
     }
 }
