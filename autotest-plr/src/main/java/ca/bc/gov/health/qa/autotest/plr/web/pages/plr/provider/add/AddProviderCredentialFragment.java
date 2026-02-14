@@ -151,7 +151,6 @@ public class AddProviderCredentialFragment extends AddProviderStepFragment {
      * @param city the city to fill in the City field
      */
     public void fillCity(String city) { getCityMenu().fillItem(city, null); }
-
     /**
      * Fills in the City field and selects an option from the resulting menu
      * @param cityField the city to select from the autocomplete menu
