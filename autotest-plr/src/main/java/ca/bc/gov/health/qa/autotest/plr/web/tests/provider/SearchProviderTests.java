@@ -909,7 +909,5 @@ public class SearchProviderTests implements SimpleTest {
  		defaultOrgPage.updateIdentifierDataBlock(UpdateSimpleHelper.generateNumericString(10), EndReason.CORR, 1, false);
 		
 	}
-	
-	
 
 }
