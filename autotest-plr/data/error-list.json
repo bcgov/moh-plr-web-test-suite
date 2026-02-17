@@ -65,6 +65,7 @@
     "errorMsgCPSID": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'College ID or MPID'. Your transaction has not been processed. Correct and resubmit.",
     "errorEntryError": "Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Name or Description or Address Line 1 or City'",
     "errorMissingData": "Missing mandatory search data: please provide First Name and Last Name or one of City, Expertise and Language.",
+    "errorMsg7006": "GRS.SYS.IDE.UNK.1.0.7006: Identifiers can contain only numbers, the English alphabet and periods.",
     "errorInvFormatClinicHours": "GRS.PRV.PRO.MTN.1.0.9017: Invalid characters entered:Clinic Hours of Operation. Each line will record one time frame for a given day and reference a 24hr clock. Must be in exact format:\"DDD HH:MM-HH:MM\". Re-enter acceptable characters and format to proceed. Example: MON 13:00-17:30.",
     "errorDuplicateClinicHours": "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Hours of Operation",
     "errorDuplicateClinicOwnershipType": "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Clinic Owner Business Type",
@@ -82,6 +83,10 @@
     "maximumResults": "Maximum search results returned. Please refine your search criteria.",
     "addressValidationFailed": "PRS.SYS.ADR.UNK.1.0.7054: Unable to validate Civic Address - Re-Enter.",
     "duplicateFacilityFound": "PRS.SYS.ADR.UNK.1.0.7055: An existing facility address was found, can not create duplicate facility.",
-    "civicAddressRecommendation": "PRS.SYS.ADR.UNK.1.0.7052: Civic Address is not valid - Recommendation is provided."
+    "civicAddressRecommendation": "PRS.SYS.ADR.UNK.1.0.7052: Civic Address is not valid - Recommendation is provided.",
+    "confidentialRecordFound": "The search criteria matched confidential records that are not shown. Please search by identifier to view confidential record details."
+  },
+  "infos": {
+    "permissionRules": "Some results were removed under data permission rules."
   }
 }

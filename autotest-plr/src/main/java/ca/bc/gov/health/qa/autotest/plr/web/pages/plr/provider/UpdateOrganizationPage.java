@@ -4,6 +4,9 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.IdType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.OrgNameType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.RegIdType;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
@@ -11,9 +14,7 @@ import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationProperties;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
@@ -47,7 +48,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	}
 
 	/**
-	 * Get Dialog Css selector for organization properties
+	 * Get Dialog CSS selector for organization properties
 	 *
 	 * @param section the provider section
 	 * @return string of dialog CSS selector
@@ -388,6 +389,118 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	}
 
 	/**
+	 * Attempts to add a registry identifier data block with provided values
+	 * @param identifierType the identifier type
+	 * @param identifier the identifier value
+	 * @return the full message dialog of errors, if any exist. otherwise an empty string
+	 */
+	public String addRegistryIdentifierDataBlock(RegIdType identifierType, String identifier) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
+		String dialogCss = getOrgDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		clickHeaderAddOrgPropertyButton(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		// Set Identifier Type dropdown
+		setOrgDropdownListByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS, "providerType", identifierType.getText());
+
+		// Set Identifier field
+		findAndFillOrgInputField(dialogCss, formName, identifier, "identifier");
+
+		clickOrgDialogSubmitButton(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		msgDisplay = getDialogMessages(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		if (!StringUtils.isEmpty(msgDisplay)) {
+			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+			cancelButton.click();
+		}
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to add an identifier data block with provided values
+	 * @param identifierType the identifier type
+	 * @param identifier the identifier value
+	 * @return the full message dialog of errors, if any exist. otherwise an empty string
+	 */
+	public String addIdentifierDataBlock(IdType identifierType, String identifier) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String dialogCss = getOrgDialogCss(ProviderSection.IDENTIFIERS);
+
+		clickHeaderAddOrgPropertyButton(ProviderSection.IDENTIFIERS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		// Set Identifier Type dropdown
+		setOrgDropdownListByVisibleText(ProviderSection.IDENTIFIERS, "providerType", identifierType.getText());
+
+		// Set Identifier field
+		findAndFillOrgInputField(dialogCss, formName, identifier, "identifier");
+
+		clickOrgDialogSubmitButton(ProviderSection.IDENTIFIERS);
+
+		msgDisplay = getDialogMessages(ProviderSection.IDENTIFIERS);
+
+		if (!StringUtils.isEmpty(msgDisplay)) {
+			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+			cancelButton.click();
+		}
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to add an organization name data block with provided values
+	 * @param nameType the organization name type
+	 * @param name the organization name
+	 * @param description the organization description
+	 * @return the full message dialog of errors, if any exist. otherwise an empty string
+	 */
+	public String addOrganizationNameDataBlock(OrgNameType nameType, String name, String description) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_NAMES).getFormName();
+		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_NAMES);
+
+		clickHeaderAddOrgPropertyButton(ProviderSection.ORGANIZATION_NAMES);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		// Set Name Type dropdown
+		setOrgDropdownListByVisibleText(ProviderSection.ORGANIZATION_NAMES, "type", nameType.getText());
+
+		// Set Name field
+		findAndFillOrgInputField(dialogCss, formName, name, "shortName");
+
+		// Set Description field
+		findAndFillOrgInputField(dialogCss, formName, description, "longName");
+
+		clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_NAMES);
+
+		msgDisplay = getDialogMessages(ProviderSection.ORGANIZATION_NAMES);
+
+		if (!StringUtils.isEmpty(msgDisplay)) {
+			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+			cancelButton.click();
+		}
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
 	 * Attempts to add an organization property data block with provided values
 	 *
 	 * @param propertyType the organization property type enum
@@ -444,6 +557,113 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 */
 	public String addOrganizationPropertyDataBlock(OrganizationProperties propertyType, String propertyValue) {
 		return addOrganizationPropertyDataBlock(propertyType, propertyValue, null, null);
+	}
+
+	/**
+	 * Attempts to update a registry identifier data block with provided values
+	 * @param identifier the identifier value
+	 * @param endReason the end reason to specify when updating
+	 * @param index the index of the data block to update
+	 * @param expectError whether an error is anticipated
+	 * @return a string of the error message, if expectError is true. otherwise an empty string
+	 */
+	public String updateRegistryIdentifierDataBlock(String identifier, EndReason endReason, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
+		String dialogCss = getOrgDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.REGISTRY_IDENTIFIERS, index);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		// Set Identifier field
+		findAndFillOrgInputField(dialogCss, formName, identifier, "identifier");
+
+		if (endReason != null)
+			setOrgEndReasonByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS, endReason.getText());
+
+		clickOrgDialogSubmitButton(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		if (expectError)
+			msgDisplay = waitOrgErrorMessage(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to update an identifier data block with provided values
+	 * @param identifier the identifier value
+	 * @param endReason the end reason to specify when updating
+	 * @param index the index of the data block to update
+	 * @param expectError whether an error is anticipated
+	 * @return a string of the error message, if expectError is true. otherwise an empty string
+	 */
+	public String updateIdentifierDataBlock(String identifier, EndReason endReason, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String dialogCss = getOrgDialogCss(ProviderSection.IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.IDENTIFIERS, index);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		// Set Identifier field
+		findAndFillOrgInputField(dialogCss, formName, identifier, "identifier");
+
+		if (endReason != null)
+			setOrgEndReasonByVisibleText(ProviderSection.IDENTIFIERS, endReason.getText());
+
+		clickOrgDialogSubmitButton(ProviderSection.IDENTIFIERS);
+
+		if (expectError)
+			msgDisplay = waitOrgErrorMessage(ProviderSection.IDENTIFIERS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to update an organization name data block with provided values
+	 *
+	 * @param name the organization name
+	 * @param description the organization description
+	 * @param endReason the end reason to specify when updating
+	 * @param index the index of the data block to update
+	 * @param expectError whether an error is anticipated
+	 * @return a string of the error message, if expectError is true. otherwise an empty string
+	 */
+	public String updateOrganizationNameDataBlock(String name, String description, EndReason endReason, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_NAMES).getFormName();
+		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_NAMES);
+
+		clickDataBlockUpdateButton(ProviderSection.ORGANIZATION_NAMES, index);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		// Set Name field
+		findAndFillOrgInputField(dialogCss, formName, name, "shortName");
+
+		// Set Description field
+		findAndFillOrgInputField(dialogCss, formName, description, "longName");
+
+		if (endReason != null)
+			setOrgEndReasonByVisibleText(ProviderSection.ORGANIZATION_NAMES, endReason.getText());
+
+		clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_NAMES);
+
+		if (expectError)
+			msgDisplay = waitOrgErrorMessage(ProviderSection.ORGANIZATION_NAMES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
 	}
 
 	/**

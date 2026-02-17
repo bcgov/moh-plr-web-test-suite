@@ -9,8 +9,12 @@ import static org.testng.Assert.assertTrue;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class UpdateSimpleHelper {
 
@@ -207,5 +211,55 @@ public class UpdateSimpleHelper {
 		
 		
 	}
+	
+	/**
+	 * get Random Number
+	 * @param min	the min number
+	 * @param max 	the max number
+	 * @return 		random number between min and max
+	 */
+	public static int getRandomNumber(int min, int max) {
+		// Create a Random object
+		Random random = new Random();
+
+		// Generate the random number
+		// nextInt((max - min) + 1) generates a number between 0 and 4
+		// Adding min (2) shifts the range to be between 2 and 6 (exclusive of 6)
+		return random.nextInt((max - min) + 1) + min;
+
+	}
+	
+	 /**
+	  * compare two lists of string
+	 * @param arr1 list of string
+	 * @param arr2 list of string
+	 * @return true if they have same elements after sorting, otherwise false
+	 */
+	public static boolean haveSameElements(List<String> arr1, List<String> arr2) {
+		if (arr1 == null || arr2 == null) {
+			return false;
+		}
+		if (arr1.size() != arr2.size()) {
+			return false;
+		}
+		// Sort both arrays
+		Collections.sort(arr1);
+		Collections.sort(arr2);
+		// Compare the sorted arrays using Arrays.equals()
+		return arr1.equals(arr2);
+	}
+	
+	
+	public static void main(String[] args)
+    {
+		 List<String> list1 = new ArrayList<>(Arrays.asList("a", "b", "c"));
+	        List<String> list2 = new ArrayList<>(Arrays.asList("c", "b", "a"));
+
+	        // Sort both lists
+	        haveSameElements(list1,list2);
+
+	        System.out.println("Lists are equal (ignoring order): " +  haveSameElements(list1,list2)); // true
+	    
+    }
 
 }
