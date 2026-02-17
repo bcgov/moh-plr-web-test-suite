@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
@@ -39,13 +40,13 @@ public class AddProviderTests implements SimpleTest {
 
         page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
-        page.fillIdentifier(ProviderRoleType.OOPMD, null, null, "OOPID", "252525");
+        page.fillIdentifier(ProviderRoleType.OOPMD, null, null, "OOPID", "252526");
         page.fillStatus("AE", StatusCodeOption.CANCELLED, StatusReasonCodeOption.LAP);
 
         page.clickNext("Status", "");
         page.waitForAddProviderStep("Personal Information", true);
 
-        page.fillPI("Dr.", "Test", "Provider", null, "Smith");
+        page.fillPI("Dr.", "Testing", "Provider", null, "Smith");
         page.fillDemographics(List.of(2011,1,1), "U");
 
         page.clickNext("Personal Information", "");
@@ -64,5 +65,6 @@ public class AddProviderTests implements SimpleTest {
         page.fillCredentials("BD", "Test", "5358", "TestInst",
                 "Victoria", "CA", "BC", true, "2001");
         page.fillExpertise("ENG", "2500");
+        ViewProviderPage viewPage = page.clickSubmitButton();
     }
 }

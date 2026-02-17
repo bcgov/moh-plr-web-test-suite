@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -18,6 +19,8 @@ import java.util.List;
 public class AddProviderPage extends BasicWebPage {
 
     final String FORM_TITLE_XPATH = "//div//table//tbody//tr//td//div//div//span[contains(text(),'%s')]";
+
+    private static final String SUBMIT_BUTTON_CSS = "button#form\\:addProviderSubmit";
 
     private final ProviderType providerType;
 
@@ -598,6 +601,20 @@ public class AddProviderPage extends BasicWebPage {
             expertiseFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return expertiseFragment;
+    }
+
+    /**
+     * Finds and clicks the submit button to submit the provider with the information filled in.
+     * Must be on the final step of the Add Provider flow
+     * @return a ViewProviderPage reference to the newly created provider with the information filled in.
+     */
+    public ViewProviderPage clickSubmitButton()
+    {
+        WebElement button = selenium_.findElement(By.cssSelector(SUBMIT_BUTTON_CSS));
+        button.click();
+        selenium_.waitUntil(ExpectedConditions.stalenessOf(button));
+
+        return new ViewProviderPage(selenium_);
     }
 
     /**
