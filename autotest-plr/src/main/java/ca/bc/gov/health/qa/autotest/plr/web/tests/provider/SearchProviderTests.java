@@ -1,33 +1,28 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
-import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.SearchProviderActions;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.*;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Ordering;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
@@ -38,37 +33,46 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaint
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.query.IndividualQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.query.OrgQueryCriteriaParams;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderCriteriaFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderIdFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateOrganizationPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderIdentifierTypeConsumerOptions;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderIdentifierTypeOptions;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderIdentifierTypeSecondaryOptions;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleTypeConsumerOptions;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleTypeOptions;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleTypeSecondaryOptions;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
-/** Tests class for the Search Provider page */
 public class SearchProviderTests implements SimpleTest {
-	// NOTE: The following test cases *WILL NOT* be automated:
-	// - Search Provider : Configurable The Number of Search Results
-	// - Search Provider : Limiting The Number of Search Records Returned By The DB
-
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
 	private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 	private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
-    private static JSONObject errorList, warningList, infoList;
-
-	private static FHIRController fhirController;
-    
+    private static JSONObject errorList,warningList;
+   
 	private SearchProviderTests() {
+		
 		try
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
             warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
-			infoList = new JSONObject(Files.readString(errorPath)).getJSONObject("infos");
         }
         catch (IOException e)
         {
@@ -81,23 +85,20 @@ public class SearchProviderTests implements SimpleTest {
 	private final String NORECORDFOUND = "No records found.";
 
 	@AfterClass
-	private void teardown() {
-		fhirController.close();
+	public void teardown() {
 		workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
 	@BeforeMethod
-	private void before(Object[] parameters) {
+	public void before(Object[] parameters) {
+
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
 		if (!workflow.isLoggedIn()) {
 			workflow.login().openPlr();
 		}
-	}
+		//TODO: create provider and ord
 
-	@BeforeTest
-	private void beforeTest() {
-		fhirController = new FHIRController(UserType.ADMIN);
 	}
 
 	// Case Insensitive Search
@@ -107,6 +108,7 @@ public class SearchProviderTests implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
 				IndividualDataGenerator.getInstance());
 
@@ -138,6 +140,7 @@ public class SearchProviderTests implements SimpleTest {
         assertEquals(lowerCaseSearch, mixedCaseSearch, "The search results are not equal");
 
 		// FHIR-organization
+		fhirController = new FHIRController(UserType.ADMIN);
 		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG).withAlias();
 		MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
 		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
@@ -170,6 +173,7 @@ public class SearchProviderTests implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
 				IndividualDataGenerator.getInstance());
 
@@ -200,6 +204,7 @@ public class SearchProviderTests implements SimpleTest {
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
 
 		// FHOR - organization
+		fhirController = new FHIRController(UserType.ADMIN);
 		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG).withAlias();
 		MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
 		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
@@ -223,6 +228,7 @@ public class SearchProviderTests implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
 				IndividualDataGenerator.getInstance());
 
@@ -247,17 +253,22 @@ public class SearchProviderTests implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProvider = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
-		IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
-				IndividualDataGenerator.getInstance());
-		int roandomNumber=getRandomNumber(3,5);
-		for(int i=0;i<roandomNumber;i++) {
-			IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.DEN);			
-			MaintainIndividualBuilder individual = individualFactory.build(individualConfig);
-			  Map<String,String> individualAddress = individual.getAddressList().getFirst();
-		        individualAddress.put("line1", getRandomNumber(2,500) + " Oak Avenue");
-		        individualAddress.put("city", "Custom City");
-		        individual.setAddressList(List.of(individualAddress));
-			fhirController.submitIndividual(individual);
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		IndividualQueryCriteriaParams param= new IndividualQueryCriteriaParams().setAddressCity("Custom City").setRoleType(IndividualRoleType.DEN) ;
+		List<MaintainIndividualBuilder> providerList = fhirController.queryIndividualByCriteria(param);
+		if(providerList.size()<5) {
+			IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
+					IndividualDataGenerator.getInstance());
+			int roandomNumber = UpdateSimpleHelper.getRandomNumber(3, 5);
+			for (int i = 0; i < roandomNumber; i++) {
+				IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.DEN);
+				MaintainIndividualBuilder individual = individualFactory.build(individualConfig);
+				Map<String, String> individualAddress = individual.getAddressList().getFirst();
+				individualAddress.put("line1", UpdateSimpleHelper.getRandomNumber(2, 500) + " Oak Avenue");
+				individualAddress.put("city", "Custom City");
+				individual.setAddressList(List.of(individualAddress));
+				individual = fhirController.submitIndividual(individual);
+			}
 		}
 		// test
 		SearchProviderResultsFragment searchResults = searchProvider.searchByCriteria(IndividualRoleType.DEN.name(), null, null, null,
@@ -273,17 +284,22 @@ public class SearchProviderTests implements SimpleTest {
 		}
 		assertTrue(names.size() > 1, "search result has too less sortable rows");
 		assertTrue(Ordering.natural().isOrdered(names), "Search Results is not Alphabetically sorted");
-		
+
 		// FHIR
-		OrganizationBuilderFactory organizationFactory = new OrganizationBuilderFactory(OrganizationDataGenerator.getInstance());
-		for (int i = 0; i < roandomNumber; i++) {
-			OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG);
-			MaintainOrgBuilder org = organizationFactory.build(orgConfig);
-			Map<String, String> address = org.getAddressList().getFirst();
-			address.put("line1", getRandomNumber(2,500) + " Main St");
-			address.put("city", "Sample City");
-			org.setAddressList(List.of(address));
-			fhirController.submitOrganization(org);
+		OrgQueryCriteriaParams paramOrg= new OrgQueryCriteriaParams().setAddressCity("Sample City").setRoleType(OrgRoleType.ORG) ;
+		List<MaintainOrgBuilder> orgList = fhirController.queryOrganizationByCriteria(paramOrg);
+		if(orgList.size()<5) {
+			OrganizationBuilderFactory organizationFactory = new OrganizationBuilderFactory(OrganizationDataGenerator.getInstance());
+			int roandomNumber = UpdateSimpleHelper.getRandomNumber(3, 5);
+			for (int i = 0; i < roandomNumber; i++) {
+				OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG);
+				MaintainOrgBuilder org = organizationFactory.build(orgConfig);
+				Map<String, String> address = org.getAddressList().getFirst();
+				address.put("line1", UpdateSimpleHelper.getRandomNumber(2,500) + " Main St");
+				address.put("city", "Sample City");
+				org.setAddressList(List.of(address));
+				org = fhirController.submitOrganization(org);
+				}
 		}
 		fhirController.close();
 		//test
@@ -302,199 +318,6 @@ public class SearchProviderTests implements SimpleTest {
 
 	}
 
-	// Search - Confidential Mask
-	@Test(groups = { "SearchProvider" }, dataProvider = "indOrgBuilderTypes", dataProviderClass = InjectableData.class)
-	public void testConfidentialMask(ProviderType providerType, MaintainRequestBuilder confidentialRecord)
-	{
-		final PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.SECONDARY);
-		if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
-		final SearchProviderActions actions = workflowManager_.getSelectedWorkflow().getSearchProviderActions();
-
-		// FHIR Prep - if confidentialRecord is set use that record instead of creating anything new
-		boolean isOrganization;
-		MaintainIndividualBuilder confInd = null;
-		MaintainOrgBuilder confOrg = null;
-		if (confidentialRecord == null) {
-			switch (providerType) {
-				case BC_PRACTITIONER -> confInd = fhirController.createIndividual(
-						new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
-				case ORGANIZATION -> confOrg = fhirController.createOrganization(
-						new OrganizationMaintainConfig(OrgRoleType.ORG).withConfidentiality());
-				default -> throw new IllegalStateException("Unsupported provider type " + providerType.name());
-			}
-			isOrganization = !Objects.isNull(confOrg);
-		} else {
-			isOrganization = confidentialRecord instanceof MaintainOrgBuilder;
-			if (isOrganization) confOrg = (MaintainOrgBuilder) confidentialRecord;
-			else confInd = (MaintainIndividualBuilder) confidentialRecord;
-		}
-
-		// Test Start
-		ViewProviderPage page = actions.openConfidentialRecord(workflow, UserType.SECONDARY, isOrganization, confOrg, confInd);
-
-		// Verify confidential sections are masked
-		for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
-		{
-			switch (section)
-			{
-				case IDENTIFIERS, ROLE_TYPE:
-					continue;
-				case PRACTITIONER_NAMES, ORGANIZATION_NAMES:
-					String nameField = section.equals(ProviderSection.ORGANIZATION_NAMES) ? "Name" : "Surname";
-					String name = page.grabDataBlockContent(section, 0).get(nameField);
-					assertEquals(name, "Confidential", "Surname not set as confidential");
-					continue;
-			}
-			assertEquals(page.grabDataBlockCount(section), 0,
-					"Confidential record data found in section: " + section.name());
-		}
-	}
-
-	// Search - Confidential Record Attribute Search
-	@Test(groups = { "SearchProvider" })
-	public void testConfidentialRecordAttributeSearch()
-	{
-		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-		final IndividualDataGenerator dataGen = IndividualDataGenerator.getInstance();
-
-		// FHIR Prep (if needed)
-		List<MaintainOrgBuilder> orgQuery = fhirController.queryOrganizationByCriteria(
-				new OrgQueryCriteriaParams().setName("ConfidentialRecord"));
-
-		if (orgQuery.isEmpty())
-		{
-			fhirController.createOrganization(new OrganizationMaintainConfig(OrgRoleType.ORG)
-					.withName("ConfidentialRecord").withConfidentiality());
-		}
-
-		List<MaintainIndividualBuilder> indQuery = fhirController.queryIndividualByCriteria(
-				new IndividualQueryCriteriaParams().setFamily("ConfidentialRecord").setExpertise("ENG"));
-
-		if (indQuery.isEmpty())
-		{
-			MaintainIndividualBuilder ind = new IndividualBuilderFactory(dataGen)
-					.build(new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality())
-					.familyName("ConfidentialRecord").addExpertise("ENG", dataGen.shortText());
-			fhirController.submitIndividual(ind);
-		}
-
-		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
-
-		// Search by Criteria
-		provider.searchByCriteria(IndividualRoleType.MD.name(), null, "ConfidentialRecord",
-				null, null, null, null,
-				null, List.of("ENG"));
-		assertEquals(warningList.get("confidentialRecordFound"), provider.grabWarningErrorMessage(),
-				"Expected warning message not found");
-
-		// Search by Organization
-		provider.searchForOrganization(null, "ConfidentialRecord", null,
-				null, null);
-		assertEquals(warningList.get("confidentialRecordFound"), provider.grabWarningErrorMessage(),
-				"Expected warning message not found");
-	}
-
-	// Search - Confidential Record ID Search
-	@Test(groups = { "SearchProvider" })
-	public void testConfidentialRecordIDSearch()
-	{
-		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-
-		// FHIR Prep
-		MaintainIndividualBuilder confidentialInd = fhirController.createIndividual(
-				new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
-
-		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
-
-		// Search by Identifier
-		SearchProviderResultsFragment results = provider.searchByIdentifier("IPC",
-				confidentialInd.getIdentifier(IdentifierType.IPC));
-		List<String> resultInfo = results.grabResultsRow(0);
-		assertTrue(Objects.nonNull(resultInfo),
-				"Search by Identifier for confidential record was unsuccessful");
-
-		// Search by Registry Identifier
-		String ipcID = UpdateSimpleHelper.getRegIdString(IdentifierType.IPC.name(),
-				confidentialInd.getIdentifier(IdentifierType.IPC));
-		results = provider.searchByRegistryIdentifier("IPC", ipcID);
-		resultInfo = results.grabResultsRow(0);
-		assertTrue(Objects.nonNull(resultInfo),
-				"Search by Registry Identifier for confidential record was unsuccessful");
-
-		// Search by Criteria / Search by Organization
-		testConfidentialRecordAttributeSearch();
-	}
-
-	// Search - HDS Organization Provider
-	@Test(groups = { "SearchProvider" })
-	public void testHDSOrganizationProvider() {
-		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-
-		/* This test case cannot ensure there is an HDS organization of type CLINIC existing in the system.
-		 * It will create one if an HDS type organization with the other parameters does not exist -
-		 * but if one already exists, it cannot guarantee it is of type CLINIC (which is used for testing HDS Type) */
-		List<MaintainOrgBuilder> hdsQuery = fhirController.queryOrganizationByCriteria(
-				new OrgQueryCriteriaParams().setRoleType(OrgRoleType.HDS)
-						.setName("HDSOrgTest")
-						.setDescription("HDSOrgDesc")
-						.setAddressLine1("1175 DOUGLAS ST")
-						.setAddressCity("Victoria"));
-
-		if (hdsQuery == null)
-		{
-			final OrganizationDataGenerator dataGen = OrganizationDataGenerator.getInstance();
-			OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS).withName("HDSOrgTest");
-			MaintainOrgBuilder builder = new OrganizationBuilderFactory(dataGen).build(orgConfig)
-					.hdsType(HdsType.CLINIC)
-					.alias("HDSOrgDesc")
-					.setAddressList(List.of())
-					.addAddress("physical", "BC", "1175 DOUGLAS ST", "Victoria", "V8W 2E1");
-			fhirController.submitOrganization(builder);
-		}
-
-		// Test Start
-		SearchProviderPage providerPage = workflow.getPlrWebAccessActions().openSearchProvider();
-		SearchProviderResultsFragment results = providerPage.searchHDSOrganization(
-				HdsType.CLINIC.name(),
-				"HDSOrgTest",
-				"HDSOrgDesc",
-				"Victoria",
-				"1175 DOUGLAS ST");
-		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
-		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
-
-		// Role Type + HDS Type only
-		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(),
-				"", "", "", "");
-		assertEquals(results.grabResultsRowCount(), 0, "Search results returned records unexpectedly");
-		assertEquals(providerPage.grabPageErrorMessage(), errorList.get("errorEntryError"),
-				"Expected error message not found");
-
-		// City + Address Line 1 blank
-		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(), "HDSOrgTest", "HDSOrgDesc",
-				"", "");
-		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
-		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
-
-		// City only
-		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(), "", "",
-				"Victoria", "");
-		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
-		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
-
-		// Description only
-		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(), "", "HDSOrgDesc",
-				"", "");
-		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
-		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
-
-		// Address Line 1 only
-		results = providerPage.searchHDSOrganization(HdsType.CLINIC.name(), "", "",
-				"", "1175 DOUGLAS ST");
-		assertTrue(results.grabResultsRowCount() > 0, "Search results returned nothing unexpectedly");
-		assertEquals(providerPage.grabPageErrorMessage(), "", "Unexpected error message found");
-	}
-
 	// Search - Individual Provider
 	@Test(groups = { "SearchProvider" })
 	public void testSearchIndividualProvider() {
@@ -502,6 +325,7 @@ public class SearchProviderTests implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
 				IndividualDataGenerator.getInstance());
 
@@ -523,25 +347,25 @@ public class SearchProviderTests implements SimpleTest {
 				surname, null, city, null, null);
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
 		// step 2
-		searchProviderPage.searchByCriteria(roleType.name(), null, null, null, null, null, null);
+		searchResults = searchProviderPage.searchByCriteria(roleType.name(), null, null, null, null, null, null);
 		String errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMissingData, errMsg, "Expected error message not found");
 		searchProviderPage.clearRoleType();
 		// step 3
-		searchProviderPage.searchByCriteria(null,null,surname, null,null, null, null);
+		searchResults = searchProviderPage.searchByCriteria(null,null,surname, null,null, null, null);
 		errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMissingData, errMsg, "Expected error message not found");
 		// step 4
-		searchProviderPage.searchByCriteria(null, firstname,null, null, null, null, null);
+		searchResults = searchProviderPage.searchByCriteria(null, firstname,null, null, null, null, null);
 		errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMissingData, errMsg, "Expected error message not found");
 		// step 5
-		searchProviderPage.searchByCriteria(null, null, null, null, city, null, null);
+		searchResults = searchProviderPage.searchByCriteria(null, null, null, null, city, null, null);
 		errMsg = searchProviderPage.grabPageErrorMessage();
 		//search with "City Only" will return providers in that city 
 		//assertTrue(errMsg.equals(errorMissingData), "Expected error message not found");
 		// step 6
-		searchProviderPage.searchByCriteria(null, null, null, "M", null, null, null);
+		searchResults = searchProviderPage.searchByCriteria(null, null, null, "M", null, null, null);
 		errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMissingData, errMsg, "Expected error message not found");
 		searchProviderPage.clearGender();
@@ -566,6 +390,7 @@ public class SearchProviderTests implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
 				IndividualDataGenerator.getInstance());
 
@@ -579,27 +404,27 @@ public class SearchProviderTests implements SimpleTest {
 		String cpnString = queriedIndividual.getIdentifier(IdentifierType.CPN);
 		String cpnNum = UpdateSimpleHelper.getRegIdString("CPN", cpnString);
 		// step1
-		SearchProviderResultsFragment searchResults;
-		searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), null, false);
+		SearchProviderResultsFragment searchResults = searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(),
+				null, false);
 		String errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMsgProiderID, errMsg, "Expected error message not found");
 		// step2
 		searchResults = searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), providerId);
 		assertTrue(searchResults.grabResultsRowCount() > 0);
 		// step3
-		searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), null, false);
+		searchResults = searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), null, false);
 		errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorMsgRegIdValue, errMsg, "Expected error message not found");
 		// step4
 		searchResults = searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), cpnNum);
 		assertTrue(searchResults.grabResultsRowCount() > 0);
 		// step5
-		searchProviderPage.searchByIdentifier("Select One", null, false);
+		searchResults = searchProviderPage.searchByIdentifier("Select One", null, false);
 		errMsg = searchProviderPage.grabPageErrorMessage();
 		assertTrue(errMsg.contains(errorMsgIdType) && errMsg.contains(errorMsgProiderID),
 				"Expected error messages not found");
 		// step6
-		searchProviderPage.searchByRegistryIdentifier("Select One", null, false);
+		searchResults = searchProviderPage.searchByRegistryIdentifier("Select One", null, false);
 		errMsg = searchProviderPage.grabPageErrorMessage();
 		assertTrue(errMsg.contains(errorMsgRegIdType) && errMsg.contains(errorMsgRegIdValue),
 				"Expected error messages not found");
@@ -613,6 +438,7 @@ public class SearchProviderTests implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG).withAlias();
 		MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
 		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
@@ -630,7 +456,7 @@ public class SearchProviderTests implements SimpleTest {
 				null, addressline1, city);
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
 		// Step 2
-		searchProviderPage.searchForOrganization(roleType.name(), null, null, null, null);
+		searchResults = searchProviderPage.searchForOrganization(roleType.name(), null, null, null, null);
 		String errMsg = searchProviderPage.grabPageErrorMessage();
         assertEquals(errorEntryError, errMsg, "Expected error message not found");
 		// Step 3
@@ -654,17 +480,23 @@ public class SearchProviderTests implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		// FHIR
-		IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
-				IndividualDataGenerator.getInstance());
-
-		for (int i = 0; i < SEARCH_PROVIDER_MAX_RESULTS+1; i++) {
-			IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.MD);
-			MaintainIndividualBuilder individual = individualFactory.build(individualConfig);
-			Map<String, String> individualAddress = individual.getAddressList().getFirst();
-			individualAddress.put("line1", getRandomNumber(2, 500) + " Main Avenue");
-			individualAddress.put("city", "Custom City");
-			individual.setAddressList(List.of(individualAddress));
-			fhirController.submitIndividual(individual);
+		// search to see if have enough test data
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		IndividualQueryCriteriaParams param= new IndividualQueryCriteriaParams().setAddressCity("Custom City").setRoleType(IndividualRoleType.MD) ;
+		List<MaintainIndividualBuilder> providerList = fhirController.queryIndividualByCriteria(param);
+		if (providerList.size() <= SEARCH_PROVIDER_MAX_RESULTS) {
+			// create providers for testing
+			IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
+					IndividualDataGenerator.getInstance());
+			for (int i = providerList.size(); i < SEARCH_PROVIDER_MAX_RESULTS + 1; i++) {
+				IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.MD);
+				MaintainIndividualBuilder individual = individualFactory.build(individualConfig);
+				Map<String, String> individualAddress = individual.getAddressList().getFirst();
+				individualAddress.put("line1", UpdateSimpleHelper.getRandomNumber(2, 500) + " Main Avenue");
+				individualAddress.put("city", "Custom City");
+				individual.setAddressList(List.of(individualAddress));
+				individual = fhirController.submitIndividual(individual);
+			}
 		}
 		// test
 		
@@ -674,17 +506,22 @@ public class SearchProviderTests implements SimpleTest {
 		String errMsg = searchProviderPage.grabWarningErrorMessage();
         assertEquals(warningMaxResult, errMsg, "Expected warning message not found");
 		// FHIR
-		OrganizationBuilderFactory organizationFactory = new OrganizationBuilderFactory(
+        OrgQueryCriteriaParams paramOrg = new OrgQueryCriteriaParams().setAddressCity("Sample City").setRoleType(OrgRoleType.ORG);
+        List<MaintainOrgBuilder> orgList = fhirController.queryOrganizationByCriteria(paramOrg);
+        
+        if (orgList.size() <= SEARCH_PROVIDER_MAX_RESULTS) {
+        	OrganizationBuilderFactory organizationFactory = new OrganizationBuilderFactory(
 				OrganizationDataGenerator.getInstance());
-		for (int i = 0; i < SEARCH_PROVIDER_MAX_RESULTS+1; i++) {
-			OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG);
-			MaintainOrgBuilder org = organizationFactory.build(orgConfig);
-			Map<String, String> address = org.getAddressList().getFirst();
-			address.put("line1", getRandomNumber(2, 500) + " Oak St");
-			address.put("city", "Sample City");
-			org.setAddressList(List.of(address));
-			fhirController.submitOrganization(org);
-		}
+        	for (int i = providerList.size(); i < SEARCH_PROVIDER_MAX_RESULTS+1; i++) {
+        		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG);
+        		MaintainOrgBuilder org = organizationFactory.build(orgConfig);
+        		Map<String, String> address = org.getAddressList().getFirst();
+        		address.put("line1", UpdateSimpleHelper.getRandomNumber(2, 500) + " Oak St");
+        		address.put("city", "Sample City");
+        		org.setAddressList(List.of(address));
+        		org = fhirController.submitOrganization(org);
+        		}
+        }
 		fhirController.close();
 		// test
 		searchResults = searchProviderPage.searchForOrganization(OrgRoleType.ORG.name(), null, null, null,"Sample City");
@@ -705,185 +542,17 @@ public class SearchProviderTests implements SimpleTest {
 		searchResults = searchProvider.searchByCriteria("MD", "Nonexistent", "Provider", "M", "Victoria", "TERMINATED",
 				"RET", List.of("AMD1 ", "AMD49 "), List.of("A01 ", "A09 "));
 		assertEquals(searchResults.grabEmptyResultsMessage(), NORECORDFOUND);
-		searchResults = searchProvider.searchForOrganization("ORG", "Nonexistent", "Organization", "123 Some Street",
+		searchResults = searchProvider.searchForOrganization(OrgRoleType.ORG.name(), "Nonexistent", "Organization", "123 Some Street",
 				"Victoria");
 		assertEquals(searchResults.grabEmptyResultsMessage(), NORECORDFOUND);
 
-	}
-
-	// Search Results Limited by Data Permissions
-	@Test(groups = { "SearchProvider" })
-	public void testSearchResultsDataPermissions()
-	{
-		final PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.CONSUMER);
-		if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
-
-		final IndividualDataGenerator dataGen = IndividualDataGenerator.getInstance();
-
-		// FHIR Prep - create providers outside of Consumer's data permission scope
-		List<MaintainIndividualBuilder> optQuery = fhirController.queryIndividualByCriteria(
-				new IndividualQueryCriteriaParams()
-						.setRoleType(IndividualRoleType.OPT).setFamily("TestScopeOpt").setExpertise("ENG"));
-
-		if (optQuery.isEmpty())
-		{
-			MaintainIndividualBuilder ind = new IndividualBuilderFactory(dataGen)
-					.build(new IndividualMaintainConfig(IndividualRoleType.OPT))
-					.familyName("TestScopeOpt").addExpertise("ENG", dataGen.shortText());
-			fhirController.submitIndividual(ind);
-		} else {
-			optQuery.getFirst();
-		}
-
-		SearchProviderPage provider = workflow.getPlrWebAccessActions().openSearchProvider();
-		SearchProviderResultsFragment results = provider.searchByCriteria(null, null,
-				"TestScopeOpt", null, null, null, null,
-				null, List.of("ENG"));
-		assertEquals(results.grabResultsRowCount(), 0,
-				"Search results returned records outside of data permission scope unexpectedly");
-		assertEquals(provider.grabInfoMessage(), infoList.get("permissionRules"),
-				"Permission info message not found");
-	}
-
-	// Searching Incorrect Data
-	@Test(groups = { "SearchProvider" })
-	public void testSearchingIncorrectData() {
-		final PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-
-		UpdateOrganizationPage page;
-		SearchProviderPage provider;
-		SearchProviderResultsFragment results;
-
-		// FHIR Prep
-		MaintainOrgBuilder org;
-		List<MaintainOrgBuilder> orgQuery = fhirController.queryOrganizationByCriteria(
-				new OrgQueryCriteriaParams().setName("TestOrgIncorrectData"));
-		if (orgQuery.isEmpty()) {
-			MaintainOrgBuilder builder = new OrganizationBuilderFactory(OrganizationDataGenerator.getInstance())
-					.build(new OrganizationMaintainConfig(OrgRoleType.ORG).withName("TestOrgIncorrectData"))
-					.addIdentifier(IdentifierType.ORGID, UpdateSimpleHelper.generateNumericString(16));
-			String identifier = fhirController.submitOrganization(builder).getIdentifier(IdentifierType.IPC);
-			org = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, identifier);
-		} else org = orgQuery.getFirst();
-
-		MaintainIndividualBuilder ind;
-		List<MaintainIndividualBuilder> indQuery = fhirController.queryIndividualByCriteria(
-				new IndividualQueryCriteriaParams().setFamily("TestIndIncorrectData").setAddressCity("Victoria"));
-		if (indQuery.isEmpty()) {
-			MaintainIndividualBuilder builder = new IndividualBuilderFactory(IndividualDataGenerator.getInstance())
-					.build(new IndividualMaintainConfig(IndividualRoleType.MD)).familyName("TestIndIncorrectData")
-					.setAddressList(List.of(Map.of(
-							"type", "physical",
-							"purpose", "BC",
-							"line1", "1175 DOUGLAS ST",
-							"city", "Victoria",
-							"postalCode", "V8W 2E1")));
-			builder = fhirController.submitIndividual(builder);
-			LOG.info("here we have");
-			LOG.info(builder);
-			LOG.info(builder.getIdentifiers());
-			String identifier = builder.getIdentifier(IdentifierType.IPC);
-			LOG.info(identifier);
-			LOG.info("^^^ should not be null");
-			ind = fhirController.queryIndividualByIdentifier(IdentifierType.IPC, identifier);
-		} else ind = indQuery.getFirst();
-
-		// Criteria Name Correction
-		UpdateProviderPage indPage = viewByIdentifierAsUpdateIndividual(ind.getIdentifier(IdentifierType.IPC), workflowManager_);
-		indPage.updatePractitionerNameDataBlock("", "Test", "", "",
-				"InactiveNewName", "", EndReason.CORR, 0, false);
-		provider = workflow.getPlrWebAccessActions().openSearchProvider();
-		results = provider.searchByCriteria(IndividualRoleType.MD.name(), null, "TestIndIncorrectData",
-				null, "Victoria", null, null);
-		assertEquals(results.grabResultsRowCount(), 0,
-				"Search results returned a record for incorrect name unexpectedly");
-
-		// Identifier Correction
-		final String orgID = org.getIdentifier(IdentifierType.ORGID);
-		page = viewByIdentifierAsUpdateOrg(org.getIdentifier(IdentifierType.IPC), workflowManager_);
-		// assumes the identifier order is CPN, IPC, ORGID - adjust if method of adding identifiers through FHIR changes this
-		page.updateIdentifierDataBlock("9999999999999999", EndReason.CORR, 2, false);
-		provider = workflow.getPlrWebAccessActions().openSearchProvider();
-		results = provider.searchByIdentifier(IdentifierType.ORGID.name(), orgID);
-		assertEquals(results.grabResultsRowCount(), 0,
-				"Search results returned a record for incorrect identifier unexpectedly");
-
-		// Registry Identifier Correction
-		final String regID = org.getIdentifier(IdentifierType.CPN);
-		page = viewByIdentifierAsUpdateOrg(org.getIdentifier(IdentifierType.IPC), workflowManager_);
-		// assumes the identifier order is CPN, IPC - adjust if method of adding identifiers through FHIR changes this
-		page.updateRegistryIdentifierDataBlock("99999999", EndReason.CORR, 0, false);
-		provider = workflow.getPlrWebAccessActions().openSearchProvider();
-		results = provider.searchByRegistryIdentifier(
-				IdentifierType.CPN.name(), StringUtils.getDigits(regID));
-		assertEquals(results.grabResultsRowCount(), 0,
-				"Search results returned a record for incorrect registry identifier unexpectedly");
-
-		// Organization Name Correction
-		page = viewByIdentifierAsUpdateOrg(org.getIdentifier(IdentifierType.IPC), workflowManager_);
-		page.updateOrganizationNameDataBlock("InactiveNewName", "", EndReason.CORR, 0, false);
-		provider = workflow.getPlrWebAccessActions().openSearchProvider();
-		results = provider.searchForOrganization(
-				OrgRoleType.ORG.name(), "TestOrgIncorrectData", null, null, null);
-		assertEquals(results.grabResultsRowCount(), 0,
-				"Search results returned a record for incorrect name unexpectedly");
-
-		// Cleanup
-		org.name("TestOrgIncorrectData");
-		fhirController.submitOrganization(org);
-		page = viewByIdentifierAsUpdateOrg(org.getIdentifier(IdentifierType.IPC), workflowManager_);
-		page.updateIdentifierDataBlock(orgID, EndReason.CORR, 2, false);
-		page.updateRegistryIdentifierDataBlock(StringUtils.getDigits(regID), EndReason.CORR, 0, false);
-		ind.familyName("TestIndIncorrectData");
-		fhirController.submitIndividual(ind);
-	}
-
-	// Viewing Permissions for Confidential Provider Records
-	@Test(groups = { "SearchProvider" }, dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
-	public void testViewPermissionsConfidentialRecords(ProviderType providerType)
-	{
-		// FHIR Prep
-		final FHIRController primaryController = new FHIRController(UserType.PRIMARY);
-		MaintainIndividualBuilder confInd = null;
-		MaintainOrgBuilder confOrg = null;
-		switch (providerType)
-		{
-			case BC_PRACTITIONER -> confInd = primaryController.createIndividual(
-					new IndividualMaintainConfig(IndividualRoleType.MD).withConfidentiality());
-			case ORGANIZATION -> confOrg = primaryController.createOrganization(
-					new OrganizationMaintainConfig(OrgRoleType.ORG).withConfidentiality());
-			default -> throw new IllegalStateException("Unsupported provider type " + providerType.name());
-		}
-		primaryController.close();
-		boolean isOrganization = !Objects.isNull(confOrg);
-
-		// Test Start (checking Reg-Admin access to anything and Primary access to its own confidential record)
-		for (UserType userType : List.of(UserType.ADMIN, UserType.PRIMARY))
-		{
-			final PlrWebWorkflow workflow = workflowManager_.selectWorkflow(userType);
-			if (!workflow.isLoggedIn()) { workflow.login().openPlr(); }
-			final SearchProviderActions actions = workflowManager_.getSelectedWorkflow().getSearchProviderActions();
-
-			ViewProviderPage page = actions.openConfidentialRecord(workflow, userType, isOrganization, confOrg, confInd);
-
-			for (ProviderSection section : ProviderSection.getProviderSectionSet(providerType))
-			{
-				if (!section.isRequired()) continue;
-				if (userType.equals(UserType.PRIMARY) && section.equals(ProviderSection.REGISTRY_IDENTIFIERS)) continue;
-
-				assertTrue(page.grabDataBlockCount(section) > 0,
-						"Expected record data not found in section: " + section.name());
-			}
-		}
-
-		// checking secondary
-		testConfidentialMask(providerType, isOrganization ? confOrg : confInd);
 	}
 
 // 	Search by HDS is not in ALM yes, need to be added based on Legacy selenium
 	@Test(groups = { "SearchProvider" })
 	public void testSearchHDS() {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
 		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.HDS).withAlias();
 		MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
 		MaintainOrgBuilder orgQueried = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC,
@@ -901,7 +570,7 @@ public class SearchProviderTests implements SimpleTest {
 				desp, city, addressline1);
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
 		// test2
-		searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, null, null);
+		searchResults = searchProviderPage.searchHDSOrganization(hdsType.name(), null, null, null, null);
 		String errMsg = searchProviderPage.grabPageErrorMessage();
 		assertTrue(errMsg
 				.contains("The following fields must be supplied: 'Name or Description or Address Line 1 or City'"));
@@ -919,4 +588,326 @@ public class SearchProviderTests implements SimpleTest {
 		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
 
 	}
+	
+	
+	
+	//Search Rules: 22 
+	@Test(groups = { "SearchProvider" })
+	public void testSearchRules() {
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+		
+		String errorMsgName = errorList.getString("errorMsgName");
+		String errorMsg7006 = errorList.getString("errorMsg7006");
+		// FHIR
+		// search to see if have enough test data
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		IndividualQueryCriteriaParams param = new IndividualQueryCriteriaParams().setAddressCity("Custom City")
+				.setRoleType(IndividualRoleType.DEN);
+		List<MaintainIndividualBuilder> providerList = fhirController.queryIndividualByCriteria(param);
+		MaintainIndividualBuilder provider=providerList.get(0);
+		String lastname = provider.getFamilyName();
+		String firstname = provider.getNames()[0];
+		String providerId=provider.getIdentifier(IdentifierType.DENID);
+		String city = provider.getAddressList().getFirst().get("city");
+		//String addressline1 = provider.getAddressList().getFirst().get("line1");
+		OrgQueryCriteriaParams orgParam = new OrgQueryCriteriaParams().setAddressCity("Sample City").setRoleType(OrgRoleType.ORG);
+		List<MaintainOrgBuilder> organizationList = fhirController.queryOrganizationByCriteria(orgParam );
+		MaintainOrgBuilder organization=organizationList.get(0);
+		String orgName=organization.getName();
+		String orgCity=organization.getAddressList().get(0).get("city");
+		String orgAddressline1 = organization.getAddressList().getFirst().get("line1");
+		fhirController.close();
+		//test1
+		SearchProviderResultsFragment searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), firstname+"*", lastname, null, null, null, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		//test2
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), firstname, lastname+"*", null, null, null, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		//test3
+		searchResults = searchProviderPage.searchByCriteria(IndividualRoleType.DEN.name(), firstname + "*" + "*",
+				lastname, null, null, null, null);
+		String pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("Only one wildcard (*) is allowed"), " Expect error message  not found");
+		//test4
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), firstname, lastname+ "*" + "*", null, null, null, null);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("Only one wildcard (*) is allowed"), " Expect error message  not found");
+		//test5
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(),  "*"+firstname,lastname, null, null, null, null);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("The wildcard (*) must trail all search characters")," Expect error message  not found");
+		//test6
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), firstname, "*"+lastname, null, null, null, null);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("The wildcard (*) must trail all search characters")," Expect error message  not found");
+		//test7
+		searchResults = searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), providerId+"*",false);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains(errorMsg7006)," Expect error message  not found");
+		//test8
+		searchResults = searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), "1234*", false);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains(errorMsg7006)," Expect error message  not found");
+		//test9
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), firstname, lastname, null, city+"*", null, null);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("Only the First Name and Last Name fields are allowed to use the wildcard (*)"),
+				" Expect error message  not found");
+		//test10
+		searchResults = searchProviderPage.searchForOrganization
+				(OrgRoleType.ORG.name(), orgName+"*", null, null, orgCity);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		//test11
+		searchResults = searchProviderPage.searchForOrganization
+				(OrgRoleType.ORG.name(), orgName, null, null, orgCity+"*");
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("Only the Name field is allowed to use the wildcard (*)"),
+				" Expect error message  not found");
+		//test12
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), firstname.toLowerCase(), lastname.toLowerCase(), null, city.toLowerCase(), null, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		//test13
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), firstname.toLowerCase(), lastname.toLowerCase(), null, city.toUpperCase(), null, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		
+		//test14
+		searchResults = searchProviderPage.searchForOrganization
+				(OrgRoleType.ORG.name(), orgName.toLowerCase(), null, orgAddressline1.toLowerCase(), orgCity.toLowerCase());
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		//test15
+		searchResults = searchProviderPage.searchForOrganization
+				(OrgRoleType.ORG.name(), orgName.toUpperCase(), null,  orgAddressline1.toUpperCase(), orgCity.toUpperCase());
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		//test16
+		searchResults = searchProviderPage.searchForOrganization
+				(OrgRoleType.ORG.name(), orgName+"**", null, null, orgCity);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("Only one wildcard (*) is allowed in a field."),
+				" Expect error message  not found");
+		//test17
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), firstname, lastname, null, null, null, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		//test18
+		searchResults = searchProviderPage.searchForOrganization
+				(OrgRoleType.ORG.name(), orgName+"**", null, null, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		//test19
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), "*", lastname , null, city, null, null);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("The wildcard (*) must be preceded by at least one letter"),
+				" Expect error message  not found");
+		//test20
+		searchResults = searchProviderPage.searchByCriteria
+				(IndividualRoleType.DEN.name(), firstname, "*", null, city, null, null);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("The wildcard (*) must be preceded by at least one letter"),
+				" Expect error message  not found");
+		//test21
+		searchResults = searchProviderPage.searchForOrganization
+				(OrgRoleType.ORG.name(), "*", null, null, orgCity);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains("The wildcard (*) must be preceded by at least one letter"),
+				" Expect error message  not found");
+		//test22
+		searchResults = searchProviderPage.searchForOrganization
+				(OrgRoleType.ORG.name(), null, null, null, orgCity);
+		pageerroMsg = searchProviderPage.grabPageErrorMessage();
+		assertTrue(pageerroMsg.contains(errorMsgName),
+				" Expect error message  not found");
+	}
+
+	//Search by ID
+	@Test(groups = { "SearchProvider" })
+	public void testSearchById() {
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+
+		// FHIR
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
+				IndividualDataGenerator.getInstance());
+		IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.DEN);
+		MaintainIndividualBuilder individual = individualFactory.build(individualConfig);
+		individual = fhirController.submitIndividual(individual);
+		MaintainIndividualBuilder queriedIndividual = fhirController.queryIndividualByIdentifier(IdentifierType.DENID,
+				individual.getIdentifier(IdentifierType.DENID));
+		fhirController.close();
+		String providerId = queriedIndividual.getIdentifier(IdentifierType.DENID);
+		String cpnNum = UpdateSimpleHelper.getRegIdString(IdentifierType.CPN.name(), queriedIndividual.getIdentifier(IdentifierType.CPN));
+		// Step1
+		SearchProviderResultsFragment searchResults = searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(),
+				providerId);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		// Step 2
+		searchResults = searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), cpnNum);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		
+	}
+
+	//Searching With Provider History (create inactive provider from HFIR)
+	@Test(groups = { "SearchProvider" })
+	public void testSearchWithProviderHistory() {
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+		// FHIR provider
+		FHIRController fhirController = new FHIRController(UserType.ADMIN);
+		IndividualMaintainConfig individualConfig = new IndividualMaintainConfig(IndividualRoleType.DEN);
+		IndividualBuilderFactory individualFactory = new IndividualBuilderFactory(
+				IndividualDataGenerator.getInstance());
+		MaintainIndividualBuilder provider = individualFactory.build(individualConfig);
+		provider = fhirController.submitIndividual(provider);
+		
+		//test 1 name
+		String lastname = provider.getFamilyName();
+		String firstname = provider.getNames()[0];
+		String city = provider.getAddressList().get(0).get("city");
+		SearchProviderResultsFragment searchResults = searchProviderPage.searchByCriteria(IndividualRoleType.DEN.name(), 
+				firstname, lastname, null, city, null, null);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		provider.familyName("CustomLastName");
+		provider.setNames("CustomFirstName", "CustomMiddleName", null);
+		
+		provider.confidentiality(null);
+		provider = fhirController.submitIndividual(provider);
+		searchResults = searchProviderPage.searchByCriteria(IndividualRoleType.DEN.name(), 
+				firstname, lastname, null, city, null, null);
+		String resultMsg = searchResults.grabEmptyResultsMessage();
+		assertTrue(resultMsg.equals(NORECORDFOUND));
+		//test 2 identifier
+		
+		String providerId = provider.getIdentifier(IdentifierType.DENID);
+		searchResults = searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), providerId);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		// update id through a web updating 
+		updateProviderIdentifier(provider, 1);
+		//resume the testing  
+		searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+		searchProviderPage.refreshPage();
+		searchResults=searchProviderPage.searchByIdentifier(IdentifierType.DENID.name(), providerId);
+		resultMsg = searchResults.grabEmptyResultsMessage();
+		assertTrue(resultMsg.equals(NORECORDFOUND));
+		//FHIR organization
+		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG).withAlias();
+		OrganizationBuilderFactory organizationFactory = new OrganizationBuilderFactory(
+				OrganizationDataGenerator.getInstance());
+		MaintainOrgBuilder org = organizationFactory.build(orgConfig);
+		org = fhirController.submitOrganization(org);
+		String orgName = org.getName();
+		String orgDesc = org.getAlias();
+		String orgCity=org.getAddressList().getFirst().get("city");
+		String orgAddressLine1 = org.getAddressList().getFirst().get("line1");
+		//test 3 organization name
+		searchProviderPage.searchForOrganization(OrgRoleType.ORG.name(), orgName, orgDesc, orgAddressLine1, orgCity);
+		assertTrue(searchResults.grabResultsRowCount() > 0, "search result has too less rows");
+		org.name(UpdateSimpleHelper.generateAlphabetString(10));
+		org = fhirController.submitOrganization(org);
+		searchProviderPage.searchForOrganization(OrgRoleType.ORG.name(), orgName, orgDesc, orgAddressLine1, orgCity);
+		resultMsg = searchResults.grabEmptyResultsMessage();
+		assertTrue(resultMsg.equals(NORECORDFOUND));
+		fhirController.close();
+	
+	}
+	
+	//Web UI - Filtering Provider Query Role Type For Query test 1-3 for 4 user type, permission for role types)
+	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class,groups = { "SearchProvider" })
+	public void testFilteringProviderQueryRoleType(UserType userType) {
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+		SearchProviderCriteriaFragment fragment = searchProviderPage.expandSearchCriteria(true);
+		DropDownMenu menu = fragment.getRoleTypeMenu();
+		menu.expandItemPanel(true);
+		List<String> providerRoleTypeList = menu.grabItemList();
+		List<String> providerOptions =getProviderRoleTypeOptions(userType);
+		assertTrue( UpdateSimpleHelper.haveSameElements(providerRoleTypeList, providerOptions) );
+		workflowManager_.logoutAndClose(userType);		
+	}
+
+	//Web UI - Filtering Provider Identifier Type For Query  
+	@Test(dataProvider = "facilityTestUserTypes", dataProviderClass = InjectableData.class,groups = { "SearchProvider" })
+	public void testFilteringProviderIdentifierType(UserType userType) {
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		TestHelper.logIn(workflowManager_, userType);
+		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+		SearchProviderIdFragment fragment = searchProviderPage.expandSearchIdentifier(true);
+		DropDownMenu menu= fragment.getIdentifierTypeMenu();
+		menu.expandItemPanel(true);
+		List<String> providerIdentifierList = menu.grabItemList();
+		List<String> providerIdentifierOptions= getProviderIdentifierTypeOptions(userType);
+		assertTrue( UpdateSimpleHelper.haveSameElements(providerIdentifierList, providerIdentifierOptions));
+		workflowManager_.logoutAndClose(userType);
+	}
+
+	private List<String> getProviderIdentifierTypeOptions(UserType userType) {
+		List<String> providerIdentifierOptions = new ArrayList<String>();
+		switch (userType) {
+		case UserType.ADMIN:
+			providerIdentifierOptions= Stream.of(ProviderIdentifierTypeOptions.values()).map(ProviderIdentifierTypeOptions::getText)
+			.collect(Collectors.toList());			
+			break;
+		case UserType.PRIMARY:
+			providerIdentifierOptions= Stream.of(ProviderIdentifierTypeOptions.values()).map(ProviderIdentifierTypeOptions::getText)
+			.collect(Collectors.toList());
+			break;
+		case UserType.SECONDARY:
+			providerIdentifierOptions= Stream.of(ProviderIdentifierTypeSecondaryOptions.values()).map(ProviderIdentifierTypeSecondaryOptions::getText)
+			.collect(Collectors.toList());
+			break;
+		case UserType.CONSUMER:
+			providerIdentifierOptions= Stream.of(ProviderIdentifierTypeConsumerOptions.values()).map(ProviderIdentifierTypeConsumerOptions::getText)
+			.collect(Collectors.toList());
+			break;
+		default:
+			
+		}
+		providerIdentifierOptions.add("Select One");
+		return providerIdentifierOptions;
+		
+	}
+
+	private List<String> getProviderRoleTypeOptions(UserType userType) {
+		List<String> providerRoleTypeOptions = new ArrayList<String>();
+		switch (userType) {
+		case UserType.ADMIN:
+			providerRoleTypeOptions = Stream.of(ProviderRoleTypeOptions.values()).map(ProviderRoleTypeOptions::getText)
+			.collect(Collectors.toList());		
+			break;
+		case UserType.PRIMARY:
+			providerRoleTypeOptions = Stream.of(ProviderRoleTypeOptions.values()).map(ProviderRoleTypeOptions::getText)
+			.collect(Collectors.toList());
+			break;
+		case UserType.SECONDARY:
+			providerRoleTypeOptions = Stream.of(ProviderRoleTypeSecondaryOptions.values()).map(ProviderRoleTypeSecondaryOptions::getText)
+			.collect(Collectors.toList());
+			break;
+		case UserType.CONSUMER:
+			 providerRoleTypeOptions = Stream.of(ProviderRoleTypeConsumerOptions.values()).map(ProviderRoleTypeConsumerOptions::getText)
+			.collect(Collectors.toList());
+			break;
+		default:
+			
+		}
+		providerRoleTypeOptions.add("Select One");
+		return providerRoleTypeOptions;
+		
+	}
+	
+	
+	private void updateProviderIdentifier(MaintainIndividualBuilder provider, int inxdex ) {
+		// borrow organization identifier updating  
+		UpdateOrganizationPage defaultOrgPage = TestHelper.viewByIdentifierAsUpdateOrg(provider.getIdentifier(IdentifierType.IPC), workflowManager_);
+ 		defaultOrgPage.updateIdentifierDataBlock(UpdateSimpleHelper.generateNumericString(10), EndReason.CORR, 1, false);
+		
+	}
+
 }
