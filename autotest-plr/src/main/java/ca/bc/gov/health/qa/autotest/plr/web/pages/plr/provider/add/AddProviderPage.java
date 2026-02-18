@@ -127,12 +127,16 @@ public class AddProviderPage extends BasicWebPage {
         AddProviderIdFragment fragment = new AddProviderIdFragment(selenium_, providerType);
 
         if (roleType != null) {
+            String prevRoleType = fragment.getProviderRoleType();
+            String newRoleType;
             if (providerType.equals(ProviderType.ORGANIZATION))
-                fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
-            else fragment.selectProviderRoleType((ProviderRoleType) roleType);
+                newRoleType = fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
+            else newRoleType = fragment.selectProviderRoleType((ProviderRoleType) roleType);
 
-            WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
-            selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+            if (!newRoleType.equals(prevRoleType)) {
+                WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
+                selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+            }
 
             if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
                 selenium_.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));
