@@ -5,9 +5,13 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
  */
 public enum OrganizationalProviderRoleType {
 
-	ORG("ORG - Organization"), 
+	/** Organization */
+	ORG("ORG - Organization"),
+	/** Healthcare Delivery Site */
 	HDS("HDS - Healthcare Delivery Site"),
+	/** Clinic */
 	CLINIC("CLINIC - Clinic"),
+	/** Business - Corporation */
 	BUSINESS("BUSINESS - Corporation");	
 
 	private String text;

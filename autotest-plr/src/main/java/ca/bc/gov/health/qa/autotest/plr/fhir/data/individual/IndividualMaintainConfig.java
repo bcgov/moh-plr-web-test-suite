@@ -198,16 +198,20 @@ public class IndividualMaintainConfig {
      * @return count of DISCIPLINARY_ACTION entries */
     public int getDisciplinaryActionCount() { return disciplinaryActionCount; }
 
-    /** Gets the number of organization relationships configured.\n     * @return organization relationship count */
+    /** Gets the number of organization relationships configured.
+     * @return organization relationship count */
     public int getOrganizationRelationshipCount() { return organizationRelationshipCount; }
 
-    /** Checks if organization relationships are configured.\n     * @return true if organizationRelationshipCount > 0 */
+    /** Checks if organization relationships are configured.
+     * @return true if organizationRelationshipCount > 0 */
     public boolean hasOrganizationRelationships() { return organizationRelationshipCount > 0; }
 
-    /** Gets the number of individual relationships configured.\n     * @return individual relationship count */
+    /** Gets the number of individual relationships configured.
+     * @return individual relationship count */
     public int getIndividualRelationshipCount() { return individualRelationshipCount; }
 
-    /** Checks if individual relationships are configured.\n     * @return true if individualRelationshipCount > 0 */
+    /** Checks if individual relationships are configured.
+     * @return true if individualRelationshipCount > 0 */
     public boolean hasIndividualRelationships() { return individualRelationshipCount > 0; }
 
     // Fluent enabling

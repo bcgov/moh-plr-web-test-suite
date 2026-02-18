@@ -246,9 +246,10 @@ public class FHIRController implements AutoCloseable {
     }
 
     /**
-     * TODO
-     * @param builder
-     * @return
+     * Submits a pre-configured facility builder directly without generating new data.
+     * Useful when developers want full control over the builder data.
+     * @param builder pre-configured facility builder to submit
+     * @return the submitted builder with updated identifier
      */
     public MaintainFacilityBuilder submitFacility(MaintainFacilityBuilder builder) {
         String id = executor.submitMaintain(builder);
@@ -337,6 +338,7 @@ public class FHIRController implements AutoCloseable {
     public MaintainIndividualBuilder submitIndividual(MaintainIndividualBuilder builder) {
         String id = executor.submitMaintain(builder);
         LOG.info("Submitted individual (id={})", id);
+        builder.addIdentifier(IdentifierType.IPC, id);
         return builder;
     }
 

@@ -106,6 +106,7 @@ public class ElectronicAddress {
 	 * TODO add specifications for these fields within the builder as much as possible in future versions
 	 *
 	 * @param fhirFacility	the facility to create the electronic address for
+	 * @param eaddress   	the electronic address map from the FHIR facility
 	 */
 	public ElectronicAddress(MaintainFacilityBuilder fhirFacility, Map<String,String> eaddress) {
 		super();

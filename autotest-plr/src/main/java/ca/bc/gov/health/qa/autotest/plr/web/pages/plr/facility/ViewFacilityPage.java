@@ -213,11 +213,12 @@ public class ViewFacilityPage extends BasicWebPage {
 		}
 	}
 
-    /** TODO (KD) - doc
+    /**
+	 * Checks whether the expand/collapse button is displayed for a data block.
      *
-     * @param section
-     * @param index
-     * @return
+     * @param section   the facility section containing the data block
+     * @param index 	the zero-based index of the data block within the section
+     * @return 			true if the expand/collapse button is displayed; false otherwise
      */
 	public boolean isDataBlockExpandButtonDisplayed(FacilitySection section, int index) {
 		WebElement expandCollapseButton = selenium_
@@ -328,7 +329,7 @@ public class ViewFacilityPage extends BasicWebPage {
 
 
     /**
-     * TODO (KD) - doc
+     * Gets the content from a specific data block within a facility section
      *
      * @param section               the facility section to get content from
      * @param index                 the index of block within the facility section to get content from
@@ -380,7 +381,7 @@ public class ViewFacilityPage extends BasicWebPage {
 	/**
 	 * Open facility detail view page
 	 *
-	 * @param fauthId
+	 * @param fauthId 	the facility auth ID to open
 	 * 
 	 */
 	public void openFacility(String fauthId) {
@@ -442,11 +443,11 @@ public class ViewFacilityPage extends BasicWebPage {
 
 
 	/**
-	 * check data block active or not *
+	 * Checks whether a specific data block in a facility section is marked as active.
 	 * 
-	 * @param section
-	 * @param index
-	 * 
+	 * @param section   the facility section to select
+	 * @param index  	the index of data block to specifically check within the facility section
+	 * @return 			true if the data block is marked as active; false otherwise
 	 */
 	public boolean grabDataBlockActive(FacilitySection section, int index) {
 		By locator = By.cssSelector(getDataBlockHeaderActiveSelector(section, index));
@@ -454,13 +455,12 @@ public class ViewFacilityPage extends BasicWebPage {
 	}
 
 	/**
-	 * get data block header active selector *
+	 * Gets the CSS selector for the active icon in a data block header.
 	 * 
-	 * @param section
-	 * @param index
+	 * @param section   the facility section to select
+	 * @param index 	the index of data block to specifically select within the facility section
 	 * 
 	 */
-
 	protected String getDataBlockHeaderActiveSelector(FacilitySection section, int index) {
 		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions > span > img[title='Active']";
 	}
