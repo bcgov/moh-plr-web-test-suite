@@ -1,12 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
+import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderAddressFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderStatusFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -37,20 +36,44 @@ public class CreateProviderTests implements SimpleTest {
         }
     }
 
-    // Create Provider - Code Validation Restriction - Status Code
-    @Test
-    public void testCodeRestrictionStatusCode()
+    // Create Provider - Code Validation Restriction - Identifier
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionIdentifier(ProviderType providerType)
     {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
 
-        page.fillIdentifier(ProviderRoleType.DEN, null, null, "DENID",
-                UpdateSimpleHelper.generateNumericString(6));
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+
+        AddProviderIdFragment id = page.fillIdentifier(null, null, null, null, null);
+        List<String> roleOptions = id.getProviderRoleTypeOptions();
+        for (ProviderRoleType roleType : ProviderRoleType.values())
+        {
+            if (!roleOptions.contains(roleType.getText())) continue;
+
+            page.fillIdentifier(roleType, null, null, null, null);
+            List<String> identifierTypeOptions = id.getIdentifierTypeOptions();
+
+            IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType, List.of("OOPID - Out of Province Provider"))
+                    .forEach(option -> { assertTrue(identifierTypeOptions.contains(option),
+                            "Expected identifier type option '" + option + "' not found for provider role '" + roleType.getText() + "'");
+            });
+        }
+    }
+
+    // Create Provider - Code Validation Restriction - Status Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionStatusCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
         AddProviderStatusFragment status;
         for (StatusCodeOption statusCode : StatusCodeOption.values())
         {
-            status = page.fillStatus("LIC", statusCode, StatusReasonCodeOption.UNK);
+            status = page.fillStatus(null, statusCode, null);
 
             List<String> reasonCodeOptions = status.getStatusReasonCodeOptions();
 
@@ -59,41 +82,5 @@ public class CreateProviderTests implements SimpleTest {
                             "Expected reason code option '" + option.getText() + "' not found for status code '" + statusCode.getText() + "'");
             });
         }
-    }
-
-    // sample test to aid in development of page objects and workflow for Add Provider. Does not correspond to any test case in ALM.
-    @Test
-    public void testAddProviderSampleTest() {
-        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
-
-        page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
-
-        page.fillIdentifier(ProviderRoleType.OOPMD, null, null, "OOPID", "252526");
-        page.fillStatus("AE", StatusCodeOption.CANCELLED, StatusReasonCodeOption.LAP);
-
-        page.clickNext("Status", "");
-        page.waitForAddProviderStep("Personal Information", true);
-
-        page.fillPI("Dr.", "Testing", "Provider", null, "Smith");
-        page.fillDemographics(List.of(2011,1,1), "U");
-
-        page.clickNext("Personal Information", "");
-        page.waitForAddProviderStep("Address", true);
-
-        AddProviderAddressFragment address = page.fillAddress("P", "HC", List.of("123 Test St", "Unit 1", ""),
-                "Victoria", "BC", "CA", "V9V9V9");
-        page.fillPhone("250", "5551234", "123");
-        page.fillFax("250", "5555678");
-        page.fillEmail("test@example.com");
-
-        page.clickNext("Address", "Address Invalid");
-        address.handleWidgetButton("Address Invalid");
-        page.waitForAddProviderStep("Credential", true);
-
-        page.fillCredentials("BD", "Test", "5358", "TestInst",
-                "Victoria", "CA", "BC", true, "2001");
-        page.fillExpertise("ENG", "2500");
-        ViewProviderPage viewPage = page.clickSubmitButton();
     }
 }

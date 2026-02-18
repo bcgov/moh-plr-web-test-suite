@@ -33,6 +33,17 @@ public class InjectableData
         return toArray(data);
     }
 
+    @DataProvider(name = "practitioners")
+    public static Object[][] getPractitioners()
+    {
+        List<Object[]> data = new ArrayList<>();
+        for (ProviderType providerType : ProviderType.values())
+        {
+            if (!providerType.equals(ProviderType.ORGANIZATION)) data.add(new Object[]{providerType});
+        }
+        return toArray(data);
+    }
+
     /**
      * TODO (AZ) - doc
      *
