@@ -8,7 +8,7 @@ public enum StatusReasonCodeOption {
 	PRAC("PRAC - Practising"),
 	VW("VW - Voluntary Withdrawal"),
 	NR("NR - Non-resident"),
-	TEMPPER("VW - Temporary Permit"),
+	TEMPPER("TEMPPER - Temporary Permit"),
 	ORG("ORG - Organization Provider"),
 	INNONPRAC("INNONPRAC - Initial Non Practicing"),
 	LTP("LTP - Left the Province"),

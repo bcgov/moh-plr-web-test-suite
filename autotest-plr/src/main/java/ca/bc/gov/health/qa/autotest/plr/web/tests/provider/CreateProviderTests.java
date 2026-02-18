@@ -5,6 +5,8 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderStatusFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -14,14 +16,17 @@ import org.apache.logging.log4j.Logger;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants.*;
+import static org.testng.Assert.assertTrue;
+
 import java.util.List;
 
-public class AddProviderTests implements SimpleTest {
+public class CreateProviderTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 
-    private AddProviderTests() {}
+    private CreateProviderTests() {}
 
     @BeforeMethod
     public void before(Object[] parameters) {
@@ -29,6 +34,30 @@ public class AddProviderTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn()) {
             workflow.login().openPlr();
+        }
+    }
+
+    // Create Provider - Code Validation Restriction - Status Code
+    @Test
+    public void testCodeRestrictionStatusCode()
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        page.fillIdentifier(ProviderRoleType.DEN, null, null, "DENID",
+                UpdateSimpleHelper.generateNumericString(6));
+
+        AddProviderStatusFragment status;
+        for (StatusCodeOption statusCode : StatusCodeOption.values())
+        {
+            status = page.fillStatus("LIC", statusCode, StatusReasonCodeOption.UNK);
+
+            List<String> reasonCodeOptions = status.getStatusReasonCodeOptions();
+
+            STATUS_REASON_CODE_OPTIONS_MAP.get(statusCode).forEach(option -> {
+                    assertTrue(reasonCodeOptions.contains(option.getText()),
+                            "Expected reason code option '" + option.getText() + "' not found for status code '" + statusCode.getText() + "'");
+            });
         }
     }
 
