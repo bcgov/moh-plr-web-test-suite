@@ -33,7 +33,7 @@ public class CreateProviderTests implements SimpleTest {
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
-    private static JSONObject errorList,warningList;
+    private static JSONObject errorList, warningList;
 
     private CreateProviderTests() {
         try
@@ -127,7 +127,6 @@ public class CreateProviderTests implements SimpleTest {
             page.clickNext("Identifier", null);
 
             List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
-
             if (testIdentifier.isEmpty())
             {
                 String emptyError = "missingProviderIdentifier";
@@ -151,9 +150,36 @@ public class CreateProviderTests implements SimpleTest {
         page = page.changeProviderType(providerType);
 
         page.fillIdentifier("Select One", null, null, null, null, null);
-        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
 
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
         assertEquals(errorMessageList.getFirst(), errorList.get("missingProviderRoleType"),
                 "Expected error message for missing provider role type not found.");
+    }
+
+    // Create Provider - Validate Status Class Code
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateStatusClassCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        page = page.changeProviderType(providerType);
+
+        switch (providerType) {
+            case OOP_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
+            case BC_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
+            case ORGANIZATION ->
+                    page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
+        }
+
+        page.fillStatus("Select One", null, null);
+
+        page.clickNext("Status", null);
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingStatusClassCode"),
+                "Expected error message for missing status class code not found.");
     }
 }
