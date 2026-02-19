@@ -96,6 +96,7 @@ public class AddProviderConstants {
             StatusReasonCodeOption.UNK
     );
 
+    /** Mapping of StatusCodeOption to a list of valid corresponding StatusReasonCodeOption options. */
     public static final Map<StatusCodeOption, List<StatusReasonCodeOption>> STATUS_REASON_CODE_OPTIONS_MAP = Map.of(
             StatusCodeOption.ACTIVE, ACTIVE_REASON_CODE_OPTIONS,
             StatusCodeOption.CANCELLED, CANCELLED_REASON_CODE_OPTIONS,

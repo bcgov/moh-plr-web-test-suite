@@ -210,4 +210,32 @@ public class CreateProviderTests implements SimpleTest {
         assertEquals(errorMessageList.getFirst(), errorList.get("missingStatusTypeCode"),
                 "Expected error message for missing status type code not found.");
     }
+
+    // Create Provider - Validate Status Reason Code
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateStatusReasonCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        page = page.changeProviderType(providerType);
+
+        switch (providerType) {
+            case OOP_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
+            case BC_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
+            case ORGANIZATION ->
+                    page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
+        }
+
+        AddProviderStatusFragment status = page.fillStatus(null, null, null);
+        status.selectStatusReasonCode("Select One");
+
+        page.clickNext("Status", null);
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingStatusReasonCode"),
+                "Expected error message for missing status type code not found.");
+    }
 }
