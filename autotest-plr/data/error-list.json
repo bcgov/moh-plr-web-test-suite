@@ -70,7 +70,16 @@
     "missingBCProviderIdentifier": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Identifier'. Your transaction has not been processed. Correct and resubmit.",
     "missingStatusClassCode": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Status Class Code'. Your transaction has not been processed. Correct and resubmit.",
     "missingStatusTypeCode": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Status Code'. Your transaction has not been processed. Correct and resubmit.",
-    "missingStatusReasonCode": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Status Reason Code'. Your transaction has not been processed. Correct and resubmit."
+    "missingStatusReasonCode": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Status Reason Code'. Your transaction has not been processed. Correct and resubmit.",
+    "missingFirstName": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'First Name'. Your transaction has not been processed. Correct and resubmit.",
+    "firstNameTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'First Name' length must be between 1 and 50. Your transaction has not been processed. Correct and resubmit.",
+    "firstNameOnlySpaces": "GRS.SYS.UNK.UNK.1.0.7042: Cannot be just spaces, First Name",
+    "prefixTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Prefix' length must be between 0 and 10. Your transaction has not been processed. Correct and resubmit.",
+    "firstNameInvalidCharacters": "GRS.SYS.NAM.UNK.1.0.7007: Names can contain only spaces, ', -, ., and the English alphabet.",
+    "secondNameTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Second Name' length must be between 0 and 50. Your transaction has not been processed. Correct and resubmit.",
+    "thirdNameTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Third Name' length must be between 0 and 50. Your transaction has not been processed. Correct and resubmit.",
+    "missingSurname": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Surname'. Your transaction has not been processed. Correct and resubmit.",
+    "surnameTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Surname' length must be between 1 and 50. Your transaction has not been processed. Correct and resubmit."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",

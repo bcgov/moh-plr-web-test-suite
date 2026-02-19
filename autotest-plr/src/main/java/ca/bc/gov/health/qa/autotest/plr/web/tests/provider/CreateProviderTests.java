@@ -8,6 +8,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderStatusFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
@@ -101,6 +102,126 @@ public class CreateProviderTests implements SimpleTest {
                     assertTrue(reasonCodeOptions.contains(option.getText()), "Expected reason code option '"
                             + option.getText() + "' not found for status code '" + statusCode.getText() + "'"));
         }
+    }
+
+    // Create Provider - Validate Individual Name
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateIndividualName(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+
+        switch (providerType) {
+            case OOP_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
+            case BC_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
+        }
+
+        page.fillStatus(null, null, null);
+        page.clickNext("Identifier", "");
+        page.waitForAddProviderStep("Personal Information", true);
+        page.fillDemographics(List.of(1980,6,30), "U");
+
+        // Prefix
+
+        page.fillPI(UpdateSimpleHelper.generateAlphabetString(11), "Test", null, null, "Provider");
+        page.clickNext("Personal Information", null);
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("prefixTooLong"),
+                "Expected error message for exceeding max length of prefix not found.");
+
+        page.fillPI("", "", null, null, "Provider");
+        page.clickNext("Personal Information", null);
+
+        // First Name
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingFirstName"),
+                "Expected error message for missing first name not found.");
+
+        page.fillPI(null, "", "Second", "Third", "Provider");
+        page.clickNext("Personal Information", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingFirstName"),
+                "Expected error message for missing first name not found.");
+
+        page.fillPI(null, UpdateSimpleHelper.generateAlphabetString(51), "", "", "Provider");
+        page.clickNext("Personal Information", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("firstNameTooLong"),
+                "Expected error message for exceeding max length of first name not found.");
+
+        page.fillPI(null, " ", null, null, "Provider");
+        page.clickNext("Personal Information", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("firstNameOnlySpaces"),
+                "Expected error message for first name with only spaces not found.");
+
+        page.fillPI(null, "Jr., Test", null, null, "Provider");
+        page.clickNext("Personal Information", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("firstNameInvalidCharacters"),
+                "Expected error message for invalid character in first name not found.");
+
+        // Second Name
+
+        page.fillPI(null, "Test", UpdateSimpleHelper.generateAlphabetString(51), null, "Provider");
+        page.clickNext("Personal Information", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("secondNameTooLong"),
+                "Expected error message for exceeding max length of second name not found.");
+
+        // Third Name
+
+        page.fillPI(null, "Test", "", UpdateSimpleHelper.generateAlphabetString(51), "Provider");
+        page.clickNext("Personal Information", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("thirdNameTooLong"),
+                "Expected error message for exceeding max length of third name not found.");
+
+        // Surname
+
+        page.fillPI(null, "Test", null, "", "");
+        page.clickNext("Personal Information", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingSurname"),
+                "Expected error message for missing surname not found.");
+
+        page.fillPI(null, "Test", null, null, UpdateSimpleHelper.generateAlphabetString(51));
+        page.clickNext("Personal Information", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("surnameTooLong"),
+                "Expected error message for exceeding max length of surname not found.");
+
+        page.fillPI(null, "Test", null, null, "Jr., Provider");
+        page.clickNext("Personal Information", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("firstNameInvalidCharacters"),
+                "Expected error message for invalid character in surname not found.");
+
+        // Positive Test
+
+        String expectedPrefix = UpdateSimpleHelper.generateAlphabetString(10);
+        String expectedFirstName = UpdateSimpleHelper.generateAlphabetString(46) + " Sr.";
+        String expectedSecondName = UpdateSimpleHelper.generateAlphabetString(50);
+        String expectedThirdName = UpdateSimpleHelper.generateAlphabetString(50);
+        String expectedSurname = UpdateSimpleHelper.generateAlphabetString(46) + " Jr.";
+        page.fillPI(expectedPrefix, expectedFirstName, expectedSecondName, expectedThirdName, expectedSurname);
+        page.clickNext("Personal Information", "");
+        // TODO continue through flow to create provider and check name shows up in View as anticipated
     }
 
     // Create Provider - Validate Provider Identifiers
