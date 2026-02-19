@@ -65,7 +65,9 @@
 	"errorMsgCPSID": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'College ID or MPID'. Your transaction has not been processed. Correct and resubmit.",
 	"errorEntryError": "Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Name or Description or Address Line 1 or City'",
 	"errorMissingData": "Missing mandatory search data: please provide First Name and Last Name or one of City, Expertise and Language.",
-    "missingProviderRoleType": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Provider Role Type'. Your transaction has not been processed. Correct and resubmit."
+    "missingProviderRoleType": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Provider Role Type'. Your transaction has not been processed. Correct and resubmit.",
+    "missingProviderIdentifier": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Provider Identifier'. Your transaction has not been processed. Correct and resubmit.",
+    "missingBCProviderIdentifier": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Identifier'. Your transaction has not been processed. Correct and resubmit."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",

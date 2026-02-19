@@ -75,9 +75,9 @@ public class CreateProviderTests implements SimpleTest {
             List<String> identifierTypeOptions = id.getIdentifierTypeOptions();
 
             IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType, List.of("OOPID - Out of Province Provider"))
-                    .forEach(option -> { assertTrue(identifierTypeOptions.contains(option),
-                            "Expected identifier type option '" + option + "' not found for provider role '" + roleType.getText() + "'");
-            });
+                    .forEach(option -> assertTrue(identifierTypeOptions.contains(option),
+                            "Expected identifier type option '" + option
+                                    + "' not found for provider role '" + roleType.getText() + "'"));
         }
     }
 
@@ -97,10 +97,47 @@ public class CreateProviderTests implements SimpleTest {
 
             List<String> reasonCodeOptions = status.getStatusReasonCodeOptions();
 
-            STATUS_REASON_CODE_OPTIONS_MAP.get(statusCode).forEach(option -> {
-                    assertTrue(reasonCodeOptions.contains(option.getText()),
-                            "Expected reason code option '" + option.getText() + "' not found for status code '" + statusCode.getText() + "'");
-            });
+            STATUS_REASON_CODE_OPTIONS_MAP.get(statusCode).forEach(option ->
+                    assertTrue(reasonCodeOptions.contains(option.getText()), "Expected reason code option '"
+                            + option.getText() + "' not found for status code '" + statusCode.getText() + "'"));
+        }
+    }
+
+    // Create Provider - Validate Provider Identifiers
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateProviderIdentifiers(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        page = page.changeProviderType(providerType);
+
+        for (String testIdentifier : List.of("tæst", "te$t", "", " "))
+        {
+            switch (providerType) {
+                case OOP_PRACTITIONER ->
+                        page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", testIdentifier);
+                case BC_PRACTITIONER ->
+                        page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", testIdentifier);
+                case ORGANIZATION ->
+                        page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", testIdentifier);
+            }
+
+            page.fillStatus(null, null, null);
+            page.clickNext("Identifier", null);
+
+            List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+
+            if (testIdentifier.isEmpty())
+            {
+                String emptyError = "missingProviderIdentifier";
+                if (providerType.equals(ProviderType.BC_PRACTITIONER)) emptyError = "missingBCProviderIdentifier";
+                assertEquals(errorMessageList.getFirst(), errorList.get(emptyError),
+                        "Expected error message for missing identifier not found.");
+                continue;
+            }
+            assertEquals(errorMessageList.getFirst(), errorList.get("foreignCharacterIdentifier"),
+                    "Expected error message for invalid identifier not found.");
         }
     }
 
