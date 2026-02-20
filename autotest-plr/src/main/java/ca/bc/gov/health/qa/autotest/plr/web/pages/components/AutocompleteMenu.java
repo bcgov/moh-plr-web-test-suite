@@ -1,5 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.components;
 
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
+import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
@@ -15,6 +18,8 @@ import static java.util.Objects.requireNonNull;
  * Fragment class for Autocomplete list components.
  */
 public class AutocompleteMenu extends BasicWebPageFragment {
+
+    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     // TODO: input validation similar to DropDownMenu
 
@@ -51,12 +56,16 @@ public class AutocompleteMenu extends BasicWebPageFragment {
             selenium_.waitUntil(
                     ExpectedConditions.visibilityOfElementLocated(autocompletePanelLocator_)
             );
+            selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithClass(autocompletePanelLocator_,
+                    "ui-connected-overlay-enter-done"));
         }
         else
         {
             selenium_.waitUntil(
                     ExpectedConditions.invisibilityOfElementLocated(autocompletePanelLocator_)
             );
+            selenium_.waitUntil(SeleniumExpectedConditions.presenceOfElementLocatedWithClass(autocompletePanelLocator_,
+                    "ui-connected-overlay-exit-done"));
         }
     }
 
@@ -273,6 +282,7 @@ public class AutocompleteMenu extends BasicWebPageFragment {
         if (itemPrefix == null)
         {
             selenium_.fillField(mainLocator_, autocompleteField);
+            waitForPanelLoad(true);
             selenium_.click(mainLocator_);
             waitForPanelLoad(false);
             return grabCompletedItem();

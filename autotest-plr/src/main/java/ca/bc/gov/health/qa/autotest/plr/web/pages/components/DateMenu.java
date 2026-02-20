@@ -1,20 +1,27 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.components;
 
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
+import static org.testng.Assert.fail;
 
 /**
  * Fragment class for Date/Datepicker Menu components.
  */
 public class DateMenu extends BasicWebPageFragment {
+
+    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final By datepickerLocator_ = By.cssSelector("div#ui-datepicker-div");
 
@@ -25,13 +32,12 @@ public class DateMenu extends BasicWebPageFragment {
      *
      * @param selenium              the current selenium session
      * @param mainLocator           the main locator, which should be set to the span encompassing the field/menu button
-     * @param stepPrefix            the
+     * @param inputLocator          the CSS selector for the input field within the date menu span (used to retrieve the value after picking a date)
      */
-    public DateMenu(SeleniumSession selenium, By mainLocator, String stepPrefix)
+    public DateMenu(SeleniumSession selenium, By mainLocator, String inputLocator)
     {
         super(selenium, mainLocator);
-        stepPrefix = requireNonNull(stepPrefix, "Missing step prefix.");
-        inputLocator_ = By.cssSelector(String.format("input#form\\:effectiveFromDate_%s_input", stepPrefix));
+        inputLocator_ = By.cssSelector(inputLocator);
     }
 
     /**
@@ -95,6 +101,9 @@ public class DateMenu extends BasicWebPageFragment {
         displayDatepicker(true);
         selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector("button.ui-datepicker-current")));
         selenium_.findElement(datepickerLocator_).findElement(By.cssSelector("button.ui-datepicker-current")).click();
+
+        selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(datepickerLocator_));
+
         return selenium_.findElement(mainLocator_).findElement(inputLocator_).getAttribute("value");
     }
 
@@ -119,6 +128,7 @@ public class DateMenu extends BasicWebPageFragment {
                 yearOptions.add(Integer.parseInt(elem.getText()));
                 if (elem.getText().equals(String.valueOf(dateYear))) yearIndex = yearElements.indexOf(elem);
             }
+            yearElements.removeIf(elem -> elem.getText().isEmpty());
             if (dateYear < Integer.parseInt(yearElements.getFirst().getText())) yearElements.getFirst().click();
             else if (dateYear > Integer.parseInt(yearElements.getLast().getText())) yearElements.getLast().click();
             else yearElements.get(yearIndex).click();
@@ -129,6 +139,8 @@ public class DateMenu extends BasicWebPageFragment {
         List<WebElement> dayElements;
         dayElements = selenium_.findElementsByCss("table.ui-datepicker-calendar > tbody > tr > td > a");
         dayElements.get(dateDay-1).click();
+
+        selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(datepickerLocator_));
 
         return selenium_.findElement(mainLocator_).findElement(inputLocator_).getText();
     }
