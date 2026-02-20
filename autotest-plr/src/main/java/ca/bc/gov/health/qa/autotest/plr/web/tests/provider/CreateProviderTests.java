@@ -5,6 +5,9 @@ import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.AddProviderActions;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderStatusFragment;
@@ -27,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 public class CreateProviderTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -110,6 +114,7 @@ public class CreateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
@@ -123,7 +128,7 @@ public class CreateProviderTests implements SimpleTest {
         page.fillStatus(null, null, null);
         page.clickNext("Identifier", "");
         page.waitForAddProviderStep("Personal Information", true);
-        page.fillDemographics(List.of(1980,6,30), "U");
+        page.fillDemographics(List.of(2020,6,30), "U");
 
         // Prefix
 
@@ -134,10 +139,11 @@ public class CreateProviderTests implements SimpleTest {
         assertEquals(errorMessageList.getFirst(), errorList.get("prefixTooLong"),
                 "Expected error message for exceeding max length of prefix not found.");
 
+        // First Name
+
         page.fillPI("", "", null, null, "Provider");
         page.clickNext("Personal Information", null);
 
-        // First Name
 
         errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
         assertEquals(errorMessageList.getFirst(), errorList.get("missingFirstName"),
@@ -212,7 +218,7 @@ public class CreateProviderTests implements SimpleTest {
         assertEquals(errorMessageList.getFirst(), errorList.get("firstNameInvalidCharacters"),
                 "Expected error message for invalid character in surname not found.");
 
-        // Positive Test
+        // Positive Test (Suffixes, spaces between first name/surname, maximum character limit)
 
         String expectedPrefix = UpdateSimpleHelper.generateAlphabetString(10);
         String expectedFirstName = UpdateSimpleHelper.generateAlphabetString(46) + " Sr.";
@@ -221,7 +227,16 @@ public class CreateProviderTests implements SimpleTest {
         String expectedSurname = UpdateSimpleHelper.generateAlphabetString(46) + " Jr.";
         page.fillPI(expectedPrefix, expectedFirstName, expectedSecondName, expectedThirdName, expectedSurname);
         page.clickNext("Personal Information", "");
-        // TODO continue through flow to create provider and check name shows up in View as anticipated
+
+        ViewProviderPage viewPage = actions.finishCreateFlow(page, providerType, "Address");
+
+        Map<String, String> nameBlock = viewPage.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0);
+
+        assertEquals(nameBlock.get("Prefix"), expectedPrefix, "Prefix did not save correctly.");
+        assertEquals(nameBlock.get("First Name"), expectedFirstName, "First name did not save correctly.");
+        assertEquals(nameBlock.get("Second Name"), expectedSecondName, "Second name did not save correctly.");
+        assertEquals(nameBlock.get("Third Name"), expectedThirdName, "Third name did not save correctly.");
+        assertEquals(nameBlock.get("Surname"), expectedSurname, "Surname did not save correctly.");
     }
 
     // Create Provider - Validate Provider Identifiers
