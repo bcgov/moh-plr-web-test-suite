@@ -170,6 +170,46 @@ public class CreateProviderTests implements SimpleTest {
                 "Did not navigate to the expected next step after entering valid date of birth.");
     }
 
+    // Create Provider - Validate Gender Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateGenderCode(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+
+        switch (providerType) {
+            case OOP_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
+            case BC_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
+        }
+
+        page.fillStatus(null, null, null);
+        page.clickNext("Identifier", "");
+        page.waitForAddProviderStep("Personal Information", true);
+        page.fillPI(null, "Test", null, null, "Provider");
+
+        AddProviderDemographicFragment demo = page.fillDemographics(List.of(2020, 6, 30), null);
+
+        page.clickNext("Demographic Details", null);
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingGender"),
+                "Expected error message for missing gender not found.");
+
+        List<String> genderOptions = demo.getGenderMenu().grabRadioOptions();
+        assertEquals(genderOptions, List.of("U - Unknown", "F - Female", "M - Male"),
+                "Expected gender options not found or in unexpected order.");
+
+        page.fillDemographics(null, "U");
+        page.clickNext("Demographic Details", "");
+        page.waitForAddProviderStep("Address", true);
+
+        assertEquals(page.getStep(), "Contact",
+                "Did not navigate to the expected next step after entering valid gender.");
+    }
+
     // Create Provider - Validate Individual Name
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateIndividualName(ProviderType providerType)
