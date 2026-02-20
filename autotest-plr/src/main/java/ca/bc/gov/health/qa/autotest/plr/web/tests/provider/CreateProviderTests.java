@@ -8,6 +8,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.AddProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderDemographicFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderIdFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderStatusFragment;
@@ -106,6 +107,67 @@ public class CreateProviderTests implements SimpleTest {
                     assertTrue(reasonCodeOptions.contains(option.getText()), "Expected reason code option '"
                             + option.getText() + "' not found for status code '" + statusCode.getText() + "'"));
         }
+    }
+
+    // Create Provider - Validate Date of Birth
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateDOB(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+
+        switch (providerType) {
+            case OOP_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
+            case BC_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
+        }
+
+        page.fillStatus(null, null, null);
+        page.clickNext("Identifier", "");
+        page.waitForAddProviderStep("Personal Information", true);
+        page.fillPI(null, "Test", null, null, "Provider");
+
+        AddProviderDemographicFragment demo = page.fillDemographics(null, "U");
+        page.clickNext("Demographic Details", null);
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingDOB"),
+                "Expected error message for missing date of birth not found.");
+
+        demo.getDateOfBirthMenu().typeDateRaw("06-30-1980");
+        page.clickNext("Demographic Details", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("invalidDateFormatDOB"),
+                "Expected error message for invalid date of birth format not found.");
+
+        demo.getDateOfBirthMenu().typeDateRaw("1799-12-31");
+        page.clickNext("Demographic Details", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("outOfBoundsDOB"),
+                "Expected error message for date of birth too far in the past not found.");
+
+        demo.getDateOfBirthMenu().typeDateRaw("2099-01-01");
+        page.clickNext("Demographic Details", null);
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("outOfBoundsDOB"),
+                "Expected error message for date of birth in the future not found.");
+
+        demo = page.fillDemographics(List.of(2020,1,1), null);
+
+        assertEquals(demo.getDateOfBirth(), "2020-01-01",
+                "Date of Birth did not save the expected value.");
+
+        page.clickNext("Demographic Details", "");
+        page.waitForAddProviderStep("Address", true);
+
+        assertEquals(page.getStep(), "Contact",
+                "Did not navigate to the expected next step after entering valid date of birth.");
     }
 
     // Create Provider - Validate Individual Name

@@ -25,7 +25,7 @@ public class AddProviderDemographicFragment extends AddProviderStepFragment {
      * Creates a DateMenu reference for the Date of Birth field
      * @return a DateMenu reference to the Date of Birth field
      */
-    private DateMenu getDateOfBirthMenu()
+    public DateMenu getDateOfBirthMenu()
     {
         return new DateMenu(selenium_, By.cssSelector(DOB_PREFIX_CSS), "input#form\\:dob_input");
     }
@@ -48,7 +48,7 @@ public class AddProviderDemographicFragment extends AddProviderStepFragment {
      */
     public String getDateOfBirth()
     {
-        return selenium_.findElementByCss(getDateFieldCss() + " > input").getAttribute("value");
+        return selenium_.findElementByCss("input#form\\:dob_input").getAttribute("value");
     }
 
     /**

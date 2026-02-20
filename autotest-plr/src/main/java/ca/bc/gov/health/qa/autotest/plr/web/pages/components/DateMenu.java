@@ -92,6 +92,16 @@ public class DateMenu extends BasicWebPageFragment {
     }
 
     /**
+     * Types a raw string into the date input (bypasses date picker UI)
+     *
+     * @param rawDate a date string to type directly
+     */
+    public void typeDateRaw(String rawDate)
+    {
+        if (rawDate != null) selenium_.fillField(inputLocator_, rawDate);
+    }
+
+    /**
      * Picks the current date in the date picker menu
      *
      * @return  the value in the date picker field after the current date is selected
