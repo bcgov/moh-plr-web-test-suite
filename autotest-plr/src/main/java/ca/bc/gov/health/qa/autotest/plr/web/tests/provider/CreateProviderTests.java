@@ -115,20 +115,11 @@ public class CreateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
-        switch (providerType) {
-            case OOP_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
-            case BC_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
-        }
-
-        page.fillStatus(null, null, null);
-        page.clickNext("Identifier", "");
-        page.waitForAddProviderStep("Personal Information", true);
-        page.fillPI(null, "Test", null, null, "Provider");
+        actions.skipToSection(page, providerType, "Demographic Details");
 
         AddProviderDemographicFragment demo = page.fillDemographics(null, "U");
         page.clickNext("Demographic Details", null);
@@ -175,20 +166,11 @@ public class CreateProviderTests implements SimpleTest {
     public void testValidateGenderCode(ProviderType providerType) {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
-        switch (providerType) {
-            case OOP_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
-            case BC_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
-        }
-
-        page.fillStatus(null, null, null);
-        page.clickNext("Identifier", "");
-        page.waitForAddProviderStep("Personal Information", true);
-        page.fillPI(null, "Test", null, null, "Provider");
+        actions.skipToSection(page, providerType,"Demographic Details");
 
         AddProviderDemographicFragment demo = page.fillDemographics(List.of(2020, 6, 30), null);
 
@@ -220,17 +202,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
-        switch (providerType) {
-            case OOP_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
-            case BC_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
-        }
-
-        page.fillStatus(null, null, null);
-        page.clickNext("Identifier", "");
-        page.waitForAddProviderStep("Personal Information", true);
-        page.fillDemographics(List.of(2020,6,30), "U");
+        page = actions.skipToSection(page, providerType, "Personal Information");
 
         // Prefix
 
@@ -324,6 +296,7 @@ public class CreateProviderTests implements SimpleTest {
 
         String expectedPrefix = UpdateSimpleHelper.generateAlphabetString(10);
         String expectedFirstName = UpdateSimpleHelper.generateAlphabetString(46) + " Sr.";
+        expectedFirstName = expectedFirstName.substring(0,1).toUpperCase() + expectedFirstName.substring(1);
         String expectedSecondName = UpdateSimpleHelper.generateAlphabetString(50);
         String expectedThirdName = UpdateSimpleHelper.generateAlphabetString(50);
         String expectedSurname = UpdateSimpleHelper.generateAlphabetString(46) + " Jr.";
@@ -400,17 +373,11 @@ public class CreateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
 
         page = page.changeProviderType(providerType);
 
-        switch (providerType) {
-            case OOP_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
-            case BC_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
-            case ORGANIZATION ->
-                    page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
-        }
+        actions.skipToSection(page, providerType,"Status");
 
         page.fillStatus("Select One", null, null);
 
@@ -427,17 +394,11 @@ public class CreateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
 
         page = page.changeProviderType(providerType);
 
-        switch (providerType) {
-            case OOP_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
-            case BC_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
-            case ORGANIZATION ->
-                    page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
-        }
+        actions.skipToSection(page, providerType, "Status");
 
         AddProviderStatusFragment status = page.fillStatus(null, null, null);
         status.selectStatusCode("Select One");
@@ -455,17 +416,11 @@ public class CreateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
 
         page = page.changeProviderType(providerType);
 
-        switch (providerType) {
-            case OOP_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
-            case BC_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
-            case ORGANIZATION ->
-                    page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
-        }
+        actions.skipToSection(page, providerType, "Status");
 
         AddProviderStatusFragment status = page.fillStatus(null, null, null);
         status.selectStatusReasonCode("Select One");
