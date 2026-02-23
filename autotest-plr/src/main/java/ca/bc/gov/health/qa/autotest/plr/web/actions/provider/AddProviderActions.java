@@ -107,7 +107,7 @@ public class AddProviderActions {
                 page.fillPI(null, "Test", null, null, "Provider");
             case "Demographics":
                 page.fillDemographics(List.of(2020, 1, 1), "U");
-                page.clickNext("Demographics", "");
+                page.clickNext("Demographic Details", "");
                 page.waitForAddProviderStep("Address", true);
             case "Address":
                 AddProviderAddressFragment address = page.fillAddress("P", "HC",

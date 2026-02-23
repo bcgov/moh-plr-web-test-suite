@@ -200,9 +200,11 @@ public class CreateProviderTests implements SimpleTest {
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
         AddProviderActions actions = workflow.getAddProviderActions();
 
-        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
         page = actions.skipToSection(page, providerType, "Personal Information");
+
+        page.fillDemographics(List.of(1980,6,30), "U");
 
         // Prefix
 
@@ -349,6 +351,23 @@ public class CreateProviderTests implements SimpleTest {
             assertEquals(errorMessageList.getFirst(), errorList.get("foreignCharacterIdentifier"),
                     "Expected error message for invalid identifier not found.");
         }
+    }
+
+    // Create Provider - Validate Name Type Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateNameTypeCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        ViewProviderPage viewPage = actions.finishCreateFlow(page, providerType, "Identifier");
+
+        Map<String,String> nameContent = viewPage.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0);
+        assertEquals(nameContent.get("Name Type"), "Current Known Name (CURR)",
+                "Expected name type code to default to 'CURR'.");
     }
 
     // Create Provider - Validate Provider Role Type
