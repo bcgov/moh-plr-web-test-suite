@@ -147,6 +147,7 @@ extends BasicWebPageFragment
     {
         WebElement item = findItem(itemPrefix);
         selenium_.scrollIntoView(item);
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(item));
         String itemLabel = item.getText();
         item.click();
         waitForItemPanelExpanded(false);

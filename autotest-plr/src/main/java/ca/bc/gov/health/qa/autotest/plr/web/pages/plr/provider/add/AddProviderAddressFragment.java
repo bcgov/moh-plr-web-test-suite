@@ -71,6 +71,8 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
      */
     public String selectAddressType(String addressType)
     {
+        // Scroll dropdown into view before expanding to ensure panel appears in visible area
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector("label#form\\:addressType_label")));
         DropDownMenu menu = getAddressTypeMenu();
         menu.expandItemPanel(true);
         menu.selectItem(addressType);
@@ -109,6 +111,8 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
      * @return a string of the currently selected Address Purpose option after selection
      */
     public String selectAddressPurpose(String addressPurpose) {
+        // Scroll dropdown into view before expanding to ensure panel appears in visible area
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector("label#form\\:addressPurpose_label")));
         DropDownMenu menu = getAddressPurposeMenu();
         menu.expandItemPanel(true);
         menu.selectItem(addressPurpose);
@@ -150,6 +154,13 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
      * @return a string of the city selected from the autocomplete menu
      */
     public String fillCity(String city) { return getCityMenu().fillItem(city, null); }
+
+    /**
+     * Fills in the City field directly without using autocomplete.
+     * Use this when testing invalid city values that won't match autocomplete suggestions.
+     * @param city the city text to fill in the field
+     */
+    public void fillCityRaw(String city) { selenium_.fillFieldByCss(CITY_FIELD_CSS, city); }
 
     /**
      * Fills in the City field and selects an option from the resulting menu
