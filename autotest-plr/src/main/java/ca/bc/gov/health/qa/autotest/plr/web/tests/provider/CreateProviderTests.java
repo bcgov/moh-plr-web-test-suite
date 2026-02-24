@@ -263,6 +263,47 @@ public class CreateProviderTests implements SimpleTest {
                 "Expertise 'Effective From' date did not default to current date.");
     }
 
+    // Create Provider - Auto-linking of Provider Roles and Individual Provider
+    @Test
+    public void testAutolinkingProviderRoles()
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        String linkedRNID = UpdateSimpleHelper.generateNumericString(12);
+
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        page.fillIdentifier(ProviderRoleType.RN, null, null, "RNID", linkedRNID);
+
+        ViewProviderPage viewPage = actions.finishCreateFlow(page, ProviderType.BC_PRACTITIONER, "Status");
+
+        String linkedCPN = "";
+        for (int i = 0; i < viewPage.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++)
+        {
+            Map<String,String> identifierBlock = viewPage.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
+            if (!identifierBlock.get("Type").equals("Common Party Number (CPN)")) continue;
+            linkedCPN = identifierBlock.get("Identifier");
+            break;
+        }
+        if (linkedCPN.isEmpty())
+            fail("Expected linked CPN identifier not found for provider role with RNID '" + linkedRNID + "'.");
+
+        page = workflow.getPlrWebAccessActions().openAddProvider();
+        page.fillIdentifier(ProviderRoleType.RNP, null, null, "RNID", linkedRNID);
+
+        viewPage = actions.finishCreateFlow(page, ProviderType.BC_PRACTITIONER, "Status");
+
+        for (int i = 0; i < viewPage.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++)
+        {
+            Map<String,String> identifierBlock = viewPage.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
+            if (!identifierBlock.get("Type").equals("Common Party Number (CPN)")) continue;
+            assertEquals(identifierBlock.get("Identifier"), linkedCPN,
+                    "Expected linked CPN identifier value '" + linkedCPN +
+                            "' not found for provider role with RNID '" + linkedRNID + "'.");
+            break;
+        }
+    }
+
     // Create Provider - Code Validation Restriction - Identifier
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionIdentifier(ProviderType providerType)
