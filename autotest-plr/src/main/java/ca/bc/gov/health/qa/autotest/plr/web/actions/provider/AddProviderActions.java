@@ -10,8 +10,12 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusCodeOption;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusReasonCodeOption;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
+import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
+
+import static org.testng.Assert.assertTrue;
 
 /**
  * Actions class for the Add Provider page/functions
@@ -24,6 +28,20 @@ public class AddProviderActions {
      * @param selenium The current SeleniumSession
      */
     public AddProviderActions(SeleniumSession selenium) { selenium_ = selenium; }
+
+    /**
+     * Checks that a block with the specified name is visible on the page.
+     * Used to verify that expected sections of the add provider form are displayed after navigating to them.
+     * @param blockName the name of the block/section to check for visibility (e.g. "Personal Information", "Address", etc.)
+     */
+    public void checkBlockVisibility(String blockName)
+    {
+        By blockLocator = By.xpath(String.format(
+                "//table//tbody//tr//td//div//div//span[text() = '%s']", blockName));
+
+        assertTrue(selenium_.grabElementVisible(blockLocator),
+                String.format("Expected block '%s' to be visible", blockName));
+    }
 
     /**
      * Navigates through the add provider flow up to the specified section

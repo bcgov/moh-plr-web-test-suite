@@ -8,10 +8,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.AddProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderDemographicFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderIdFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderStatusFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.*;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
@@ -24,8 +21,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -62,6 +58,211 @@ public class CreateProviderTests implements SimpleTest {
         }
     }
 
+    // Create Provider
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testCreateProvider(ProviderType providerType)
+    {
+
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        assertEquals(page.getStep(), "Identifier and Status",
+                "Did not navigate to expected first step of add provider flow.");
+        actions.checkBlockVisibility("Identifier");
+        actions.checkBlockVisibility("Status");
+
+        actions.skipToSection(page, providerType, "Personal Information");
+
+        assertEquals(page.getStep(), "Name",
+                "Did not navigate to expected step after completing Identifier and Status step");
+        actions.checkBlockVisibility("Personal Information");
+        actions.checkBlockVisibility("Demographic Details");
+
+        page.fillPI("Jr.", "Test", "Second", "Third", "Provider");
+        page.fillDemographics(List.of(2020, 1, 1), "U");
+        page.clickNext("Demographic Details", "");
+        page.waitForAddProviderStep("Address", true);
+
+        assertEquals(page.getStep(), "Contact",
+                "Did not navigate to expected step after completing Name step");
+        actions.checkBlockVisibility("Address");
+        actions.checkBlockVisibility("Phone Number");
+        actions.checkBlockVisibility("Fax Number");
+        actions.checkBlockVisibility("Email");
+
+        AddProviderAddressFragment address = page.fillAddress("P", "HC",
+                List.of("123 Test St", "Unit 1", "Lot 4"), "Victoria", "BC", "CA", "V9V9V9");
+        page.fillPhone("250", "5551234", "123");
+        page.fillFax("250", "5555678");
+        page.fillEmail("test@example.com");
+        page.clickNext("Address", "Address Invalid");
+        address.handleWidgetButton("Address Invalid");
+        page.waitForAddProviderStep("Credential", true);
+
+        assertEquals(page.getStep(), "Credential and Expertise",
+                "Did not navigate to expected step after completing Contact step");
+        actions.checkBlockVisibility("Credential");
+        actions.checkBlockVisibility("Expertise");
+
+        ViewProviderPage viewPage = actions.finishCreateFlow(page, providerType, "Credentials");
+
+        // Role Type
+        String expectedIdentifierType = "Optometrist ID Number (OPTID)";
+        Map<String,String> roleBlock = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER))
+        {
+            assertEquals(roleBlock.get("Role Type"),
+                    "OOP-RECT (Out of Province Recreation Therapist)",
+                    "Provider role type did not save expected value.");
+            expectedIdentifierType = "Out of Province Provider ID (OOPID)";
+        } else {
+            assertEquals(roleBlock.get("Role Type"), "OPT (Optometrist)",
+                    "Role Type did not save expected value.");
+        }
+
+        // Identifiers
+        boolean foundIdentifier = false;
+        for (int i = 0; i < viewPage.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++)
+        {
+            Map<String, String> identifierBlock = viewPage.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
+            if (!identifierBlock.get("Type").equals(expectedIdentifierType)) continue;
+
+            assertEquals(identifierBlock.get("Identifier"), "1",
+                    "Identifier value did not save expected value.");
+            assertEquals(identifierBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                    "Identifier 'Effective From' date did not default to current date.");
+            foundIdentifier = true;
+        }
+        if (!foundIdentifier)
+        {
+            fail("Expected identifier type '" + expectedIdentifierType + "' not found in provider view page.");
+        }
+
+        // Statuses
+        Map<String,String> statusBlock = viewPage.grabDataBlockContent(ProviderSection.STATUSES, 0);
+        assertEquals(statusBlock.get("Type"), "Active (ACTIVE)",
+                "Status type did not save expected value.");
+        assertEquals(statusBlock.get("Class"), "Licensure (LIC)",
+                "Status class code did not save expected value.");
+        assertEquals(statusBlock.get("Reason"), "Good Standing (GS)",
+                "Status reason code did not save expected value.");
+        assertEquals(statusBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Status 'Effective From' date did not default to current date.");
+
+        // Names
+        Map<String, String> nameBlock = viewPage.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0);
+        assertEquals(nameBlock.get("Prefix"), "Jr.",
+                "Prefix did not save expected value.");
+        assertEquals(nameBlock.get("First Name"), "Test",
+                "First name did not save expected value.");
+        assertEquals(nameBlock.get("Second Name"), "Second",
+                "Second name did not save expected value.");
+        assertEquals(nameBlock.get("Third Name"), "Third",
+                "Third name did not save expected value.");
+        assertEquals(nameBlock.get("Surname"), "Provider",
+                "Surname did not save expected value.");
+        assertEquals(nameBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Name 'Effective From' date did not default to current date.");
+
+        // Demographics
+        Map<String, String> demoBlock = viewPage.grabDataBlockContent(ProviderSection.DEMOGRAPHICS, 0);
+        assertEquals(demoBlock.get("Birth Date"), "2020-01-01",
+                "Date of Birth did not save expected value.");
+        assertEquals(demoBlock.get("Gender"), "Unknown (U)",
+                "Gender did not save expected value.");
+        assertEquals(demoBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Demographics 'Effective From' date did not default to current date.");
+
+        // Addresses
+        Map<String, String> addressBlock = viewPage.grabDataBlockContent(ProviderSection.ADDRESSES, 0);
+        assertEquals(addressBlock.get("Address Type"), "Physical location (P)",
+                "Address type did not save expected value.");
+        assertEquals(addressBlock.get("Address Purpose"), "Home Contact (HC)",
+                "Address purpose did not save expected value.");
+        assertEquals(addressBlock.get("Address Line 1"), "123 Test St",
+                "Address Line 1 did not save expected value.");
+        assertEquals(addressBlock.get("Address Line 2"), "Unit 1",
+                "Address Line 2 did not save expected value.");
+        assertEquals(addressBlock.get("Address Line 3"), "Lot 4",
+                "Address Line 3 did not save expected value.");
+        assertEquals(addressBlock.get("Country"), "CANADA (CA)",
+                "Country did not save expected value.");
+        assertEquals(addressBlock.get("State/Prov"), "BC",
+                "Province/State did not save expected value.");
+        assertEquals(addressBlock.get("City"), "Victoria",
+                "City did not save expected value.");
+        assertEquals(addressBlock.get("Postal/Zip Code"), "V9V 9V9",
+                "Postal code did not save expected value.");
+        assertEquals(addressBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Address 'Effective From' date did not default to current date.");
+
+        // Telecommunications
+        for (int i = 0; i < viewPage.grabDataBlockCount(ProviderSection.TELECOMMUNICATIONS); i++)
+        {
+            Map<String, String> telecomBlock = viewPage.grabDataBlockContent(ProviderSection.TELECOMMUNICATIONS, i);
+            if (telecomBlock.get("Type").equals("Fax (FAX)"))
+            {
+                assertEquals(telecomBlock.get("Area Code"), "250",
+                        "Fax area code did not save expected value.");
+                assertEquals(telecomBlock.get("Number"), "5555678",
+                        "Fax number did not save expected value.");
+            }
+            if (telecomBlock.get("Type").equals("Telephone (T)"))
+            {
+                assertEquals(telecomBlock.get("Area Code"), "250",
+                        "Phone area code did not save expected value.");
+                assertEquals(telecomBlock.get("Number"), "5551234",
+                        "Phone number did not save expected value.");
+                assertEquals(telecomBlock.get("Extension"), "123",
+                        "Phone extension did not save expected value.");
+            }
+            assertEquals(telecomBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                    "Telecommunications 'Effective From' date did not default to current date.");
+        }
+
+        // Electronic Addresses
+        Map<String, String> emailBlock = viewPage.grabDataBlockContent(ProviderSection.ELECTRONIC_ADDRESSES, 0);
+        assertEquals(emailBlock.get("Address"), "test@example.com",
+                "Email did not save expected value.");
+        assertEquals(emailBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Electronic Address 'Effective From' date did not default to current date.");
+
+        // Credentials
+        Map<String, String> credentialBlock = viewPage.grabDataBlockContent(ProviderSection.CREDENTIALS, 0);
+        assertEquals(credentialBlock.get("Credential Type"), "Bachelor Degree (BD)",
+                "Credential type did not save expected value.");
+        assertEquals(credentialBlock.get("Designation"), "Test",
+                "Credential designation did not save expected value.");
+        assertEquals(credentialBlock.get("Registration Number"), "5358",
+                "Registration number did not save expected value.");
+        assertEquals(credentialBlock.get("Granting Institution"), "TestInst",
+                "Granting institution did not save expected value.");
+        assertEquals(credentialBlock.get("Equivalency Flag"), "Yes",
+                "Equivalency flag did not save expected value.");
+        assertEquals(credentialBlock.get("Institution City"), "Victoria",
+                "Institution city did not save expected value.");
+        assertEquals(credentialBlock.get("Institution Country"), "CANADA (CA)",
+                "Institution country did not save expected value.");
+        assertEquals(credentialBlock.get("Institution Prov/State"), "British Columbia (BC)",
+                "Institution province/state did not save expected value.");
+        assertEquals(credentialBlock.get("Year Issued"), "2001",
+                "Credential year issued did not save expected value.");
+        assertEquals(credentialBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Credential 'Effective From' date did not default to current date.");
+
+        // Expertise
+        Map<String, String> expertiseBlock = viewPage.grabDataBlockContent(ProviderSection.EXPERTISE, 0);
+        assertEquals(expertiseBlock.get("Type"), "English (ENG)",
+                "Expertise type did not save expected value.");
+        assertEquals(expertiseBlock.get("Source's Code"), "2500",
+                "Expertise description did not save expected value.");
+        assertEquals(expertiseBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Expertise 'Effective From' date did not default to current date.");
+    }
+
     // Create Provider - Code Validation Restriction - Identifier
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionIdentifier(ProviderType providerType)
@@ -69,7 +270,7 @@ public class CreateProviderTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
 
-        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
         AddProviderIdFragment id = page.fillIdentifier(null, null, null, null, null);
         List<String> roleOptions = id.getProviderRoleTypeOptions();
