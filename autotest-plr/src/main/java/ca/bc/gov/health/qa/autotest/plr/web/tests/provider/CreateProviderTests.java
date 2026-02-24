@@ -115,9 +115,9 @@ public class CreateProviderTests implements SimpleTest {
         if (providerType.equals(ProviderType.OOP_PRACTITIONER))
         {
             assertEquals(roleBlock.get("Role Type"),
-                    "OOP-RECT (Out of Province Recreation Therapist)",
+                    "OOP-RECT (OOP Recreation Therapist)",
                     "Provider role type did not save expected value.");
-            expectedIdentifierType = "Out of Province Provider ID (OOPID)";
+            expectedIdentifierType = "Out of Province Provider (OOPID)";
         } else {
             assertEquals(roleBlock.get("Role Type"), "OPT (Optometrist)",
                     "Role Type did not save expected value.");
