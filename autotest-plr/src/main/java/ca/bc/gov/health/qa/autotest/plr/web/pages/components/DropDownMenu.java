@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -51,8 +52,8 @@ extends BasicWebPageFragment
     {
         if (grabItemPanelExpanded() != expand)
         {
-            selenium_.findElement(mainLocator_).click();
-            waitForItemPanelExpanded(expand);
+			selenium_.findElement(mainLocator_).click();
+			waitForItemPanelExpanded(expand);
         }
     }
 

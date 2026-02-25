@@ -120,6 +120,21 @@ public class PlrWebAccessActions
     }
 
     /**
+     * Opens theAdd Organization page
+     *
+     * @return an AddProviderPage object for the add provider page
+     */
+    public AddProviderPage openAddOrganization()
+    {
+        waitForPlrNavigationMenuFragment().openItem(Item.ADD_PROVIDER);
+        String ur = selenium_.getDriver().getCurrentUrl();
+        if (uri_ != null) {
+			String ss=uri_.toString()+"AddProvider.xhtml?"+"type=ORG&OOP=false";
+		//	waitForReady();
+		}
+        return new AddProviderPage(selenium_, "(Organization)");
+    }
+    /**
      * Opens the Add Facility page
      *
      * @return  an AddFacilityPage object for the add facility page
@@ -162,4 +177,5 @@ public class PlrWebAccessActions
         addFacility.waitForReady();
         return addFacility;
     }
+	
 }
