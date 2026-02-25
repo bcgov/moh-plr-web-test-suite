@@ -351,6 +351,120 @@ public class CreateProviderTests implements SimpleTest {
         }
     }
 
+    // Create Provider - Individual Provider Minimum Data
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testIndProviderMinimumData(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        String identifierType = "OPTID";
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) {
+            page = page.changeProviderType(providerType);
+            identifierType = "OOPID";
+        }
+
+        page.fillIdentifier(null, null, null, identifierType, "1");
+        page.fillStatus(null, null, null);
+        page.clickNext("Status", "");
+        page.waitForAddProviderStep("Personal Information", true);
+
+        page.fillPI(null, "Minimum", null, null, "Data");
+        page.fillDemographics(List.of(1980, 6, 30), "U");
+        page.clickNext("Demographic Details", "");
+        page.waitForAddProviderStep("Address", true);
+
+        AddProviderAddressFragment address = page.fillAddress("P", "MC",
+                List.of("123 Test St", "", ""), "Victoria", null, null, null);
+        page.clickNext("Address", "Address Invalid");
+        address.handleWidgetButton("Address Invalid");
+        page.waitForAddProviderStep("Credential", true);
+
+        ViewProviderPage viewPage = page.clickSubmitButton();
+
+        // Role Type
+        String expectedIdentifierType = "Optometrist ID Number (OPTID)";
+        Map<String,String> roleBlock = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER))
+        {
+            assertEquals(roleBlock.get("Role Type"),
+                    "OOP-RECT (OOP Recreation Therapist)",
+                    "Provider role type did not save expected value.");
+            expectedIdentifierType = "Out of Province Provider (OOPID)";
+        } else {
+            assertEquals(roleBlock.get("Role Type"), "OPT (Optometrist)",
+                    "Role Type did not save expected value.");
+        }
+
+        // Identifiers
+        boolean foundIdentifier = false;
+        for (int i = 0; i < viewPage.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++)
+        {
+            Map<String, String> identifierBlock = viewPage.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
+            if (!identifierBlock.get("Type").equals(expectedIdentifierType)) continue;
+
+            assertEquals(identifierBlock.get("Identifier"), "1",
+                    "Identifier value did not save expected value.");
+            assertEquals(identifierBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                    "Identifier 'Effective From' date did not default to current date.");
+            foundIdentifier = true;
+        }
+        if (!foundIdentifier)
+        {
+            fail("Expected identifier type '" + expectedIdentifierType + "' not found in provider view page.");
+        }
+
+        // Statuses
+        Map<String,String> statusBlock = viewPage.grabDataBlockContent(ProviderSection.STATUSES, 0);
+        assertEquals(statusBlock.get("Type"), "Active (ACTIVE)",
+                "Status type did not save expected value.");
+        assertEquals(statusBlock.get("Class"), "Licensure (LIC)",
+                "Status class code did not save expected value.");
+        assertEquals(statusBlock.get("Reason"), "Good Standing (GS)",
+                "Status reason code did not save expected value.");
+        assertEquals(statusBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Status 'Effective From' date did not default to current date.");
+
+        // Names
+        Map<String, String> nameBlock = viewPage.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0);
+        assertEquals(nameBlock.get("Name Type"), "Current Known Name (CURR)",
+                "Name Type did not save expected default value.");
+        assertEquals(nameBlock.get("First Name"), "Minimum",
+                "First name did not save expected value.");
+        assertEquals(nameBlock.get("Surname"), "Data",
+                "Surname did not save expected value.");
+        assertEquals(nameBlock.get("Preferred"), "No",
+                "Preferred Flag did not save expected default value.");
+        assertEquals(nameBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Name 'Effective From' date did not default to current date.");
+
+        // Demographics
+        Map<String, String> demoBlock = viewPage.grabDataBlockContent(ProviderSection.DEMOGRAPHICS, 0);
+        assertEquals(demoBlock.get("Birth Date"), "1980-06-30",
+                "Date of Birth did not save expected value.");
+        assertEquals(demoBlock.get("Gender"), "Unknown (U)",
+                "Gender did not save expected value.");
+        assertEquals(demoBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Demographics 'Effective From' date did not default to current date.");
+
+        // Addresses
+        Map<String, String> addressBlock = viewPage.grabDataBlockContent(ProviderSection.ADDRESSES, 0);
+        assertEquals(addressBlock.get("Address Type"), "Physical location (P)",
+                "Address type did not save expected value.");
+        assertEquals(addressBlock.get("Address Purpose"), "Ministry Contact (MC)",
+                "Address purpose did not save expected value.");
+        assertEquals(addressBlock.get("Address Line 1"), "123 Test St",
+                "Address Line 1 did not save expected value.");
+        assertEquals(addressBlock.get("Country"), "CANADA (CA)",
+                "Country did not save expected value.");
+        assertEquals(addressBlock.get("State/Prov"), "BC",
+                "Province/State did not save expected value.");
+        assertEquals(addressBlock.get("City"), "Victoria",
+                "City did not save expected value.");
+        assertEquals(addressBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                "Address 'Effective From' date did not default to current date.");
+    }
+
     // Create Provider - Validate Date of Birth
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateDOB(ProviderType providerType)
@@ -359,7 +473,7 @@ public class CreateProviderTests implements SimpleTest {
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
         AddProviderActions actions = workflow.getAddProviderActions();
 
-        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
         actions.skipToSection(page, providerType, "Demographic Details");
 

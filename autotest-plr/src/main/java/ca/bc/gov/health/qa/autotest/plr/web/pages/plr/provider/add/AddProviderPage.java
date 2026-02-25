@@ -346,7 +346,7 @@ public class AddProviderPage extends BasicWebPage {
         addressFragment.fillCity(city);
         if (province != null) addressFragment.selectProvinceState(province);
         if (country != null) addressFragment.selectCountry(country);
-        addressFragment.fillPostalCode(postalCode);
+        if (postalCode != null) addressFragment.fillPostalCode(postalCode);
 
         if (effectiveFrom == null) addressFragment.effectiveFromCurrentDate();
         else  addressFragment.effectiveFromSpecificDate(
