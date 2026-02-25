@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
@@ -9,6 +10,8 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
@@ -62,6 +65,25 @@ public class AddProviderPage extends BasicWebPage {
         }
         return this;
     }
+    
+    
+    /**
+     * Open the add provider/organization/OOP page 
+     * @param providerType the provider type to be added
+     * @return  a new AddProviderPage object with the provider type specified
+     */
+    public AddProviderPage openProviderPage( ProviderType providerType) {
+	    List<WebElement> providerMenu = selenium_.findElements(
+                By.cssSelector("div#headerForm\\:subMenuPanelHolder > div > div > menu > li"));
+        String expectedHeader = switch (providerType) {
+            case BC_PRACTITIONER -> "(BC Practitioner)";
+            case OOP_PRACTITIONER -> "(OOP Practitioner)";
+            case ORGANIZATION -> "(Organization)";
+            };            
+        providerMenu.get(providerType.ordinal()).click();
+        selenium_.waitUntil(SeleniumExpectedConditions.pageToBeReady());
+        return new AddProviderPage(selenium_, expectedHeader);       
+}
 
     /**
      * Waits for the error/warning messages to appear
@@ -161,6 +183,39 @@ public class AddProviderPage extends BasicWebPage {
 
         return fragment;
     }
+    
+    
+	public AddProviderIdFragment fillOrganizationIdentifier(OrganizationalProviderRoleType roleType, HdsType hdsType, String hdsSubType,
+			String identifierType, String identifier) {
+		AddProviderIdFragment fragment = new AddProviderIdFragment(selenium_, providerType);
+
+		if (roleType != null) {
+			fragment.selectProviderRoleType(roleType);
+			
+			if(OrganizationalProviderRoleType.HDS.equals(roleType)){
+				WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
+				selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+
+			}
+			if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
+				
+				selenium_
+						.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));
+
+				fragment.selectHdsType(hdsType);
+				if (hdsSubType != null)
+					fragment.selectHdsSubType(hdsSubType);
+			}
+		}
+		if (identifierType != null)
+			fragment.selectIdentifierType(identifierType);
+		if (identifier != null)
+			fragment.fillIdentifier(identifier);
+		fragment.effectiveFromCurrentDate();
+
+		return fragment;
+	}
+
 
     /**
      * Fills the status form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
@@ -708,14 +763,58 @@ public class AddProviderPage extends BasicWebPage {
 
         if (!expectedError) waitForAddProviderStep(currentState, false);
     }
+    
+    @FindBy(how = How.XPATH, using = "//div[contains(.,'Address Recommended')]/button[contains(.,'Continue w/ Original')]")
+	private WebElement addrValContinueWithOriginal1;
+	@FindBy(how = How.XPATH, using = "//div[not(contains(.,'Address Recommended')) and contains(.,'Address Provided')]/button[contains(.,'Continue w/ Original')]")
+	private WebElement addrValContinueWithOriginal2;
+    
+    public static void closeAddressValidationDialogWithContinue(WebElement addrValContinueWithOriginal1,
+			WebElement addrValContinueWithOriginal2) throws InterruptedException {
+		Thread.sleep(4000);
+		if (addrValContinueWithOriginal1.isDisplayed()) {
+			addrValContinueWithOriginal1.click();
+			Thread.sleep(1000);
+		} else if (addrValContinueWithOriginal2.isDisplayed()) {
+			addrValContinueWithOriginal2.click();
+			Thread.sleep(1000);
+		}
+		Thread.sleep(1000);
+	}
+    
+    
+    public static void closeAddressValidationDialogWithCancel(WebElement addrValContinueWithOriginal1,
+			WebElement addrValContinueWithOriginal2, WebElement addrValCancel1, WebElement addrValCancel2)
+			throws InterruptedException {
+		Thread.sleep(4000);
+		if (addrValContinueWithOriginal1.isDisplayed() && addrValCancel1.isDisplayed()) {
+			addrValCancel1.click();
+			Thread.sleep(1000);
+		} else if (addrValContinueWithOriginal2.isDisplayed() && addrValCancel2.isDisplayed()) {
+			addrValCancel2.click();
+			Thread.sleep(1000);
+		}
+		Thread.sleep(1000);
+	}
 
-    /**
-     * Gets the currently highlighted step in the Add Provider flow
-     *
-     * @return  a string of the highlighted step
-     */
-    public String getStep()
-    {
-        return selenium_.findElementByCss("div.ui-wizard.ui-widget > ul > li.ui-state-highlight").getText();
-    }
+	public AddOrganizationNameFragment fillOrganizationName(String name, String desc) {
+		AddOrganizationNameFragment fragment = new AddOrganizationNameFragment(selenium_);
+
+	        if (name != null) fragment.fillName(name);
+	        if (desc != null) fragment.fillDesc(desc);
+	    
+	        fragment.effectiveFromCurrentDate();
+
+	        return fragment;
+		
+	}
+	/**
+	     * Gets the currently highlighted step in the Add Provider flow
+	     *
+	     * @return  a string of the highlighted step
+	     */
+	    public String getStep()
+	    {
+	        return selenium_.findElementByCss("div.ui-wizard.ui-widget > ul > li.ui-state-highlight").getText();
+	    }
 }
