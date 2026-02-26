@@ -1,7 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.actions.provider;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderAddressFragment;
@@ -14,7 +13,6 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusCodeOption;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusReasonCodeOption;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
 import java.util.Map;
@@ -58,14 +56,7 @@ public class AddProviderActions {
      */
     public AddProviderPage skipToSection(AddProviderPage page, ProviderType providerType, String section)
     {
-        switch (providerType) {
-            case OOP_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
-            case BC_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
-            case ORGANIZATION ->
-                    page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
-        }
+        fillIdentifierByType(providerType, page);
         if (section.equals("Status")) { return page; }
 
         page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
@@ -116,12 +107,7 @@ public class AddProviderActions {
     {
         switch (currentFragment) {
             case "Identifier":
-                switch (providerType) {
-                    case OOP_PRACTITIONER -> page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
-                    case BC_PRACTITIONER -> page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
-                    case ORGANIZATION ->
-                            page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
-                }
+                fillIdentifierByType(providerType, page);
             case "Status":
                 page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
                 page.clickNext("Status", "");
@@ -281,5 +267,23 @@ public class AddProviderActions {
         List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
         assertEquals(errorMessageList.getFirst(), errorList.get(String.format("missingStatus%sCode", error)),
                 String.format("Expected error message for missing status field '%s' not found.", error));
+    }
+
+    /**
+     * Fills in the identifier section of the add provider flow based on the provider type
+     * @param providerType the type of provider being added, which determines the identifier type filled
+     * @param page the AddProviderPage object representing the current page of the add provider flow,
+     *             expects to be on the identifier section of the flow
+     */
+    private void fillIdentifierByType(ProviderType providerType, AddProviderPage page)
+    {
+        switch (providerType) {
+            case OOP_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
+            case BC_PRACTITIONER ->
+                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
+            case ORGANIZATION ->
+                    page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
+        }
     }
 }
