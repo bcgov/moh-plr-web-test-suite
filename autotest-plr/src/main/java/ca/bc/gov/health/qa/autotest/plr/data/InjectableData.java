@@ -10,7 +10,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 
 /**
- * TODO (AZ) - doc
+ * Provides data for TestNG data-driven tests related to injectable providers and users.
  */
 public class InjectableData
 {
@@ -18,9 +18,9 @@ public class InjectableData
     {}
 
     /**
-     * TODO (AZ) - doc
+     * Returns a two-dimensional array of all provider types for use in TestNG data-driven tests.
      *
-     * @return ???
+     * @return a two-dimensional array of all provider types, where each inner array contains a single ProviderType value
      */
     @DataProvider(name = "allProviderTypes")
     public static Object[][] getAllProviderTypes()
@@ -33,6 +33,11 @@ public class InjectableData
         return toArray(data);
     }
 
+    /**
+     * Returns a two-dimensional array of practitioner provider types for use in TestNG data-driven tests.
+     * @return a two-dimensional array of practitioner provider types,
+     *         where each inner array contains a single ProviderType value that is not ORGANIZATION
+     */
     @DataProvider(name = "practitioners")
     public static Object[][] getPractitioners()
     {
@@ -45,9 +50,9 @@ public class InjectableData
     }
 
     /**
-     * TODO (AZ) - doc
+     * Returns a two-dimensional array of all PLR user types for use in TestNG data-driven tests.
      *
-     * @return ???
+     * @return a two-dimensional array of all PLR user types, where each inner array contains a single UserType value
      */
     @DataProvider(name = "allPlrUserTypes")
     public static Object[][] getAllPlrUserTypes()
@@ -79,9 +84,10 @@ public class InjectableData
     }
 
     /**
-     * TODO (AZ) - doc
+     * Returns a two-dimensional array of all combinations of PLR user types and provider types for use in TestNG data-driven tests.
      *
-     * @return ???
+     * @return a two-dimensional array of all combinations of PLR user types and provider types,
+     *         where each inner array contains a UserType value and a ProviderType value
      */
     @DataProvider(name = "allPlrUserTypesProviderTypes")
     public static Object[][] getAllPlrUserTypesProviderTypes()

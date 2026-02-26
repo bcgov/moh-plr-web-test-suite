@@ -551,6 +551,54 @@ public class CreateProviderTests implements SimpleTest {
         assertEquals(nameBlock.get("Surname"), expectedSurname, "Surname did not save correctly.");
     }
 
+    // Create Provider - Validate Provider Expertise Original Source
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderExpertiseOriginalSource(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Expertise");
+
+        AddProviderExpertiseFragment expertise = page.fillExpertise("ENG", UpdateSimpleHelper.generateNumericString(51));
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("expertiseSourceTooLong"),
+                "Expected error message for exceeding max length of expertise original source not found.");
+
+        expertise.fillSourceCode(UpdateSimpleHelper.generateNumericString(50));
+        ViewProviderPage viewPage = page.clickSubmitButton();
+
+        Map<String, String> expertiseBlock = viewPage.grabDataBlockContent(ProviderSection.EXPERTISE, 0);
+        assertEquals(expertiseBlock.get("Source's Code").length(), 50,
+                "Expertise original source code of maximum length is not fully displayed.");
+
+        page = workflow.getPlrWebAccessActions().openAddProvider();
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Expertise");
+
+        page.fillExpertise("ENG", "");
+        viewPage = page.clickSubmitButton();
+
+        expertiseBlock = viewPage.grabDataBlockContent(ProviderSection.EXPERTISE, 0);
+        assertEquals(expertiseBlock.get("Source's Code"), "",
+                "Expertise original source code did not save empty value correctly.");
+
+        page = workflow.getPlrWebAccessActions().openAddProvider();
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential");
+        viewPage = page.clickSubmitButton();
+
+        assertEquals(viewPage.grabDataBlockCount(ProviderSection.EXPERTISE), 0,
+                "Expertise block is displayed when no expertise information is entered.");
+    }
+
     // Create Provider - Validate Provider Identifiers
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testValidateProviderIdentifiers(ProviderType providerType)
