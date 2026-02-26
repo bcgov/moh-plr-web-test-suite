@@ -36,13 +36,12 @@ public class CreateProviderTests implements SimpleTest {
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
-    private static JSONObject errorList, warningList;
+    public static JSONObject errorList;
 
     private CreateProviderTests() {
         try
         {
             errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
-            warningList = new JSONObject(Files.readString(errorPath)).getJSONObject("warnings");
         }
         catch (IOException e)
         {
@@ -69,7 +68,6 @@ public class CreateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testCreateProvider(ProviderType providerType)
     {
-
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
         AddProviderActions actions = workflow.getAddProviderActions();
@@ -89,7 +87,7 @@ public class CreateProviderTests implements SimpleTest {
         actions.checkBlockVisibility("Demographic Details");
 
         page.fillPI("Jr.", "Test", "Second", "Third", "Provider");
-        page.fillDemographics(List.of(2020, 1, 1), "U");
+        page.fillDemographics(List.of(1980, 6, 30), "U");
         page.clickNext("Demographic Details", "");
         page.waitForAddProviderStep("Address", true);
 
@@ -100,7 +98,7 @@ public class CreateProviderTests implements SimpleTest {
         actions.checkBlockVisibility("Fax Number");
         actions.checkBlockVisibility("Email");
 
-        AddProviderAddressFragment address = page.fillAddress("P", "HC",
+        AddProviderAddressFragment address = page.fillAddress("P", "MC",
                 List.of("123 Test St", "Unit 1", "Lot 4"), "Victoria", "BC", "CA", "V9V9V9");
         page.fillPhone("250", "5551234", "123");
         page.fillFax("250", "5555678");
@@ -116,48 +114,12 @@ public class CreateProviderTests implements SimpleTest {
 
         ViewProviderPage viewPage = actions.finishCreateFlow(page, providerType, "Credentials");
 
-        // Role Type
-        String expectedIdentifierType = "Optometrist ID Number (OPTID)";
-        Map<String,String> roleBlock = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-        if (providerType.equals(ProviderType.OOP_PRACTITIONER))
+        for (ProviderSection section : List.of(ProviderSection.ROLE_TYPE, ProviderSection.IDENTIFIERS,
+                ProviderSection.STATUSES, ProviderSection.DEMOGRAPHICS,
+                ProviderSection.ADDRESSES))
         {
-            assertEquals(roleBlock.get("Role Type"),
-                    "OOP-RECT (OOP Recreation Therapist)",
-                    "Provider role type did not save expected value.");
-            expectedIdentifierType = "Out of Province Provider (OOPID)";
-        } else {
-            assertEquals(roleBlock.get("Role Type"), "OPT (Optometrist)",
-                    "Role Type did not save expected value.");
+            actions.checkMinimumData(section, viewPage, providerType);
         }
-
-        // Identifiers
-        boolean foundIdentifier = false;
-        for (int i = 0; i < viewPage.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++)
-        {
-            Map<String, String> identifierBlock = viewPage.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
-            if (!identifierBlock.get("Type").equals(expectedIdentifierType)) continue;
-
-            assertEquals(identifierBlock.get("Identifier"), "1",
-                    "Identifier value did not save expected value.");
-            assertEquals(identifierBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
-                    "Identifier 'Effective From' date did not default to current date.");
-            foundIdentifier = true;
-        }
-        if (!foundIdentifier)
-        {
-            fail("Expected identifier type '" + expectedIdentifierType + "' not found in provider view page.");
-        }
-
-        // Statuses
-        Map<String,String> statusBlock = viewPage.grabDataBlockContent(ProviderSection.STATUSES, 0);
-        assertEquals(statusBlock.get("Type"), "Active (ACTIVE)",
-                "Status type did not save expected value.");
-        assertEquals(statusBlock.get("Class"), "Licensure (LIC)",
-                "Status class code did not save expected value.");
-        assertEquals(statusBlock.get("Reason"), "Good Standing (GS)",
-                "Status reason code did not save expected value.");
-        assertEquals(statusBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
-                "Status 'Effective From' date did not default to current date.");
 
         // Names
         Map<String, String> nameBlock = viewPage.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0);
@@ -174,33 +136,12 @@ public class CreateProviderTests implements SimpleTest {
         assertEquals(nameBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
                 "Name 'Effective From' date did not default to current date.");
 
-        // Demographics
-        Map<String, String> demoBlock = viewPage.grabDataBlockContent(ProviderSection.DEMOGRAPHICS, 0);
-        assertEquals(demoBlock.get("Birth Date"), "2020-01-01",
-                "Date of Birth did not save expected value.");
-        assertEquals(demoBlock.get("Gender"), "Unknown (U)",
-                "Gender did not save expected value.");
-        assertEquals(demoBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
-                "Demographics 'Effective From' date did not default to current date.");
-
         // Addresses
         Map<String, String> addressBlock = viewPage.grabDataBlockContent(ProviderSection.ADDRESSES, 0);
-        assertEquals(addressBlock.get("Address Type"), "Physical location (P)",
-                "Address type did not save expected value.");
-        assertEquals(addressBlock.get("Address Purpose"), "Home Contact (HC)",
-                "Address purpose did not save expected value.");
-        assertEquals(addressBlock.get("Address Line 1"), "123 Test St",
-                "Address Line 1 did not save expected value.");
         assertEquals(addressBlock.get("Address Line 2"), "Unit 1",
                 "Address Line 2 did not save expected value.");
         assertEquals(addressBlock.get("Address Line 3"), "Lot 4",
                 "Address Line 3 did not save expected value.");
-        assertEquals(addressBlock.get("Country"), "CANADA (CA)",
-                "Country did not save expected value.");
-        assertEquals(addressBlock.get("State/Prov"), "BC",
-                "Province/State did not save expected value.");
-        assertEquals(addressBlock.get("City"), "Victoria",
-                "City did not save expected value.");
         assertEquals(addressBlock.get("Postal/Zip Code"), "V9V 9V9",
                 "Postal code did not save expected value.");
         assertEquals(addressBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
@@ -362,8 +303,18 @@ public class CreateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testIndProviderMinimumData(ProviderType providerType)
     {
+        final List<ProviderSection> sectionsToTest = List.of(
+                ProviderSection.ROLE_TYPE,
+                ProviderSection.IDENTIFIERS,
+                ProviderSection.STATUSES,
+                ProviderSection.PRACTITIONER_NAMES,
+                ProviderSection.DEMOGRAPHICS,
+                ProviderSection.ADDRESSES
+        );
+
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
 
         String identifierType = "OPTID";
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) {
@@ -389,87 +340,8 @@ public class CreateProviderTests implements SimpleTest {
 
         ViewProviderPage viewPage = page.clickSubmitButton();
 
-        // Role Type
-        String expectedIdentifierType = "Optometrist ID Number (OPTID)";
-        Map<String,String> roleBlock = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-        if (providerType.equals(ProviderType.OOP_PRACTITIONER))
-        {
-            assertEquals(roleBlock.get("Role Type"),
-                    "OOP-RECT (OOP Recreation Therapist)",
-                    "Provider role type did not save expected value.");
-            expectedIdentifierType = "Out of Province Provider (OOPID)";
-        } else {
-            assertEquals(roleBlock.get("Role Type"), "OPT (Optometrist)",
-                    "Role Type did not save expected value.");
-        }
-
-        // Identifiers
-        boolean foundIdentifier = false;
-        for (int i = 0; i < viewPage.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++)
-        {
-            Map<String, String> identifierBlock = viewPage.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
-            if (!identifierBlock.get("Type").equals(expectedIdentifierType)) continue;
-
-            assertEquals(identifierBlock.get("Identifier"), "1",
-                    "Identifier value did not save expected value.");
-            assertEquals(identifierBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
-                    "Identifier 'Effective From' date did not default to current date.");
-            foundIdentifier = true;
-        }
-        if (!foundIdentifier)
-        {
-            fail("Expected identifier type '" + expectedIdentifierType + "' not found in provider view page.");
-        }
-
-        // Statuses
-        Map<String,String> statusBlock = viewPage.grabDataBlockContent(ProviderSection.STATUSES, 0);
-        assertEquals(statusBlock.get("Type"), "Active (ACTIVE)",
-                "Status type did not save expected value.");
-        assertEquals(statusBlock.get("Class"), "Licensure (LIC)",
-                "Status class code did not save expected value.");
-        assertEquals(statusBlock.get("Reason"), "Good Standing (GS)",
-                "Status reason code did not save expected value.");
-        assertEquals(statusBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
-                "Status 'Effective From' date did not default to current date.");
-
-        // Names
-        Map<String, String> nameBlock = viewPage.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0);
-        assertEquals(nameBlock.get("Name Type"), "Current Known Name (CURR)",
-                "Name Type did not save expected default value.");
-        assertEquals(nameBlock.get("First Name"), "Minimum",
-                "First name did not save expected value.");
-        assertEquals(nameBlock.get("Surname"), "Data",
-                "Surname did not save expected value.");
-        assertEquals(nameBlock.get("Preferred"), "No",
-                "Preferred Flag did not save expected default value.");
-        assertEquals(nameBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
-                "Name 'Effective From' date did not default to current date.");
-
-        // Demographics
-        Map<String, String> demoBlock = viewPage.grabDataBlockContent(ProviderSection.DEMOGRAPHICS, 0);
-        assertEquals(demoBlock.get("Birth Date"), "1980-06-30",
-                "Date of Birth did not save expected value.");
-        assertEquals(demoBlock.get("Gender"), "Unknown (U)",
-                "Gender did not save expected value.");
-        assertEquals(demoBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
-                "Demographics 'Effective From' date did not default to current date.");
-
-        // Addresses
-        Map<String, String> addressBlock = viewPage.grabDataBlockContent(ProviderSection.ADDRESSES, 0);
-        assertEquals(addressBlock.get("Address Type"), "Physical location (P)",
-                "Address type did not save expected value.");
-        assertEquals(addressBlock.get("Address Purpose"), "Ministry Contact (MC)",
-                "Address purpose did not save expected value.");
-        assertEquals(addressBlock.get("Address Line 1"), "123 Test St",
-                "Address Line 1 did not save expected value.");
-        assertEquals(addressBlock.get("Country"), "CANADA (CA)",
-                "Country did not save expected value.");
-        assertEquals(addressBlock.get("State/Prov"), "BC",
-                "Province/State did not save expected value.");
-        assertEquals(addressBlock.get("City"), "Victoria",
-                "City did not save expected value.");
-        assertEquals(addressBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
-                "Address 'Effective From' date did not default to current date.");
+        for (ProviderSection section : sectionsToTest)
+            actions.checkMinimumData(section, viewPage, providerType);
     }
 
     // Create Provider - Validate Date of Birth
@@ -777,17 +649,7 @@ public class CreateProviderTests implements SimpleTest {
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
         AddProviderActions actions = workflow.getAddProviderActions();
 
-        page = page.changeProviderType(providerType);
-
-        actions.skipToSection(page, providerType,"Status");
-
-        page.fillStatus("Select One", null, null);
-
-        page.clickNext("Status", null);
-
-        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
-        assertEquals(errorMessageList.getFirst(), errorList.get("missingStatusClassCode"),
-                "Expected error message for missing status class code not found.");
+        actions.validateStatusField("Class", providerType, page);
     }
 
     // Create Provider - Validate Status Type Code
@@ -798,18 +660,7 @@ public class CreateProviderTests implements SimpleTest {
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
         AddProviderActions actions = workflow.getAddProviderActions();
 
-        page = page.changeProviderType(providerType);
-
-        actions.skipToSection(page, providerType, "Status");
-
-        AddProviderStatusFragment status = page.fillStatus(null, null, null);
-        status.selectStatusCode("Select One");
-
-        page.clickNext("Status", null);
-
-        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
-        assertEquals(errorMessageList.getFirst(), errorList.get("missingStatusTypeCode"),
-                "Expected error message for missing status type code not found.");
+        actions.validateStatusField("Type", providerType, page);
     }
 
     // Create Provider - Validate Status Reason Code
@@ -820,17 +671,6 @@ public class CreateProviderTests implements SimpleTest {
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
         AddProviderActions actions = workflow.getAddProviderActions();
 
-        page = page.changeProviderType(providerType);
-
-        actions.skipToSection(page, providerType, "Status");
-
-        AddProviderStatusFragment status = page.fillStatus(null, null, null);
-        status.selectStatusReasonCode("Select One");
-
-        page.clickNext("Status", null);
-
-        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
-        assertEquals(errorMessageList.getFirst(), errorList.get("missingStatusReasonCode"),
-                "Expected error message for missing status type code not found.");
+        actions.validateStatusField("Reason", providerType, page);
     }
 }

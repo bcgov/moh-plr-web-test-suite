@@ -2,9 +2,12 @@ package ca.bc.gov.health.qa.autotest.plr.web.actions.provider;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityAddressFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderStatusFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationalProviderRoleType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusCodeOption;
@@ -14,8 +17,10 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.testng.Assert.assertTrue;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.provider.CreateProviderTests.errorList;
+import static org.testng.Assert.*;
 
 /**
  * Actions class for the Add Provider page/functions
@@ -152,5 +157,129 @@ public class AddProviderActions {
                 page.fillExpertise("ENG", "2500");
         }
         return page.clickSubmitButton();
+    }
+
+    /**
+     * Checks that the minimum required data for a provider is saved and displayed correctly
+     * in the provider view page after submission of the add provider form.
+     * @param section the section of the provider view page to check (e.g. "Role Type", "Identifiers", etc.)
+     * @param viewPage the ViewProviderPage object representing the provider view page to check the data on
+     * @param providerType the type of provider that was added
+     */
+    public void checkMinimumData(ProviderSection section, ViewProviderPage viewPage, ProviderType providerType)
+    {
+        switch (section)
+        {
+            case ROLE_TYPE -> {
+                // Role Type
+                Map<String,String> roleBlock = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
+                if (providerType.equals(ProviderType.OOP_PRACTITIONER))
+                {
+                    assertEquals(roleBlock.get("Role Type"),
+                            "OOP-RECT (OOP Recreation Therapist)",
+                            "Provider role type did not save expected value.");
+                } else {
+                    assertEquals(roleBlock.get("Role Type"), "OPT (Optometrist)",
+                            "Role Type did not save expected value.");
+                }
+            }
+            case IDENTIFIERS -> {
+                String expectedIdentifierType = "";
+                if (providerType.equals(ProviderType.OOP_PRACTITIONER)) expectedIdentifierType = "Out of Province Provider (OOPID)";
+                else if (providerType.equals(ProviderType.BC_PRACTITIONER)) expectedIdentifierType = "Optometrist ID Number (OPTID)";
+
+                boolean foundIdentifier = false;
+                for (int i = 0; i < viewPage.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++)
+                {
+                    Map<String, String> identifierBlock = viewPage.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
+                    if (!identifierBlock.get("Type").equals(expectedIdentifierType)) continue;
+
+                    assertEquals(identifierBlock.get("Identifier"), "1",
+                            "Identifier value did not save expected value.");
+                    assertEquals(identifierBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                            "Identifier 'Effective From' date did not default to current date.");
+                    foundIdentifier = true;
+                }
+                if (!foundIdentifier)
+                {
+                    fail("Expected identifier type '" + expectedIdentifierType + "' not found in provider view page.");
+                }
+            }
+            case STATUSES -> {
+                Map<String,String> statusBlock = viewPage.grabDataBlockContent(ProviderSection.STATUSES, 0);
+                assertEquals(statusBlock.get("Type"), "Active (ACTIVE)",
+                        "Status type did not save expected value.");
+                assertEquals(statusBlock.get("Class"), "Licensure (LIC)",
+                        "Status class code did not save expected value.");
+                assertEquals(statusBlock.get("Reason"), "Good Standing (GS)",
+                        "Status reason code did not save expected value.");
+                assertEquals(statusBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                        "Status 'Effective From' date did not default to current date.");
+            }
+            case PRACTITIONER_NAMES -> {
+                Map<String, String> nameBlock = viewPage.grabDataBlockContent(ProviderSection.PRACTITIONER_NAMES, 0);
+                assertEquals(nameBlock.get("Name Type"), "Current Known Name (CURR)",
+                        "Name Type did not save expected default value.");
+                assertEquals(nameBlock.get("First Name"), "Minimum",
+                        "First name did not save expected value.");
+                assertEquals(nameBlock.get("Surname"), "Data",
+                        "Surname did not save expected value.");
+                assertEquals(nameBlock.get("Preferred"), "No",
+                        "Preferred Flag did not save expected default value.");
+                assertEquals(nameBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                        "Name 'Effective From' date did not default to current date.");
+            }
+            case DEMOGRAPHICS -> {
+                Map<String, String> demoBlock = viewPage.grabDataBlockContent(ProviderSection.DEMOGRAPHICS, 0);
+                assertEquals(demoBlock.get("Birth Date"), "1980-06-30",
+                        "Date of Birth did not save expected value.");
+                assertEquals(demoBlock.get("Gender"), "Unknown (U)",
+                        "Gender did not save expected value.");
+                assertEquals(demoBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                        "Demographics 'Effective From' date did not default to current date.");
+            }
+            case ADDRESSES -> {
+                Map<String, String> addressBlock = viewPage.grabDataBlockContent(ProviderSection.ADDRESSES, 0);
+                assertEquals(addressBlock.get("Address Type"), "Physical location (P)",
+                        "Address type did not save expected value.");
+                assertEquals(addressBlock.get("Address Purpose"), "Ministry Contact (MC)",
+                        "Address purpose did not save expected value.");
+                assertEquals(addressBlock.get("Address Line 1"), "123 Test St",
+                        "Address Line 1 did not save expected value.");
+                assertEquals(addressBlock.get("Country"), "CANADA (CA)",
+                        "Country did not save expected value.");
+                assertEquals(addressBlock.get("State/Prov"), "BC",
+                        "Province/State did not save expected value.");
+                assertEquals(addressBlock.get("City"), "Victoria",
+                        "City did not save expected value.");
+                assertEquals(addressBlock.get("Effective From"), UpdateSimpleHelper.effective_date(),
+                        "Address 'Effective From' date did not default to current date.");
+            }
+        }
+    }
+
+    /**
+     * Checks that the appropriate error message is displayed
+     * when trying to proceed from the status section of the add provider flow.
+     * @param error the specific data field being tested (e.g. "Type", "Class", "Reason")
+     *              to determine which error message to check for
+     * @param providerType the type of provider being added
+     * @param page the AddProviderPage object representing the current page of the add provider flow,
+     *             expects to be on the first section of the flow
+     */
+    public void validateStatusField(String error, ProviderType providerType, AddProviderPage page)
+    {
+        page = page.changeProviderType(providerType);
+
+        skipToSection(page, providerType, "Status");
+
+        AddProviderStatusFragment status = page.fillStatus(null, null, null);
+        status.selectStatusCode("Select One");
+
+        page.clickNext("Status", null);
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get(String.format("missingStatus%sCode", error)),
+                String.format("Expected error message for missing status field '%s' not found.", error));
     }
 }
