@@ -120,12 +120,21 @@ public class AddProviderActions {
             case "Status":
                 page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
                 page.clickNext("Status", "");
-                page.waitForAddProviderStep("Personal Information", true);
+                if (providerType.equals(ProviderType.ORGANIZATION)) page.waitForAddProviderStep("Organization", true);
+                else page.waitForAddProviderStep("Personal Information", true);
             case "Personal Information":
-                page.fillPI(null, "Test", null, null, "Provider");
+                if (!providerType.equals(ProviderType.ORGANIZATION))
+                    page.fillPI(null, "Test", null, null, "Provider");
             case "Demographics":
-                page.fillDemographics(List.of(2020, 1, 1), "U");
-                page.clickNext("Demographic Details", "");
+                if (!providerType.equals(ProviderType.ORGANIZATION)) {
+                    page.fillDemographics(List.of(2020, 1, 1), "U");
+                    page.clickNext("Demographic Details", "");
+                }
+            case "Organization":
+                if (providerType.equals(ProviderType.ORGANIZATION)) {
+                    page.fillOrganizationName("Test Organization", "Test Description");
+                    page.clickNext("Organization", "");
+                }
                 page.waitForAddProviderStep("Address", true);
             case "Address":
                 AddProviderAddressFragment address = page.fillAddress("P", "HC",

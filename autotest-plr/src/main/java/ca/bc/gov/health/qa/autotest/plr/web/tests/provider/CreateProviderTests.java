@@ -17,6 +17,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -48,6 +49,12 @@ public class CreateProviderTests implements SimpleTest {
             String msg = String.format("Failed to read JSON data (%s).", errorPath);
             throw new IllegalStateException(msg, e);
         }
+    }
+
+    @AfterClass
+    public void teardown() {
+        workflowManager_.logoutAllAndClose();
+        LOG.info("Done.");
     }
 
     @BeforeMethod
@@ -707,6 +714,26 @@ public class CreateProviderTests implements SimpleTest {
             assertEquals(errorMessageList.getFirst(), errorList.get("foreignCharacterIdentifier"),
                     "Expected error message for invalid identifier not found.");
         }
+    }
+
+    // Create Provider - Validate Name Preferred Flag
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateNamePreferredFlag(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (!providerType.equals(ProviderType.BC_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        ViewProviderPage viewPage = actions.finishCreateFlow(page, providerType, "Identifier");
+
+        ProviderSection correctSection = providerType.equals(ProviderType.ORGANIZATION) ?
+                ProviderSection.ORGANIZATION_NAMES : ProviderSection.PRACTITIONER_NAMES;
+        Map<String,String> nameContent = viewPage.grabDataBlockContent(correctSection, 0);
+        assertEquals(nameContent.get("Preferred"), "No",
+                "Expected preferred flag to default to 'No'.");
+
     }
 
     // Create Provider - Validate Name Type Code

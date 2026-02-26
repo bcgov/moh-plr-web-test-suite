@@ -35,9 +35,8 @@ public class AddOrganizationNameFragment extends AddProviderStepFragment{
 	
 	/**
      * Fills the Organization description field with the provided string
-     * @param description the string to fill the Organization description field with
+     * @param desc the string to fill the Organization description field with
      */
-	
 	public void fillDesc(String desc) {
 		selenium_.fillFieldByCss(ORG_DESC_FIELD_CSS, desc);
 	
