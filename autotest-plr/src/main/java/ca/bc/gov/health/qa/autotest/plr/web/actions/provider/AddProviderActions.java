@@ -52,14 +52,19 @@ public class AddProviderActions {
      * @param page the AddProviderPage object to perform actions on (expects to be on the first page of the add provider flow)
      * @param providerType the type of provider being added, which determines some of the fields that are filled in the flow (e.g. identifier type in the identifier step)
      * @param section the section of the add provider flow to navigate to (e.g. "Demographics", "Address", etc.)
+     * @param roleType the role type of the provider being added,
+     *                 which is used to determine whether to fill in the identifier section or not
+     *                 (non-null means identifier is being manually filled)
+     * @param skipExtraContact whether to skip filling in the extra contact information in the address section
+     *                         (if true, will skip filling in phone, fax, and email fields)
      * @return the AddProviderPage object after navigating to the specified section, which can be used for further actions in that section
      */
-    public AddProviderPage skipToSection(AddProviderPage page, ProviderType providerType, String section)
+    public AddProviderPage skipToSection(AddProviderPage page, ProviderType providerType, String section, ProviderRoleType roleType, boolean skipExtraContact)
     {
-        fillIdentifierByType(providerType, page);
+        if (roleType == null) fillIdentifierByType(providerType, page);
         if (section.equals("Status")) { return page; }
 
-        page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+        page.fillStatus(null, null, null);
         page.clickNext("Status", "");
         page.waitForAddProviderStep("Personal Information", true);
         if (section.equals("Personal Information")) { return page; }
@@ -67,28 +72,31 @@ public class AddProviderActions {
         page.fillPI(null, "Test", null, null, "Provider");
         if (section.equals("Demographic Details")) { return page; }
 
-        page.fillDemographics(List.of(2020, 1, 1), "U");
+        page.fillDemographics(List.of(1980, 6, 30), "U");
         page.clickNext("Demographic Details", "");
         page.waitForAddProviderStep("Address", true);
         if (section.equals("Address")) { return page; }
 
-        AddProviderAddressFragment address = page.fillAddress("P", "HC",
+        AddProviderAddressFragment address = page.fillAddress("P", "MC",
                 List.of("123 Test St", "Unit 1", ""), "Victoria", "BC", "CA", "V9V9V9");
-        if (section.equals("Phone Number")) { return page; }
+        if (!skipExtraContact) {
+            if (section.equals("Phone Number")) return page;
 
-        page.fillPhone("250", "5551234", "123");
-        if (section.equals("Fax Number")) { return page; }
+            page.fillPhone("250", "5551234", "123");
+            if (section.equals("Fax Number")) return page;
 
-        page.fillFax("250", "5555678");
-        if (section.equals("Email")) { return page; }
+            page.fillFax("250", "5555678");
+            if (section.equals("Email")) return page;
 
-        page.fillEmail("test@example.com");
+            page.fillEmail("test@example.com");
+        }
+
         page.clickNext("Address", "Address Invalid");
         address.handleWidgetButton("Address Invalid");
         page.waitForAddProviderStep("Credential", true);
         if (section.equals("Credential")) { return page; }
 
-        page.fillCredentials("BD", "Test", "5358", "TestInst",
+        page.fillCredentials("BD ", "Test", "5358", "TestInst",
                 "Victoria", "CA", "BC", true, "2001");
 
         return page;
@@ -257,7 +265,7 @@ public class AddProviderActions {
     {
         page = page.changeProviderType(providerType);
 
-        skipToSection(page, providerType, "Status");
+        skipToSection(page, providerType, "Status", null, false);
 
         AddProviderStatusFragment status = page.fillStatus(null, null, null);
         status.selectStatusCode("Select One");

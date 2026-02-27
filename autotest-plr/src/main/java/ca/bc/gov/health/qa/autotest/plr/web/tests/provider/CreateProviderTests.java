@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class CreateProviderTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -79,7 +80,7 @@ public class CreateProviderTests implements SimpleTest {
         actions.checkBlockVisibility("Identifier");
         actions.checkBlockVisibility("Status");
 
-        actions.skipToSection(page, providerType, "Personal Information");
+        actions.skipToSection(page, providerType, "Personal Information", null, false);
 
         assertEquals(page.getStep(), "Name",
                 "Did not navigate to expected step after completing Identifier and Status step");
@@ -252,6 +253,38 @@ public class CreateProviderTests implements SimpleTest {
         }
     }
 
+    // Create Provider - Code Validation Restriction - Expertise
+    // TODO: this test case is rather long - consider speeding up the process of skipping sections
+    @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionExpertise(ProviderType providerType, ProviderRoleType roleType)
+    {
+        final List<String> expectedExpertiseList = Stream.concat(EXPERTISE_LANG_OPTIONS.stream(),
+                        EXPERTISE_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
+
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        page.fillIdentifier(roleType, null, null, IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType,
+                            List.of("OOPID - Out of Province Provider")).getFirst(), "1");
+
+        page = actions.skipToSection(page, providerType, "Expertise", roleType, true);
+
+        AddProviderExpertiseFragment expertise = page.fillExpertise(null, null);
+        List<String> expertiseTypeOptions = expertise.getExpertiseOptions();
+
+        for (String item : expertiseTypeOptions)
+        {
+            assertTrue(expectedExpertiseList.contains(item),
+                    "Expected expertise option '" + item + "' not found for provider role '" + roleType.getText() + "'.");
+        }
+
+        assertEquals(expertiseTypeOptions.size(), expectedExpertiseList.size(),
+                "Unexpected number of expertise options found for provider role '" + roleType.getText());
+    }
+
     // Create Provider - Code Validation Restriction - Identifier
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionIdentifier(ProviderType providerType)
@@ -354,7 +387,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
-        actions.skipToSection(page, providerType, "Demographic Details");
+        actions.skipToSection(page, providerType, "Demographic Details", null, false);
 
         AddProviderDemographicFragment demo = page.fillDemographics(null, "U");
         page.clickNext("Demographic Details", null);
@@ -405,7 +438,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
-        actions.skipToSection(page, providerType,"Demographic Details");
+        actions.skipToSection(page, providerType,"Demographic Details", null, false);
 
         AddProviderDemographicFragment demo = page.fillDemographics(List.of(2020, 6, 30), null);
 
@@ -437,7 +470,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
-        page = actions.skipToSection(page, providerType, "Personal Information");
+        page = actions.skipToSection(page, providerType, "Personal Information", null, false);
 
         page.fillDemographics(List.of(1980,6,30), "U");
 
@@ -561,7 +594,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
-        actions.skipToSection(page, providerType, "Expertise");
+        actions.skipToSection(page, providerType, "Expertise", null, true);
 
         AddProviderExpertiseFragment expertise = page.fillExpertise("ENG", UpdateSimpleHelper.generateNumericString(51));
         page.clickSubmitButton();
@@ -580,7 +613,7 @@ public class CreateProviderTests implements SimpleTest {
         page = workflow.getPlrWebAccessActions().openAddProvider();
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
-        actions.skipToSection(page, providerType, "Expertise");
+        actions.skipToSection(page, providerType, "Expertise", null, true);
 
         page.fillExpertise("ENG", "");
         viewPage = page.clickSubmitButton();
@@ -592,7 +625,7 @@ public class CreateProviderTests implements SimpleTest {
         page = workflow.getPlrWebAccessActions().openAddProvider();
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
-        actions.skipToSection(page, providerType, "Credential");
+        actions.skipToSection(page, providerType, "Credential", null, true);
         viewPage = page.clickSubmitButton();
 
         assertEquals(viewPage.grabDataBlockCount(ProviderSection.EXPERTISE), 0,

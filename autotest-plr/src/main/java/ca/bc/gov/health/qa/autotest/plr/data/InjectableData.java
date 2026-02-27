@@ -3,7 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
 import org.testng.annotations.DataProvider;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
@@ -45,6 +45,26 @@ public class InjectableData
         for (ProviderType providerType : ProviderType.values())
         {
             if (!providerType.equals(ProviderType.ORGANIZATION)) data.add(new Object[]{providerType});
+        }
+        return toArray(data);
+    }
+
+    /**
+     * Returns a two-dimensional array of practitioner role types for use in TestNG data-driven tests.
+     * @return a two-dimensional array of practitioner role types,
+     *         where each inner array contains a ProviderRoleType value and its corresponding ProviderType value
+     */
+    @DataProvider(name = "practitionerRoleTypes")
+    public static Object[][] getPractitionerRoleTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        for (ProviderType providerType : ProviderType.values())
+        {
+            if (providerType.equals(ProviderType.ORGANIZATION)) continue;
+            for (ProviderRoleType roleType : ProviderRoleType.getProviderRoleTypeSet(providerType)) {
+                data.add(new Object[]{providerType, roleType});
+            }
+
         }
         return toArray(data);
     }

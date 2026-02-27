@@ -1,5 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 
+import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
+
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
+
 /**
  * Enum representing different types of Provider Roles.
  */
@@ -65,5 +71,23 @@ public enum ProviderRoleType {
 			}
 		}
 		return null;
+	}
+
+	private static final Set<ProviderRoleType> BC_TYPE_SET =
+			Collections.unmodifiableSet(EnumSet.of(DEN, MD, RN, RNP, OPT, RPN, LPN, RM, PHARM, PO, HA));
+
+	private static final Set<ProviderRoleType> OOP_TYPE_SET =
+			Collections.unmodifiableSet(EnumSet.of(OOPMD, OOPDEN, OOPRN, OOPRNP, OOPPHARM, OOPOPT, OOPRM, OOPND, OOPAUD,
+					OOPSW, OOPRECT, OOPRT, OOPRD, OOPOT, OOPCC, OOPSLP, OOPPO, OOPCHIRO, OOPPT, OOPVC, OOPPSYCH));
+
+	/**
+	 * Gets the set of ProviderRoleType values associated with the given ProviderType.
+	 * @param providerType the ProviderType for which to retrieve the associated ProviderRoleType values
+	 * @return a set of ProviderRoleType values associated with the given ProviderType
+	 */
+	public static Set<ProviderRoleType> getProviderRoleTypeSet(ProviderType providerType)
+	{
+		if (providerType.equals(ProviderType.BC_PRACTITIONER)) return BC_TYPE_SET;
+		else return OOP_TYPE_SET;
 	}
 }
