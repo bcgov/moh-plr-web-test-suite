@@ -326,6 +326,17 @@ public class AddProviderPage extends BasicWebPage {
         return fragment;
     }
 
+    public AddProviderDemographicFragment fillDemographics(String dateOfBirth, String gender)
+    {
+        AddProviderDemographicFragment fragment = new AddProviderDemographicFragment(selenium_);
+
+        if (dateOfBirth != null) fragment.dateOfBirthRaw(dateOfBirth);
+        if (gender != null) fragment.getGenderMenu().selectItem(gender);
+        fragment.effectiveFromCurrentDate();
+
+        return fragment;
+    }
+
     /**
      * Fills the demographics form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
      * @param dateOfBirth the date of birth to fill in the form as a list of integers

@@ -42,6 +42,11 @@ public class AddProviderDemographicFragment extends AddProviderStepFragment {
         return getDateOfBirthMenu().pickSpecificDate(year, month, day);
     }
 
+    public void dateOfBirthRaw(String date)
+    {
+        if (date != null) selenium_.fillFieldByCss("input#form\\:dob_input", date);
+    }
+
     /**
      * Gets the current value of the Date of Birth field as a string.
      * @return the current value of the Date of Birth field as a string

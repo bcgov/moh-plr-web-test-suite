@@ -55,11 +55,12 @@ public class AddProviderActions {
      * @param roleType the role type of the provider being added,
      *                 which is used to determine whether to fill in the identifier section or not
      *                 (non-null means identifier is being manually filled)
-     * @param skipExtraContact whether to skip filling in the extra contact information in the address section
-     *                         (if true, will skip filling in phone, fax, and email fields)
+     * @param speedup whether to skip filling in the extra contact information in the address section
+     *                (if true, will skip filling in phone, fax, and email fields)
      * @return the AddProviderPage object after navigating to the specified section, which can be used for further actions in that section
      */
-    public AddProviderPage skipToSection(AddProviderPage page, ProviderType providerType, String section, ProviderRoleType roleType, boolean skipExtraContact)
+    public AddProviderPage skipToSection(AddProviderPage page, ProviderType providerType, String section,
+                                         ProviderRoleType roleType, boolean speedup)
     {
         if (roleType == null) fillIdentifierByType(providerType, page);
         if (section.equals("Status")) { return page; }
@@ -72,14 +73,14 @@ public class AddProviderActions {
         page.fillPI(null, "Test", null, null, "Provider");
         if (section.equals("Demographic Details")) { return page; }
 
-        page.fillDemographics(List.of(1980, 6, 30), "U");
+        page.fillDemographics("1980-06-30", "U");
         page.clickNext("Demographic Details", "");
         page.waitForAddProviderStep("Address", true);
         if (section.equals("Address")) { return page; }
 
         AddProviderAddressFragment address = page.fillAddress("P", "MC",
-                List.of("123 Test St", "Unit 1", ""), "Victoria", "BC", "CA", "V9V9V9");
-        if (!skipExtraContact) {
+                List.of("123 Test St", "Unit 1", ""), "Victoria", null, null, "V9V9V9");
+        if (!speedup) {
             if (section.equals("Phone Number")) return page;
 
             page.fillPhone("250", "5551234", "123");
@@ -97,7 +98,7 @@ public class AddProviderActions {
         if (section.equals("Credential")) { return page; }
 
         page.fillCredentials("BD ", "Test", "5358", "TestInst",
-                "Victoria", "CA", "BC", true, "2001");
+                "Victoria", null, null, true, "2001");
 
         return page;
     }

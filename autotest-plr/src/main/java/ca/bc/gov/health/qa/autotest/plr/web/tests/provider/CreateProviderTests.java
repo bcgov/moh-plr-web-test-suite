@@ -254,7 +254,6 @@ public class CreateProviderTests implements SimpleTest {
     }
 
     // Create Provider - Code Validation Restriction - Expertise
-    // TODO: this test case is rather long - consider speeding up the process of skipping sections
     @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionExpertise(ProviderType providerType, ProviderRoleType roleType)
     {
@@ -389,7 +388,7 @@ public class CreateProviderTests implements SimpleTest {
 
         actions.skipToSection(page, providerType, "Demographic Details", null, false);
 
-        AddProviderDemographicFragment demo = page.fillDemographics(null, "U");
+        AddProviderDemographicFragment demo = page.fillDemographics("", "U");
         page.clickNext("Demographic Details", null);
 
         List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
@@ -452,7 +451,7 @@ public class CreateProviderTests implements SimpleTest {
         assertEquals(genderOptions, List.of("U - Unknown", "F - Female", "M - Male"),
                 "Expected gender options not found or in unexpected order.");
 
-        page.fillDemographics(null, "U");
+        page.fillDemographics("", "U");
         page.clickNext("Demographic Details", "");
         page.waitForAddProviderStep("Address", true);
 
