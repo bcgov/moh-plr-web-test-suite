@@ -253,6 +253,40 @@ public class CreateProviderTests implements SimpleTest {
         }
     }
 
+    // Create Provider - Code Validation Restriction - Credential
+    @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionCredential(ProviderType providerType, ProviderRoleType roleType)
+    {
+        final List<String> expectedCredentialList = Stream.concat(CREDENTIAL_BASE_OPTIONS.stream(),
+                        CREDENTIAL_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
+
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        page.fillIdentifier(roleType, null, null, IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType,
+                List.of("OOPID - Out of Province Provider")).getFirst(), "1");
+
+        page = actions.skipToSection(page, providerType, "Credential", roleType, true);
+
+        AddProviderCredentialFragment credential = page.fillCredentials(null, null, null, null,
+                null, null, null, true, null);
+        List<String> credentialTypeOptions = credential.getCredentialTypeOptions();
+
+        for (String item : credentialTypeOptions)
+        {
+            if (item.equals("Select One")) continue;
+
+            assertTrue(expectedCredentialList.contains(item),
+                    "Expected credential option '" + item + "' not found for provider role '" + roleType.getText() + "'.");
+        }
+
+        assertEquals(credentialTypeOptions.size() - 1, expectedCredentialList.size(),
+                "Unexpected number of expertise options found for provider role '" + roleType.getText());
+    }
+
     // Create Provider - Code Validation Restriction - Expertise
     @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionExpertise(ProviderType providerType, ProviderRoleType roleType)

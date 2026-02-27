@@ -260,6 +260,10 @@ extends BasicWebPageFragment
             //       and "1" when the animation completes.
             selenium_.waitUntil(
                     ExpectedConditions.attributeToBe(itemPanelLocator_, "opacity", "1"));
+
+            // wait for dropdown to be open todo make sure this works
+            selenium_.waitUntil(ExpectedConditions.attributeContains(
+                    itemPanelLocator_, "class", "ui-connected-overlay-enter-done"));
         }
         else
         {

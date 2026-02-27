@@ -6,6 +6,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusReasonCodeOption;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class AddProviderConstants {
 
@@ -126,7 +127,7 @@ public class AddProviderConstants {
             Map.entry(ProviderRoleType.PO, List.of("POID - Podiatrist ID"))
     );
 
-    /** List of Expertise Language options. TODO privatise when done */
+    /** List of Expertise Language options. */
     public static final List<String> EXPERTISE_LANG_OPTIONS = List.of(
             "A01 - Afrikaans - LANG",
             "A09 - Akan (Twi) - LANG",
@@ -684,5 +685,54 @@ public class AddProviderConstants {
             Map.entry(ProviderRoleType.RN, EXPERTISE_RN_OPTIONS),
             Map.entry(ProviderRoleType.LPN, EXPERTISE_LPN_OPTIONS),
             Map.entry(ProviderRoleType.PHARM, EXPERTISE_PHARM_OPTIONS)
+    );
+
+    /**
+     * List of base Credential options that apply to all ProviderRoleTypes.
+     */
+    public static final List<String> CREDENTIAL_BASE_OPTIONS = List.of(
+            "BD - Bachelor Degree",
+            "BSC - Bachelor of Science",
+            "D - Diploma",
+            "M - Masters Degree",
+            "OTHER - Null Flavour-Unknown",
+            "PHD - Doctorate"
+    );
+
+    private static final List<String> CREDENTIAL_NURSE_OPTIONS = List.of(
+            "BN - Bachelor Degree in Nursing",
+            "DN - Diploma in Nursing",
+            "LPND - Licensed Practical Nurse Diploma",
+            "MN - Masters Degree in Nursing",
+            "MSCN - Master of Science, Nursing",
+            "PHDN - Doctorate in Nursing"
+    );
+
+    private static final List<String> CREDENTIAL_CERTPRAC_OPTIONS = List.of(
+            "CPCM - Certified Practice - Reproductive Health (Contraceptive Management)",
+            "CPFC - Certified Practice - First Call",
+            "CPREM - Certified Practice - Remote Nursing",
+            "CPSTI - Certified Practice - Reproductive Health (Sexually Transmitted Infections)"
+    );
+
+    /**
+     * Mapping of ProviderRoleType to their corresponding Credential options.
+     * Base credentials are given by CREDENTIAL_BASE_OPTIONS: use getOrDefault with base options as default
+     */
+    public static final Map<ProviderRoleType, List<String>> CREDENTIAL_OPTIONS_MAP = Map.ofEntries(
+            Map.entry(ProviderRoleType.DEN, List.of("BDS - Bachelor of Dental Surgery",
+                    "DDS - Doctor of Dental Surgery",
+                    "DMD - Doctor of Dental Medicine")),
+            Map.entry(ProviderRoleType.MD, List.of("DO - Osteopathy Degree", "MD - Medical Degree")),
+            Map.entry(ProviderRoleType.RN, Stream.concat(CREDENTIAL_NURSE_OPTIONS.stream(),
+                                                        CREDENTIAL_CERTPRAC_OPTIONS.stream()).toList()),
+            Map.entry(ProviderRoleType.RNP, Stream.concat(CREDENTIAL_NURSE_OPTIONS.stream(),
+                                                        CREDENTIAL_CERTPRAC_OPTIONS.stream()).toList()),
+            Map.entry(ProviderRoleType.RPN, CREDENTIAL_NURSE_OPTIONS),
+            Map.entry(ProviderRoleType.LPN, CREDENTIAL_NURSE_OPTIONS),
+            Map.entry(ProviderRoleType.PHARM, List.of("BSCPHARM - Bachelor of Science, Pharm",
+                    "MSCPHARM - Master of Science, Pharmacy",
+                    "PHARMD - Doctorate in Pharmacy")),
+            Map.entry(ProviderRoleType.PO, List.of("DPM - Doctor of Podiatric Medicine"))
     );
 }

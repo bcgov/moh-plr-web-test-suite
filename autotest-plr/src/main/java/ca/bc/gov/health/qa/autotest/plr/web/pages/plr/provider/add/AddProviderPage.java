@@ -33,14 +33,16 @@ public class AddProviderPage extends BasicWebPage {
      */
     public AddProviderPage(SeleniumSession selenium, String expectedHeader) {
         super(selenium,
-                By.xpath("//div[@id='content']//h2[contains(text(),'Add Provider')]"),
-                "Add Provider - " + expectedHeader);
+                By.xpath("//div[@id='content']//h2[contains(text(),'Add Provider') and contains(text(),'" + expectedHeader + "')]"),
+                "Add Provider");
         this.providerType = switch (expectedHeader) {
             case "(BC Practitioner)" -> ProviderType.BC_PRACTITIONER;
-            case "(OOP Practitioner)" -> ProviderType.OOP_PRACTITIONER;
+            case "(Out of Province Practitioner)" -> ProviderType.OOP_PRACTITIONER;
             case "(Organization)" -> ProviderType.ORGANIZATION;
             default -> throw new IllegalArgumentException("Unexpected provider type: " + expectedHeader);
         };
+
+        waitForReady();
     }
 
     /**
@@ -52,13 +54,14 @@ public class AddProviderPage extends BasicWebPage {
     public AddProviderPage changeProviderType(ProviderType providerType)
     {
         if (this.providerType != providerType) {
-            List<WebElement> providerMenu = selenium_.findElements(
-                    By.cssSelector("div#headerForm\\:subMenuPanelHolder > div > div > menu > li"));
             String expectedHeader = switch (providerType) {
                 case BC_PRACTITIONER -> "(BC Practitioner)";
-                case OOP_PRACTITIONER -> "(OOP Practitioner)";
+                case OOP_PRACTITIONER -> "(Out of Province Practitioner)";
                 case ORGANIZATION -> "(Organization)";
             };
+
+            List<WebElement> providerMenu = selenium_.findElements(
+                    By.cssSelector("div#headerForm\\:subMenuPanelHolder > div > div > menu > li"));
             providerMenu.get(providerType.ordinal()).click();
             selenium_.waitUntil(SeleniumExpectedConditions.pageToBeReady());
             return new AddProviderPage(selenium_, expectedHeader);
@@ -73,13 +76,14 @@ public class AddProviderPage extends BasicWebPage {
      * @return  a new AddProviderPage object with the provider type specified
      */
     public AddProviderPage openProviderPage( ProviderType providerType) {
-	    List<WebElement> providerMenu = selenium_.findElements(
-                By.cssSelector("div#headerForm\\:subMenuPanelHolder > div > div > menu > li"));
         String expectedHeader = switch (providerType) {
             case BC_PRACTITIONER -> "(BC Practitioner)";
-            case OOP_PRACTITIONER -> "(OOP Practitioner)";
+            case OOP_PRACTITIONER -> "(Out of Province Practitioner)";
             case ORGANIZATION -> "(Organization)";
-            };            
+        };
+
+        List<WebElement> providerMenu = selenium_.findElements(
+                By.cssSelector("div#headerForm\\:subMenuPanelHolder > div > div > menu > li"));
         providerMenu.get(providerType.ordinal()).click();
         selenium_.waitUntil(SeleniumExpectedConditions.pageToBeReady());
         return new AddProviderPage(selenium_, expectedHeader);       
