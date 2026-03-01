@@ -64,7 +64,7 @@ public class AddProviderTests implements SimpleTest {
     }
 
     // sample test to aid in development of page objects and workflow for Add Provider. Does not correspond to any test case in ALM.
-    @Test
+   // @Test
     public void testAddProviderSampleTest() {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
@@ -99,6 +99,36 @@ public class AddProviderTests implements SimpleTest {
         ViewProviderPage viewPage = page.clickSubmitButton();
     }
 
+    // sample test to aid in development of page objects and workflow for Add Provider. Does not correspond to any test case in ALM.
+    @Test
+    public void testAddOrganizationSampleTest() {
+    	PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
+        
+
+        page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null, "ORGID", "252526");
+        page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+        
+        page.clickNext("Status", "");
+        page.waitForAddProviderStep("Organization", true);
+        
+        page.fillOrganizationName("test00", "Testing");
+        page.clickNext("Organization", "");
+        page.waitForAddProviderStep("Address", true);
+ 
+        
+        AddProviderAddressFragment address = page.fillAddress("P", "BC", List.of("123 Test St", "Unit 1", ""),
+                "Victoria", "BC", "CA", "V9V0C6");
+        page.fillPhone("250", "5551234", "123");
+        page.fillFax("250", "5555678");
+        //page.fillEmail("test@organization.com");
+        page.clickNext("Address", "Address Invalid");
+        address.handleWidgetButton("Address Invalid");
+        page.waitForAddProviderStep("Credential", true);
+
+        
+        ViewProviderPage viewPage = page.clickSubmitButton();
+    }
 
     //Validate Address line 1
     @Test
