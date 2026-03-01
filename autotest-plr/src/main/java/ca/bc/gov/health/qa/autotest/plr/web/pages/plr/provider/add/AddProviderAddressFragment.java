@@ -23,6 +23,8 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
 
     private static final String PROVINCE_STATE_FIELD_CSS = "label#form\\:province_drop_label";
 
+    private static final String PROVINCE_STATE_TEXT_INPUT_CSS = "input#form\\:province_input";
+
     private static final String COUNTRY_FIELD_CSS = "label#form\\:country_label";
 
     private static final String POSTAL_CODE_FIELD_CSS = "input#form\\:postalCode";
@@ -244,7 +246,9 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
     {
         DropDownMenu menu = getProvinceStateMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);  // Collapse panel after getting options
+        return options;
     }
 
     /**
@@ -258,6 +262,46 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
         menu.expandItemPanel(true);
         menu.selectItem(province);
         return getProvinceState();
+    }
+
+    /**
+     * Checks if the Province/State dropdown is displayed.
+     * The dropdown is shown when Canada or United States is selected as the country.
+     * @return true if the Province/State dropdown is displayed, false otherwise
+     */
+    public boolean isProvinceStateDropdownDisplayed()
+    {
+        try {
+            WebElement dropdown = selenium_.findElementByCss(PROVINCE_STATE_FIELD_CSS);
+            return dropdown.isDisplayed();
+        } catch (org.openqa.selenium.NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks if the Province/State text input field is displayed.
+     * The text input is shown when a country other than Canada or United States is selected.
+     * @return true if the Province/State text input is displayed, false otherwise
+     */
+    public boolean isProvinceStateTextInputDisplayed()
+    {
+        try {
+            WebElement textInput = selenium_.findElementByCss(PROVINCE_STATE_TEXT_INPUT_CSS);
+            return textInput.isDisplayed();
+        } catch (org.openqa.selenium.NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Fills in the Province/State text input field directly.
+     * Use this when a non-CA/US country is selected and the province field is a text input.
+     * @param province the province/state text to fill in the field
+     */
+    public void fillProvinceStateRaw(String province)
+    {
+        selenium_.fillFieldByCss(PROVINCE_STATE_TEXT_INPUT_CSS, province);
     }
 
     private DropDownMenu getCountryMenu()

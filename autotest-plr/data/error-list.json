@@ -41,7 +41,7 @@
     "errMsg5003NoteIdentifier": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Note Identifier' length must be between 0 and 30. Your transaction has not been processed. Correct and resubmit.",
     "errMsg5003NoteText": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Note Text' length must be between 0 and 255. Your transaction has not been processed. Correct and resubmit.",
     "errMsg5003ProviderIdentifier": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Provider Identifier' length must be between 0 and 50. Your transaction has not been processed. Correct and resubmit.",
-    "errMsg5003PostalCode": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. Postal Code length must be between 0 and 25. Your transaction has not been processed. Correct and resubmit.",
+    "errMsg5003PostalCode": "GRS.SYS.ADD.UNK.1.0.5003: Entry Error. Postal Code length must be between 0 and 25. Your transaction has not been processed. Correct and resubmit.",
     "errMsg5004EffectiveFrom": "GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective From'. Your transaction has not been processed. Correct and resubmit.",
     "errMsg5004EffectiveTo": "GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Effective To'. Your transaction has not been processed. Correct and resubmit.",
     "errMsg7004NoteIdentifier": "GRS.SYS.UNK.UNK.1.0.7004: 'Note Identifier' can contain only spaces, &, ', commas, -, ., /, :, @, [, ], \\, ^, _, `, (, ), numbers, and the English alphabet.",
