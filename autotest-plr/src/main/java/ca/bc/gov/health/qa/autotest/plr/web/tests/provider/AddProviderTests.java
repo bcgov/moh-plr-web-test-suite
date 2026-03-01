@@ -2,9 +2,11 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
@@ -17,8 +19,11 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.Provider;
+
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -33,6 +38,7 @@ public class AddProviderTests implements SimpleTest {
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
     private final IndividualDataGenerator dataGen = IndividualDataGenerator.getInstance();
+    private final OrganizationDataGenerator orgDataGen = OrganizationDataGenerator.getInstance();
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     private static JSONObject errorList;
@@ -54,6 +60,12 @@ public class AddProviderTests implements SimpleTest {
         }
     }
 
+    @AfterClass
+	public void teardown() {
+		workflowManager_.logoutAllAndClose();
+		LOG.info("Done.");
+	}
+
     @BeforeMethod
     public void before(Object[] parameters) {
 
@@ -64,7 +76,7 @@ public class AddProviderTests implements SimpleTest {
     }
 
     // sample test to aid in development of page objects and workflow for Add Provider. Does not correspond to any test case in ALM.
-   // @Test
+    @Test
     public void testAddProviderSampleTest() {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
@@ -131,11 +143,11 @@ public class AddProviderTests implements SimpleTest {
     }
 
     //Validate Address line 1
-    @Test
-    public void testValidateAddressLine1() {
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateAddressLine1(ProviderType providerType) {
         //Step 1 & 2 - Login and navigate to create provider page, contact tab
-        AddProviderPage page = navigateToAddressScreen(ProviderType.OOP_PRACTITIONER);
-        //Step 3 - Enter an address line 1 with more than 100 characters
+        AddProviderPage page = navigateToAddressScreen(providerType);
+
         AddProviderAddressFragment address = page.fillAddress("P", "HC", List.of("A".repeat(101), "", ""),
                 "Victoria", "BC", "CA", "V9V9V9");
 
@@ -159,10 +171,10 @@ public class AddProviderTests implements SimpleTest {
     }
 
     //Validate Address Purpose code
-    @Test
-    public void testValidateAddressPurposeCode() {
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateAddressPurposeCode(ProviderType providerType) {
         //Step 1 - Login and navigate to create provider page, contact tab
-        AddProviderPage page = navigateToAddressScreen(ProviderType.OOP_PRACTITIONER);
+        AddProviderPage page = navigateToAddressScreen(providerType);
 
         // Initialize the address fragment to access purpose options
         AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(
@@ -191,10 +203,10 @@ public class AddProviderTests implements SimpleTest {
     }
 
     //Validate Address Type code
-    @Test
-    public void testValidateAddressTypeCode() {
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateAddressTypeCode(ProviderType providerType) {
         //Step 1 - Login and navigate to create provider page, contact tab
-        AddProviderPage page = navigateToAddressScreen(ProviderType.OOP_PRACTITIONER);
+        AddProviderPage page = navigateToAddressScreen(providerType);
 
         // Initialize the address fragment to access type options
         AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(
@@ -224,10 +236,10 @@ public class AddProviderTests implements SimpleTest {
     }
     
     //Validate city
-    @Test()
-    public void testValidateCity() {
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateCity(ProviderType providerType) {
         //Step 1 - Login and navigate to create provider page, contact tab
-        AddProviderPage page = navigateToAddressScreen(ProviderType.OOP_PRACTITIONER);
+        AddProviderPage page = navigateToAddressScreen(providerType);
 
         //Step 2 - Enter minimum data to add an address and leave city blank
         AddProviderAddressFragment address = page.fillAddressRawCity("P", "HC", List.of("123 Test St", "", ""),
@@ -260,10 +272,10 @@ public class AddProviderTests implements SimpleTest {
     }
 
     //Validate Electronic Address txt
-    @Test
-    public void testValidateElectronicAddress() {
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateElectronicAddress(ProviderType providerType) {
         //Step 1&2 - Login and navigate to create provider page, address tab
-        AddProviderPage page = navigateToAddressScreen(ProviderType.OOP_PRACTITIONER);
+        AddProviderPage page = navigateToAddressScreen(providerType);
 
         // Fill minimum address data to ensure form is valid for submission
         AddProviderAddressFragment address = page.fillAddress("P", "HC", List.of("123 Test St", "", ""),
@@ -307,10 +319,10 @@ public class AddProviderTests implements SimpleTest {
     }
 
     //Validate Postal code
-    @Test
-    public void testValidatePostalCode() {
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidatePostalCode(ProviderType providerType) {
         //Step 1 - Login and navigate to create provider page, contact tab
-        AddProviderPage page = navigateToAddressScreen(ProviderType.OOP_PRACTITIONER);
+        AddProviderPage page = navigateToAddressScreen(providerType);
 
         //Step 2 - Select country that is not US or CA and enter a postal code with more than 25 characters.
         AddProviderAddressFragment address = page.fillAddressRawCity("P", "HC", List.of("123 Test St", "", ""),
@@ -343,10 +355,10 @@ public class AddProviderTests implements SimpleTest {
     }
 
     //Validate Telcommunication number
-    @Test
-    public void testValidateTelecommunicationNumber() {
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateTelecommunicationNumber(ProviderType providerType) {
         //Step 1 - Login and navigate to create provider page, contact tab
-        AddProviderPage page = navigateToAddressScreen(ProviderType.OOP_PRACTITIONER);
+        AddProviderPage page = navigateToAddressScreen(providerType);
 
         // Fill minimum address data to ensure form is valid for submission
         AddProviderAddressFragment address = page.fillAddress("P", "HC", List.of("123 Test St", "", ""),
@@ -405,10 +417,10 @@ public class AddProviderTests implements SimpleTest {
     }
 
     //Validate Province and state Address codes with Country
-    @Test
-    public void testValidateProvinceAndStateAddressCodesWithCountry() {
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateProvinceAndStateAddressCodesWithCountry(ProviderType providerType) {
         //Step 1&2 - Login and navigate to create provider page, contact tab. 
-        AddProviderPage page = navigateToAddressScreen(ProviderType.OOP_PRACTITIONER);
+        AddProviderPage page = navigateToAddressScreen(providerType);
 
         // Initialize the address fragment to access province/country options
         AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(
@@ -460,21 +472,15 @@ public class AddProviderTests implements SimpleTest {
     }
 
     //Validate Communication Purpose Type Code
-    @Test
+    //Test does not apply to Add Provider screen
+    /*@Test
     public void testValidateCommunicationPurposeTypeCode() {
-        //Step 1&2 - Login and navigate to create provider page, contact tab
-    
-
-        //Step 3 - Verify communication purpose code is mandatory and the list of codes is complete
-
-        //This test seems to not apply? There is no option to select purpose type on add provider pages.
-        
-    }
+    }*/
 
 
     /**
      * Navigates to the Address screen on the Add Provider page using randomized template data.
-     * Fills Status and Personal Information screens with generated values, then returns the page
+     * Fills Status and Personal Information/Organization screens with generated values, then returns the page
      * so tests can fill the address fields themselves.
      * 
      * @param providerType the type of provider to create
@@ -482,59 +488,74 @@ public class AddProviderTests implements SimpleTest {
      */
     private AddProviderPage navigateToAddressScreen(ProviderType providerType) {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
-        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
-
-        // Set provider type and determine role type based on OOP or BC
-        Object roleType;
-        String identifierType;
-        
-        switch (providerType) {
-            case OOP_PRACTITIONER:
-                page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
-                roleType = ProviderRoleTypeOptions.OOPMD;
-                identifierType = "OOPID";
-                break;
-            case ORGANIZATION:
-                page = page.changeProviderType(ProviderType.ORGANIZATION);
-                roleType = OrganizationalProviderRoleType.ORG;
-                identifierType = "ORGID";
-                break;
-            case BC_PRACTITIONER:
-            default:
-                page = page.changeProviderType(ProviderType.BC_PRACTITIONER);
-                roleType = ProviderRoleTypeOptions.MD;
-                identifierType = "CPSID";
-                break;
-        }
-
-        
-        // Fill Status screen with randomized data
+        AddProviderPage page;
         String identifierValue = dataGen.generateNumericId().substring(0, 8);
-        page.fillIdentifier(roleType, null, null, identifierType, identifierValue);
-        page.fillStatus("AE", StatusCodeOption.CANCELLED, StatusReasonCodeOption.LAP);
 
-        page.clickNext("Status", "");
-        page.waitForAddProviderStep("Personal Information", true);
+        if (providerType == ProviderType.ORGANIZATION) {
+            // Organization flow
+            page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
+            
+            page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null, "ORGID", identifierValue);
+            page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+            
+            page.clickNext("Status", "");
+            page.waitForAddProviderStep("Organization", true);
+            
+            // Fill Organization screen with randomized data
+            String orgName = orgDataGen.generateName();
+            String orgDescription = orgDataGen.generateDescription();
+            page.fillOrganizationName(orgName, orgDescription);
+            
+            page.clickNext("Organization", "");
+            page.waitForAddProviderStep("Address", true);
+        } else {
+            // Practitioner flow (BC or OOP)
+            page = workflow.getPlrWebAccessActions().openAddProvider();
+            
+            Object roleType;
+            String identifierType;
+            
+            switch (providerType) {
+                case OOP_PRACTITIONER:
+                    page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+                    roleType = ProviderRoleTypeOptions.OOPMD;
+                    identifierType = "OOPID";
+                    break;
+                case BC_PRACTITIONER:
+                default:
+                    page = page.changeProviderType(ProviderType.BC_PRACTITIONER);
+                    roleType = ProviderRoleTypeOptions.MD;
+                    identifierType = "CPSID";
+                    break;
+            }
 
-        // Fill Personal Information screen with randomized data
-        String[] givenNames = dataGen.generateGivenNames();
-        String familyName = dataGen.generateFamilyName();
-        page.fillPI("Dr.", givenNames[0], givenNames[1], givenNames[2], familyName);
-        
-        // Parse birthdate and convert gender
-        String birthDate = dataGen.generateBirthDate(); // YYYY-MM-DD
-        String[] dateParts = birthDate.split("-");
-        List<Integer> birthDateList = List.of(
-            Integer.parseInt(dateParts[0]), 
-            Integer.parseInt(dateParts[1]), 
-            Integer.parseInt(dateParts[2])
-        );
-        String gender = dataGen.generateGender();
-        String genderCode = gender.equals("male") ? "M" : gender.equals("female") ? "F" : "U";
-        page.fillDemographics(birthDateList, genderCode);
+            // Fill Status screen with randomized data
+            page.fillIdentifier(roleType, null, null, identifierType, identifierValue);
+            page.fillStatus("AE", StatusCodeOption.CANCELLED, StatusReasonCodeOption.LAP);
 
-        page.clickNext("Personal Information", "");
-        page.waitForAddProviderStep("Address", true);
+            page.clickNext("Status", "");
+            page.waitForAddProviderStep("Personal Information", true);
+
+            // Fill Personal Information screen with randomized data
+            String[] givenNames = dataGen.generateGivenNames();
+            String familyName = dataGen.generateFamilyName();
+            page.fillPI("Dr.", givenNames[0], givenNames[1], givenNames[2], familyName);
+            
+            // Parse birthdate and convert gender
+            String birthDate = dataGen.generateBirthDate(); // YYYY-MM-DD
+            String[] dateParts = birthDate.split("-");
+            List<Integer> birthDateList = List.of(
+                Integer.parseInt(dateParts[0]), 
+                Integer.parseInt(dateParts[1]), 
+                Integer.parseInt(dateParts[2])
+            );
+            String gender = dataGen.generateGender();
+            String genderCode = gender.equals("male") ? "M" : gender.equals("female") ? "F" : "U";
+            page.fillDemographics(birthDateList, genderCode);
+
+            page.clickNext("Personal Information", "");
+            page.waitForAddProviderStep("Address", true);
+        }
 
         return page;
     }
