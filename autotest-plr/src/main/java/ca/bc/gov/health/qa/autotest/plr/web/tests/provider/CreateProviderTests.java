@@ -808,6 +808,34 @@ public class CreateProviderTests implements SimpleTest {
                 "Expected error message for exceeding max length of credential city not found.");
     }
 
+    // Create Provider - Validate Provider Credential Granting Institution Name
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialInstitution(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        AddProviderCredentialFragment cred = page.fillCredentials("BD ", "Test",
+                null, UpdateSimpleHelper.generateAlphabetString(241), null, null,
+                null, false, null);
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("institutionTooLong"),
+                "Expected error message for exceeding max length of credential granting institution not found.");
+
+        cred.fillInstitution("Test Institution");
+        ViewProviderPage viewPage = page.clickSubmitButton();
+
+        assertEquals(viewPage.grabDataBlockContent(ProviderSection.CREDENTIALS,0).get("Granting Institution"),
+                "Test Institution", "Credential granting institution did not save the expected value.");
+    }
+
     // Create Provider - Validate Provider Role Type
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testValidateProviderRoleType(ProviderType providerType)
