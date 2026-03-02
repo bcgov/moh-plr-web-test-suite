@@ -829,11 +829,40 @@ public class CreateProviderTests implements SimpleTest {
         assertEquals(errorMessageList.getFirst(), errorList.get("institutionTooLong"),
                 "Expected error message for exceeding max length of credential granting institution not found.");
 
-        cred.fillInstitution("Test Institution");
+        String expectedInstitution = UpdateSimpleHelper.generateAlphabetString(240);
+        cred.fillInstitution(expectedInstitution);
         ViewProviderPage viewPage = page.clickSubmitButton();
 
         assertEquals(viewPage.grabDataBlockContent(ProviderSection.CREDENTIALS,0).get("Granting Institution"),
-                "Test Institution", "Credential granting institution did not save the expected value.");
+                expectedInstitution, "Credential granting institution did not save the expected value.");
+    }
+
+    // Create Provider - Validate Provider Credential Registration Number
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialRegistrationNumber(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        AddProviderCredentialFragment cred = page.fillCredentials("BD ", "Test",
+                UpdateSimpleHelper.generateAlphabetNumericString(241), null, null, null,
+                null, false, null);
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("registrationNumberTooLong"),
+                "Expected error message for exceeding max length of credential registration number not found.");
+
+        String expectedRegistrationNumber = UpdateSimpleHelper.generateAlphabetNumericString(240);
+        cred.fillRegistrationNumber(expectedRegistrationNumber);
+        ViewProviderPage viewPage = page.clickSubmitButton();
+
+        assertEquals(viewPage.grabDataBlockContent(ProviderSection.CREDENTIALS,0).get("Registration Number"),
+                expectedRegistrationNumber, "Credential registration number did not save the expected value.");
     }
 
     // Create Provider - Validate Provider Role Type
