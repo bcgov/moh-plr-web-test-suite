@@ -84,7 +84,14 @@
     "invalidDateFormatDOB": "GRS.SYS.UNK.UNK.1.0.5004: Entry error. The following field may contain only a date: 'Date of Birth'. Your transaction has not been processed. Correct and resubmit.",
     "outOfBoundsDOB": "PRS.SYS.DEM.UNK.1.0.9025: Entry Error. The following field must be between 1800-01-01 and the current date. Correct and Resubmit.",
     "missingGender": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Gender'. Your transaction has not been processed. Correct and resubmit.",
-    "expertiseSourceTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Source's Code' length must be between 0 and 50. Your transaction has not been processed. Correct and resubmit."
+    "expertiseSourceTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Source's Code' length must be between 0 and 50. Your transaction has not been processed. Correct and resubmit.",
+    "missingDesignation": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Designation'. Your transaction has not been processed. Correct and resubmit.",
+    "missingCredentialType": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Credential Type'. Your transaction has not been processed. Correct and resubmit.",
+    "designationTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Designation' length must be between 1 and 240. Your transaction has not been processed. Correct and resubmit.",
+    "registrationNumberTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Registration Number' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit.",
+    "institutionTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Institution' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit.",
+    "yearIssuedTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Credential Year' length must be between 0 and 4. Your transaction has not been processed. Correct and resubmit.",
+    "credentialCityTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Institution City' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",

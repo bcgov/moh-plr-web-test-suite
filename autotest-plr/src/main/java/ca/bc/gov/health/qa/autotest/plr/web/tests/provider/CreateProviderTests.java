@@ -739,6 +739,75 @@ public class CreateProviderTests implements SimpleTest {
                 "Expected name type code to default to 'CURR'.");
     }
 
+    // Create Provider - Validate Provider Credential
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredential(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        AddProviderCredentialFragment cred = page.fillCredentials("BD ", null,
+                null, null, null, null, null, true, null);
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingDesignation"),
+                "Expected error message for missing credential designation not found.");
+
+        cred.selectCredentialType("Select One");
+        cred.fillDesignation("Test");
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingCredentialType"),
+                "Expected error message for missing credential type not found.");
+
+        cred.selectCredentialType("BD ");
+        cred.fillDesignation(UpdateSimpleHelper.generateAlphabetString(241));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("designationTooLong"),
+                "Expected error message for exceeding max length of credential designation not found.");
+
+        cred.fillDesignation("Test");
+        cred.fillRegistrationNumber(UpdateSimpleHelper.generateNumericString(241));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("registrationNumberTooLong"),
+                "Expected error message for exceeding max length of credential registration number not found.");
+
+        cred.fillRegistrationNumber("500");
+        cred.fillInstitution(UpdateSimpleHelper.generateAlphabetString(241));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("institutionTooLong"),
+                "Expected error message for exceeding max length of credential granting institution not found.");
+
+        cred.fillInstitution("Test");
+        cred.fillYear(UpdateSimpleHelper.generateAlphabetString(5));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("yearIssuedTooLong"),
+                "Expected error message for exceeding max length of credential year issued not found.");
+
+        cred.fillYear("2000");
+        cred.fillCity(UpdateSimpleHelper.generateAlphabetString(241));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("credentialCityTooLong"),
+                "Expected error message for exceeding max length of credential city not found.");
+    }
+
     // Create Provider - Validate Provider Role Type
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testValidateProviderRoleType(ProviderType providerType)
