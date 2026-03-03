@@ -54,7 +54,7 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	/**
 	 * Open facility detail view page
 	 *
-	 * @param fauthId
+	 * @param fauthId 	the facility auth ID to open
 	 * 
 	 */
 	public void openFacility(String fauthId) {
@@ -99,9 +99,9 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	/**
 	 * get Data Block Header Update Button Selector
 	 *
-	 * @param section
-	 * @param index
-	 * @return CSS selector of Data Block Header Update Button
+	 * @param section the facility section to select
+	 * @param index   the index of data block within the section to select
+	 * @return 		  CSS selector of Data Block Header Update Button
 	 */
 	protected String getDataBlockHeaderUpdateButtonSelector(FacilitySection section, int index) {
 		return getDataBlockHeaderSelector(section, index) + " > div.ui-panel-actions "
@@ -133,8 +133,10 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	}
 
 	/**
-	 * Using a Javascript Executor to press button
-	 * @param button
+	 * Clicks a button, waiting if necessary.
+	 * Uses a JavaScript Executor to press button if a normal click fails due to interception or stale element.
+	 *
+	 * @param button WebElement of button to be clicked
 	 */
 	private void clickbuttonWait(WebElement button) {
 		try {
@@ -174,10 +176,10 @@ public class UpdateFacilityPage extends ViewFacilityPage {
 	
 	
 	/**
-	 * Get Dialog Css selector
+	 * Get Dialog CSS selector
 	 *
-	 * @param section
-	 * @return string of dialog CSS selector
+	 * @param section   the facility section to select
+	 * @return 			string of dialog CSS selector
 	 */
 	private String getDialogCss(FacilitySection section) {
 		String dialogName =DIALOG_MAP.get(section).getDialogName();

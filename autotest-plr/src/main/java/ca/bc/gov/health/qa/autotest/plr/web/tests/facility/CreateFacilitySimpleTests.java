@@ -40,6 +40,7 @@ import java.util.List;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.navigateToAddFacilityPage;
 import static org.testng.Assert.*;
 
+/** Tests class (simple) for the Create Facility page */
 public class CreateFacilitySimpleTests implements SimpleTest {
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
@@ -51,7 +52,7 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     private static FacilityBuilderFactory facilityDataGen;
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
-    public CreateFacilitySimpleTests()
+    private CreateFacilitySimpleTests()
     {
         try
         {
@@ -68,14 +69,14 @@ public class CreateFacilitySimpleTests implements SimpleTest {
     }
 
     @BeforeMethod
-    public void before(Object[] parameters)
+    private void before(Object[] parameters)
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
         if (!workflow.isLoggedIn()) workflow.login().openPlr();
     }
 
     @AfterClass
-    public void teardown() {
+    private void teardown() {
         workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }

@@ -3,14 +3,13 @@ package ca.bc.gov.health.qa.autotest.plr.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import org.testng.annotations.DataProvider;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 
 /**
- * TODO (AZ) - doc
+ * Data Provider class to inject independent case types for testing (provider + user types typically)
  */
 public class InjectableData
 {
@@ -18,9 +17,9 @@ public class InjectableData
     {}
 
     /**
-     * TODO (AZ) - doc
+     * Provides a matrix of all provider types
      *
-     * @return ???
+     * @return A two-dimensional array of all provider types.
      */
     @DataProvider(name = "allProviderTypes")
     public static Object[][] getAllProviderTypes()
@@ -45,9 +44,42 @@ public class InjectableData
     }
 
     /**
-     * TODO (AZ) - doc
+     * Provides just the BC Practitioner and Organization provider types for tests that need to cover only these types.
      *
-     * @return ???
+     * @return A two-dimensional array of BC Practitioner and Organization provider types.
+     */
+    @DataProvider(name = "indOrgTypes")
+    public static Object[][] getIndOrgTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        for (ProviderType providerType : List.of(ProviderType.BC_PRACTITIONER, ProviderType.ORGANIZATION))
+        {
+            data.add(new Object[]{providerType});
+        }
+        return toArray(data);
+    }
+
+    /**
+     * Provides just the BC Practitioner and Organization provider types for tests that need to cover only these types.
+     * (Includes null for second parameter to match builder method signature for a specific test)
+     *
+     * @return A two-dimensional array of BC Practitioner and Organization provider types.
+     */
+    @DataProvider(name = "indOrgBuilderTypes")
+    public static Object[][] getIndOrgBuilderTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        for (ProviderType providerType : List.of(ProviderType.BC_PRACTITIONER, ProviderType.ORGANIZATION))
+        {
+            data.add(new Object[]{providerType,null});
+        }
+        return toArray(data);
+    }
+
+    /**
+     * Provides a matrix of user types in PLR.
+     *
+     * @return a two-dimensional array of test parameters
      */
     @DataProvider(name = "allPlrUserTypes")
     public static Object[][] getAllPlrUserTypes()
@@ -79,9 +111,9 @@ public class InjectableData
     }
 
     /**
-     * TODO (AZ) - doc
+     * Provides a matrix of user type in PLR combined with each provider type.
      *
-     * @return ???
+     * @return a two-dimensional array of each possible pair of PLR user type and provider type
      */
     @DataProvider(name = "allPlrUserTypesProviderTypes")
     public static Object[][] getAllPlrUserTypesProviderTypes()

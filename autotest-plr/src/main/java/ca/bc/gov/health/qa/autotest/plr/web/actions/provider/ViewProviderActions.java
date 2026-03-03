@@ -319,10 +319,6 @@ public class ViewProviderActions
                     provider.getString("owner") +
                     ") - " +
                     provider.getString("status");
-            default -> {
-                String msg = String.format("Unsupported provider type (%s).", providerType);
-                throw new IllegalStateException(msg);
-            }
         };
     }
 

@@ -20,6 +20,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
+/** Tests class (simple) for the first set of Update Facility menus */
 public class UpdateFacilitySimpleTests implements SimpleTest {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 

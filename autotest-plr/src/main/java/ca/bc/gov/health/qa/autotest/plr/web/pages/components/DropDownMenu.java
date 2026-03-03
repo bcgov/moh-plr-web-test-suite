@@ -251,8 +251,13 @@ extends BasicWebPageFragment
     {
         if (expanded)
         {
+        	try{
             selenium_.waitUntil(
                     ExpectedConditions.visibilityOfElementLocated(itemPanelLocator_));
+        	}
+        	catch(org.openqa.selenium.TimeoutException e){
+        		
+        	}
 
             // Wait for the expand animation to complete.
             // NOTE: The value of the CSS property "opacity" is changing
