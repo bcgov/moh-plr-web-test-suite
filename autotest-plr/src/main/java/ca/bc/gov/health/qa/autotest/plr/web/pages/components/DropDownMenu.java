@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -193,20 +192,16 @@ extends BasicWebPageFragment
         verifyItemPanelExpanded(true);
 
         // NOTE: The menu item prefix may contain apostrophes (').
-        By menuItemCss = By.cssSelector(
-                new StringBuilder("li.ui-selectonemenu-item[data-label^=\"")
-                        .append(itemPrefix)
-                        .append("\"]")
-                        .toString());
+        By menuItemCss = By.cssSelector("li.ui-selectonemenu-item[data-label^=\"" + itemPrefix + "\"]");
 
         WebElement item;
         List<WebElement> itemList =
                 selenium_.findElement(itemPanelLocator_).findElements(menuItemCss);
         if (itemList.size() == 1)
         {
-            item = itemList.get(0);
+            item = itemList.getFirst();
         }
-        else if (itemList.size() == 0)
+        else if (itemList.isEmpty())
         {
             String msg = String.format("Menu item not found (%s).", itemPrefix);
             throw new IllegalStateException(msg);
@@ -261,7 +256,7 @@ extends BasicWebPageFragment
             selenium_.waitUntil(
                     ExpectedConditions.attributeToBe(itemPanelLocator_, "opacity", "1"));
 
-            // wait for dropdown to be open todo make sure this works
+            // wait for dropdown to be open (i.e. animation to be done and dropdown to be in final open state)
             selenium_.waitUntil(ExpectedConditions.attributeContains(
                     itemPanelLocator_, "class", "ui-connected-overlay-enter-done"));
         }

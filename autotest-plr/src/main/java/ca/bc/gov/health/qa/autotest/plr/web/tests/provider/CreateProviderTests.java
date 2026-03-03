@@ -877,9 +877,8 @@ public class CreateProviderTests implements SimpleTest {
 
         actions.skipToSection(page, providerType, "Credential", null, true);
 
-        AddProviderCredentialFragment cred = page.fillCredentials("Select One", "Test",
-                "1234", "Test Institution", "Victoria", null,
-                null, false, "2000");
+        page.fillCredentials(null, "Test", "1234", "Test Institution",
+                "Victoria", null, null, false, "2000");
         page.clickSubmitButton();
 
         List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();

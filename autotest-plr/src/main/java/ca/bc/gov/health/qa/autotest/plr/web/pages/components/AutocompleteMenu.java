@@ -1,8 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.components;
 
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
@@ -18,8 +16,6 @@ import static java.util.Objects.requireNonNull;
  * Fragment class for Autocomplete list components.
  */
 public class AutocompleteMenu extends BasicWebPageFragment {
-
-    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     // TODO: input validation similar to DropDownMenu
 
@@ -143,10 +139,7 @@ public class AutocompleteMenu extends BasicWebPageFragment {
         requireNonNull(itemPrefix, "Null item prefix.");
         verifyAutocompletePanelActive(true);
 
-        By autocompleteListCss = By.cssSelector(
-            new StringBuilder("li.ui-autocomplete-item[data-item-label^=\""
-            ).append(itemPrefix).append("\"]").toString()
-        );
+        By autocompleteListCss = By.cssSelector("li.ui-autocomplete-item[data-item-label^=\"" + itemPrefix + "\"]");
 
         WebElement item;
         selenium_.waitUntil(ExpectedConditions.elementToBeClickable(autocompleteListCss));
@@ -200,7 +193,7 @@ public class AutocompleteMenu extends BasicWebPageFragment {
     }
 
     /**
-	 * Fills the autocomplete field with perfix, find and select the first item that contains a
+	 * Fills the autocomplete field with prefix, find and select the first item that contains a
 	 * certain string from the list
 	 *
 	 * @param prefix the first few characters to match when selecting an
@@ -229,7 +222,7 @@ public class AutocompleteMenu extends BasicWebPageFragment {
 	}
 
 	/**
-	 * Fills the autocomplete field with perfix, find the web element having certain string from the list
+	 * Fills the autocomplete field with prefix, find the web element having certain string from the list
 	 *
 	 * @param prefix the first few characters to match when selecting an
 	 *               autocomplete option. Leave null to fill the field directly with
@@ -243,8 +236,7 @@ public class AutocompleteMenu extends BasicWebPageFragment {
 		requireNonNull(match, "Null item match.");
 		verifyAutocompletePanelActive(true);
 
-		By autocompleteListCss = By.cssSelector(new StringBuilder("li.ui-autocomplete-item[data-item-label^=\"")
-				.append(prefix).append("\"]").toString());
+		By autocompleteListCss = By.cssSelector("li.ui-autocomplete-item[data-item-label^=\"" + prefix + "\"]");
 
 		WebElement item = null;
 		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(autocompleteListCss));
