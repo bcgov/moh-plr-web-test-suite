@@ -1,4 +1,4 @@
-package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add;
+package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Base fragment class for the Add Facility Steps (Identifier, Name, Address, Summary)
+ * Base fragment class for the Add Provider Steps (Identifier/Status, Name, Contact, Credential/Expertise)
  */
-public class AddFacilityStepFragment extends BasicWebPageFragment {
+public class AddProviderStepFragment extends BasicWebPageFragment {
 
     /**
      * CSS prefix used to locate Effective From date fields within the form.
@@ -25,12 +25,11 @@ public class AddFacilityStepFragment extends BasicWebPageFragment {
     public String STEP_PREFIX;
 
     /**
-     * Initializes fragment and changes selenium's main locator to header of the step type form
-     *
-     * @param selenium      the current SeleniumSession
-     * @param stepType      the step to be searched for in the form header (to be supplied by subclass)
+     * Initializes fragment and changes selenium's main locator to header of the step form
+     * @param selenium the current SeleniumSession
+     * @param stepType the step to be searched for in the form header (to be supplied by subclass)
      */
-    public AddFacilityStepFragment(SeleniumSession selenium, String stepType)
+    public AddProviderStepFragment(SeleniumSession selenium, String stepType)
     {
         super(selenium,
                 By.xpath(String.format("//table//tbody//tr//td//div//div//span[contains(text(),'%s')]", stepType)));
@@ -40,7 +39,15 @@ public class AddFacilityStepFragment extends BasicWebPageFragment {
      * Gets the CSS selector for the date field associated with this step.
      * @return the CSS selector string for the date field
      */
-    public String getDateFieldCss() { return DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX; }
+    public String getDateFieldCss()
+    {
+        String dateFieldCss = DATE_FIELD_PREFIX_CSS;
+
+        // Uppercase step prefixes (Email, Cred) seem to use a different format for the date field ID
+        if (Character.isUpperCase(this.STEP_PREFIX.charAt(0)))
+            dateFieldCss = dateFieldCss.replace("FromDate_", "StartDate");
+        return dateFieldCss + this.STEP_PREFIX;
+    }
 
     /**
      * Creates a DateMenu reference for the Effective From Date field
@@ -49,8 +56,15 @@ public class AddFacilityStepFragment extends BasicWebPageFragment {
      */
     public DateMenu getEffectiveFromDateMenu()
     {
+        // Uppercase step prefixes (Email, Cred) seem to use a different format for the date field ID
+        if (Character.isUpperCase(this.STEP_PREFIX.charAt(0))) {
+            return new DateMenu(selenium_,
+                    By.cssSelector(getDateFieldCss()),
+                    String.format("input#form\\:effectiveStartDate%s_input", this.STEP_PREFIX));
+        }
+
         return new DateMenu(selenium_,
-                By.cssSelector(DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX),
+                By.cssSelector(getDateFieldCss()),
                 String.format("input#form\\:effectiveFromDate_%s_input", this.STEP_PREFIX));
     }
 
@@ -81,7 +95,7 @@ public class AddFacilityStepFragment extends BasicWebPageFragment {
      */
     public void typeEffectiveFromRaw(String rawDate)
     {
-        if (rawDate != null) selenium_.fillFieldByCss(DATE_FIELD_PREFIX_CSS + this.STEP_PREFIX + " > input", rawDate);
+        if (rawDate != null) selenium_.fillFieldByCss(getDateFieldCss() + " > input", rawDate);
     }
 
     /**

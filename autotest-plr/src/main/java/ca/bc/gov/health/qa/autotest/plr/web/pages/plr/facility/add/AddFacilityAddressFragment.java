@@ -1,10 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
@@ -30,8 +28,6 @@ public class AddFacilityAddressFragment extends AddFacilityStepFragment {
     private static final String COUNTRY_FIELD_CSS = "label#form\\:country_label";
 
     private static final String WIDGET_TITLE_SPAN_CSS = "div.ui-dialog-titlebar > span.ui-dialog-title";
-
-    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     /**
      * Initializes fragment and changes selenium's main locator to header of the Address form
@@ -137,12 +133,7 @@ public class AddFacilityAddressFragment extends AddFacilityStepFragment {
         );
     }
 
-    /**
-     * Constructs an AutocompleteMenu component for the Address Auto Complete field
-     *
-     * @return  an AutocompleteMenu component for the Address Auto Complete field
-     */
-    public AutocompleteMenu getAddressAutocompleteMenu()
+    private AutocompleteMenu getAddressAutocompleteMenu()
     {
         return new AutocompleteMenu(
                 selenium_,

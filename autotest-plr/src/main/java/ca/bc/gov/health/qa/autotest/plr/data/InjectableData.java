@@ -32,6 +32,17 @@ public class InjectableData
         return toArray(data);
     }
 
+    @DataProvider(name = "practitioners")
+    public static Object[][] getPractitioners()
+    {
+        List<Object[]> data = new ArrayList<>();
+        for (ProviderType providerType : ProviderType.values())
+        {
+            if (!providerType.equals(ProviderType.ORGANIZATION)) data.add(new Object[]{providerType});
+        }
+        return toArray(data);
+    }
+
     /**
      * Provides just the BC Practitioner and Organization provider types for tests that need to cover only these types.
      *

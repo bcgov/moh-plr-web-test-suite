@@ -4,6 +4,7 @@ import java.net.URI;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.HomePage;
@@ -108,6 +109,32 @@ public class PlrWebAccessActions
     }
 
     /**
+     * Opens the Add Provider page
+     *
+     * @return an AddProviderPage object for the add provider page
+     */
+    public AddProviderPage openAddProvider()
+    {
+        waitForPlrNavigationMenuFragment().openItem(Item.ADD_PROVIDER);
+        return new AddProviderPage(selenium_, "(BC Practitioner)");
+    }
+
+    /**
+     * Opens theAdd Organization page
+     *
+     * @return an AddProviderPage object for the add provider page
+     */
+    public AddProviderPage openAddOrganization()
+    {
+        waitForPlrNavigationMenuFragment().openItem(Item.ADD_PROVIDER);
+        String ur = selenium_.getDriver().getCurrentUrl();
+        if (uri_ != null) {
+			String ss=uri_.toString()+"AddProvider.xhtml?"+"type=ORG&OOP=false";
+		//	waitForReady();
+		}
+        return new AddProviderPage(selenium_, "(Organization)");
+    }
+    /**
      * Opens the Add Facility page
      *
      * @return  an AddFacilityPage object for the add facility page
@@ -150,4 +177,5 @@ public class PlrWebAccessActions
         addFacility.waitForReady();
         return addFacility;
     }
+	
 }
