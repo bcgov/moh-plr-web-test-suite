@@ -913,4 +913,26 @@ public class CreateProviderTests implements SimpleTest {
 
         actions.validateStatusField("Reason", providerType, page);
     }
+
+    // Create Provider - Validate Year of Credential Issue
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateYearOfCredentialIssue(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (!providerType.equals(ProviderType.BC_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        page.fillCredentials("BD ", "Test", null, null, null,
+                null, null, false,
+                "1" + UpdateSimpleHelper.generateNumericString(4));
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("yearIssuedTooLong"),
+                "Expected error message for exceeding max length of year of credential issue not found.");
+    }
 }

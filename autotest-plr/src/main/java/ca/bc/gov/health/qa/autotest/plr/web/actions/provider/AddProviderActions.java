@@ -67,14 +67,23 @@ public class AddProviderActions {
 
         page.fillStatus(null, null, null);
         page.clickNext("Status", "");
-        page.waitForAddProviderStep("Personal Information", true);
+        if (!providerType.equals(ProviderType.ORGANIZATION))
+            page.waitForAddProviderStep("Personal Information", true);
+        else page.waitForAddProviderStep("Organization", true);
         if (section.equals("Personal Information")) { return page; }
 
-        page.fillPI(null, "Test", null, null, "Provider");
-        if (section.equals("Demographic Details")) { return page; }
+        if (!providerType.equals(ProviderType.ORGANIZATION))
+        {
+            page.fillPI(null, "Test", null, null, "Provider");
+            if (section.equals("Demographic Details")) { return page; }
 
-        page.fillDemographics("1980-06-30", "U");
-        page.clickNext("Demographic Details", "");
+            page.fillDemographics("1980-06-30", "U");
+            page.clickNext("Demographic Details", "");
+        } else {
+            page.fillOrganizationName("Test Organization", "Test Description");
+            page.clickNext("Organization", "");
+        }
+
         page.waitForAddProviderStep("Address", true);
         if (section.equals("Address")) { return page; }
 
