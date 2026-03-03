@@ -33,14 +33,14 @@ public class AddProviderTests implements SimpleTest {
     }
 
     // sample test to aid in development of page objects and workflow for Add Provider. Does not correspond to any test case in ALM.
-   // @Test
+   @Test
     public void testAddProviderSampleTest() {
         PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
 
         page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
-        page.fillIdentifier(ProviderRoleType.OOPMD, null, null, "OOPID", "252526");
+        page.fillIdentifier(ProviderRoleTypeOptions.OOPMD, null, null, "OOPID", "252526");
         page.fillStatus("AE", StatusCodeOption.CANCELLED, StatusReasonCodeOption.LAP);
 
         page.clickNext("Status", "");

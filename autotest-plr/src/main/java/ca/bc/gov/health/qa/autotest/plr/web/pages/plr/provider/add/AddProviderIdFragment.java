@@ -4,7 +4,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationalProviderRoleType;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleTypeOptions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
 
@@ -86,7 +86,7 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
      * @param providerRoleType the provider role type option to select in the dropdown as an enum (OPT, MD, etc.)
      * @return a string of the value currently selected as Provider Role Type after selecting the given option
      */
-    public String selectProviderRoleType(ProviderRoleType providerRoleType)
+    public String selectProviderRoleType(ProviderRoleTypeOptions providerRoleType)
     {
         return selectProviderRoleType(providerRoleType.getText());
     }

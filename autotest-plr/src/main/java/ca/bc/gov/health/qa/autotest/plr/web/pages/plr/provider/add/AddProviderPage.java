@@ -120,7 +120,7 @@ public class AddProviderPage extends BasicWebPage {
                 newRoleType = fragment.selectProviderRoleType((String) roleType);
             else if (providerType.equals(ProviderType.ORGANIZATION))
                 newRoleType = fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
-            else newRoleType = fragment.selectProviderRoleType((ProviderRoleType) roleType);
+            else newRoleType = fragment.selectProviderRoleType((ProviderRoleTypeOptions) roleType);
 
             if (!newRoleType.equals(prevRoleType) && !newRoleType.equals("Select One")) {
                 WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
@@ -163,7 +163,7 @@ public class AddProviderPage extends BasicWebPage {
                 newRoleType = fragment.selectProviderRoleType((String) roleType);
             else if (providerType.equals(ProviderType.ORGANIZATION))
                 newRoleType = fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
-            else newRoleType = fragment.selectProviderRoleType((ProviderRoleType) roleType);
+            else newRoleType = fragment.selectProviderRoleType((ProviderRoleTypeOptions) roleType);
 
             if (!newRoleType.equals(prevRoleType) || newRoleType.equals("Select One")) {
                 WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
