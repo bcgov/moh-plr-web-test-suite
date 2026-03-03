@@ -8,7 +8,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPa
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderStatusFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationalProviderRoleType;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleTypeOptions;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusCodeOption;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusReasonCodeOption;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -279,9 +279,9 @@ public class AddProviderActions {
     {
         switch (providerType) {
             case OOP_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
+                    page.fillIdentifier(ProviderRoleTypeOptions.OOPRECT, null, null, "OOPID", "1");
             case BC_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
+                    page.fillIdentifier(ProviderRoleTypeOptions.OPT, null, null, "OPTID", "1");
             case ORGANIZATION ->
                     page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
         }
