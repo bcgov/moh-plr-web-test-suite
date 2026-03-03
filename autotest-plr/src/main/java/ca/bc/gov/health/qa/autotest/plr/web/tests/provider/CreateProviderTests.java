@@ -865,6 +865,28 @@ public class CreateProviderTests implements SimpleTest {
                 expectedRegistrationNumber, "Credential registration number did not save the expected value.");
     }
 
+    // Create Provider - Validate Provider Credential Type Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialTypeCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        AddProviderCredentialFragment cred = page.fillCredentials("Select One", "Test",
+                "1234", "Test Institution", "Victoria", null,
+                null, false, "2000");
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingCredentialType"),
+                "Expected error message for missing credential type not found.");
+    }
+
     // Create Provider - Validate Provider Role Type
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testValidateProviderRoleType(ProviderType providerType)
