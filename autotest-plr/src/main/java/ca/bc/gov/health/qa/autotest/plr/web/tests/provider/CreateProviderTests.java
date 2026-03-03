@@ -257,6 +257,9 @@ public class CreateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionCredential(ProviderType providerType, ProviderRoleType roleType)
     {
+        final String identifierType = IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType,
+                List.of("OOPID - Out of Province Provider")).getFirst();
+
         final List<String> expectedCredentialList = Stream.concat(CREDENTIAL_BASE_OPTIONS.stream(),
                         CREDENTIAL_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
 
@@ -266,8 +269,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
-        page.fillIdentifier(roleType, null, null, IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType,
-                List.of("OOPID - Out of Province Provider")).getFirst(), "1");
+        page.fillIdentifier(roleType, null, null, identifierType, "1");
 
         page = actions.skipToSection(page, providerType, "Credential", roleType, true);
 
@@ -291,6 +293,9 @@ public class CreateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionExpertise(ProviderType providerType, ProviderRoleType roleType)
     {
+        final String identifierType = IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType,
+                List.of("OOPID - Out of Province Provider")).getFirst();
+
         final List<String> expectedExpertiseList = Stream.concat(EXPERTISE_LANG_OPTIONS.stream(),
                         EXPERTISE_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
 
@@ -300,8 +305,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
-        page.fillIdentifier(roleType, null, null, IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType,
-                            List.of("OOPID - Out of Province Provider")).getFirst(), "1");
+        page.fillIdentifier(roleType, null, null, identifierType, "1");
 
         page = actions.skipToSection(page, providerType, "Expertise", roleType, true);
 
