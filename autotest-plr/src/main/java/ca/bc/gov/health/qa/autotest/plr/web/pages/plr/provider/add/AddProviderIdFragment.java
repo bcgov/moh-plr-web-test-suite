@@ -142,6 +142,8 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
      */
     public String selectIdentifierType(String identifierType)
     {
+        // Scroll dropdown into view before expanding to ensure panel appears in visible area
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector("label#form\\:identifierType_label")));
         DropDownMenu menu = getIdentifierTypeMenu();
         menu.expandItemPanel(true);
         menu.selectItem(identifierType);
