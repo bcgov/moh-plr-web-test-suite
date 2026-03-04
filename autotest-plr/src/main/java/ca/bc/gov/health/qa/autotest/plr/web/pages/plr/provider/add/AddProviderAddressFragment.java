@@ -334,4 +334,24 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
             throw new IllegalStateException("No interactable button found in visible widget '" + errorWidget + "'.");
         }
     }
+    
+    
+    public  void closeAddressValidationDialogWithContinue(
+			) throws InterruptedException {
+		Thread.sleep(4000);
+
+		String path1="//div[contains(.,'Address Recommended')]/button[contains(.,'Continue w/ Original')]";
+		String path2="//div[not(contains(.,'Address Recommended')) and contains(.,'Address Provided')]/button[contains(.,'Continue w/ Original')]";
+		
+		WebElement addrValContinueWithOriginal1 =selenium_.findElement (By.xpath(path1));		
+		WebElement addrValContinueWithOriginal2 =selenium_.findElement (By.xpath(path2));
+		if (addrValContinueWithOriginal1.isDisplayed()) {
+			addrValContinueWithOriginal1.click();
+			Thread.sleep(1000);
+		} else if (addrValContinueWithOriginal2.isDisplayed()) {
+			addrValContinueWithOriginal2.click();
+			Thread.sleep(1000);
+		}
+		Thread.sleep(1000);
+	}
 }

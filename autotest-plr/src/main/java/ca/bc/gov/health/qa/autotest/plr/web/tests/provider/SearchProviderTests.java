@@ -97,7 +97,7 @@ public class SearchProviderTests implements SimpleTest {
 		if (!workflow.isLoggedIn()) {
 			workflow.login().openPlr();
 		}
-		//TODO: create provider and ord
+	
 
 	}
 
