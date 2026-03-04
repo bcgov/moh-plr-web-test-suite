@@ -116,19 +116,19 @@ public class AddProviderTests implements SimpleTest {
     public void testAddOrganizationSampleTest() {
     	PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
-        
+
 
         page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null, "ORGID", "252526");
         page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
-        
+
         page.clickNext("Status", "");
         page.waitForAddProviderStep("Organization", true);
-        
+
         page.fillOrganizationName("test00", "Testing");
         page.clickNext("Organization", "");
         page.waitForAddProviderStep("Address", true);
- 
-        
+
+
         AddProviderAddressFragment address = page.fillAddress("P", "BC", List.of("123 Test St", "Unit 1", ""),
                 "Victoria", "BC", "CA", "V9V0C6");
         page.fillPhone("250", "5551234", "123");
@@ -138,7 +138,7 @@ public class AddProviderTests implements SimpleTest {
         address.handleWidgetButton("Address Invalid");
         page.waitForAddProviderStep("Credential", true);
 
-        
+
         ViewProviderPage viewPage = page.clickSubmitButton();
     }
 
@@ -182,10 +182,10 @@ public class AddProviderTests implements SimpleTest {
 
         //Step 3 - Verify address purpose code is mandatory and the list of codes is complete
         List<String> purposeOptions = addressFragment.getAddressPurposeOptions();
-        
+
         // Log the available options for debugging
         LOG.info("Available Address Purpose options: {}", purposeOptions);
-        
+
         // Verify all expected purpose codes are present using the CommunicationPurpose enum
         for (CommunicationPurpose expectedPurpose : CommunicationPurpose.values()) {
             boolean found = purposeOptions.stream().anyMatch(expectedPurpose::matchesOption);
@@ -214,10 +214,10 @@ public class AddProviderTests implements SimpleTest {
 
         //Step 2 - Verify that the list of address type codes is complete and mandatory
         List<String> typeOptions = addressFragment.getAddressTypeOptions();
-        
+
         // Log the available options for debugging
         LOG.info("Available Address Type options: {}", typeOptions);
-        
+
         // Verify all expected type codes are present using the AddressType enum
         for (AddressType expectedType : AddressType.values()) {
             boolean found = typeOptions.stream().anyMatch(expectedType::matchesOption);
@@ -234,7 +234,7 @@ public class AddProviderTests implements SimpleTest {
         String missingType = errorList.getString("errMsg5000AddressType");
         assertTrue(errors.contains(missingType), "Missing Address Type should return an error.");
     }
-    
+
     //Validate city
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testValidateCity(ProviderType providerType) {
@@ -296,7 +296,7 @@ public class AddProviderTests implements SimpleTest {
         page.clickNext("Address", null);
         shortUiPause();
         errors = page.waitForAlertMessagesFragment().grabErrorMessageList();
-        
+
         String emailBlank = errorList.getString("errMsg5000EmailAddress");
         assertTrue(errors.contains(emailBlank), "Email blank should return an error.");
 
@@ -419,21 +419,21 @@ public class AddProviderTests implements SimpleTest {
     //Validate Province and state Address codes with Country
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testValidateProvinceAndStateAddressCodesWithCountry(ProviderType providerType) {
-        //Step 1&2 - Login and navigate to create provider page, contact tab. 
+        //Step 1&2 - Login and navigate to create provider page, contact tab.
         AddProviderPage page = navigateToAddressScreen(providerType);
 
         // Initialize the address fragment to access province/country options
         AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(
                 workflowManager_.getSelectedWorkflow().getSeleniumSession());
 
-        //Select CA as country and verify the list of provinces displayed is correct. 
+        //Select CA as country and verify the list of provinces displayed is correct.
         addressFragment.selectCountry("CA");
         shortUiPause();
-        
+
         // Verify province dropdown is displayed for Canada
-        assertTrue(addressFragment.isProvinceStateDropdownDisplayed(), 
+        assertTrue(addressFragment.isProvinceStateDropdownDisplayed(),
                 "Province/State dropdown should be displayed when Canada is selected.");
-        
+
         List<String> caProvinceOptions = addressFragment.getProvinceStateOptions();
         // Verify all expected Canadian provinces/territories are present
         for (CanadianProvince expectedProvince : CanadianProvince.values()) {
@@ -444,12 +444,12 @@ public class AddProviderTests implements SimpleTest {
         //Step 3 - Select US as country and verify the list of states displayed is correct.
         addressFragment.selectCountry("US");
         shortUiPause();
-        
+
         // Verify province/state dropdown is displayed for United States
-        assertTrue(addressFragment.isProvinceStateDropdownDisplayed(), 
+        assertTrue(addressFragment.isProvinceStateDropdownDisplayed(),
                 "Province/State dropdown should be displayed when United States is selected.");
-        
-        List<String> usStateOptions = addressFragment.getProvinceStateOptions();        
+
+        List<String> usStateOptions = addressFragment.getProvinceStateOptions();
         // Verify all expected US states are present
         for (USState expectedState : USState.values()) {
             boolean found = usStateOptions.stream().anyMatch(expectedState::matchesOption);
@@ -459,11 +459,11 @@ public class AddProviderTests implements SimpleTest {
         //Step 4 - Select a non-CA/US country and verify that province/state field becomes a free text field.
         addressFragment.selectCountry("MX");
         shortUiPause();
-        
+
         // Verify province/state dropdown is NOT displayed for non-CA/US country
-        assertTrue(!addressFragment.isProvinceStateDropdownDisplayed() || addressFragment.isProvinceStateTextInputDisplayed(), 
+        assertTrue(!addressFragment.isProvinceStateDropdownDisplayed() || addressFragment.isProvinceStateTextInputDisplayed(),
                 "Province/State dropdown should be hidden or text input should be displayed when a non-CA/US country is selected.");
-        
+
         // If text input is displayed, verify we can fill it with raw text
         if (addressFragment.isProvinceStateTextInputDisplayed()) {
             addressFragment.fillProvinceStateRaw("Test Province");
@@ -482,7 +482,7 @@ public class AddProviderTests implements SimpleTest {
      * Navigates to the Address screen on the Add Provider page using randomized template data.
      * Fills Status and Personal Information/Organization screens with generated values, then returns the page
      * so tests can fill the address fields themselves.
-     * 
+     *
      * @param providerType the type of provider to create
      * @return the AddProviderPage positioned at the Address screen
      */
@@ -494,27 +494,27 @@ public class AddProviderTests implements SimpleTest {
         if (providerType == ProviderType.ORGANIZATION) {
             // Organization flow
             page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
-            
+
             page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null, "ORGID", identifierValue);
             page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
-            
+
             page.clickNext("Status", "");
             page.waitForAddProviderStep("Organization", true);
-            
+
             // Fill Organization screen with randomized data
             String orgName = orgDataGen.generateName();
             String orgDescription = orgDataGen.generateDescription();
             page.fillOrganizationName(orgName, orgDescription);
-            
+
             page.clickNext("Organization", "");
             page.waitForAddProviderStep("Address", true);
         } else {
             // Practitioner flow (BC or OOP)
             page = workflow.getPlrWebAccessActions().openAddProvider();
-            
+
             Object roleType;
             String identifierType;
-            
+
             switch (providerType) {
                 case OOP_PRACTITIONER:
                     page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
@@ -540,13 +540,13 @@ public class AddProviderTests implements SimpleTest {
             String[] givenNames = dataGen.generateGivenNames();
             String familyName = dataGen.generateFamilyName();
             page.fillPI("Dr.", givenNames[0], givenNames[1], givenNames[2], familyName);
-            
+
             // Parse birthdate and convert gender
             String birthDate = dataGen.generateBirthDate(); // YYYY-MM-DD
             String[] dateParts = birthDate.split("-");
             List<Integer> birthDateList = List.of(
-                Integer.parseInt(dateParts[0]), 
-                Integer.parseInt(dateParts[1]), 
+                Integer.parseInt(dateParts[0]),
+                Integer.parseInt(dateParts[1]),
                 Integer.parseInt(dateParts[2])
             );
             String gender = dataGen.generateGender();

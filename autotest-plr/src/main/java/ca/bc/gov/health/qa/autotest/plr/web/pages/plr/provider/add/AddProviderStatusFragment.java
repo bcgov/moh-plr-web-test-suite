@@ -44,7 +44,9 @@ public class AddProviderStatusFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getStatusClassCodeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**
@@ -89,7 +91,9 @@ public class AddProviderStatusFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getStatusCodeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**
@@ -134,7 +138,9 @@ public class AddProviderStatusFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getStatusReasonCodeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**

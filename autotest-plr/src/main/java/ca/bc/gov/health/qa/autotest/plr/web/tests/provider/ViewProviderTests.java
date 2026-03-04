@@ -226,15 +226,6 @@ public class ViewProviderTests implements SimpleTest
     {
         final String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
 
-
-        if (!providerType.equals(ProviderType.ORGANIZATION))
-        {
-            MaintainIndividualBuilder test;
-            test = (MaintainIndividualBuilder) defaultProviders.get(providerType);
-            LOG.info("here there is ");
-            LOG.info(test.getIdentifierOwners());
-        }
-
         // Step 1: Login into the Web App and navigate to the View Providers Details Screen by submitting a search
         ViewProviderPage page = viewByIdentifier(identifier, workflowManager_);
         final ViewProviderActions actions = workflowManager_.getSelectedWorkflow().getViewProviderActions();

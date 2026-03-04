@@ -8,6 +8,7 @@ import java.util.Map;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.SearchFacilityActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.ViewFacilityActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.AddProviderActions;
 import org.apache.logging.log4j.Logger;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
@@ -158,6 +159,12 @@ implements AutoCloseable
     {
         return new ViewProviderActions(selenium_, uri_, userType_);
     }
+
+    /**
+     * Creates and gets an actions object for the Add Provider page
+     * @return an AddProviderActions object
+     */
+    public AddProviderActions getAddProviderActions() { return new AddProviderActions(selenium_); }
 
     /**
      * Creates and gets an actions object for the Update Facility page corresponding to simple test cases

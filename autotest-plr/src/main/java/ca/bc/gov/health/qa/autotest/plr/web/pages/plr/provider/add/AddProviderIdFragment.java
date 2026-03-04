@@ -63,7 +63,9 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getProviderRoleTypeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**
@@ -128,7 +130,9 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getIdentifierTypeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**
@@ -186,7 +190,9 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getHdsTypeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**
@@ -242,7 +248,9 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getHdsSubTypeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**
