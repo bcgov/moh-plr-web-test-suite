@@ -523,7 +523,7 @@ extends BasicWebPage
         return getSectionSelector(section) + "_content";
     }
 
-    private String getSectionHeaderSelector(ProviderSection section)
+    protected String getSectionHeaderSelector(ProviderSection section)
     {
         return getSectionSelector(section) + "_header";
     }

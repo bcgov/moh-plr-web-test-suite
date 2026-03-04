@@ -6,6 +6,7 @@ import static org.testng.Assert.fail;
 import java.net.URI;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
@@ -32,7 +33,9 @@ public class UpdateProviderPage extends ViewProviderPage {
 			ProviderSection.TELECOMMUNICATIONS, new ProviderDialog("maintainTelecomDialog", "maintainTelecomForm", "effectiveFromDate",
 					"effectiveToDate", "idTeleSubmitButton", "EndReasonType","Add a new Telecommunication"), 
 			ProviderSection.ELECTRONIC_ADDRESSES, new ProviderDialog("maintainElectronicAddressDialog", "maintainElectronicAddressForm", "effectiveStartDate",
-					"effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType","Add a new Electronic Address"));
+					"effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType","Add a new Electronic Address"),
+			ProviderSection.CONDITIONS, new ProviderDialog("maintainConditionDialog", "maintainConditionForm", "effectiveFromDate",
+					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Condition"));
 
 	public UpdateProviderPage(SeleniumSession selenium, URI uri) {
 		super(selenium, uri);
@@ -90,6 +93,26 @@ public class UpdateProviderPage extends ViewProviderPage {
 			JavascriptExecutor js = (JavascriptExecutor) selenium_.getDriver();
 			js.executeScript("arguments[0].click();", button);
 		}
+	}
+
+	public void clickHeaderAddButton(ProviderSection section)
+	{
+		String title = DIALOG_MAP.get(section).getAddButtonImgText();
+		String clickElementCss = getSectionSelector(section) + " > div > div > a > img[title='" + title + "']";
+
+		WebElement clickElement = selenium_
+				.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		selenium_.scrollIntoView(clickElement);
+		try {
+			clickElement.click();
+		} catch (StaleElementReferenceException | ElementClickInterceptedException e) {
+			waitSeconds(2);
+			clickElement = selenium_.findElement(By.cssSelector(clickElementCss));
+			clickElement.click();
+		}
+
+		String dialogCss = getDialogCss(section);
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
 
     /**
@@ -193,6 +216,83 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 	}
 
+	public void fillConditionDataBlock(String conditionType, String conditionIdentifier, boolean restriction,
+										String explanation, String effectiveFrom, String effectiveTo)
+	{
+		String formName = DIALOG_MAP.get(ProviderSection.CONDITIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.CONDITIONS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		setDropdownListByVisibleText(ProviderSection.CONDITIONS, "conditionType", conditionType);
+
+		String inputIdCss=dialogCss+" >input#"+formName+"\\:Identifier";
+		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if(!StringUtils.isEmpty(conditionIdentifier))inputId.sendKeys(conditionIdentifier);
+
+		if (restriction) {
+			String restrictionCss = dialogCss + " > input#" + formName + "\\:restriction";
+			WebElement restrictionCheckbox = selenium_.findElement(By.cssSelector(restrictionCss));
+			restrictionCheckbox.click();
+		}
+
+		String explanationCss = dialogCss + " > textarea#" + formName + "\\:explanation";
+		WebElement explanationInput = selenium_.findElement(By.cssSelector(explanationCss));
+		explanationInput.clear();
+		if(!StringUtils.isEmpty(explanation))explanationInput.sendKeys(explanation);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.CONDITIONS, effectiveFrom, effectiveTo);
+	}
+
+	public String addConditionDataBlock(String conditionType, String conditionIdentifier, boolean restriction,
+										String explanation, String effectiveFrom, String effectiveTo)
+	{
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.CONDITIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.CONDITIONS);
+
+		clickHeaderAddButton(ProviderSection.CONDITIONS);
+
+		fillConditionDataBlock(conditionType, conditionIdentifier, restriction, explanation, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.CONDITIONS);
+
+		msgDisplay = getDialogMessages(ProviderSection.CONDITIONS);
+
+		if (!StringUtils.isEmpty(msgDisplay)) {
+			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+			cancelButton.click();
+		}
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	private void setDialogEffectiveFromAndEffectiveTo(ProviderSection section, String effectiveFrom,
+													  String effectiveTo) {
+		String dialogCss = getDialogCss(section);
+		String formName = DIALOG_MAP.get(section).getFormName();
+		String effectiveFromStr = DIALOG_MAP.get(section).getEffectiveFromStr();
+		String effectiveToStr = DIALOG_MAP.get(section).getEffectiveToStr();
+
+		String effectFromCss = dialogCss + " >span#" + formName + "\\:" + effectiveFromStr + " >input#" + formName
+				+ "\\:" + effectiveFromStr + "_input";
+		WebElement effectFromElement = selenium_.findElement(By.cssSelector(effectFromCss));
+		effectFromElement.clear();
+		if (!StringUtils.isEmpty(effectiveFrom))
+			effectFromElement.sendKeys(effectiveFrom);
+
+		String effectToCss = dialogCss + " >span#" + formName + "\\:" + effectiveToStr + " >input#" + formName + "\\:"
+				+ effectiveToStr + "_input";
+		WebElement effectToElement = selenium_.findElement(By.cssSelector(effectToCss));
+		effectToElement.clear();
+		if (!StringUtils.isEmpty(effectiveTo))
+			effectToElement.sendKeys(effectiveTo);
+	}
+
 	/**
 	 * wait Error Message showing up, and return a copy of message as result
 	 * note the result is a set of messages, if there are more than one error messages
@@ -275,5 +375,16 @@ public class UpdateProviderPage extends ViewProviderPage {
 		for (int i = 0; i < count; i++) {
 			ceaseDataBlock(section, 0);
 		}
+	}
+
+	public void clickDialogCancelButton(ProviderSection providerSection)
+	{
+		String dialogCss = getDialogCss(providerSection);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
 }

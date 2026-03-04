@@ -10,10 +10,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.add.AddFacilityPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateOrganizationPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.*;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.search.SearchFacilityPage;
@@ -429,6 +426,18 @@ public final class TestHelper {
         search.openResults(0);
         
         return new UpdateOrganizationPage(workflow.getSeleniumSession(), 
+                                        workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
+    }
+
+    public static UpdateProviderPage viewByIdentifierAsUpdateProvider(String identifier, PlrWebWorkflowManager workflowManager) {
+        final PlrWebWorkflow workflow = workflowManager.getSelectedWorkflow();
+
+        SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
+        SearchProviderResultsFragment search = searchProviderPage.searchByIdentifier(
+                "IPC", identifier);
+        search.openResults(0);
+
+        return new UpdateProviderPage(workflow.getSeleniumSession(),
                                         workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
     }
 
