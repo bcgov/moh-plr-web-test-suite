@@ -41,7 +41,6 @@ public class UpdateProviderTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
-    private FHIRController fhirController;
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     public static JSONObject errorList;
@@ -76,10 +75,12 @@ public class UpdateProviderTests implements SimpleTest {
 
     @BeforeTest
     public void beforeTest() {
-        fhirController = new FHIRController(UserType.ADMIN);
-        MaintainIndividualBuilder defaultBC = fhirController.createIndividual(new IndividualMaintainConfig(IndividualRoleType.OPT));
+        FHIRController fhirController = new FHIRController(UserType.ADMIN);
+        MaintainIndividualBuilder defaultBC = fhirController
+                .createIndividual(new IndividualMaintainConfig(IndividualRoleType.OPT));
         LOG.info("Created default BC provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
-        MaintainIndividualBuilder defaultOOP = fhirController.createIndividual(new IndividualMaintainConfig(IndividualRoleType.OOP_RECT));
+        MaintainIndividualBuilder defaultOOP = fhirController
+                .createIndividual(new IndividualMaintainConfig(IndividualRoleType.OOP_RECT));
         LOG.info("Created default OOP provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
         fhirController.close();
 
