@@ -2,8 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -114,6 +113,28 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected no active condition data blocks after cancelling add");
     }
 
+    // Update Provider - Generating a Default Condition ID
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testGenerateDefaultConditionID(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addConditionDataBlock("LOC", null, false, "Test",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
+                "Expected 1 active condition data block after adding condition with no identifier");
+
+        String condIdentifier = page.grabDataBlockContent(ProviderSection.CONDITIONS, 0).get("Identifier");
+        assertTrue(condIdentifier.matches("CDN\\.\\d{1,6}\\.PRS"),
+                "Expected generated condition identifier to match pattern 'CDN.####.PRS'");
+
+        page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
+    }
+
     // Update Provider - Validate Condition ID
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateConditionID(ProviderType providerType)
@@ -136,8 +157,8 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected 1 active condition data block after adding condition with no identifier");
 
         String condIdentifier = page.grabDataBlockContent(ProviderSection.CONDITIONS, 0).get("Identifier");
-        assertTrue(condIdentifier.matches("CDN\\.\\d{1,6}\\.PRS"),
-                "Expected generated condition identifier to match pattern 'CDN.####.PRS'");
+        assertFalse(condIdentifier.isEmpty(),
+                "Expected generated condition identifier when adding condition with no identifier");
 
         page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
 
