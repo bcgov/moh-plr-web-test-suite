@@ -3,6 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.*;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -109,7 +110,6 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected no active condition data blocks after cancelling add");
     }
 
-    // TODO verify
     // Update Provider - Validate Condition ID
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateConditionID(ProviderType providerType)
@@ -130,9 +130,10 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
                 "Expected 1 active condition data block after adding condition with no identifier");
-        // TODO find out the generated identifier value format and validate against it
-        assertEquals(page.grabDataBlockContent(ProviderSection.CONDITIONS, 0).get("Identifier"), "TODO",
-                "Expected empty identifier value in data block when no identifier provided");
+
+        String condIdentifier = page.grabDataBlockContent(ProviderSection.CONDITIONS, 0).get("Identifier");
+        assertTrue(condIdentifier.matches("CDN\\.\\d{1,6}\\.PRS"),
+                "Expected generated condition identifier to match pattern 'CDN.####.PRS'");
 
         page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
 
@@ -145,7 +146,6 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
     }
 
-    // TODO verify
     // Update Provider - Validate Condition Restriction Flag
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateConditionRestrictionFlag(ProviderType providerType)
