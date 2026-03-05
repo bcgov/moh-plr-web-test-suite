@@ -29,6 +29,7 @@ public class AddProviderPage extends BasicWebPage {
     /**
      * Initializes page object and changes selenium's main locator to the Add Provider Heading
      * @param selenium the selenium session
+     * @param expectedHeader the expected header to identify the provider type of the Add Provider page
      */
     public AddProviderPage(SeleniumSession selenium, String expectedHeader) {
         super(selenium,
@@ -92,7 +93,11 @@ public class AddProviderPage extends BasicWebPage {
     /**
      * Fills the identifier form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
      * @param roleType the provider role type to select in the form, or null to not select any provider role type.
-     *                 will be explicitly cast to either ProviderRoleType or OrganizationalProviderRoleType based on the provider type of the page
+     *                 will be explicitly cast to either ProviderRoleType or OrganizationalProviderRoleType based on the provider type of the page.
+     * @param hdsType the HDS type to select in the form, or null to not select any HDS type.
+     *                Only applicable if roleType is HDS
+     * @param hdsSubType the HDS subtype to select in the form, or null to not select any HDS subtype.
+     *                   Only applicable if roleType is HDS and an HDS type is selected
      * @param identifierType the identifier type to select in the form, or null to not select any identifier type
      * @param identifier the identifier to fill in the form, or null to not fill any identifier
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
@@ -142,6 +147,8 @@ public class AddProviderPage extends BasicWebPage {
      * Fills the identifier form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
      * @param roleType the provider role type to select in the form, or null to not select any provider role type.
      *                 will be explicitly cast to either ProviderRoleType or OrganizationalProviderRoleType based on the provider type of the page
+     * @param hdsType the HDS type to select in the form, or null to not select any HDS type.
+     * @param hdsSubType the HDS subtype to select in the form, or null to not select any HDS subtype.
      * @param identifierType the identifier type to select in the form, or null to not select any identifier type
      * @param identifier the identifier to fill in the form, or null to not fill any identifier
      * @return the AddProviderIdFragment object after filling the form with the provided information

@@ -5,6 +5,9 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditi
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
 
+/**
+ * Page fragment for the Fax Number step of the Add Provider workflow.
+ */
 public class AddProviderFaxFragment extends AddProviderStepFragment {
 
     private static final String AREA_CODE_FIELD_CSS = "input#form\\:areaCodeFax";

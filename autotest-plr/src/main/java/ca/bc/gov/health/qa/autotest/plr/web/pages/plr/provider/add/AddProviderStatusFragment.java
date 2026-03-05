@@ -6,6 +6,9 @@ import org.openqa.selenium.By;
 
 import java.util.List;
 
+/**
+ * Page fragment for the Status page of the Add Provider flow.
+ */
 public class AddProviderStatusFragment extends AddProviderStepFragment {
 
     /**

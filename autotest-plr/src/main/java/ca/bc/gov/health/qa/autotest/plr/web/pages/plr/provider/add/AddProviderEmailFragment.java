@@ -5,6 +5,9 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditi
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
 
+/**
+ * Page fragment for the Email step of the Add Provider workflow.
+ */
 public class AddProviderEmailFragment extends AddProviderStepFragment {
 
     private static final String EMAIL_ADDRESS_FIELD_CSS = "input#form\\:emailAddress";

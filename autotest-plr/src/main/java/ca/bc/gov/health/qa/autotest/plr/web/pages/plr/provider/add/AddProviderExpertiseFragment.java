@@ -8,6 +8,9 @@ import org.openqa.selenium.By;
 
 import java.util.List;
 
+/**
+ * Page fragment for the Expertise step of the Add Provider workflow.
+ */
 public class AddProviderExpertiseFragment extends AddProviderStepFragment {
 
     private static final String SOURCE_CODE_FIELD_CSS = "input#form\\:sourceCode";

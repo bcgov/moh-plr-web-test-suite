@@ -22,6 +22,7 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     /**
      * Initializes page object and changes selenium's main locator to the Identifier heading
      * @param selenium the selenium session
+     * @param providerType the type of provider being added
      */
     public AddProviderIdFragment(SeleniumSession selenium, ProviderType providerType) {
         super(selenium, "Identifier");

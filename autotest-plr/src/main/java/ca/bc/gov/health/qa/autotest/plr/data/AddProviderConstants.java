@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+/** Class containing constant values for Add Provider test cases */
 public class AddProviderConstants {
 
     private static final List<StatusReasonCodeOption> CANCELLED_REASON_CODE_OPTIONS = List.of(
