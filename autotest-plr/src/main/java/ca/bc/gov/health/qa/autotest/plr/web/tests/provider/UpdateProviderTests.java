@@ -3,7 +3,6 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.*;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -17,7 +16,6 @@ import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -44,9 +42,7 @@ public class UpdateProviderTests implements SimpleTest {
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     public static JSONObject errorList;
 
-    private static MaintainIndividualBuilder defaultBC;
-    private static MaintainIndividualBuilder defaultOOP;
-    private static Map<ProviderType, MaintainIndividualBuilder> defaultProviders = new HashMap<>();
+    private static final Map<ProviderType, MaintainIndividualBuilder> defaultProviders = new HashMap<>();
 
     private UpdateProviderTests() {
         try
@@ -62,7 +58,7 @@ public class UpdateProviderTests implements SimpleTest {
 
     @AfterClass
     public void teardown() {
-        workflowManager_.logoutAllAndClose();
+        //workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
 
@@ -77,9 +73,9 @@ public class UpdateProviderTests implements SimpleTest {
     @BeforeTest
     public void beforeTest() {
         fhirController = new FHIRController(UserType.ADMIN);
-        defaultBC = fhirController.createIndividual(new IndividualMaintainConfig(IndividualRoleType.OPT));
+        MaintainIndividualBuilder defaultBC = fhirController.createIndividual(new IndividualMaintainConfig(IndividualRoleType.OPT));
         LOG.info("Created default BC provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
-        defaultOOP = fhirController.createIndividual(new IndividualMaintainConfig(IndividualRoleType.OOP_RECT));
+        MaintainIndividualBuilder defaultOOP = fhirController.createIndividual(new IndividualMaintainConfig(IndividualRoleType.OOP_RECT));
         LOG.info("Created default OOP provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
         fhirController.close();
 
@@ -113,6 +109,7 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected no active condition data blocks after cancelling add");
     }
 
+    // TODO verify
     // Update Provider - Validate Condition ID
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateConditionID(ProviderType providerType)
@@ -127,5 +124,53 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(error, errorList.get("conditionIdentifierTooLong"),
                 "Expected error for condition identifier exceeding max length");
+
+        page.addConditionDataBlock("LOC", null, false, "Test",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
+                "Expected 1 active condition data block after adding condition with no identifier");
+        // TODO find out the generated identifier value format and validate against it
+        assertEquals(page.grabDataBlockContent(ProviderSection.CONDITIONS, 0).get("Identifier"), "TODO",
+                "Expected empty identifier value in data block when no identifier provided");
+
+        page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
+
+        page.addConditionDataBlock("LOC", generateNumericString(240), false,
+                "Test", effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
+                "Expected 1 active condition data block after adding valid identifier");
+
+        page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
+    }
+
+    // TODO verify
+    // Update Provider - Validate Condition Restriction Flag
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateConditionRestrictionFlag(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addConditionDataBlock("LOC", "99999", true,
+                "Test", effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
+                "Expected 1 active condition data block with restriction flag set to true");
+        assertEquals(page.grabDataBlockContent(ProviderSection.CONDITIONS, 0).get("Restriction Flag"), "Yes",
+                "Expected 'Yes' value for restriction flag in data block when set to true");
+
+        page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
+
+        page.addConditionDataBlock("LOC", "99999", false,
+                "Test", effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
+                "Expected 1 active condition data block with restriction flag set to true");
+        assertEquals(page.grabDataBlockContent(ProviderSection.CONDITIONS, 0).get("Restriction Flag"), "No",
+                "Expected 'No' value for restriction flag in data block when set to false");
     }
 }
