@@ -1,5 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsSubType;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
@@ -233,7 +234,6 @@ public class AddProviderPage extends BasicWebPage {
 			if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
 				selenium_
 						.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));
-
 				fragment.selectHdsType(hdsType);
 				if (hdsSubType != null)
 					fragment.selectHdsSubType(hdsSubType);
@@ -248,6 +248,12 @@ public class AddProviderPage extends BasicWebPage {
 		return fragment;
 	}
 
+	public AddProviderIdFragment selectOrganizationRoleType(OrganizationalProviderRoleType roleType) {
+		AddProviderIdFragment fragment = new AddProviderIdFragment(selenium_, providerType);
+		if (roleType != null) 
+			fragment.selectProviderRoleType(roleType);
+		return fragment;
+	}
 
     /**
      * Fills the status form in the Add Provider flow with the provided information, waiting for the form to be ready before filling.
@@ -822,6 +828,37 @@ public class AddProviderPage extends BasicWebPage {
             }
         } else { waitForAddProviderStep(currentState, true); }
     }
+    
+    public void clickNext(String currentState)
+    {
+        WebElement stepTitle = selenium_.findElement(By.xpath(String.format(FORM_TITLE_XPATH, currentState)));
+
+        selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
+
+        selenium_.waitUntil(ExpectedConditions.stalenessOf(stepTitle));
+
+    }
+    
+    public void clickNext(String currentState, boolean waitWidget)
+    {
+        WebElement stepTitle = selenium_.findElement(By.xpath(String.format(FORM_TITLE_XPATH, currentState)));
+
+        selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
+
+        selenium_.waitUntil(ExpectedConditions.stalenessOf(stepTitle));
+        
+        if(waitWidget) {
+        	try {
+                waitForWidgetVisibility("");
+            } catch (IllegalStateException e) {
+                //throw new IllegalStateException("Search for widget " + errorWidget + " timed out");
+            }
+        }
+
+    }
+    
+    
+   
 
     /**
      * Return to the previous stage of the Add Provider flow with the Back button.
@@ -890,4 +927,48 @@ public class AddProviderPage extends BasicWebPage {
 	    {
 	        return selenium_.findElementByCss("div.ui-wizard.ui-widget > ul > li.ui-state-highlight").getText();
 	    }
+
+	
+		/**
+		 * Grabs all alert messages displayed on the page.
+		 *
+		 * @param alertMsgCss the CSS selector for the alert messages
+		 * @return a string of concatenated alert messages
+		 */
+		private String grabAlertMessage(String alertMsgCss) {
+			StringBuilder msgDisplay = new StringBuilder();
+			List<WebElement> alertMsgList = selenium_.findElements(By.cssSelector(alertMsgCss));
+			for (WebElement alertMsg : alertMsgList) {
+				msgDisplay.append(alertMsg.getText());
+			}
+			return msgDisplay.toString();
+		}
+
+		/**
+		 * Grabs all error messages displayed on the page.
+		 *
+		 * @return a string of concatenated error messages
+		 */
+		public String grabPageErrorMessage() {
+			return grabAlertMessage("span.ui-messages-error-summary");
+		}
+
+		/**
+		 * Grabs all warning messages displayed on the page.
+		 *
+		 * @return a string of concatenated warning messages
+		 */
+		public String grabWarningErrorMessage() {
+			return grabAlertMessage("span.ui-messages-warn-summary");
+		}
+
+		/**
+		 * Grabs all info messages displayed on the page.
+		 *
+		 * @return a string of concatenated info messages
+		 */
+		public String grabInfoMessage() {
+			return grabAlertMessage("span.ui-messages-info-summary");
+		}
+
 }

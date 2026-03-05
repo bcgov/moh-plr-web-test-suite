@@ -1,5 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsSubType;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.HdsType;
@@ -7,6 +8,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationalProviderRo
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleTypeOptions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
@@ -257,6 +259,15 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
      * @param hdsSubType the HDS sub type option to select in the dropdown
      * @return a string of the value currently selected as HDS Sub Type after selecting the given option
      */
+    public String selectHdsSubType(HdsSubType hdsSubType)
+    {
+        DropDownMenu menu = getHdsSubTypeMenu();
+        menu.expandItemPanel(true);
+        menu.selectItem(hdsSubType.getText());
+        return menu.grabSelectedItem();
+    }
+    
+    
     public String selectHdsSubType(String hdsSubType)
     {
         DropDownMenu menu = getHdsSubTypeMenu();
@@ -264,4 +275,18 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
         menu.selectItem(hdsSubType);
         return menu.grabSelectedItem();
     }
+
+	public boolean isHdsTYpeDisplayed() {
+		boolean result=true;
+		try{
+			WebElement hdsType =selenium_.findElement (By.cssSelector("label#form\\:hdsTypeId_label"));	
+			result = hdsType.isDisplayed();
+		}catch (org.openqa.selenium.NoSuchElementException ex) {
+			result=false;
+		}
+		
+		
+		return result;
+		
+	}
 }

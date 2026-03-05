@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -51,7 +52,9 @@ extends BasicWebPageFragment
     {
         if (grabItemPanelExpanded() != expand)
         {
-			selenium_.findElement(mainLocator_).click();
+        	Actions actions = new Actions(selenium_.getDriver());
+        	actions.moveToElement(selenium_.findElement(mainLocator_)).click().perform();
+			//selenium_.findElement(mainLocator_).click();
 			waitForItemPanelExpanded(expand);
         }
     }
@@ -119,7 +122,8 @@ extends BasicWebPageFragment
      */
     public String selectItem(String itemPrefix)
     {
-        expandItemPanel(true);
+        if(!grabItemPanelExpanded())
+        	expandItemPanel(true);
         return selectItemFromPanel(itemPrefix);
     }
 
@@ -149,6 +153,8 @@ extends BasicWebPageFragment
         selenium_.scrollIntoView(item);
         selenium_.waitUntil(ExpectedConditions.elementToBeClickable(item));
         String itemLabel = item.getText();
+        //Actions actions = new Actions(selenium_.getDriver());
+    	//actions.moveToElement(item).click().perform();
         item.click();
         waitForItemPanelExpanded(false);
         String selectedItem = grabSelectedItem();
