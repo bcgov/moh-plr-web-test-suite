@@ -181,14 +181,12 @@ public class CreateOrganizationTest implements SimpleTest {
 		AddProviderPage page = workflow.getPlrWebAccessActions().openAddOrganization()
 				.openProviderPage(ProviderType.ORGANIZATION);
 		// Select a provider role type other than HDS.hds type hides
-		AddProviderIdFragment fragment = page.selectOrganizationRoleType(OrganizationalProviderRoleType.ORG);
+		AddProviderIdFragment fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null, null, null);
 		assertTrue(!fragment.isHdsTYpeDisplayed());
-		// Select provider role type of HDS., hds type appears
-		fragment = page.selectOrganizationRoleType(OrganizationalProviderRoleType.HDS);
-		assertTrue(fragment.isHdsTYpeDisplayed());
-		// continue create HDS
-		page.fillOrganizationIdentifier(OrganizationalProviderRoleType.HDS, HdsType.CLINIC, HdsSubType.LNWIC, "ORGID",
+		// Select provider role type of HDS., hds type appears and fill the form
+		fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.HDS, HdsType.CLINIC, HdsSubType.LNWIC.getText(), "ORGID",
 				UpdateSimpleHelper.generateNumericString(8));
+		assertTrue(fragment.isHdsTYpeDisplayed());
 		page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
 
 		clickFirstNext(page);
@@ -389,7 +387,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
         
-        page.fillOrganizationIdentifier(OrganizationalProviderRoleType.HDS, hdsType, hdsSubType, 
+        page.fillOrganizationIdentifier(OrganizationalProviderRoleType.HDS, hdsType, hdsSubType.getText(), 
         		"ORGID", UpdateSimpleHelper.generateNumericString(8));
         page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
         
@@ -422,7 +420,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
         
-        page.fillOrganizationIdentifier(OrganizationalProviderRoleType.HDS, hdsType, hdsSubType, 
+        page.fillOrganizationIdentifier(OrganizationalProviderRoleType.HDS, hdsType, hdsSubType.getText(), 
         		idType.name(), UpdateSimpleHelper.generateNumericString(8));
         page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
         

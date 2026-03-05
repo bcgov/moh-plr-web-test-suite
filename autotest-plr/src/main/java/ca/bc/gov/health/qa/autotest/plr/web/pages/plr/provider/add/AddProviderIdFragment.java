@@ -5,7 +5,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationalProviderRoleType;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleTypeOptions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -65,7 +65,9 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getProviderRoleTypeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**
@@ -76,7 +78,6 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     public String selectProviderRoleType(String providerRoleType)
     {
         DropDownMenu menu = getProviderRoleTypeMenu();
-        menu.expandItemPanel(true);
         menu.selectItem(providerRoleType);
         return menu.grabSelectedItem();
     }
@@ -86,7 +87,7 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
      * @param providerRoleType the provider role type option to select in the dropdown as an enum (OPT, MD, etc.)
      * @return a string of the value currently selected as Provider Role Type after selecting the given option
      */
-    public String selectProviderRoleType(ProviderRoleType providerRoleType)
+    public String selectProviderRoleType(ProviderRoleTypeOptions providerRoleType)
     {
         return selectProviderRoleType(providerRoleType.getText());
     }
@@ -130,7 +131,9 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getIdentifierTypeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**
@@ -140,6 +143,8 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
      */
     public String selectIdentifierType(String identifierType)
     {
+        // Scroll dropdown into view before expanding to ensure panel appears in visible area
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector("label#form\\:identifierType_label")));
         DropDownMenu menu = getIdentifierTypeMenu();
         menu.expandItemPanel(true);
         menu.selectItem(identifierType);
@@ -186,7 +191,9 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getHdsTypeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**
@@ -242,7 +249,9 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     {
         DropDownMenu menu = getHdsSubTypeMenu();
         menu.expandItemPanel(true);
-        return menu.grabItemList();
+        List<String> options = menu.grabItemList();
+        menu.expandItemPanel(false);
+        return options;
     }
 
     /**

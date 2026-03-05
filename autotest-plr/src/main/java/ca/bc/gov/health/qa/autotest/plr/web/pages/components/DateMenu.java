@@ -1,27 +1,18 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.components;
 
-import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPageFragment;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNull;
-import static org.testng.Assert.fail;
 
 /**
  * Fragment class for Date/Datepicker Menu components.
  */
 public class DateMenu extends BasicWebPageFragment {
-
-    private static final Logger LOG = ExecutionLogManager.getLogger();
 
     private final By datepickerLocator_ = By.cssSelector("div#ui-datepicker-div");
 
@@ -89,6 +80,16 @@ public class DateMenu extends BasicWebPageFragment {
     public void closeDatepicker()
     {
         selenium_.findElement(datepickerLocator_).findElement(By.cssSelector("button.ui-datepicker-close")).click();
+    }
+
+    /**
+     * Types a raw string into the date input (bypasses date picker UI)
+     *
+     * @param rawDate a date string to type directly
+     */
+    public void typeDateRaw(String rawDate)
+    {
+        if (rawDate != null) selenium_.fillField(inputLocator_, rawDate);
     }
 
     /**

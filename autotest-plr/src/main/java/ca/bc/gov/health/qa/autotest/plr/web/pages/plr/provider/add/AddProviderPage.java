@@ -10,10 +10,13 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditi
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 import org.openqa.selenium.By;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+
+import static org.testng.Assert.fail;
 
 import java.util.List;
 
@@ -66,10 +69,10 @@ public class AddProviderPage extends BasicWebPage {
         }
         return this;
     }
-    
-    
+
+
     /**
-     * Open the add provider/organization/OOP page 
+     * Open the add provider/organization/OOP page
      * @param providerType the provider type to be added
      * @return  a new AddProviderPage object with the provider type specified
      */
@@ -80,11 +83,25 @@ public class AddProviderPage extends BasicWebPage {
             case BC_PRACTITIONER -> "(BC Practitioner)";
             case OOP_PRACTITIONER -> "(OOP Practitioner)";
             case ORGANIZATION -> "(Organization)";
-            };            
+            };
         providerMenu.get(providerType.ordinal()).click();
         selenium_.waitUntil(SeleniumExpectedConditions.pageToBeReady());
-        return new AddProviderPage(selenium_, expectedHeader);       
+        return new AddProviderPage(selenium_, expectedHeader);
 }
+
+    /**
+     * Tries to wait some number of seconds. Will fail the test used in if interrupted.
+	 * TODO this should be used as little as possible in favour of selenium implicit waits.
+     *
+     * @param second the number of seconds to wait.
+     */
+	public void waitSeconds(int second) {
+		try {
+			Thread.sleep(1000L * second);
+		} catch (InterruptedException e) {
+			fail(e.getMessage());
+		}
+	}
 
     /**
      * Waits for the error/warning messages to appear
@@ -114,12 +131,25 @@ public class AddProviderPage extends BasicWebPage {
         AddProviderIdFragment fragment = new AddProviderIdFragment(selenium_, providerType);
 
         if (roleType != null) {
-            if (providerType.equals(ProviderType.ORGANIZATION))
-                fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
-            else fragment.selectProviderRoleType((ProviderRoleType) roleType);
+            String prevRoleType = fragment.getProviderRoleType();
+            String newRoleType;
 
-            WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
-            selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+            if (roleType.getClass().equals(String.class))
+                newRoleType = fragment.selectProviderRoleType((String) roleType);
+            else if (providerType.equals(ProviderType.ORGANIZATION))
+                newRoleType = fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
+            else if (roleType instanceof ProviderRoleType)
+                newRoleType = fragment.selectProviderRoleType(((ProviderRoleType) roleType).getText());
+            else newRoleType = fragment.selectProviderRoleType((ProviderRoleTypeOptions) roleType);
+
+            if (!newRoleType.equals(prevRoleType) && !newRoleType.equals("Select One")) {
+                WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
+                selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+                // Wait for the new identifier type element to be visible after refresh
+                selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div#form\\:identifierType")));
+
+                waitSeconds(2); // Wait for any additional dynamic elements to load after role type selection, such as HDS type for HDS role
+            }
 
             if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
                 selenium_.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));
@@ -150,12 +180,26 @@ public class AddProviderPage extends BasicWebPage {
         AddProviderIdFragment fragment = new AddProviderIdFragment(selenium_, providerType);
 
         if (roleType != null) {
-            if (providerType.equals(ProviderType.ORGANIZATION))
-                fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
-            else fragment.selectProviderRoleType((ProviderRoleType) roleType);
+            String prevRoleType = fragment.getProviderRoleType();
+            String newRoleType;
 
-            WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
-            selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+            if (roleType.getClass().equals(String.class))
+                newRoleType = fragment.selectProviderRoleType((String) roleType);
+            else if (providerType.equals(ProviderType.ORGANIZATION))
+                newRoleType = fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
+            else if (roleType instanceof ProviderRoleType)
+                newRoleType = fragment.selectProviderRoleType(((ProviderRoleType) roleType).getText());
+            else newRoleType = fragment.selectProviderRoleType((ProviderRoleTypeOptions) roleType);
+
+            if (!newRoleType.equals(prevRoleType) || newRoleType.equals("Select One")) {
+                WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
+                selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+
+                // Wait for the new identifier type element to be visible after refresh
+                selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div#form\\:identifierType")));
+
+                waitSeconds(2); // Wait for any additional dynamic elements to load after role type selection, such as HDS type for HDS role
+            }
 
             if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
                 selenium_.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));
@@ -170,16 +214,23 @@ public class AddProviderPage extends BasicWebPage {
 
         return fragment;
     }
-    
-    
-	public AddProviderIdFragment fillOrganizationIdentifier(OrganizationalProviderRoleType roleType, HdsType hdsType, 
-			HdsSubType hdsSubType,
+
+
+	public AddProviderIdFragment fillOrganizationIdentifier(OrganizationalProviderRoleType roleType, HdsType hdsType, String hdsSubType,
 			String identifierType, String identifier) {
 		AddProviderIdFragment fragment = new AddProviderIdFragment(selenium_, providerType);
 
 		if (roleType != null) {
 			fragment.selectProviderRoleType(roleType);
-			
+
+			// Wait for identifier type dropdown to refresh after role type selection
+			WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
+			selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+			// Wait for the new identifier type element to be visible after refresh
+			selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div#form\\:identifierType")));
+
+			waitSeconds(2); // Wait for any additional dynamic elements to load after role type selection
+
 			if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
 				selenium_
 						.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));
@@ -216,6 +267,8 @@ public class AddProviderPage extends BasicWebPage {
     public AddProviderStatusFragment fillStatus(String statusClassCode, StatusCodeOption statusCode, StatusReasonCodeOption statusReasonCode, List<Integer> effectiveFrom)
     {
         AddProviderStatusFragment fragment = new AddProviderStatusFragment(selenium_);
+        // Wait for status form to be ready
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector("label#form\\:statusClassCode_label")));
 
         if (statusClassCode != null) fragment.selectStatusClassCode(statusClassCode);
         if (statusCode != null) fragment.selectStatusCode(statusCode.getText());
@@ -236,6 +289,9 @@ public class AddProviderPage extends BasicWebPage {
     public AddProviderStatusFragment fillStatus(String statusClassCode, StatusCodeOption statusCode, StatusReasonCodeOption statusReasonCode)
     {
         AddProviderStatusFragment fragment = new AddProviderStatusFragment(selenium_);
+        // Wait for status form to be ready
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector("label#form\\:statusClassCode_label")));
+        waitSeconds(1); // Wait for any additional dynamic elements to load after status form is ready
 
         if (statusClassCode != null) fragment.selectStatusClassCode(statusClassCode);
         if (statusCode != null) fragment.selectStatusCode(statusCode.getText());
@@ -388,11 +444,42 @@ public class AddProviderPage extends BasicWebPage {
         addressFragment.fillCity(city);
         if (province != null) addressFragment.selectProvinceState(province);
         if (country != null) addressFragment.selectCountry(country);
-        addressFragment.fillPostalCode(postalCode);
+        if (postalCode != null) addressFragment.fillPostalCode(postalCode);
 
         if (effectiveFrom == null) addressFragment.effectiveFromCurrentDate();
         else  addressFragment.effectiveFromSpecificDate(
                 effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return addressFragment;
+    }
+
+    /**
+     * Fills the address form in the Add Provider flow with raw city input (no autocomplete).
+     * Use this for validation tests where city may be blank or invalid.
+     * @param addressType the address type to select in the form, or null to not select any address type
+     * @param addressPurpose the address purpose to select in the form, or null to not select any address purpose
+     * @param addressLines a list of strings representing the address lines to fill in the form
+     * @param city the city to fill in the form (raw text, no autocomplete)
+     * @param province the province to select in the form, or null to not select a province
+     * @param country the country to select in the form, or null to not select a country
+     * @param postalCode the postal code to fill in the form, or null to not fill a postal code
+     * @return the AddProviderAddressFragment object after filling the form with the provided information
+     */
+    public AddProviderAddressFragment fillAddressRawCity(String addressType, String addressPurpose,
+            List<String> addressLines, String city, String province, String country, String postalCode)
+    {
+        AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(selenium_);
+
+        if (addressType != null) addressFragment.selectAddressType(addressType);
+        if (addressPurpose != null) addressFragment.selectAddressPurpose(addressPurpose);
+        addressFragment.fillAddressLine1(addressLines.get(0));
+        addressFragment.fillAddressLine2(addressLines.get(1));
+        addressFragment.fillAddressLine3(addressLines.get(2));
+        addressFragment.fillCityRaw(city);
+        if (province != null) addressFragment.selectProvinceState(province);
+        if (country != null) addressFragment.selectCountry(country);
+        addressFragment.fillPostalCode(postalCode);
+        addressFragment.effectiveFromCurrentDate();
 
         return addressFragment;
     }
@@ -721,7 +808,12 @@ public class AddProviderPage extends BasicWebPage {
     {
         WebElement stepTitle = selenium_.findElement(By.xpath(String.format(FORM_TITLE_XPATH, currentState)));
 
-        selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
+        try {
+            selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
+        } catch (StaleElementReferenceException e) {
+            waitSeconds(1);
+            selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
+        }
 
         selenium_.waitUntil(ExpectedConditions.stalenessOf(stepTitle));
 
@@ -781,19 +873,50 @@ public class AddProviderPage extends BasicWebPage {
 
         if (!expectedError) waitForAddProviderStep(currentState, false);
     }
-    
-    
-   
+
+    @FindBy(how = How.XPATH, using = "//div[contains(.,'Address Recommended')]/button[contains(.,'Continue w/ Original')]")
+	private WebElement addrValContinueWithOriginal1;
+	@FindBy(how = How.XPATH, using = "//div[not(contains(.,'Address Recommended')) and contains(.,'Address Provided')]/button[contains(.,'Continue w/ Original')]")
+	private WebElement addrValContinueWithOriginal2;
+
+    public static void closeAddressValidationDialogWithContinue(WebElement addrValContinueWithOriginal1,
+			WebElement addrValContinueWithOriginal2) throws InterruptedException {
+		Thread.sleep(4000);
+		if (addrValContinueWithOriginal1.isDisplayed()) {
+			addrValContinueWithOriginal1.click();
+			Thread.sleep(1000);
+		} else if (addrValContinueWithOriginal2.isDisplayed()) {
+			addrValContinueWithOriginal2.click();
+			Thread.sleep(1000);
+		}
+		Thread.sleep(1000);
+	}
+
+
+    public static void closeAddressValidationDialogWithCancel(WebElement addrValContinueWithOriginal1,
+			WebElement addrValContinueWithOriginal2, WebElement addrValCancel1, WebElement addrValCancel2)
+			throws InterruptedException {
+		Thread.sleep(4000);
+		if (addrValContinueWithOriginal1.isDisplayed() && addrValCancel1.isDisplayed()) {
+			addrValCancel1.click();
+			Thread.sleep(1000);
+		} else if (addrValContinueWithOriginal2.isDisplayed() && addrValCancel2.isDisplayed()) {
+			addrValCancel2.click();
+			Thread.sleep(1000);
+		}
+		Thread.sleep(1000);
+	}
+
 	public AddOrganizationNameFragment fillOrganizationName(String name, String desc) {
 		AddOrganizationNameFragment fragment = new AddOrganizationNameFragment(selenium_);
 
 	        if (name != null) fragment.fillName(name);
 	        if (desc != null) fragment.fillDesc(desc);
-	    
+
 	        fragment.effectiveFromCurrentDate();
 
 	        return fragment;
-		
+
 	}
 	/**
 	     * Gets the currently highlighted step in the Add Provider flow
