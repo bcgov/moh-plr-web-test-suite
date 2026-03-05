@@ -69,6 +69,7 @@ public class UpdateProviderTests implements SimpleTest {
         defaultProviders.put(ProviderType.OOP_PRACTITIONER, defaultOOP);
     }
 
+    // Update Provider - Add Conditions
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testAddConditions(ProviderType providerType)
     {
@@ -78,7 +79,7 @@ public class UpdateProviderTests implements SimpleTest {
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addConditionDataBlock("LOC", "99999", true,
-                "Test Explanation", effective_date(), increment_year_for_effective_date());
+                "Test Explanation", effective_date(), increment_year_for_effective_date(), false);
 
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
                 "Expected 1 active condition data block");

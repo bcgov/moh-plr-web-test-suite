@@ -248,7 +248,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	public String addConditionDataBlock(String conditionType, String conditionIdentifier, boolean restriction,
-										String explanation, String effectiveFrom, String effectiveTo)
+										String explanation, String effectiveFrom, String effectiveTo, boolean expectError)
 	{
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.CONDITIONS).getFormName();
@@ -258,14 +258,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		fillConditionDataBlock(conditionType, conditionIdentifier, restriction, explanation, effectiveFrom, effectiveTo);
 
-		clickDialogSubmitButton(ProviderSection.CONDITIONS);
+		clickDialogSubmitButton(ProviderSection.CONDITIONS, expectError);
 
-		msgDisplay = getDialogMessages(ProviderSection.CONDITIONS);
-
-		if (!StringUtils.isEmpty(msgDisplay)) {
-			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
-			cancelButton.click();
-		}
+		if(expectError)
+			msgDisplay=waitErrorMessage(ProviderSection.CONDITIONS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
