@@ -3,13 +3,14 @@ package ca.bc.gov.health.qa.autotest.plr.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
 import org.testng.annotations.DataProvider;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 
 /**
- * Data Provider class to inject independent case types for testing (provider + user types typically)
+ * Provides data for TestNG data-driven tests related to injectable providers and users.
  */
 public class InjectableData
 {
@@ -17,9 +18,9 @@ public class InjectableData
     {}
 
     /**
-     * Provides a matrix of all provider types
+     * Returns a two-dimensional array of all provider types for use in TestNG data-driven tests.
      *
-     * @return A two-dimensional array of all provider types.
+     * @return a two-dimensional array of all provider types, where each inner array contains a single ProviderType value
      */
     @DataProvider(name = "allProviderTypes")
     public static Object[][] getAllProviderTypes()
@@ -32,6 +33,11 @@ public class InjectableData
         return toArray(data);
     }
 
+    /**
+     * Returns a two-dimensional array of practitioner provider types for use in TestNG data-driven tests.
+     * @return a two-dimensional array of practitioner provider types,
+     *         where each inner array contains a single ProviderType value that is not ORGANIZATION
+     */
     @DataProvider(name = "practitioners")
     public static Object[][] getPractitioners()
     {
@@ -44,6 +50,29 @@ public class InjectableData
     }
 
     /**
+     * Returns a two-dimensional array of practitioner role types for use in TestNG data-driven tests.
+     * @return a two-dimensional array of practitioner role types,
+     *         where each inner array contains a ProviderRoleType value and its corresponding ProviderType value
+     */
+    @DataProvider(name = "practitionerRoleTypes")
+    public static Object[][] getPractitionerRoleTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        for (ProviderType providerType : ProviderType.values())
+        {
+            if (providerType.equals(ProviderType.ORGANIZATION)) continue;
+            for (ProviderRoleType roleType : ProviderRoleType.getProviderRoleTypeSet(providerType)) {
+                data.add(new Object[]{providerType, roleType});
+            }
+
+        }
+        return toArray(data);
+    }
+
+    /**
+     * Returns a two-dimensional array of all PLR user types for use in TestNG data-driven tests.
+     *
+     * @return a two-dimensional array of all PLR user types, where each inner array contains a single UserType value
      * Provides just the BC Practitioner and Organization provider types for tests that need to cover only these types.
      *
      * @return A two-dimensional array of BC Practitioner and Organization provider types.
@@ -111,9 +140,10 @@ public class InjectableData
     }
 
     /**
-     * Provides a matrix of user type in PLR combined with each provider type.
+     * Returns a two-dimensional array of all combinations of PLR user types and provider types for use in TestNG data-driven tests.
      *
-     * @return a two-dimensional array of each possible pair of PLR user type and provider type
+     * @return a two-dimensional array of all combinations of PLR user types and provider types,
+     *         where each inner array contains a UserType value and a ProviderType value
      */
     @DataProvider(name = "allPlrUserTypesProviderTypes")
     public static Object[][] getAllPlrUserTypesProviderTypes()

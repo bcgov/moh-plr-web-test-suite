@@ -43,6 +43,15 @@ public class AddProviderDemographicFragment extends AddProviderStepFragment {
     }
 
     /**
+     * Fills the Date of Birth field with the provided date string (in the format "YYYY-MM-DD").
+     * @param date the date to set in the Date of Birth field as a string (in the format "YYYY-MM-DD")
+     */
+    public void dateOfBirthRaw(String date)
+    {
+        if (date != null) selenium_.fillFieldByCss("input#form\\:dob_input", date);
+    }
+
+    /**
      * Gets the current value of the Date of Birth field as a string.
      * @return the current value of the Date of Birth field as a string
      */

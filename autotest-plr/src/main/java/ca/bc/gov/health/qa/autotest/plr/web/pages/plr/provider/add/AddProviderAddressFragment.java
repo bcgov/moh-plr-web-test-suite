@@ -355,6 +355,7 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
             String title;
             try { title = elem.findElement(By.cssSelector(WIDGET_TITLE_SPAN_CSS)).getAttribute("innerHTML"); }
             catch (org.openqa.selenium.NoSuchElementException ignore) { continue; }
+            if (title == null || title.isEmpty()) continue;
             if (!title.contains(widgetTitlePrefix)) continue;
             // Skip hidden/inactive dialogs
             String ariaHidden = elem.getAttribute("aria-hidden");
@@ -379,7 +380,6 @@ public class AddProviderAddressFragment extends AddFacilityStepFragment {
 
         try {
             widget.findElement(buttonSelector).click();
-            return;
         } catch (org.openqa.selenium.NoSuchElementException e) {
 
             // Generic fallback: first displayed & enabled button

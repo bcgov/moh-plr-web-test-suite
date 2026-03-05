@@ -137,6 +137,8 @@ public class AddProviderPage extends BasicWebPage {
                 newRoleType = fragment.selectProviderRoleType((String) roleType);
             else if (providerType.equals(ProviderType.ORGANIZATION))
                 newRoleType = fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
+            else if (roleType instanceof ProviderRoleType)
+                newRoleType = fragment.selectProviderRoleType(((ProviderRoleType) roleType).getText());
             else newRoleType = fragment.selectProviderRoleType((ProviderRoleTypeOptions) roleType);
 
             if (!newRoleType.equals(prevRoleType) && !newRoleType.equals("Select One")) {
@@ -184,6 +186,8 @@ public class AddProviderPage extends BasicWebPage {
                 newRoleType = fragment.selectProviderRoleType((String) roleType);
             else if (providerType.equals(ProviderType.ORGANIZATION))
                 newRoleType = fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
+            else if (roleType instanceof ProviderRoleType)
+                newRoleType = fragment.selectProviderRoleType(((ProviderRoleType) roleType).getText());
             else newRoleType = fragment.selectProviderRoleType((ProviderRoleTypeOptions) roleType);
 
             if (!newRoleType.equals(prevRoleType) || newRoleType.equals("Select One")) {

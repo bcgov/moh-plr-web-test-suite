@@ -76,7 +76,6 @@ public class AddProviderIdFragment extends AddProviderStepFragment {
     public String selectProviderRoleType(String providerRoleType)
     {
         DropDownMenu menu = getProviderRoleTypeMenu();
-        menu.expandItemPanel(true);
         menu.selectItem(providerRoleType);
         return menu.grabSelectedItem();
     }

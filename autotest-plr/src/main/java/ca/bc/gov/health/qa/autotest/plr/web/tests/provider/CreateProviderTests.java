@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class CreateProviderTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -79,7 +80,7 @@ public class CreateProviderTests implements SimpleTest {
         actions.checkBlockVisibility("Identifier");
         actions.checkBlockVisibility("Status");
 
-        actions.skipToSection(page, providerType, "Personal Information");
+        actions.skipToSection(page, providerType, "Personal Information", null, false);
 
         assertEquals(page.getStep(), "Name",
                 "Did not navigate to expected step after completing Identifier and Status step");
@@ -252,6 +253,77 @@ public class CreateProviderTests implements SimpleTest {
         }
     }
 
+    // Create Provider - Code Validation Restriction - Credential
+    @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionCredential(ProviderType providerType, ProviderRoleType roleType)
+    {
+        final ProviderRoleTypeOptions roleTypeOptions = ProviderRoleTypeOptions.valueOf(roleType.name());
+        final String identifierType = IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleTypeOptions,
+                List.of("OOPID - Out of Province Provider")).getFirst();
+
+        final List<String> expectedCredentialList = Stream.concat(CREDENTIAL_BASE_OPTIONS.stream(),
+                        CREDENTIAL_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
+
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        page.fillIdentifier(roleType, null, null, identifierType, "1");
+
+        page = actions.skipToSection(page, providerType, "Credential", roleType, true);
+
+        AddProviderCredentialFragment credential = page.fillCredentials(null, null, null, null,
+                null, null, null, true, null);
+        List<String> credentialTypeOptions = credential.getCredentialTypeOptions();
+
+        for (String item : credentialTypeOptions)
+        {
+            if (item.equals("Select One")) continue;
+
+            assertTrue(expectedCredentialList.contains(item),
+                    "Expected credential option '" + item + "' not found for provider role '" + roleType.getText() + "'.");
+        }
+
+        assertEquals(credentialTypeOptions.size() - 1, expectedCredentialList.size(),
+                "Unexpected number of expertise options found for provider role '" + roleType.getText());
+    }
+
+    // Create Provider - Code Validation Restriction - Expertise
+    @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionExpertise(ProviderType providerType, ProviderRoleType roleType)
+    {
+        final ProviderRoleTypeOptions roleTypeOptions = ProviderRoleTypeOptions.valueOf(roleType.name());
+        final String identifierType = IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleTypeOptions,
+                List.of("OOPID - Out of Province Provider")).getFirst();
+
+        final List<String> expectedExpertiseList = Stream.concat(EXPERTISE_LANG_OPTIONS.stream(),
+                        EXPERTISE_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
+
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        page.fillIdentifier(roleType, null, null, identifierType, "1");
+
+        page = actions.skipToSection(page, providerType, "Expertise", roleType, true);
+
+        AddProviderExpertiseFragment expertise = page.fillExpertise(null, null);
+        List<String> expertiseTypeOptions = expertise.getExpertiseOptions();
+
+        for (String item : expertiseTypeOptions)
+        {
+            assertTrue(expectedExpertiseList.contains(item),
+                    "Expected expertise option '" + item + "' not found for provider role '" + roleType.getText() + "'.");
+        }
+
+        assertEquals(expertiseTypeOptions.size(), expectedExpertiseList.size(),
+                "Unexpected number of expertise options found for provider role '" + roleType.getText());
+    }
+
     // Create Provider - Code Validation Restriction - Identifier
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionIdentifier(ProviderType providerType)
@@ -354,7 +426,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
-        actions.skipToSection(page, providerType, "Demographic Details");
+        actions.skipToSection(page, providerType, "Demographic Details", null, false);
 
         AddProviderDemographicFragment demo = page.fillDemographics(null, "U");
         page.clickNext("Demographic Details", null);
@@ -405,7 +477,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
 
-        actions.skipToSection(page, providerType,"Demographic Details");
+        actions.skipToSection(page, providerType,"Demographic Details", null, false);
 
         AddProviderDemographicFragment demo = page.fillDemographics(List.of(2020, 6, 30), null);
 
@@ -437,7 +509,7 @@ public class CreateProviderTests implements SimpleTest {
 
         if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
 
-        page = actions.skipToSection(page, providerType, "Personal Information");
+        page = actions.skipToSection(page, providerType, "Personal Information", null, false);
 
         page.fillDemographics(List.of(1980,6,30), "U");
 
@@ -551,6 +623,54 @@ public class CreateProviderTests implements SimpleTest {
         assertEquals(nameBlock.get("Surname"), expectedSurname, "Surname did not save correctly.");
     }
 
+    // Create Provider - Validate Provider Expertise Original Source
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderExpertiseOriginalSource(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Expertise", null, true);
+
+        AddProviderExpertiseFragment expertise = page.fillExpertise("ENG", UpdateSimpleHelper.generateNumericString(51));
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("expertiseSourceTooLong"),
+                "Expected error message for exceeding max length of expertise original source not found.");
+
+        expertise.fillSourceCode(UpdateSimpleHelper.generateNumericString(50));
+        ViewProviderPage viewPage = page.clickSubmitButton();
+
+        Map<String, String> expertiseBlock = viewPage.grabDataBlockContent(ProviderSection.EXPERTISE, 0);
+        assertEquals(expertiseBlock.get("Source's Code").length(), 50,
+                "Expertise original source code of maximum length is not fully displayed.");
+
+        page = workflow.getPlrWebAccessActions().openAddProvider();
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Expertise", null, true);
+
+        page.fillExpertise("ENG", "");
+        viewPage = page.clickSubmitButton();
+
+        expertiseBlock = viewPage.grabDataBlockContent(ProviderSection.EXPERTISE, 0);
+        assertEquals(expertiseBlock.get("Source's Code"), "",
+                "Expertise original source code did not save empty value correctly.");
+
+        page = workflow.getPlrWebAccessActions().openAddProvider();
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+        viewPage = page.clickSubmitButton();
+
+        assertEquals(viewPage.grabDataBlockCount(ProviderSection.EXPERTISE), 0,
+                "Expertise block is displayed when no expertise information is entered.");
+    }
+
     // Create Provider - Validate Provider Identifiers
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testValidateProviderIdentifiers(ProviderType providerType)
@@ -625,6 +745,153 @@ public class CreateProviderTests implements SimpleTest {
                 "Expected name type code to default to 'CURR'.");
     }
 
+    // Create Provider - Validate Provider Credential
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredential(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        AddProviderCredentialFragment cred = page.fillCredentials("BD ", null,
+                null, null, null, null, null, true, null);
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingDesignation"),
+                "Expected error message for missing credential designation not found.");
+
+        cred.selectCredentialType("Select One");
+        cred.fillDesignation("Test");
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingCredentialType"),
+                "Expected error message for missing credential type not found.");
+
+        cred.selectCredentialType("BD ");
+        cred.fillDesignation(UpdateSimpleHelper.generateAlphabetString(241));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("designationTooLong"),
+                "Expected error message for exceeding max length of credential designation not found.");
+
+        cred.fillDesignation("Test");
+        cred.fillRegistrationNumber(UpdateSimpleHelper.generateNumericString(241));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("registrationNumberTooLong"),
+                "Expected error message for exceeding max length of credential registration number not found.");
+
+        cred.fillRegistrationNumber("500");
+        cred.fillInstitution(UpdateSimpleHelper.generateAlphabetString(241));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("institutionTooLong"),
+                "Expected error message for exceeding max length of credential granting institution not found.");
+
+        cred.fillInstitution("Test");
+        cred.fillYear(UpdateSimpleHelper.generateAlphabetString(5));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("yearIssuedTooLong"),
+                "Expected error message for exceeding max length of credential year issued not found.");
+
+        cred.fillYear("2000");
+        cred.fillCity(UpdateSimpleHelper.generateAlphabetString(241));
+        page.clickSubmitButton();
+
+        errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("credentialCityTooLong"),
+                "Expected error message for exceeding max length of credential city not found.");
+    }
+
+    // Create Provider - Validate Provider Credential Granting Institution Name
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialInstitution(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        AddProviderCredentialFragment cred = page.fillCredentials("BD ", "Test",
+                null, UpdateSimpleHelper.generateAlphabetString(241), null, null,
+                null, false, null);
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("institutionTooLong"),
+                "Expected error message for exceeding max length of credential granting institution not found.");
+
+        String expectedInstitution = UpdateSimpleHelper.generateAlphabetString(240);
+        cred.fillInstitution(expectedInstitution);
+        ViewProviderPage viewPage = page.clickSubmitButton();
+
+        assertEquals(viewPage.grabDataBlockContent(ProviderSection.CREDENTIALS,0).get("Granting Institution"),
+                expectedInstitution, "Credential granting institution did not save the expected value.");
+    }
+
+    // Create Provider - Validate Provider Credential Registration Number
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialRegistrationNumber(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        AddProviderCredentialFragment cred = page.fillCredentials("BD ", "Test",
+                UpdateSimpleHelper.generateAlphabetNumericString(241), null, null, null,
+                null, false, null);
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("registrationNumberTooLong"),
+                "Expected error message for exceeding max length of credential registration number not found.");
+
+        String expectedRegistrationNumber = UpdateSimpleHelper.generateAlphabetNumericString(240);
+        cred.fillRegistrationNumber(expectedRegistrationNumber);
+        ViewProviderPage viewPage = page.clickSubmitButton();
+
+        assertEquals(viewPage.grabDataBlockContent(ProviderSection.CREDENTIALS,0).get("Registration Number"),
+                expectedRegistrationNumber, "Credential registration number did not save the expected value.");
+    }
+
+    // Create Provider - Validate Provider Credential Type Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialTypeCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (providerType.equals(ProviderType.OOP_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        page.fillCredentials(null, "Test", "1234", "Test Institution",
+                "Victoria", null, null, false, "2000");
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("missingCredentialType"),
+                "Expected error message for missing credential type not found.");
+    }
+
     // Create Provider - Validate Provider Role Type
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testValidateProviderRoleType(ProviderType providerType)
@@ -672,5 +939,27 @@ public class CreateProviderTests implements SimpleTest {
         AddProviderActions actions = workflow.getAddProviderActions();
 
         actions.validateStatusField("Reason", providerType, page);
+    }
+
+    // Create Provider - Validate Year of Credential Issue
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateYearOfCredentialIssue(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+        AddProviderActions actions = workflow.getAddProviderActions();
+
+        if (!providerType.equals(ProviderType.BC_PRACTITIONER)) page = page.changeProviderType(providerType);
+
+        actions.skipToSection(page, providerType, "Credential", null, true);
+
+        page.fillCredentials("BD ", "Test", null, null, null,
+                null, null, false,
+                "1" + UpdateSimpleHelper.generateNumericString(4));
+        page.clickSubmitButton();
+
+        List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
+        assertEquals(errorMessageList.getFirst(), errorList.get("yearIssuedTooLong"),
+                "Expected error message for exceeding max length of year of credential issue not found.");
     }
 }
