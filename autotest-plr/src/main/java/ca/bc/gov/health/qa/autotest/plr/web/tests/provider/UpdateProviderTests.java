@@ -217,4 +217,29 @@ public class UpdateProviderTests implements SimpleTest {
 
         page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
     }
+
+    // Update Provider - Validate Provider Conditions
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderConditions(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 0,
+                "Expected no active condition data blocks for provider initially");
+
+        page.addConditionDataBlock("LOC", "99999", false,
+                "Test", effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
+                "Expected 1 active condition data block after adding condition to provider");
+
+        page.addConditionDataBlock("EXP", "99998", true,
+                "Test 2", effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 2,
+                "Expected 2 active condition data blocks after adding second condition to provider");
+    }
 }
