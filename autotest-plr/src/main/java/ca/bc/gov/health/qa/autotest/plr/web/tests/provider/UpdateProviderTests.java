@@ -242,4 +242,29 @@ public class UpdateProviderTests implements SimpleTest {
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 2,
                 "Expected 2 active condition data blocks after adding second condition to provider");
     }
+
+    // Update Provider - Validate Restriction Explanation
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateRestrictionExplanation(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addConditionDataBlock("LOC", "99999", true,
+                generateAlphabetNumericString(241),
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("explanationTooLong"),
+                "Expected error message for restriction explanation exceeding max length when adding condition data block");
+
+        page.addConditionDataBlock("LOC", "99999", true,
+                null, effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
+                "Expected 1 active condition data block after adding condition with no restriction explanation");
+
+        page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
+    }
 }

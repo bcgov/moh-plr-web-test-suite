@@ -93,7 +93,8 @@
     "yearIssuedTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Credential Year' length must be between 0 and 4. Your transaction has not been processed. Correct and resubmit.",
     "credentialCityTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Institution City' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit.",
     "conditionIdentifierTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Condition Identifier' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit.",
-    "missingConditionType": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Condition Type'. Your transaction has not been processed. Correct and resubmit."
+    "missingConditionType": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Condition Type'. Your transaction has not been processed. Correct and resubmit.",
+    "explanationTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Condition Explanation' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",
