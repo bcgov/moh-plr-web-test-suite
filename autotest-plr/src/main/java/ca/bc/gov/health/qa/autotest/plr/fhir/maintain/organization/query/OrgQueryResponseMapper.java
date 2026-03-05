@@ -202,6 +202,13 @@ public final class OrgQueryResponseMapper {
 			}
 		}
 
+		// hack to detect confidential record found error
+		if (builders.isEmpty()) {
+			JSONObject topResource = topEntries.getJSONObject(0).optJSONObject("resource");
+			JSONObject errorDetails = topResource.optJSONArray("issue").optJSONObject(0).optJSONObject("details");
+			if (errorDetails.optString("text").contains("confidential")) { builders.add(new MaintainOrgBuilder().name("ConfidentialRecordFound")); }
+		}
+
 		return builders;
 	}
 

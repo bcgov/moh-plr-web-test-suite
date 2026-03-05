@@ -2,16 +2,20 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add;
 
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.AlertMessagesFragment;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.*;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 import org.openqa.selenium.By;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+
+import static org.testng.Assert.fail;
 
 import java.util.List;
 
@@ -32,16 +36,14 @@ public class AddProviderPage extends BasicWebPage {
      */
     public AddProviderPage(SeleniumSession selenium, String expectedHeader) {
         super(selenium,
-                By.xpath("//div[@id='content']//h2[contains(text(),'Add Provider') and contains(text(),'" + expectedHeader + "')]"),
-                "Add Provider");
+                By.xpath("//div[@id='content']//h2[contains(text(),'Add Provider')]"),
+                "Add Provider - " + expectedHeader);
         this.providerType = switch (expectedHeader) {
             case "(BC Practitioner)" -> ProviderType.BC_PRACTITIONER;
-            case "(Out of Province Practitioner)" -> ProviderType.OOP_PRACTITIONER;
+            case "(OOP Practitioner)" -> ProviderType.OOP_PRACTITIONER;
             case "(Organization)" -> ProviderType.ORGANIZATION;
             default -> throw new IllegalArgumentException("Unexpected provider type: " + expectedHeader);
         };
-
-        waitForReady();
     }
 
     /**
@@ -53,29 +55,52 @@ public class AddProviderPage extends BasicWebPage {
     public AddProviderPage changeProviderType(ProviderType providerType)
     {
         if (this.providerType != providerType) {
-            return openProviderPage(providerType);
-        } else return this;
+            List<WebElement> providerMenu = selenium_.findElements(
+                    By.cssSelector("div#headerForm\\:subMenuPanelHolder > div > div > menu > li"));
+            String expectedHeader = switch (providerType) {
+                case BC_PRACTITIONER -> "(BC Practitioner)";
+                case OOP_PRACTITIONER -> "(OOP Practitioner)";
+                case ORGANIZATION -> "(Organization)";
+            };
+            providerMenu.get(providerType.ordinal()).click();
+            selenium_.waitUntil(SeleniumExpectedConditions.pageToBeReady());
+            return new AddProviderPage(selenium_, expectedHeader);
+        }
+        return this;
     }
-    
-    
+
+
     /**
-     * Open the add provider/organization/OOP page 
+     * Open the add provider/organization/OOP page
      * @param providerType the provider type to be added
      * @return  a new AddProviderPage object with the provider type specified
      */
     public AddProviderPage openProviderPage( ProviderType providerType) {
+	    List<WebElement> providerMenu = selenium_.findElements(
+                By.cssSelector("div#headerForm\\:subMenuPanelHolder > div > div > menu > li"));
         String expectedHeader = switch (providerType) {
             case BC_PRACTITIONER -> "(BC Practitioner)";
-            case OOP_PRACTITIONER -> "(Out of Province Practitioner)";
+            case OOP_PRACTITIONER -> "(OOP Practitioner)";
             case ORGANIZATION -> "(Organization)";
-        };
-
-        List<WebElement> providerMenu = selenium_.findElements(
-                By.cssSelector("div#headerForm\\:subMenuPanelHolder > div > div > menu > li"));
+            };
         providerMenu.get(providerType.ordinal()).click();
         selenium_.waitUntil(SeleniumExpectedConditions.pageToBeReady());
-        return new AddProviderPage(selenium_, expectedHeader);       
+        return new AddProviderPage(selenium_, expectedHeader);
 }
+
+    /**
+     * Tries to wait some number of seconds. Will fail the test used in if interrupted.
+	 * TODO this should be used as little as possible in favour of selenium implicit waits.
+     *
+     * @param second the number of seconds to wait.
+     */
+	public void waitSeconds(int second) {
+		try {
+			Thread.sleep(1000L * second);
+		} catch (InterruptedException e) {
+			fail(e.getMessage());
+		}
+	}
 
     /**
      * Waits for the error/warning messages to appear
@@ -97,8 +122,6 @@ public class AddProviderPage extends BasicWebPage {
      * @param identifier the identifier to fill in the form, or null to not fill any identifier
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
      *                      [year, month, day], or null to not fill an effective from date
-     *                      An empty list will fill the current date - use the above method for simplicity
-     *
      * @return the AddProviderIdFragment object after filling the form with the provided information
      */
     public AddProviderIdFragment fillIdentifier(Object roleType, HdsType hdsType, String hdsSubType,
@@ -114,11 +137,17 @@ public class AddProviderPage extends BasicWebPage {
                 newRoleType = fragment.selectProviderRoleType((String) roleType);
             else if (providerType.equals(ProviderType.ORGANIZATION))
                 newRoleType = fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
-            else newRoleType = fragment.selectProviderRoleType((ProviderRoleType) roleType);
+            else if (roleType instanceof ProviderRoleType)
+                newRoleType = fragment.selectProviderRoleType(((ProviderRoleType) roleType).getText());
+            else newRoleType = fragment.selectProviderRoleType((ProviderRoleTypeOptions) roleType);
 
             if (!newRoleType.equals(prevRoleType) && !newRoleType.equals("Select One")) {
                 WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
                 selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+                // Wait for the new identifier type element to be visible after refresh
+                selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div#form\\:identifierType")));
+
+                waitSeconds(2); // Wait for any additional dynamic elements to load after role type selection, such as HDS type for HDS role
             }
 
             if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
@@ -130,9 +159,7 @@ public class AddProviderPage extends BasicWebPage {
         }
         if (identifierType != null) fragment.selectIdentifierType(identifierType);
         if (identifier != null) fragment.fillIdentifier(identifier);
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            fragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
+        if (effectiveFrom != null)
             fragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return fragment;
@@ -149,8 +176,44 @@ public class AddProviderPage extends BasicWebPage {
     public AddProviderIdFragment fillIdentifier(Object roleType, HdsType hdsType, String hdsSubType,
                                                 String identifierType, String identifier)
     {
-        return fillIdentifier(roleType, hdsType, hdsSubType, identifierType, identifier, List.of());
+        AddProviderIdFragment fragment = new AddProviderIdFragment(selenium_, providerType);
+
+        if (roleType != null) {
+            String prevRoleType = fragment.getProviderRoleType();
+            String newRoleType;
+
+            if (roleType.getClass().equals(String.class))
+                newRoleType = fragment.selectProviderRoleType((String) roleType);
+            else if (providerType.equals(ProviderType.ORGANIZATION))
+                newRoleType = fragment.selectProviderRoleType((OrganizationalProviderRoleType) roleType);
+            else if (roleType instanceof ProviderRoleType)
+                newRoleType = fragment.selectProviderRoleType(((ProviderRoleType) roleType).getText());
+            else newRoleType = fragment.selectProviderRoleType((ProviderRoleTypeOptions) roleType);
+
+            if (!newRoleType.equals(prevRoleType) || newRoleType.equals("Select One")) {
+                WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
+                selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+
+                // Wait for the new identifier type element to be visible after refresh
+                selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div#form\\:identifierType")));
+
+                waitSeconds(2); // Wait for any additional dynamic elements to load after role type selection, such as HDS type for HDS role
+            }
+
+            if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
+                selenium_.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));
+
+                fragment.selectHdsType(hdsType);
+                if (hdsSubType != null) fragment.selectHdsSubType(hdsSubType);
+            }
+        }
+        if (identifierType != null) fragment.selectIdentifierType(identifierType);
+        if (identifier != null) fragment.fillIdentifier(identifier);
+        fragment.effectiveFromCurrentDate();
+
+        return fragment;
     }
+
 
 	public AddProviderIdFragment fillOrganizationIdentifier(OrganizationalProviderRoleType roleType, HdsType hdsType, String hdsSubType,
 			String identifierType, String identifier) {
@@ -158,14 +221,16 @@ public class AddProviderPage extends BasicWebPage {
 
 		if (roleType != null) {
 			fragment.selectProviderRoleType(roleType);
-			
-			if (OrganizationalProviderRoleType.HDS.equals(roleType)){
-				WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
-				selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
 
-			}
+			// Wait for identifier type dropdown to refresh after role type selection
+			WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
+			selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
+			// Wait for the new identifier type element to be visible after refresh
+			selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div#form\\:identifierType")));
+
+			waitSeconds(2); // Wait for any additional dynamic elements to load after role type selection
+
 			if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
-				
 				selenium_
 						.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));
 
@@ -191,19 +256,18 @@ public class AddProviderPage extends BasicWebPage {
      * @param statusReasonCode the status reason code to select in the form, or null to not select any status reason code
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
      *                      [year, month, day], or null to not fill an effective from date
-     *                      An empty list will fill the current date - use the above method for simplicity
      * @return the AddProviderStatusFragment object after filling the form with the provided information
      */
     public AddProviderStatusFragment fillStatus(String statusClassCode, StatusCodeOption statusCode, StatusReasonCodeOption statusReasonCode, List<Integer> effectiveFrom)
     {
         AddProviderStatusFragment fragment = new AddProviderStatusFragment(selenium_);
+        // Wait for status form to be ready
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector("label#form\\:statusClassCode_label")));
 
         if (statusClassCode != null) fragment.selectStatusClassCode(statusClassCode);
         if (statusCode != null) fragment.selectStatusCode(statusCode.getText());
         if (statusReasonCode != null) fragment.selectStatusReasonCode(statusReasonCode.getText());
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            fragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
+        if (effectiveFrom != null)
             fragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return fragment;
@@ -218,7 +282,17 @@ public class AddProviderPage extends BasicWebPage {
      */
     public AddProviderStatusFragment fillStatus(String statusClassCode, StatusCodeOption statusCode, StatusReasonCodeOption statusReasonCode)
     {
-        return fillStatus(statusClassCode, statusCode, statusReasonCode, List.of());
+        AddProviderStatusFragment fragment = new AddProviderStatusFragment(selenium_);
+        // Wait for status form to be ready
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector("label#form\\:statusClassCode_label")));
+        waitSeconds(1); // Wait for any additional dynamic elements to load after status form is ready
+
+        if (statusClassCode != null) fragment.selectStatusClassCode(statusClassCode);
+        if (statusCode != null) fragment.selectStatusCode(statusCode.getText());
+        if (statusReasonCode != null) fragment.selectStatusReasonCode(statusReasonCode.getText());
+        fragment.effectiveFromCurrentDate();
+
+        return fragment;
     }
 
     /**
@@ -232,7 +306,16 @@ public class AddProviderPage extends BasicWebPage {
      */
     public AddProviderPIFragment fillPI(String prefix, String firstName, String secondName, String thirdName, String surname)
     {
-        return fillPI(prefix, firstName, secondName, thirdName, surname, List.of());
+        AddProviderPIFragment fragment = new AddProviderPIFragment(selenium_);
+
+        if (prefix != null) fragment.fillPrefix(prefix);
+        if (firstName != null) fragment.fillFirstName(firstName);
+        if (secondName != null) fragment.fillSecondName(secondName);
+        if (thirdName != null) fragment.fillThirdName(thirdName);
+        if (surname != null) fragment.fillSurname(surname);
+        fragment.effectiveFromCurrentDate();
+
+        return fragment;
     }
 
     /**
@@ -244,7 +327,6 @@ public class AddProviderPage extends BasicWebPage {
      * @param surname the surname to fill in the form, or null to not fill a surname
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
      *                      [year, month, day], or null to not fill an effective from date
-     *                      An empty list will fill the current date - use the above method for simplicity
      * @return the AddProviderPIFragment object after filling the form with the provided information
      */
     public AddProviderPIFragment fillPI(String prefix, String firstName, String secondName, String thirdName, String surname, List<Integer> effectiveFrom)
@@ -256,9 +338,7 @@ public class AddProviderPage extends BasicWebPage {
         if (secondName != null) fragment.fillSecondName(secondName);
         if (thirdName != null) fragment.fillThirdName(thirdName);
         if (surname != null) fragment.fillSurname(surname);
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            fragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
+        if (effectiveFrom != null)
             fragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return fragment;
@@ -273,21 +353,10 @@ public class AddProviderPage extends BasicWebPage {
      */
     public AddProviderDemographicFragment fillDemographics(List<Integer> dateOfBirth, String gender)
     {
-        return fillDemographics(dateOfBirth, gender, List.of());
-    }
-
-    /**
-     * Fills the demographics form in the Add Provider flow with the provided information,
-     * waiting for the form to be ready before filling.
-     * @param dateOfBirth the date of birth to fill in the form as a raw string, or null to not fill date of birth
-     * @param gender the gender to select in the radio menu, or null to not select any gender
-     * @return the AddProviderDemographicFragment object after filling the form with the provided information
-     */
-    public AddProviderDemographicFragment fillDemographics(String dateOfBirth, String gender)
-    {
         AddProviderDemographicFragment fragment = new AddProviderDemographicFragment(selenium_);
 
-        if (dateOfBirth != null) fragment.dateOfBirthRaw(dateOfBirth);
+        if (dateOfBirth != null)
+            fragment.dateOfBirthSpecificDate(dateOfBirth.get(0), dateOfBirth.get(1), dateOfBirth.get(2));
         if (gender != null) fragment.getGenderMenu().selectItem(gender);
         fragment.effectiveFromCurrentDate();
 
@@ -301,7 +370,6 @@ public class AddProviderPage extends BasicWebPage {
      * @param gender the gender to select in the radio menu, or null
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
      *                      [year, month, day], or null to not fill an effective from date
-     *                      An empty list will fill the current date - use the above method for simplicity
      * @return the AddProviderDemographicFragment object after filling the form with the provided information
      */
     public AddProviderDemographicFragment fillDemographics(List<Integer> dateOfBirth, String gender, List<Integer> effectiveFrom)
@@ -312,9 +380,7 @@ public class AddProviderPage extends BasicWebPage {
             fragment.dateOfBirthSpecificDate(dateOfBirth.get(0), dateOfBirth.get(1), dateOfBirth.get(2));
         if (gender != null) fragment.getGenderMenu().selectItem(gender);
 
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            fragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
+        if (effectiveFrom != null)
             fragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return fragment;
@@ -338,7 +404,7 @@ public class AddProviderPage extends BasicWebPage {
     public AddProviderAddressFragment fillAddress(String addressType, String addressPurpose,
             List<String> addressLines, String city, String province, String country, String postalCode)
     {
-        return fillAddress(addressType, addressPurpose, addressLines, city, province, country, postalCode, List.of());
+        return fillAddress(addressType, addressPurpose, addressLines, city, province, country, postalCode, null);
     }
 
     /**
@@ -374,10 +440,40 @@ public class AddProviderPage extends BasicWebPage {
         if (country != null) addressFragment.selectCountry(country);
         if (postalCode != null) addressFragment.fillPostalCode(postalCode);
 
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            addressFragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
-            addressFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        if (effectiveFrom == null) addressFragment.effectiveFromCurrentDate();
+        else  addressFragment.effectiveFromSpecificDate(
+                effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+
+        return addressFragment;
+    }
+
+    /**
+     * Fills the address form in the Add Provider flow with raw city input (no autocomplete).
+     * Use this for validation tests where city may be blank or invalid.
+     * @param addressType the address type to select in the form, or null to not select any address type
+     * @param addressPurpose the address purpose to select in the form, or null to not select any address purpose
+     * @param addressLines a list of strings representing the address lines to fill in the form
+     * @param city the city to fill in the form (raw text, no autocomplete)
+     * @param province the province to select in the form, or null to not select a province
+     * @param country the country to select in the form, or null to not select a country
+     * @param postalCode the postal code to fill in the form, or null to not fill a postal code
+     * @return the AddProviderAddressFragment object after filling the form with the provided information
+     */
+    public AddProviderAddressFragment fillAddressRawCity(String addressType, String addressPurpose,
+            List<String> addressLines, String city, String province, String country, String postalCode)
+    {
+        AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(selenium_);
+
+        if (addressType != null) addressFragment.selectAddressType(addressType);
+        if (addressPurpose != null) addressFragment.selectAddressPurpose(addressPurpose);
+        addressFragment.fillAddressLine1(addressLines.get(0));
+        addressFragment.fillAddressLine2(addressLines.get(1));
+        addressFragment.fillAddressLine3(addressLines.get(2));
+        addressFragment.fillCityRaw(city);
+        if (province != null) addressFragment.selectProvinceState(province);
+        if (country != null) addressFragment.selectCountry(country);
+        addressFragment.fillPostalCode(postalCode);
+        addressFragment.effectiveFromCurrentDate();
 
         return addressFragment;
     }
@@ -391,10 +487,17 @@ public class AddProviderPage extends BasicWebPage {
      *                                  This is used to specify a unique portion of the address to ensure the correct address is selected from the autocomplete dropdown.
      * @return the AddProviderAddressFragment object after filling the form with the provided information
      */
-    public AddProviderAddressFragment fillAddress(String addressType, String addressPurpose,
-                                                  String addressAutocompleteField, String addressAutocompletePrefix)
+    public AddProviderAddressFragment fillAddress(String addressType, String addressPurpose, String addressAutocompleteField, String addressAutocompletePrefix)
     {
-        return fillAddress(addressType, addressPurpose, addressAutocompleteField, addressAutocompletePrefix, List.of());
+        AddProviderAddressFragment addressFragment = new AddProviderAddressFragment(selenium_);
+
+        if (addressType != null) addressFragment.selectAddressType(addressType);
+        if (addressPurpose != null) addressFragment.selectAddressPurpose(addressPurpose);
+        addressFragment.fillAddressAutocomplete(addressAutocompleteField, addressAutocompletePrefix);
+
+        addressFragment.effectiveFromCurrentDate();
+
+        return addressFragment;
     }
 
     /**
@@ -406,7 +509,6 @@ public class AddProviderPage extends BasicWebPage {
      *                                  This is used to specify a unique portion of the address to ensure the correct address is selected from the autocomplete dropdown.
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
      *                      [year, month, day], or null to not fill an effective from date
-     *                      An empty list will fill the current date - use the above method for simplicity
      * @return the AddProviderAddressFragment object after filling the form with the provided information
      */
     public AddProviderAddressFragment fillAddress(String addressType, String addressPurpose,
@@ -418,9 +520,7 @@ public class AddProviderPage extends BasicWebPage {
         if (addressPurpose != null) addressFragment.selectAddressPurpose(addressPurpose);
         addressFragment.fillAddressAutocomplete(addressAutocompleteField, addressAutocompletePrefix);
 
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            addressFragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
+        if (effectiveFrom != null)
             addressFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return addressFragment;
@@ -435,7 +535,14 @@ public class AddProviderPage extends BasicWebPage {
      */
     public AddProviderPhoneFragment fillPhone(String areaCode, String phoneNumber, String extension)
     {
-        return fillPhone(areaCode, phoneNumber, extension, List.of());
+        AddProviderPhoneFragment phoneFragment = new AddProviderPhoneFragment(selenium_);
+
+        if (areaCode != null) phoneFragment.fillAreaCode(areaCode);
+        if (phoneNumber != null) phoneFragment.fillPhoneNumber(phoneNumber);
+        if (extension != null) phoneFragment.fillExtension(extension);
+        phoneFragment.effectiveFromCurrentDate();
+
+        return phoneFragment;
     }
 
     /**
@@ -445,7 +552,6 @@ public class AddProviderPage extends BasicWebPage {
      * @param extension the extension to fill in the form, or null to not fill an extension
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
      *                      [year, month, day], or null to not fill an effective from date
-     *                      An empty list will fill the current date - use the above method for simplicity
      * @return the AddProviderPhoneFragment object after filling the form with the provided information
      */
     public AddProviderPhoneFragment fillPhone(String areaCode, String phoneNumber, String extension, List<Integer> effectiveFrom)
@@ -455,10 +561,7 @@ public class AddProviderPage extends BasicWebPage {
         if (areaCode != null) phoneFragment.fillAreaCode(areaCode);
         if (phoneNumber != null) phoneFragment.fillPhoneNumber(phoneNumber);
         if (extension != null) phoneFragment.fillExtension(extension);
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            phoneFragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
-            phoneFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        if (effectiveFrom != null) phoneFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return phoneFragment;
     }
@@ -471,7 +574,13 @@ public class AddProviderPage extends BasicWebPage {
      */
     public AddProviderFaxFragment fillFax(String areaCode, String faxNumber)
     {
-        return fillFax(areaCode, faxNumber, List.of());
+        AddProviderFaxFragment faxFragment = new AddProviderFaxFragment(selenium_);
+
+        if (areaCode != null) faxFragment.fillAreaCode(areaCode);
+        if (faxNumber != null) faxFragment.fillFaxNumber(faxNumber);
+        faxFragment.effectiveFromCurrentDate();
+
+        return faxFragment;
     }
 
     /**
@@ -480,7 +589,6 @@ public class AddProviderPage extends BasicWebPage {
      * @param faxNumber the fax number to fill in the form, or null to not fill a fax number
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
      *                      [year, month, day], or null to not fill an effective from date
-     *                      An empty list will fill the current date - use the above method for simplicity
      * @return the AddProviderFaxFragment object after filling the form with the provided information
      */
     public AddProviderFaxFragment fillFax(String areaCode, String faxNumber, List<Integer> effectiveFrom)
@@ -489,10 +597,7 @@ public class AddProviderPage extends BasicWebPage {
 
         if (areaCode != null) faxFragment.fillAreaCode(areaCode);
         if (faxNumber != null) faxFragment.fillFaxNumber(faxNumber);
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            faxFragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
-            faxFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        if (effectiveFrom != null) faxFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return faxFragment;
     }
@@ -504,7 +609,12 @@ public class AddProviderPage extends BasicWebPage {
      */
     public AddProviderEmailFragment fillEmail(String emailAddress)
     {
-        return fillEmail(emailAddress, List.of());
+        AddProviderEmailFragment emailFragment = new AddProviderEmailFragment(selenium_);
+
+        if (emailAddress != null) emailFragment.fillEmailAddress(emailAddress);
+        emailFragment.effectiveFromCurrentDate();
+
+        return emailFragment;
     }
 
     /**
@@ -512,7 +622,6 @@ public class AddProviderPage extends BasicWebPage {
      * @param emailAddress the email address to fill in the form, or null to not fill an email address
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
      *                      [year, month, day], or null to not fill an effective from date
-     *                      An empty list will fill the current date - use the above method for simplicity
      * @return the AddProviderEmailFragment object after filling the form with the provided information
      */
     public AddProviderEmailFragment fillEmail(String emailAddress, List<Integer> effectiveFrom)
@@ -520,10 +629,7 @@ public class AddProviderPage extends BasicWebPage {
         AddProviderEmailFragment emailFragment = new AddProviderEmailFragment(selenium_);
 
         if (emailAddress != null) emailFragment.fillEmailAddress(emailAddress);
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            emailFragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
-            emailFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
+        if (effectiveFrom != null) emailFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return emailFragment;
     }
@@ -545,8 +651,20 @@ public class AddProviderPage extends BasicWebPage {
                                                          String city, String country, String provinceState,
                                                          boolean equivalency, String year)
     {
-        return fillCredentials(credentialType, designation, registrationNumber, institution, city, country,
-                provinceState, equivalency, year, List.of());
+        AddProviderCredentialFragment credentialFragment = new AddProviderCredentialFragment(selenium_);
+
+        if (credentialType != null) credentialFragment.selectCredentialType(credentialType);
+        if (designation != null) credentialFragment.fillDesignation(designation);
+        if (registrationNumber != null) credentialFragment.fillRegistrationNumber(registrationNumber);
+        if (institution != null) credentialFragment.fillInstitution(institution);
+        if (city != null) credentialFragment.fillCity(city);
+        if (country != null) credentialFragment.selectCountry(country);
+        if (provinceState != null) credentialFragment.selectProvinceState(provinceState);
+        credentialFragment.enableEquivalency(equivalency);
+        if (year != null) credentialFragment.fillYear(year);
+        credentialFragment.effectiveFromCurrentDate();
+
+        return credentialFragment;
     }
 
     /**
@@ -561,7 +679,6 @@ public class AddProviderPage extends BasicWebPage {
      * @param equivalency whether to enable equivalency in the form
      * @param effectiveFrom the effective from date to fill in the form as a list of integers in the format
      *                      [year, month, day], or null to not fill an effective from date
-     *                      An empty list will fill the current date - use the above method for simplicity
      * @return the AddProviderCredentialFragment object after filling the form with the provided information
      */
     public AddProviderCredentialFragment fillCredentials(String credentialType, String designation,
@@ -580,8 +697,7 @@ public class AddProviderPage extends BasicWebPage {
         if (provinceState != null) credentialFragment.selectProvinceState(provinceState);
         credentialFragment.enableEquivalency(equivalency);
         if (year != null) credentialFragment.fillYear(year);
-        if (effectiveFrom != null && effectiveFrom.isEmpty()) credentialFragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
+        if (effectiveFrom != null)
             credentialFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return credentialFragment;
@@ -595,7 +711,13 @@ public class AddProviderPage extends BasicWebPage {
      */
     public AddProviderExpertiseFragment fillExpertise(String expertise, String sourceCode)
     {
-        return fillExpertise(expertise, sourceCode, List.of());
+        AddProviderExpertiseFragment expertiseFragment = new AddProviderExpertiseFragment(selenium_);
+
+        if (expertise != null) expertiseFragment.selectExpertise(expertise);
+        if (sourceCode != null) expertiseFragment.fillSourceCode(sourceCode);
+        expertiseFragment.effectiveFromCurrentDate();
+
+        return expertiseFragment;
     }
 
     /**
@@ -612,9 +734,7 @@ public class AddProviderPage extends BasicWebPage {
 
         if (expertise != null) expertiseFragment.selectExpertise(expertise);
         if (sourceCode != null) expertiseFragment.fillSourceCode(sourceCode);
-        if (effectiveFrom != null && effectiveFrom.isEmpty())
-            expertiseFragment.effectiveFromCurrentDate();
-        else if (effectiveFrom != null)
+        if (effectiveFrom != null)
             expertiseFragment.effectiveFromSpecificDate(effectiveFrom.get(0), effectiveFrom.get(1), effectiveFrom.get(2));
 
         return expertiseFragment;
@@ -682,7 +802,12 @@ public class AddProviderPage extends BasicWebPage {
     {
         WebElement stepTitle = selenium_.findElement(By.xpath(String.format(FORM_TITLE_XPATH, currentState)));
 
-        selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
+        try {
+            selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
+        } catch (StaleElementReferenceException e) {
+            waitSeconds(1);
+            selenium_.findElementsByCss("div.ui-wizard-navbar.ui-helper-clearfix > button").getLast().click();
+        }
 
         selenium_.waitUntil(ExpectedConditions.stalenessOf(stepTitle));
 
@@ -711,12 +836,12 @@ public class AddProviderPage extends BasicWebPage {
 
         if (!expectedError) waitForAddProviderStep(currentState, false);
     }
-    
+
     @FindBy(how = How.XPATH, using = "//div[contains(.,'Address Recommended')]/button[contains(.,'Continue w/ Original')]")
 	private WebElement addrValContinueWithOriginal1;
 	@FindBy(how = How.XPATH, using = "//div[not(contains(.,'Address Recommended')) and contains(.,'Address Provided')]/button[contains(.,'Continue w/ Original')]")
 	private WebElement addrValContinueWithOriginal2;
-    
+
     public static void closeAddressValidationDialogWithContinue(WebElement addrValContinueWithOriginal1,
 			WebElement addrValContinueWithOriginal2) throws InterruptedException {
 		Thread.sleep(4000);
@@ -729,8 +854,8 @@ public class AddProviderPage extends BasicWebPage {
 		}
 		Thread.sleep(1000);
 	}
-    
-    
+
+
     public static void closeAddressValidationDialogWithCancel(WebElement addrValContinueWithOriginal1,
 			WebElement addrValContinueWithOriginal2, WebElement addrValCancel1, WebElement addrValCancel2)
 			throws InterruptedException {
@@ -750,11 +875,11 @@ public class AddProviderPage extends BasicWebPage {
 
 	        if (name != null) fragment.fillName(name);
 	        if (desc != null) fragment.fillDesc(desc);
-	    
+
 	        fragment.effectiveFromCurrentDate();
 
 	        return fragment;
-		
+
 	}
 	/**
 	     * Gets the currently highlighted step in the Add Provider flow

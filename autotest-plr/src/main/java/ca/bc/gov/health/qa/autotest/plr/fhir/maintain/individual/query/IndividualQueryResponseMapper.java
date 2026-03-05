@@ -420,6 +420,9 @@ public final class IndividualQueryResponseMapper {
 			}
 		}
 
+		// Ensure CANADA is set to CA for future potential use in re-submission
+		if ("CANADA".equals(birthCountry)) birthCountry = "CA";
+
 		// Set demographics if we have at least some data
 		if (gender != null || birthDate != null) {
 			b.setDemographics(birthDate, birthCountry, birthProvince, gender, deathDate);

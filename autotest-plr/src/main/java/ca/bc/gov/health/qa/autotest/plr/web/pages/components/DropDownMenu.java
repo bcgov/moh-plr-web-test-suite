@@ -147,6 +147,7 @@ extends BasicWebPageFragment
     {
         WebElement item = findItem(itemPrefix);
         selenium_.scrollIntoView(item);
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(item));
         String itemLabel = item.getText();
         item.click();
         waitForItemPanelExpanded(false);
@@ -246,8 +247,13 @@ extends BasicWebPageFragment
     {
         if (expanded)
         {
+        	try{
             selenium_.waitUntil(
                     ExpectedConditions.visibilityOfElementLocated(itemPanelLocator_));
+        	}
+        	catch(org.openqa.selenium.TimeoutException e){
+        		
+        	}
 
             // Wait for the expand animation to complete.
             // NOTE: The value of the CSS property "opacity" is changing

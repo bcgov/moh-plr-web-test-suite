@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.data;
 
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleTypeOptions;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusCodeOption;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusReasonCodeOption;
 
@@ -109,22 +110,22 @@ public class AddProviderConstants {
 
     /** Mapping of ProviderRoleType to their corresponding IdentifierType options.
      * OOP identifiers not included: use getOrDefault to map OOPID */
-    public static final Map<ProviderRoleType, List<String>> IDENTIFIER_TYPE_OPTIONS_MAP = Map.ofEntries(
-            Map.entry(ProviderRoleType.OPT, List.of("OPTID - Optometrist ID Number")),
-            Map.entry(ProviderRoleType.RN, List.of("RNID - Registered Nurse ID Number")),
-            Map.entry(ProviderRoleType.RNP, List.of("RNID - Registered Nurse ID Number")),
-            Map.entry(ProviderRoleType.DEN, List.of("DENID - Dentist ID Number")),
-            Map.entry(ProviderRoleType.MD, List.of(
+    public static final Map<ProviderRoleTypeOptions, List<String>> IDENTIFIER_TYPE_OPTIONS_MAP = Map.ofEntries(
+            Map.entry(ProviderRoleTypeOptions.OPT, List.of("OPTID - Optometrist ID Number")),
+            Map.entry(ProviderRoleTypeOptions.RN, List.of("RNID - Registered Nurse ID Number")),
+            Map.entry(ProviderRoleTypeOptions.RNP, List.of("RNID - Registered Nurse ID Number")),
+            Map.entry(ProviderRoleTypeOptions.DEN, List.of("DENID - Dentist ID Number")),
+            Map.entry(ProviderRoleTypeOptions.MD, List.of(
                     "CPSID - Physician ID Number",
                     "MPID - Ministry Practitioner ID (MSP ID)",
                     "SRID - Special Register General",
                     "AOMDID - Ambulance Operator Medical Director ID")),
-            Map.entry(ProviderRoleType.PHARM, List.of("PHID - Pharmacist ID Number")),
-            Map.entry(ProviderRoleType.RM, List.of("RMID - Registered Midwife ID Number")),
-            Map.entry(ProviderRoleType.LPN, List.of("RNID - Registered Nurse ID Number")),
-            Map.entry(ProviderRoleType.RPN, List.of("RNID - Registered Nurse ID Number")),
-            Map.entry(ProviderRoleType.HA, List.of("HAID - Health Authority ID")),
-            Map.entry(ProviderRoleType.PO, List.of("POID - Podiatrist ID"))
+            Map.entry(ProviderRoleTypeOptions.PHARM, List.of("PHID - Pharmacist ID Number")),
+            Map.entry(ProviderRoleTypeOptions.RM, List.of("RMID - Registered Midwife ID Number")),
+            Map.entry(ProviderRoleTypeOptions.LPN, List.of("RNID - Registered Nurse ID Number")),
+            Map.entry(ProviderRoleTypeOptions.RPN, List.of("RNID - Registered Nurse ID Number")),
+            Map.entry(ProviderRoleTypeOptions.HA, List.of("HAID - Health Authority ID")),
+            Map.entry(ProviderRoleTypeOptions.PO, List.of("POID - Podiatrist ID"))
     );
 
     /** List of Expertise Language options. */

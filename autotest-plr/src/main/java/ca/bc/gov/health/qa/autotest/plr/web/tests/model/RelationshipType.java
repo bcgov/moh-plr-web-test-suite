@@ -1,8 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 
+/** Enum representing different types of Organization/Facility Relationships. */
 public enum RelationshipType {
-	
+
+	/** Location of */
 	LOCATION("LOCATION - Location of", "Location of (LOCATION)"),
+	/** Located at */
 	LOCATED("LOCATED - Located at", "Located at (LOCATED)");
 	 
 

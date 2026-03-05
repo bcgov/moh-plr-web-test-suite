@@ -22,24 +22,23 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
+/** Tests class (simple) for the second set of Update Facility menus */
 public class UpdateFacilitySimpleSetTwoTests implements SimpleTest {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
 	private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
 	private MaintainFacilityBuilder facility;
 
-	public UpdateFacilitySimpleSetTwoTests() {
-
-	}
+	private UpdateFacilitySimpleSetTwoTests() {}
 
 	@AfterClass
-	public void teardown() {
+	private void teardown() {
 		workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
 	@BeforeMethod
-	public void before(Object[] parameters) {
+	private void before(Object[] parameters) {
 
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
 		if (!workflow.isLoggedIn()) {
