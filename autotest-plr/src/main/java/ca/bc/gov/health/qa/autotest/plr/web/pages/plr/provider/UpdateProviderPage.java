@@ -4,9 +4,9 @@ import static java.util.Objects.requireNonNull;
 import static org.testng.Assert.fail;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
@@ -25,13 +25,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	public static final Map<ProviderSection, ProviderDialog> DIALOG_MAP = Map.of(
 			ProviderSection.IDENTIFIERS, new ProviderDialog("maintainIdDialog", "maintainIdentifierForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "","Add"), 
+					"effectiveToDate", "idSubmitButton", "","Add"),
 			ProviderSection.NOTES, new ProviderDialog("maintainNoteDialog", "maintainNoteForm", "effectiveFromDate",
 					"effectiveToDate", "idNoteSubmitButton", "endReasonCode","Add a new Note"),
 			ProviderSection.ORGANIZATION_RELATIONSHIPS, new ProviderDialog("maintainOrganizationRelationshipDialog", "maintainOrgRelationshipForm", "effectiveStartDate",
-					"effectiveEndDate", "orgRelationshipSubmitButton", "EndReasonType","Add a new Organization Relationship"), 
+					"effectiveEndDate", "orgRelationshipSubmitButton", "EndReasonType","Add a new Organization Relationship"),
 			ProviderSection.TELECOMMUNICATIONS, new ProviderDialog("maintainTelecomDialog", "maintainTelecomForm", "effectiveFromDate",
-					"effectiveToDate", "idTeleSubmitButton", "EndReasonType","Add a new Telecommunication"), 
+					"effectiveToDate", "idTeleSubmitButton", "EndReasonType","Add a new Telecommunication"),
 			ProviderSection.ELECTRONIC_ADDRESSES, new ProviderDialog("maintainElectronicAddressDialog", "maintainElectronicAddressForm", "effectiveStartDate",
 					"effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType","Add a new Electronic Address"),
 			ProviderSection.CONDITIONS, new ProviderDialog("maintainConditionDialog", "maintainConditionForm", "effectiveFromDate",
@@ -187,6 +187,22 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
+	 * get Drop down List Options
+	 * @param section the provider section
+	 * @param dropdownName the dropdownfield name
+	 */
+	public List<String> getDropdownListOptions(ProviderSection section, String dropdownName) {
+		String formName = DIALOG_MAP.get(section).getFormName();
+
+		DropDownMenu dropdownMenu = new DropDownMenu(selenium_,
+				By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label"),
+				By.cssSelector("div#" + formName + "\\:" + dropdownName + "_panel"));
+
+		dropdownMenu.expandItemPanel(true);
+		return dropdownMenu.grabItemList();
+	}
+
+	/**
 	 * Click Dialog Submit Button
 	 *
 	 * @param section the provider section
@@ -251,7 +267,6 @@ public class UpdateProviderPage extends ViewProviderPage {
 										String explanation, String effectiveFrom, String effectiveTo, boolean expectError)
 	{
 		String msgDisplay = "";
-		String formName = DIALOG_MAP.get(ProviderSection.CONDITIONS).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.CONDITIONS);
 
 		clickHeaderAddButton(ProviderSection.CONDITIONS);
@@ -265,6 +280,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
+	}
+
+	public List<String> getMandatoryFields(ProviderSection section)
+	{
+		String formName = DIALOG_MAP.get(section).getFormName();
+		String dialogCss = getDialogCss(section);
+		String mandatoryFieldCss = dialogCss + " > div > label > span.ui-outputlabel-rfi";
+		List<WebElement> mandatoryFieldSpecifiers = selenium_.findElements(By.cssSelector(mandatoryFieldCss));
+		return mandatoryFieldSpecifiers.stream()
+				.map(elem -> elem.findElement(By.xpath("./.."))
+						.getText().replace("*", ""))
+				.toList();
 	}
 
 	private void setDialogEffectiveFromAndEffectiveTo(ProviderSection section, String effectiveFrom,

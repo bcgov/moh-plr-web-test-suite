@@ -17,6 +17,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ConditionType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -31,7 +32,9 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class UpdateProviderTests implements SimpleTest {
@@ -172,5 +175,46 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected 1 active condition data block with restriction flag set to true");
         assertEquals(page.grabDataBlockContent(ProviderSection.CONDITIONS, 0).get("Restriction Flag"), "No",
                 "Expected 'No' value for restriction flag in data block when set to false");
+    }
+
+    // Update Provider - Validate Condition Type Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateConditionTypeCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.clickHeaderAddButton(ProviderSection.CONDITIONS);
+
+        assertTrue(page.getMandatoryFields(ProviderSection.CONDITIONS).contains("Condition Type"),
+                "Expected 'Condition Type' to be a mandatory field when adding a condition data block");
+
+        List<String> condOptions = page.getDropdownListOptions(ProviderSection.CONDITIONS, "conditionType");
+        condOptions.remove("Select One");
+        List<String> expectedOptions = Arrays.stream(ConditionType.values()).map(ConditionType::getText).toList();
+        LOG.info(condOptions);
+        LOG.info(expectedOptions);
+        assertTrue(condOptions.containsAll(expectedOptions),
+                "Expected condition type dropdown options to contain all defined condition types");
+
+        page.clickDialogCancelButton(ProviderSection.CONDITIONS);
+
+        String error = page.addConditionDataBlock("Select One", "99999", false,
+                "Test", effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("missingConditionType"),
+                "Expected error message for missing condition type when adding condition data block");
+
+        page.addConditionDataBlock("LOC", "99999", false,
+                "Test", effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
+                "Expected 1 active condition data block after adding condition with valid type");
+        assertEquals(page.grabDataBlockContent(ProviderSection.CONDITIONS, 0).get("Type"), "Location (LOC)",
+                "Expected 'LOC' value for condition type in data block after adding condition with LOC type");
+
+        page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
     }
 }
