@@ -91,7 +91,8 @@
     "registrationNumberTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Registration Number' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit.",
     "institutionTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Institution' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit.",
     "yearIssuedTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Credential Year' length must be between 0 and 4. Your transaction has not been processed. Correct and resubmit.",
-    "credentialCityTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Institution City' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit."
+    "credentialCityTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Institution City' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit.",
+    "conditionIdentifierTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Condition Identifier' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",

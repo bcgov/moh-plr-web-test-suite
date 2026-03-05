@@ -323,8 +323,9 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 */
 	protected String getDialogMessages(ProviderSection section) {
 		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(section).getFormName();
 		String dialogCss = getDialogCss(section);
-		String msgCss = dialogCss + " > ul.messages" + " > li.message";
+		String msgCss = dialogCss + "> div#" + formName + "\\:messages > div > ul > li";
 		
 		try {
 			java.util.List<WebElement> msgList = selenium_.findElements(By.cssSelector(msgCss));

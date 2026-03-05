@@ -5,6 +5,8 @@ import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelp
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import ca.bc.gov.health.qa.autotest.core.util.config.Config;
+import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
@@ -21,11 +23,15 @@ import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,12 +40,24 @@ public class UpdateProviderTests implements SimpleTest {
 
     private final PlrWebWorkflowManager workflowManager_ = new PlrWebWorkflowManager();
     private FHIRController fhirController;
+    private static final Config config_ = ConfigProvider.get().getConfig();
+    private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
+    public static JSONObject errorList;
 
     private static MaintainIndividualBuilder defaultBC;
     private static MaintainIndividualBuilder defaultOOP;
     private static Map<ProviderType, MaintainIndividualBuilder> defaultProviders = new HashMap<>();
 
     private UpdateProviderTests() {
+        try
+        {
+            errorList = new JSONObject(Files.readString(errorPath)).getJSONObject("errors");
+        }
+        catch (IOException e)
+        {
+            String msg = String.format("Failed to read JSON data (%s).", errorPath);
+            throw new IllegalStateException(msg, e);
+        }
     }
 
     @AfterClass
@@ -93,5 +111,21 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 0,
                 "Expected no active condition data blocks after cancelling add");
+    }
+
+    // Update Provider - Validate Condition ID
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateConditionID(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addConditionDataBlock("LOC", generateNumericString(241), false,
+                "Test", effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("conditionIdentifierTooLong"),
+                "Expected error for condition identifier exceeding max length");
     }
 }
