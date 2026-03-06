@@ -8,8 +8,6 @@ import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
@@ -222,8 +220,6 @@ public class UpdateProviderTests implements SimpleTest {
         List<String> condOptions = page.getDropdownListOptions(ProviderSection.CONDITIONS, "conditionType");
         condOptions.remove("Select One");
         List<String> expectedOptions = Arrays.stream(ConditionType.values()).map(ConditionType::getText).toList();
-        LOG.info(condOptions);
-        LOG.info(expectedOptions);
         assertTrue(condOptions.containsAll(expectedOptions),
                 "Expected condition type dropdown options to contain all defined condition types");
 
@@ -306,7 +302,7 @@ public class UpdateProviderTests implements SimpleTest {
 		
 		String msg=page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(MAX_DIS_ACTION_DES+1),
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", true);
-		assertTrue(msg.equals(errorMsgDisActionDesLenth5003),"Expected error message not found");
+        assertEquals(errorMsgDisActionDesLenth5003, msg, "Expected error message not found");
 		
 		msg=page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(MAX_DIS_ACTION_DES),
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
@@ -314,7 +310,7 @@ public class UpdateProviderTests implements SimpleTest {
 
 		msg=page.addDisciplinaryActionDataBlock(null, true, null,
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", true);
-		assertTrue(msg.equals(errorMsgDisActionDesLenthMissing5000),"Expected error message not found");
+        assertEquals(errorMsgDisActionDesLenthMissing5000, msg, "Expected error message not found");
 	}
 
 	// Update Provider - Generating A Default Disciplinary Action ID
