@@ -286,6 +286,19 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 	
 	
+	/**
+	 * performing action of adding Disciplinary ActionData Block, perform error message check if necessary
+	 * 
+	 * @param actionIdentifier id of Disciplinary Action
+	 * @param display flag of 'display' of Disciplinary Action
+	 * @param description  description of Disciplinary Action
+	 * @param archiveDate archive Date of Disciplinary Action
+	 * @param effectiveFrom effective From date of Disciplinary Action
+	 * @param effectiveTo effective To Date of Disciplinary Action
+	 * @param expectError if this action expect returning error messages
+	 * 
+	 * @return expected error message or empty string if no error message expected 
+	 */
 	public String addDisciplinaryActionDataBlock(String actionIdentifier, boolean display,
 			String description, String archiveDate, String effectiveFrom, String effectiveTo, boolean expectError) {
 		String msgDisplay = "";
@@ -305,6 +318,16 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return msgDisplay;
 	}
 
+	/**
+	 * fill the Disciplinary Action Data Block
+	 * 
+	 * @param actionIdentifier id of Disciplinary Action 
+	 * @param display flag of 'display' of Disciplinary Action 
+	 * @param description description of Disciplinary Action
+	 * @param archiveDate archive Date of Disciplinary Action
+	 * @param effectiveFrom effective From date of Disciplinary Action
+	 * @param effectiveTo effective To Date of Disciplinary Action
+	 */
 	private void fillDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description,
 			String archiveDate, String effectiveFrom, String effectiveTo) {
 		String formName = DIALOG_MAP.get(ProviderSection.DISCIPLINARY_ACTIONS).getFormName();

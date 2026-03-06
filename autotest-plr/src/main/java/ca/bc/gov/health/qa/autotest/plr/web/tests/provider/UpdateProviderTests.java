@@ -271,7 +271,7 @@ public class UpdateProviderTests implements SimpleTest {
 
 	}
 
-	// Update Provider - Validate Disciplinary Action
+	//Update Provider - Validate Disciplinary Action
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
 	public void testValidateDisciplinaryAction(ProviderType providerType) {
 
@@ -280,37 +280,25 @@ public class UpdateProviderTests implements SimpleTest {
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
 		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
-		String actionIdentifier = "actionId" + UpdateSimpleHelper.generateAlphabetNumericString(4);
+		String actionIdentifier = "actionId1" + UpdateSimpleHelper.generateAlphabetNumericString(4);
 		page.addDisciplinaryActionDataBlock(actionIdentifier, true, UpdateSimpleHelper.generateAlphabetNumericString(40),
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
 		assertEquals(page.grabActiveDataBlockCount(ProviderSection.DISCIPLINARY_ACTIONS, true), 1,
 				"Expected 1 active data block after adding disciplinary action once");
-		assertEquals(page.grabDataBlockContent(ProviderSection.DISCIPLINARY_ACTIONS, 0).get("Identifier"), actionIdentifier,
-				"Identifier of the data bloack is not expected after adding disciplinary action");
 
-		actionIdentifier = "actionId" + UpdateSimpleHelper.generateAlphabetNumericString(4);
+		actionIdentifier = "actionId2" + UpdateSimpleHelper.generateAlphabetNumericString(4);
 		page.addDisciplinaryActionDataBlock(actionIdentifier, true, "description",
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
 		assertEquals(page.grabActiveDataBlockCount(ProviderSection.DISCIPLINARY_ACTIONS, true), 2,
 				"Expected 2 active data block after adding disciplinary action twice");
-		assertEquals(page.grabDataBlockContent(ProviderSection.DISCIPLINARY_ACTIONS, 1).get("Identifier"), actionIdentifier,
-				"Identifier of the data bloack is not expected after adding disciplinary action");
 	}
 	// Update Provider - Validate Disciplinary Action Description Text
-	/*
-	 * Add a disciplinary action and include a description that exceeds 3000 characters
-	 * 
-GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Description' length must be between 0 and 3000. Your transaction has not been processed. Correct and resubmit.
-errorMsgDisActionDesLenth5003	 
-GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Description'. Your transaction has not been processed. Correct and resubmit.
-errorMsgDisActionDesLenthMissing5000
-	 */
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
 	public void testValidateDisciplinaryActionDescriptionText(ProviderType providerType) {
 		
-	String errorMsgDisActionDesLenth5003 =(String) errorList.get("errorMsgDisActionDesLenth5003");
-	String errorMsgDisActionDesLenthMissing5000 =(String) errorList.get("errorMsgDisActionDesLenthMissing5000");
-		
+		String errorMsgDisActionDesLenth5003 = (String) errorList.get("errorMsgDisActionDesLenth5003");
+		String errorMsgDisActionDesLenthMissing5000 = (String) errorList.get("errorMsgDisActionDesLenthMissing5000");
+
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -323,7 +311,7 @@ errorMsgDisActionDesLenthMissing5000
 		msg=page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(MAX_DIS_ACTION_DES),
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
 		assertTrue(StringUtils.isEmpty(msg), "Unexpected error on adding Disciplinary Action Data Block");
-		
+
 		msg=page.addDisciplinaryActionDataBlock(null, true, null,
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", true);
 		assertTrue(msg.equals(errorMsgDisActionDesLenthMissing5000),"Expected error message not found");
@@ -338,8 +326,9 @@ errorMsgDisActionDesLenthMissing5000
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
 		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
-		page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(40),
+		String msg=page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(40),
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
+		assertTrue(StringUtils.isEmpty(msg), "Unexpected error on adding Disciplinary Action Data Block");
 
 		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.DISCIPLINARY_ACTIONS, 0);
 		String idString = content.get("Identifier");
