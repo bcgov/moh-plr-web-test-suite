@@ -35,7 +35,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 			ProviderSection.ELECTRONIC_ADDRESSES, new ProviderDialog("maintainElectronicAddressDialog", "maintainElectronicAddressForm", "effectiveStartDate",
 					"effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType","Add a new Electronic Address"),
 			ProviderSection.CONDITIONS, new ProviderDialog("maintainConditionDialog", "maintainConditionForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Condition"));
+					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Condition"),
+			ProviderSection.DISCIPLINARY_ACTIONS, new ProviderDialog("maintainDisActionDialog", "maintainDisActionForm", "effectiveFromDate",
+					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Disciplinary Action")
+			);
 
 	public UpdateProviderPage(SeleniumSession selenium, URI uri) {
 		super(selenium, uri);
@@ -281,6 +284,87 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
+	
+	
+	/**
+	 * performing action of adding Disciplinary ActionData Block, perform error message check if necessary
+	 * 
+	 * @param actionIdentifier id of Disciplinary Action
+	 * @param display flag of 'display' of Disciplinary Action
+	 * @param description  description of Disciplinary Action
+	 * @param archiveDate archive Date of Disciplinary Action
+	 * @param effectiveFrom effective From date of Disciplinary Action
+	 * @param effectiveTo effective To Date of Disciplinary Action
+	 * @param expectError if this action expect returning error messages
+	 * 
+	 * @return expected error message or empty string if no error message expected 
+	 */
+	public String addDisciplinaryActionDataBlock(String actionIdentifier, boolean display,
+			String description, String archiveDate, String effectiveFrom, String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.DISCIPLINARY_ACTIONS);
+
+		clickHeaderAddButton(ProviderSection.DISCIPLINARY_ACTIONS);
+
+		fillDisciplinaryActionDataBlock(actionIdentifier, display, description, archiveDate, effectiveFrom,
+				effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.DISCIPLINARY_ACTIONS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.DISCIPLINARY_ACTIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * fill the Disciplinary Action Data Block
+	 * 
+	 * @param actionIdentifier id of Disciplinary Action 
+	 * @param display flag of 'display' of Disciplinary Action 
+	 * @param description description of Disciplinary Action
+	 * @param archiveDate archive Date of Disciplinary Action
+	 * @param effectiveFrom effective From date of Disciplinary Action
+	 * @param effectiveTo effective To Date of Disciplinary Action
+	 */
+	private void fillDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description,
+			String archiveDate, String effectiveFrom, String effectiveTo) {
+		String formName = DIALOG_MAP.get(ProviderSection.DISCIPLINARY_ACTIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.DISCIPLINARY_ACTIONS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		
+		String inputIdCss=dialogCss+" >input#"+formName+"\\:Identifier";
+		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if(!StringUtils.isEmpty(actionIdentifier))inputId.sendKeys(actionIdentifier);
+
+		if (display) {
+			String displayCss = dialogCss + " > div#" + formName + "\\:display";
+			WebElement displaynCheckbox = selenium_.findElement(By.cssSelector(displayCss));
+			displaynCheckbox.click();
+		}
+
+		String descriptionCss = dialogCss + " > textarea#" + formName + "\\:description";
+		WebElement descriptionInput = selenium_.findElement(By.cssSelector(descriptionCss));
+		descriptionInput.clear();
+		if(!StringUtils.isEmpty(description))descriptionInput.sendKeys(description);
+		
+		String archiveDatestr="archiveDate";
+		String archiveDateCss = dialogCss + " >span#" + formName + "\\:" + archiveDatestr + " >input#" + formName
+				+ "\\:" + archiveDatestr + "_input";
+		WebElement archiveDateElement = selenium_.findElement(By.cssSelector(archiveDateCss));
+		archiveDateElement.clear();
+		if (!StringUtils.isEmpty(effectiveFrom))
+			archiveDateElement.sendKeys(effectiveFrom);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.DISCIPLINARY_ACTIONS, effectiveFrom, effectiveTo);
+		
+	}
 
 	public List<String> getMandatoryFields(ProviderSection section)
 	{
@@ -410,5 +494,24 @@ public class UpdateProviderPage extends ViewProviderPage {
 		cancelButton.click();
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
+
+	public void cancleAddDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description, String archiveDate,
+			String effectiveFrom, String effectiveTo) {
+
+		String dialogCss = getDialogCss(ProviderSection.DISCIPLINARY_ACTIONS);
+
+		clickHeaderAddButton(ProviderSection.DISCIPLINARY_ACTIONS);
+
+		fillDisciplinaryActionDataBlock(actionIdentifier, display, description, archiveDate, effectiveFrom,
+				effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+
+		
 	}
 }

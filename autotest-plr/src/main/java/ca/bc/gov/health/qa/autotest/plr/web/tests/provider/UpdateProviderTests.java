@@ -8,6 +8,8 @@ import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
@@ -16,11 +18,14 @@ import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ConditionType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.testng.annotations.AfterClass;
@@ -33,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +51,7 @@ public class UpdateProviderTests implements SimpleTest {
     public static JSONObject errorList;
 
     private static final Map<ProviderType, MaintainIndividualBuilder> defaultProviders = new HashMap<>();
-
+    private static final int MAX_DIS_ACTION_DES = 3000;
     private UpdateProviderTests() {
         try
         {
@@ -60,7 +66,7 @@ public class UpdateProviderTests implements SimpleTest {
 
     @AfterClass
     public void teardown() {
-        //workflowManager_.logoutAllAndClose();
+    	 workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
 
@@ -239,31 +245,126 @@ public class UpdateProviderTests implements SimpleTest {
 
         page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
     }
+    
+	// Update Provider --Add Disciplinary Actions
+	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+	public void testAddDisciplinaryAction(ProviderType providerType) {
 
-    // Update Provider - Validate Provider Conditions
-    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-    public void testValidateProviderConditions(ProviderType providerType)
-    {
-        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
-        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
-        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 0,
-                "Expected no active condition data blocks for provider initially");
+    	String actionIdentifier = "actionId" + UpdateSimpleHelper.generateAlphabetNumericString(4);
+		page.addDisciplinaryActionDataBlock(actionIdentifier, true, "description",
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(),
+				UpdateSimpleHelper.increment_year_for_effective_date(), false);
+		assertEquals(page.grabActiveDataBlockCount(ProviderSection.DISCIPLINARY_ACTIONS, true), 1,
+				"Expected 1 active data block after adding first disciplinary action");
 
-        page.addConditionDataBlock("LOC", "99999", false,
-                "Test", effective_date(), increment_year_for_effective_date(), false);
+		actionIdentifier = "actionId" + UpdateSimpleHelper.generateAlphabetNumericString(4);
+		page.cancleAddDisciplinaryActionDataBlock(actionIdentifier, true, "description",
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(),
+				UpdateSimpleHelper.increment_year_for_effective_date());
+		assertEquals(page.grabActiveDataBlockCount(ProviderSection.DISCIPLINARY_ACTIONS, true), 1,
+				"Expected 1 active data block after canceling second disciplinary action adding");
 
-        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
-                "Expected 1 active condition data block after adding condition to provider");
+	}
 
-        page.addConditionDataBlock("EXP", "99998", true,
-                "Test 2", effective_date(), increment_year_for_effective_date(), false);
+	//Update Provider - Validate Disciplinary Action
+	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+	public void testValidateDisciplinaryAction(ProviderType providerType) {
 
-        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 2,
-                "Expected 2 active condition data blocks after adding second condition to provider");
-    }
+		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+		String actionIdentifier = "actionId1" + UpdateSimpleHelper.generateAlphabetNumericString(4);
+		page.addDisciplinaryActionDataBlock(actionIdentifier, true, UpdateSimpleHelper.generateAlphabetNumericString(40),
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
+		assertEquals(page.grabActiveDataBlockCount(ProviderSection.DISCIPLINARY_ACTIONS, true), 1,
+				"Expected 1 active data block after adding disciplinary action once");
+
+		actionIdentifier = "actionId2" + UpdateSimpleHelper.generateAlphabetNumericString(4);
+		page.addDisciplinaryActionDataBlock(actionIdentifier, true, "description",
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
+		assertEquals(page.grabActiveDataBlockCount(ProviderSection.DISCIPLINARY_ACTIONS, true), 2,
+				"Expected 2 active data block after adding disciplinary action twice");
+	}
+	// Update Provider - Validate Disciplinary Action Description Text
+	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+	public void testValidateDisciplinaryActionDescriptionText(ProviderType providerType) {
+		
+		String errorMsgDisActionDesLenth5003 = (String) errorList.get("errorMsgDisActionDesLenth5003");
+		String errorMsgDisActionDesLenthMissing5000 = (String) errorList.get("errorMsgDisActionDesLenthMissing5000");
+
+		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+		
+		String msg=page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(MAX_DIS_ACTION_DES+1),
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", true);
+		assertTrue(msg.equals(errorMsgDisActionDesLenth5003),"Expected error message not found");
+		
+		msg=page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(MAX_DIS_ACTION_DES),
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
+		assertTrue(StringUtils.isEmpty(msg), "Unexpected error on adding Disciplinary Action Data Block");
+
+		msg=page.addDisciplinaryActionDataBlock(null, true, null,
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", true);
+		assertTrue(msg.equals(errorMsgDisActionDesLenthMissing5000),"Expected error message not found");
+	}
+
+	// Update Provider - Generating A Default Disciplinary Action ID
+	@Test(dataProvider = "practitioners",dataProviderClass = InjectableData.class)
+	public void testGeneratingDefaultDisciplinaryActionID(ProviderType providerType) {
+
+		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+		String msg=page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(40),
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
+		assertTrue(StringUtils.isEmpty(msg), "Unexpected error on adding Disciplinary Action Data Block");
+
+		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.DISCIPLINARY_ACTIONS, 0);
+		String idString = content.get("Identifier");
+
+		assertTrue(idString.startsWith("DA."),"The default ID should follows this pattern DA.X.PRS, where X is a unique positive integer");
+		assertTrue(idString.endsWith(".PRS"),"The default ID should follows this pattern DA.X.PRS, where X is a unique positive integer");
+		int startIndex = idString.indexOf('.');
+		int endIndex = idString.indexOf('.', startIndex + 1);
+		String numString = idString.substring(startIndex + 1, endIndex);
+		assertTrue(UpdateSimpleHelper.isStringPositiveInteger(numString),
+				"The default ID should follows this pattern DA.X.PRS, where X is a unique positive integer");		 
+	}
+
+	// Update Provider - Validate Provider Conditions
+	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+	public void testValidateProviderConditions(ProviderType providerType) {
+		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+		assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 0,
+				"Expected no active condition data blocks for provider initially");
+
+		page.addConditionDataBlock("LOC", "99999", false, "Test", effective_date(), increment_year_for_effective_date(),
+				false);
+
+		assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 1,
+				"Expected 1 active condition data block after adding condition to provider");
+
+		page.addConditionDataBlock("EXP", "99998", true, "Test 2", effective_date(),
+				increment_year_for_effective_date(), false);
+
+		assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 2,
+				"Expected 2 active condition data blocks after adding second condition to provider");
+	}
 
     // Update Provider - Validate Restriction Explanation
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
