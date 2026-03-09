@@ -115,8 +115,9 @@
     "errorInvCharsPayeeNumber": "GRS.PRV.PRO.MTN.1.0.9017: Invalid characters entered: Payee Number.",
     "errorDuplicatePayeeNumber": "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Payee Number",
     "errorDuplicateHdsSubType": "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate HDS Sub Type",
-    "errorInvalidChar7081" : "GRS.SYS.ELE.UNK.1.0.7081: Invalid characters entered."
-
+    "errorInvalidChar7081" : "GRS.SYS.ELE.UNK.1.0.7081: Invalid characters entered.",
+    "errorNameTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Name' length must be between 1 and 100. Your transaction has not been processed. Correct and resubmit.",
+    "errorLongNameTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Long Name' length must be between 0 and 200. Your transaction has not been processed. Correct and resubmit."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",

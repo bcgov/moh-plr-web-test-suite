@@ -4,10 +4,13 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.IdType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.OrgNameType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.RegIdType;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -25,6 +28,8 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
  * with specific functionality for Organization Properties section
  */
 public class UpdateOrganizationPage extends UpdateProviderPage {
+
+	private static final Logger LOG = ExecutionLogManager.getLogger();
 
 	/**
 	 * Enhanced DIALOG_MAP that includes parent's entries plus ORGANIZATION_PROPERTIES.
@@ -111,8 +116,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 			dialogCss = getOrgDialogCss(section);
 		} else {
 			// For other sections, use parent's DIALOG_MAP directly
-			String dialogName = UpdateProviderPage.DIALOG_MAP.get(section).getDialogName();
-			String formName = UpdateProviderPage.DIALOG_MAP.get(section).getFormName();
+			String dialogName = DIALOG_MAP.get(section).getDialogName();
+			String formName = DIALOG_MAP.get(section).getFormName();
 			dialogCss = "div#" + dialogName + " > div#" + dialogName + "_content" + " > form#" + formName;
 		}
 			
@@ -245,7 +250,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * wait Error Message showing up, and return a copy of message as result
 	 * note the result is a set of messages, if there are more than one error messages
 	 *
-	 * @param section
+	 * @param section the provider section
 	 * @return String of error messages
 	 */
 	public String waitErrorMessage(ProviderSection section) {
@@ -256,6 +261,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 			waitSeconds(5);
 			try {
 				msgDisplay = getDialogMessages(section);
+				LOG.info(msgDisplay);
 			} catch (StaleElementReferenceException e) {
 				waitSeconds(5);
 			}
@@ -465,9 +471,10 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @param nameType the organization name type
 	 * @param name the organization name
 	 * @param description the organization description
+	 * @param expectError whether an error is anticipated
 	 * @return the full message dialog of errors, if any exist. otherwise an empty string
 	 */
-	public String addOrganizationNameDataBlock(OrgNameType nameType, String name, String description) {
+	public String addOrganizationNameDataBlock(OrgNameType nameType, String name, String description, boolean expectError) {
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_NAMES).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_NAMES);
@@ -487,14 +494,13 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		// Set Description field
 		findAndFillOrgInputField(dialogCss, formName, description, "longName");
 
-		clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_NAMES);
+		setOrgDialogEffectiveFromAndEffectiveTo(ProviderSection.ORGANIZATION_NAMES,
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
 
-		msgDisplay = getDialogMessages(ProviderSection.ORGANIZATION_NAMES);
+		clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_NAMES, expectError);
 
-		if (!StringUtils.isEmpty(msgDisplay)) {
-			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
-			cancelButton.click();
-		}
+		if(expectError)
+			msgDisplay=waitErrorMessage(ProviderSection.CONDITIONS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;

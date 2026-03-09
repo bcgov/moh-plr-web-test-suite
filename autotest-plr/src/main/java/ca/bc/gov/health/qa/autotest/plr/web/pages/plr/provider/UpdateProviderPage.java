@@ -7,7 +7,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.JavascriptExecutor;
@@ -22,6 +24,8 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditi
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 public class UpdateProviderPage extends ViewProviderPage {
+
+	private static final Logger LOG = ExecutionLogManager.getLogger();
 
 	public static final Map<ProviderSection, ProviderDialog> DIALOG_MAP = Map.of(
 			ProviderSection.REGISTRY_IDENTIFIERS, new ProviderDialog("maintainRegIdDialog", "maintainRegIdForm", "effectiveStartDate",
@@ -495,7 +499,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		try {
 			java.util.List<WebElement> msgList = selenium_.findElements(By.cssSelector(msgCss));
 			for (WebElement msg : msgList) {
-				msgDisplay += msg.getText() + "\n";
+				msgDisplay += msg.getAttribute("innerText") + "\n";
 			}
 		} catch (Exception e) {
 			// No messages found
