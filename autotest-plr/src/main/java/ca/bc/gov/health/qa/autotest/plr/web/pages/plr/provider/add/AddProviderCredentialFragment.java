@@ -10,6 +10,9 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
+/**
+ * Fragment for the Credential step of adding a provider.
+ */
 public class AddProviderCredentialFragment extends AddProviderStepFragment {
 
     private static final String DESIGNATION_FIELD_CSS = "input#form\\:designation";
