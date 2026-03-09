@@ -251,6 +251,8 @@ public class UpdateProviderTests implements SimpleTest {
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
 		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
+		page.ceaseAllDataBlockUnderSection(ProviderSection.DISCIPLINARY_ACTIONS);
+
     	String actionIdentifier = "actionId" + UpdateSimpleHelper.generateAlphabetNumericString(4);
 		page.addDisciplinaryActionDataBlock(actionIdentifier, true, "description",
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(),
@@ -264,7 +266,6 @@ public class UpdateProviderTests implements SimpleTest {
 				UpdateSimpleHelper.increment_year_for_effective_date());
 		assertEquals(page.grabActiveDataBlockCount(ProviderSection.DISCIPLINARY_ACTIONS, true), 1,
 				"Expected 1 active data block after canceling second disciplinary action adding");
-
 	}
 
 	//Update Provider - Validate Disciplinary Action
@@ -275,6 +276,7 @@ public class UpdateProviderTests implements SimpleTest {
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
 		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+		page.ceaseAllDataBlockUnderSection(ProviderSection.DISCIPLINARY_ACTIONS);
 
 		String actionIdentifier = "actionId1" + UpdateSimpleHelper.generateAlphabetNumericString(4);
 		page.addDisciplinaryActionDataBlock(actionIdentifier, true, UpdateSimpleHelper.generateAlphabetNumericString(40),
@@ -299,7 +301,8 @@ public class UpdateProviderTests implements SimpleTest {
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
 		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
-		
+		page.ceaseAllDataBlockUnderSection(ProviderSection.DISCIPLINARY_ACTIONS);
+
 		String msg=page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(MAX_DIS_ACTION_DES+1),
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", true);
         assertEquals(errorMsgDisActionDesLenth5003, msg, "Expected error message not found");
@@ -321,6 +324,7 @@ public class UpdateProviderTests implements SimpleTest {
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
 		UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+		page.ceaseAllDataBlockUnderSection(ProviderSection.DISCIPLINARY_ACTIONS);
 
 		String msg=page.addDisciplinaryActionDataBlock(null, true, UpdateSimpleHelper.generateAlphabetNumericString(40),
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.effective_date(), "", false);
