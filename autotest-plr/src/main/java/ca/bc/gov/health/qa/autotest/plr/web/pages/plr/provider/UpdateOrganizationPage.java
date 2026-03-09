@@ -3,6 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.IdType;
@@ -78,7 +79,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 				.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
 		selenium_.scrollIntoView(clickElement);
 		try {
-			clickElement.click();
+			Objects.requireNonNull(clickElement).click();
 		} catch (StaleElementReferenceException | ElementClickInterceptedException e) {
 			waitSeconds(2);
 			clickElement = selenium_.findElement(By.cssSelector(clickElementCss));
@@ -99,8 +100,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	@Override
 	public void clickDataBlockUpdateButton(ProviderSection section, int index) {
 		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
-		WebElement updateButton = selenium_.waitUntil(ExpectedConditions
-				.elementToBeClickable(By.cssSelector(selectCss)));
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(selectCss)));
+		WebElement updateButton = selenium_.findElementByCss(selectCss);
 		selenium_.scrollIntoView(updateButton);
 
 		try {
@@ -136,14 +137,16 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		
 		// Click the datepicker trigger button
 		String triggerButtonCss = "span#" + formName + "\\:" + effectiveFromStr + " > button.ui-datepicker-trigger";
-		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(triggerButtonCss))).click();
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(triggerButtonCss)));
+		selenium_.findElementByCss(triggerButtonCss).click();
 		
 		// Wait for datepicker to appear and click the "Today" button
 		By datepickerLocator = By.cssSelector("div#ui-datepicker-div");
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(datepickerLocator));
 		
 		By todayButtonLocator = By.cssSelector("button.ui-datepicker-current");
-		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(todayButtonLocator)).click();
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(todayButtonLocator));
+		selenium_.findElement(todayButtonLocator).click();
 		
 		// Get the value from the input field
 		String inputCss = "input#" + formName + "\\:" + effectiveFromStr + "_input";
@@ -254,9 +257,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return String of error messages
 	 */
 	public String waitErrorMessage(ProviderSection section) {
-		String msgDisplay = "";
-
-		msgDisplay = getDialogMessages(section);
+		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
 			waitSeconds(5);
 			try {
@@ -284,7 +285,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	private void findAndFillOrgInputField(String dialogCss, String formName, String field, String fieldCss) {
 		String inputNameCss = dialogCss + " >input#" + formName + "\\:" + fieldCss;
 		// Wait for the input field to be visible
-		WebElement inputName = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+		WebElement inputName = selenium_.findElementByCss(inputNameCss);
         waitSeconds(1);
 
 		inputName.clear();
@@ -303,7 +305,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	private void findAndFillOrgTextAreaField(String dialogCss, String formName, String field, String fieldCss) {
 		String textAreaCss = dialogCss + " >textarea#" + formName + "\\:" + fieldCss;
 		// Wait for the textarea field to be visible
-		WebElement textArea = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(textAreaCss)));
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(textAreaCss)));
+		WebElement textArea = selenium_.findElementByCss(textAreaCss);
         waitSeconds(1);
 
 		textArea.clear();
@@ -351,12 +354,15 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	private void setOrgCheckboxValue(String dialogCss, String formName, String fieldCss, boolean checked) {
 		// First try selectBooleanButton (used by PCI Flag)
 		String buttonCss = dialogCss + " > div#" + formName + "\\:" + fieldCss;
-		WebElement buttonElement = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(buttonCss)));
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(buttonCss)));
+		WebElement buttonElement = selenium_.findElement(By.cssSelector(buttonCss));
 		waitSeconds(1);
 
+		String btnClass = buttonElement.getAttribute("class");
+
 		// Check if it's a selectBooleanButton
-		if (buttonElement.getAttribute("class").contains("ui-selectbooleanbutton")) {
-			boolean isChecked = buttonElement.getAttribute("class").contains("ui-state-active");
+		if (btnClass != null && btnClass.contains("ui-selectbooleanbutton")) {
+			boolean isChecked = btnClass.contains("ui-state-active");
 			
 			// Only click if the state needs to change
 			if (isChecked != checked) {
@@ -366,8 +372,13 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 			// Handle regular checkbox
 			String checkboxCss = buttonCss + " > div.ui-chkbox-box";
 			WebElement checkbox = selenium_.findElement(By.cssSelector(checkboxCss));
-			
-			boolean isChecked = checkbox.getAttribute("class").contains("ui-state-active");
+			String chkClass = checkbox.getAttribute("class");
+
+			// default is to click (in the event of an unlikely null pointer)
+			boolean isChecked = !checked;
+
+			if (chkClass != null)
+				isChecked = chkClass.contains("ui-state-active");
 			
 			// Only click if the state needs to change
 			if (isChecked != checked) {
@@ -401,7 +412,6 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return the full message dialog of errors, if any exist. otherwise an empty string
 	 */
 	public String addRegistryIdentifierDataBlock(RegIdType identifierType, String identifier) {
-		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
 
@@ -419,7 +429,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 
 		clickOrgDialogSubmitButton(ProviderSection.REGISTRY_IDENTIFIERS);
 
-		msgDisplay = getDialogMessages(ProviderSection.REGISTRY_IDENTIFIERS);
+		String msgDisplay = getDialogMessages(ProviderSection.REGISTRY_IDENTIFIERS);
 
 		if (!StringUtils.isEmpty(msgDisplay)) {
 			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
@@ -437,7 +447,6 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return the full message dialog of errors, if any exist. otherwise an empty string
 	 */
 	public String addIdentifierDataBlock(IdType identifierType, String identifier) {
-		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.IDENTIFIERS);
 
@@ -455,7 +464,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 
 		clickOrgDialogSubmitButton(ProviderSection.IDENTIFIERS);
 
-		msgDisplay = getDialogMessages(ProviderSection.IDENTIFIERS);
+		String msgDisplay = getDialogMessages(ProviderSection.IDENTIFIERS);
 
 		if (!StringUtils.isEmpty(msgDisplay)) {
 			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
@@ -516,7 +525,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return the full message dialog of errors, if any exist. otherwise an empty string
 	 */
 	public String addOrganizationPropertyDataBlock(OrganizationProperties propertyType, String propertyValue, String effectiveFrom, String effectiveTo) {
-		String msgDisplay = "";
+		String msgDisplay;
 		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_PROPERTIES).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_PROPERTIES);
 
@@ -771,9 +780,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return String of error messages
 	 */
 	public String waitOrgErrorMessage(ProviderSection section) {
-		String msgDisplay = "";
-
-		msgDisplay = getDialogMessages(section);
+		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
 			waitSeconds(5);
 			try {
