@@ -64,7 +64,7 @@ public class UpdateProviderTests implements SimpleTest {
 
     @AfterClass
     public void teardown() {
-    	 workflowManager_.logoutAllAndClose();
+        //workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
 
@@ -115,6 +115,17 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 0,
                 "Expected no active condition data blocks after cancelling add");
+    }
+
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testAddWorkLocations(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("252525", false, "Test WL", "CC", "Test Info", false);
     }
 
     // Update Provider - Generating a Default Condition ID
