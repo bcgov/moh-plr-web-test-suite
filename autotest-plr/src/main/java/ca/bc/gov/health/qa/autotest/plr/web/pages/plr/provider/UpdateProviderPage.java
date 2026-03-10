@@ -105,13 +105,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 	}
 
-	public void clickHeaderAddButton(ProviderSection section)
+	/**
+	 * Click the add button in the header of a provider section, and wait for the dialog to be visible
+	 * @param section the provider section
+	 * @return the WebElement of the dialog content after clicking the add button and waiting for the dialog to be visible
+	 */
+	public WebElement clickHeaderAddButton(ProviderSection section)
 	{
 		String title = DIALOG_MAP.get(section).getAddButtonImgText();
 		String clickElementCss = getSectionSelector(section) + " > div > div > a > img[title='" + title + "']";
 
-		WebElement clickElement = selenium_
-				.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		WebElement clickElement = selenium_.findElement(By.cssSelector(clickElementCss));
 		selenium_.scrollIntoView(clickElement);
 		try {
 			clickElement.click();
@@ -123,6 +128,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		String dialogCss = getDialogCss(section);
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
 	}
 
     /**

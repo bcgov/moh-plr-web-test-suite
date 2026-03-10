@@ -26,6 +26,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.openqa.selenium.WebElement;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
@@ -125,7 +126,24 @@ public class UpdateProviderTests implements SimpleTest {
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
-        page.addWorkLocationDataBlock("252525", false, "Test WL", "CC", "Test Info", false);
+        WebElement dialog = page.clickHeaderAddButton(ProviderSection.WORK_LOCATIONS);
+        assertTrue(dialog.isDisplayed(), "Expected work location dialog to be displayed after clicking add button");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
+                "Expected 1 active work location data block after adding work location");
+
+        page.clickHeaderAddButton(ProviderSection.WORK_LOCATIONS);
+        page.fillWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info");
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
+                "Expected 1 active work location data block after cancelling add of second work location");
+
+        // cleanup for if test cases are done in sequence
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
     // Update Provider - Generating a Default Condition ID
