@@ -17,7 +17,10 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.AddressType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ConditionType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressPurpose;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -390,4 +393,101 @@ public class UpdateProviderTests implements SimpleTest {
 
         page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
     }
+
+    // Update Provider - Add block - Add Addresses
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testAddAddresses(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Add Electronic Addresses
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testAddElectronicAddresses(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Add Telecommunications
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testAddTelecommunications(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - General Address Validation
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testGeneralAddressValidation(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Address Line One
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateAddressLineOne(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Address Purpose Code
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateAddressPurposeCode(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Address Type Code
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateAddressTypeCode(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Address Uniqueness Rules
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateAddressUniquenessRules(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate City
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateCity(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Communication Purpose Type Code
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateCommunicationPurposeTypeCode(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Electronic Address Txt
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateElectronicAddressTxt(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Electronic Address Type Code
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateElectronicAddressTypeCode(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Postal Code
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidatePostalCode(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Province
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateProvince(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Province and State Address Codes with Country
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateProvinceAndStateAddressCodesWithCountry(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Telecommunication Number
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateTelecommunicationNumber(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Telecom Uniqueness Rules
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateTelecomUniquenessRules(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate Telecommunication Type Code
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateTelecommunicationTypeCode(ProviderType providerType) {
+    }
+
+    // Update Provider - Add block - Validate eAddress Uniqueness Rules
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateEAddressUniquenessRules(ProviderType providerType) {
+    }
+
+    
 }
