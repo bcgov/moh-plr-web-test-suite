@@ -464,4 +464,37 @@ public class UpdateProviderTests implements SimpleTest {
 
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
+
+    // Update Provider - Validate Work Location Default Flag
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationDefaultFlag(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.clickHeaderAddButton(ProviderSection.WORK_LOCATIONS);
+
+        assertFalse(page.isCheckBoxChecked(ProviderSection.WORK_LOCATIONS, "defaultFlag"),
+                "Expected default flag checkbox to be unchecked by default when adding work location data block");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        page.addWorkLocationDataBlock("12345", false, "Test Name", "CC", "Test Info", false);
+
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertEquals(wlContent.get("Work Location Details-0-Default Flag"), "No",
+                "Expected 'No' value for default flag in work location data block when default flag checkbox is unchecked");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+
+        page.addWorkLocationDataBlock("123456", true, "Test Name", "CC", "Test Info", false);
+
+        wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertEquals(wlContent.get("Work Location Details-0-Default Flag"), "Yes",
+                "Expected 'Yes' value for default flag in work location data block when default flag checkbox is unchecked");
+    }
 }

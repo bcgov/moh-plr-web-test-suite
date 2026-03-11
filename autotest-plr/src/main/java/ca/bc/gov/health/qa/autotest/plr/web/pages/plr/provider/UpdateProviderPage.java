@@ -184,6 +184,31 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return "div#" + dialogName + " > div#" + dialogName + "_content" + " > form#" + formName;
 	}
 
+	private boolean getChkBoxState(ProviderSection section, WebElement checkBox)
+	{
+		if (section.equals(ProviderSection.WORK_LOCATIONS)) {
+			String chkBoxClass = checkBox.getAttribute("class");
+			if (chkBoxClass != null) return chkBoxClass.contains("ui-icon-check");
+		}
+		String ariaChecked = checkBox.getAttribute("aria-checked");
+		return "true".equals(ariaChecked);
+	}
+
+	/**
+	 * Check if the checkbox is checked
+	 * @param section the provider section
+	 * @param checkBoxName the checkbox field name
+	 * @return true if the checkbox is checked, false otherwise
+	 */
+	public boolean isCheckBoxChecked(ProviderSection section, String checkBoxName)
+	{
+		String formName = DIALOG_MAP.get(section).getFormName();
+		String dialogCss = getDialogCss(section);
+		String checkBoxCss = dialogCss + " > div#" + formName + "\\:" + checkBoxName;
+		WebElement checkBox = selenium_.findElement(By.cssSelector(checkBoxCss));
+		return getChkBoxState(section, checkBox);
+	}
+
 	/**
 	 * set End Reason By Visible Text
 	 * @param section the provider section
@@ -257,7 +282,6 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String dialogCss = getDialogCss(section);
 
 		String buttonCss = dialogCss + " > div.formControls" + " > button#" + formName + "\\:" + submitButtonName;
-		LOG.info(buttonCss);
 		WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
 		button.click();
 		waitSeconds(2);
