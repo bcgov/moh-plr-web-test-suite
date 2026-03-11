@@ -525,4 +525,33 @@ public class UpdateProviderTests implements SimpleTest {
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
                 "Expected 1 active work location data block after adding work location with valid name");
     }
+
+    // Update Provider - Validate Work Location Purpose Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationPurposeCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.clickHeaderAddButton(ProviderSection.WORK_LOCATIONS);
+
+        assertTrue(page.getMandatoryFields(ProviderSection.WORK_LOCATIONS).contains("Type"),
+                "Expected 'Purpose' to be a mandatory field when adding a work location data block");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        String error = page.addWorkLocationDataBlock("12345", true, "Test Name", "Select One",
+                "Test Info", true);
+
+        assertEquals(error, errorList.get("errMsg5000Type"),
+                "Expected error message for missing purpose code when adding work location data block");
+
+        page.addWorkLocationDataBlock("12345", true, "Test Name", "CC",
+                "Test Info", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
+                "Expected 1 active work location data block after adding work location with valid purpose code");
+    }
 }
