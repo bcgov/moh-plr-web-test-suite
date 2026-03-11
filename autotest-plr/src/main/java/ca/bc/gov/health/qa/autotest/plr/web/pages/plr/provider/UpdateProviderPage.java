@@ -93,6 +93,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
+	 * get Work Location Data Block Update Button Selector
+	 * the work location data block has a different structure, so it has its own method to get update button selector
+	 * @param index the data block index
+	 * @return CSS selector of Work Location Data Block Update Button
+	 */
+	protected String getWorkLocationUpdateButtonSelector(int index) {
+		return getDataBlockSelector(ProviderSection.WORK_LOCATIONS, index) + " > div.ui-panel-content > div > div "
+				+ "> div.ui-panel:nth-of-type(1) > div.ui-panel-content > table > tbody > tr > td > "
+				+ "div > div.ui-panel-titlebar > div.ui-panel-actions > a > img[title^='Update']";
+	}
+
+	/**
 	 * Using a Javascript Executor to press button
 	 * @param button the button element
 	 */
@@ -138,9 +150,14 @@ public class UpdateProviderPage extends ViewProviderPage {
      * @param index the specific index of the data block to find and click the update button for
      */
 	public void clickDataBlockUpdateButton(ProviderSection section, int index) {
-		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
-		WebElement updateButton = selenium_.waitUntil(ExpectedConditions
-				.elementToBeClickable(By.cssSelector(selectCss)));
+		String selectCss;
+		if (section.equals(ProviderSection.WORK_LOCATIONS)) {
+			expandDataBlock(section, index, true);
+			selectCss = getWorkLocationUpdateButtonSelector(index);
+		} else selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
+
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(selectCss)));
+		WebElement updateButton = selenium_.findElementByCss(selectCss);
 		selenium_.scrollIntoView(updateButton);
 
 		try {

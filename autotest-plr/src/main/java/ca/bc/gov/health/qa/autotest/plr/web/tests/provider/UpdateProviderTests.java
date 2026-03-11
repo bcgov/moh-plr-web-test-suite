@@ -118,6 +118,7 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected no active condition data blocks after cancelling add");
     }
 
+    // Update Provider - Add Work Locations
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testAddWorkLocations(ProviderType providerType)
     {
@@ -414,5 +415,28 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected 1 active condition data block after adding condition with no restriction explanation");
 
         page.ceaseDataBlock(ProviderSection.CONDITIONS, 0);
+    }
+
+    // Update Provider - Validate Work Location
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocation(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
+                "Expected 1 active work location data block after adding work location with valid code");
+
+        page.addWorkLocationDataBlock("1234", true, "Test Name", "CC", "Test Info", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 2,
+                "Expected 2 active work locations data block after adding work location with valid code");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 1);
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 }
