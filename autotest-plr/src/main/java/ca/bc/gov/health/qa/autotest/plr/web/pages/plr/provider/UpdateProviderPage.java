@@ -529,9 +529,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @return String of error messages
 	 */
 	public String waitErrorMessage(ProviderSection section) {
-		String msgDisplay = "";
-
-		msgDisplay = getDialogMessages(section);
+		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
 			waitSeconds(5);
 			try {
