@@ -497,4 +497,32 @@ public class UpdateProviderTests implements SimpleTest {
         assertEquals(wlContent.get("Work Location Details-0-Default Flag"), "Yes",
                 "Expected 'Yes' value for default flag in work location data block when default flag checkbox is unchecked");
     }
+
+    // Update Provider - Validate Work Location Name
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationName(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addWorkLocationDataBlock("12345", true,
+                generateAlphabetNumericString(256), "CC", "Test Info", true);
+
+        assertEquals(error, errorList.get("WLNameTooLong"),
+                "Expected error message for work location name exceeding max length when adding work location data block");
+
+        error = page.addWorkLocationDataBlock("12345", true, null,"CC",
+                "Test Info", true);
+
+        assertEquals(error, errorList.get("WLNameMissing"),
+                "Expected error message for missing work location name when adding work location data block");
+
+        page.addWorkLocationDataBlock("12345", true, generateAlphabetNumericString(255),
+                "CC", "Test Info", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
+                "Expected 1 active work location data block after adding work location with valid name");
+    }
 }
