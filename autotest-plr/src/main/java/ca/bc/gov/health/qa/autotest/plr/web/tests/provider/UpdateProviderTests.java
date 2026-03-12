@@ -585,6 +585,11 @@ public class UpdateProviderTests implements SimpleTest {
         error = page.addWorkLocationDataBlock("test", false, "Non-numeric ID", "CC", "Test Info", true);
 
         assertFalse(error.isEmpty(), "Expected error message for non-numeric work location identifier when adding work location data block");
+
+        // remove an unexpected work location at the end if there is any
+        if (page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true) > 0) {
+            page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+        }
     }
 
     // Update Provider - Validate Work Location Name
