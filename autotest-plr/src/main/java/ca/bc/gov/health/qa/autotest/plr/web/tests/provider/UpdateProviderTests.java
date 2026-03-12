@@ -402,6 +402,10 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(wlContent.get("Identifier"), "3",
                 "Expected first work location to have generated identifier \"3\"");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 2);
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 1);
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
 	// Update Provider - Validate Provider Conditions
@@ -532,6 +536,8 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(wlContent.get("Work Location Details-0-Default Flag"), "Yes",
                 "Expected 'Yes' value for default flag in work location data block when default flag checkbox is unchecked");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
     // Update Provider - Validate Work Location Name
@@ -560,6 +566,8 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
                 "Expected 1 active work location data block after adding work location with valid name");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
     // Update Provider - Validate Work Location Purpose Code
@@ -589,5 +597,7 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
                 "Expected 1 active work location data block after adding work location with valid purpose code");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 }
