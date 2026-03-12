@@ -16,6 +16,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.components.AutocompleteMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
@@ -50,6 +51,73 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	public UpdateProviderPage(SeleniumSession selenium, URI uri) {
 		super(selenium, uri);
+	}
+
+	private static final String WIDGET_TITLE_SPAN_CSS = "div.ui-dialog-titlebar > span.ui-dialog-title";
+
+	/**
+	 * Finds a visible dialog widget by its title prefix
+	 *
+	 * @param widgetTitlePrefix a string of characters to find in the widget title
+	 * @return a WebElement of a widget matching the prefix, or null if not found
+	 */
+	private WebElement findVisibleWidget(String widgetTitlePrefix) {
+		for (WebElement elem : selenium_.findElements(By.cssSelector("div[role='dialog']"))) {
+			String title;
+			try {
+				title = elem.findElement(By.cssSelector(WIDGET_TITLE_SPAN_CSS)).getAttribute("innerHTML");
+			} catch (org.openqa.selenium.NoSuchElementException ignore) {
+				continue;
+			}
+			if (title == null || title.isEmpty()) continue;
+			if (!title.contains(widgetTitlePrefix)) continue;
+			// Skip hidden/inactive dialogs
+			String ariaHidden = elem.getAttribute("aria-hidden");
+			if ("true".equals(ariaHidden) || !elem.isDisplayed()) continue;
+			return elem;
+		}
+		return null;
+	}
+
+	/**
+	 * Handles address validation dialogs that may appear after submitting an address.
+	 * Clicks "Continue w/ Original" button if a validation dialog is displayed.
+	 */
+	public void handleAddressValidationDialog() {
+		waitSeconds(2); // Give UI time to render any validation dialogs
+
+		// Try different dialog title prefixes that may appear
+		String[] dialogTitles = {"Address Invalid", "Address Recommended", "Validation", "Address Provided"};
+		WebElement validationWidget = null;
+
+		for (String title : dialogTitles) {
+			validationWidget = findVisibleWidget(title);
+			if (validationWidget != null) break;
+		}
+
+		if (validationWidget != null) {
+			// Look for "Continue w/ Original" button first, then fall back to any button
+			try {
+				WebElement continueBtn = validationWidget.findElement(
+						By.xpath(".//button[contains(.,\"Continue w/ Original\")]"));
+				if (continueBtn.isDisplayed() && continueBtn.isEnabled()) {
+					continueBtn.click();
+					waitSeconds(2);
+					return;
+				}
+			} catch (org.openqa.selenium.NoSuchElementException ignore) {
+				// Fall back to any visible button
+			}
+
+			// Generic fallback: first displayed & enabled button
+			for (WebElement btn : validationWidget.findElements(By.tagName("button"))) {
+				if (btn.isDisplayed() && btn.isEnabled()) {
+					btn.click();
+					waitSeconds(2);
+					return;
+				}
+			}
+		}
 	}
 
 	/**
@@ -282,7 +350,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String submitButtonName = DIALOG_MAP.get(section).getSubmitButtonName();
 		String dialogCss = getDialogCss(section);
 
-		String buttonCss = dialogCss + " > div.formControls" + " > button#" + formName + "\\:" + submitButtonName;
+		// Use descendant selector (space) instead of direct child (>) to handle nested div structures
+		String buttonCss = dialogCss + " div.formControls" + " button#" + formName + "\\:" + submitButtonName;
 		WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
 		button.click();
 		waitSeconds(2);
@@ -540,7 +609,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		setEndReasonByVisibleText(section, EndReason.CEASE.getText());
 
-		String buttonCss = dialogCss + " > div.formControls" + " > button#" + formName + "\\:" + submitButtonName;
+		// Use descendant selector (space) instead of direct child (>) to handle nested div structures
+		String buttonCss = dialogCss + " div.formControls" + " button#" + formName + "\\:" + submitButtonName;
 		WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
 		button.click();
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
@@ -760,12 +830,22 @@ public class UpdateProviderPage extends ViewProviderPage {
 		if (!StringUtils.isEmpty(addressLine3))
 			addressLine3Element.sendKeys(addressLine3);
 
-		// Fill city (autocomplete input)
-		String cityCss = dialogCss + " span#" + formName + "\\:city >input#" + formName + "\\:city_input";
-		WebElement cityElement = selenium_.findElement(By.cssSelector(cityCss));
-		cityElement.clear();
-		if (!StringUtils.isEmpty(city))
-			cityElement.sendKeys(city);
+		// Fill city (autocomplete input) - type city and click first autocomplete result
+		if (!StringUtils.isEmpty(city)) {
+			String cityInputCss = "input#" + formName + "\\:city_input";
+			String cityPanelCss = "span#" + formName + "\\:city_panel";
+			WebElement cityInput = selenium_.findElement(By.cssSelector(cityInputCss));
+			cityInput.clear();
+			cityInput.sendKeys(city);
+			// Wait for autocomplete panel to appear and click first item
+			selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(cityPanelCss)));
+			waitSeconds(1);
+			List<WebElement> cityItems = selenium_.findElements(By.cssSelector(cityPanelCss + " li.ui-autocomplete-item"));
+			if (!cityItems.isEmpty()) {
+				cityItems.get(0).click();
+				selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(cityPanelCss)));
+			}
+		}
 
 		// Set province dropdown
 		if (!StringUtils.isEmpty(province)) {
@@ -816,6 +896,9 @@ public class UpdateProviderPage extends ViewProviderPage {
 				city, province, country, postalCode, effectiveFrom, effectiveTo);
 
 		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+
+		// Handle address validation popups that may appear
+		handleAddressValidationDialog();
 
 		if (expectError)
 			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
@@ -904,12 +987,15 @@ public class UpdateProviderPage extends ViewProviderPage {
 		if (!StringUtils.isEmpty(addressLine3))
 			addressLine3Element.sendKeys(addressLine3);
 
-		// Update city
-		String cityCss = dialogCss + " span#" + formName + "\\:city >input#" + formName + "\\:city_input";
-		WebElement cityElement = selenium_.findElement(By.cssSelector(cityCss));
-		cityElement.clear();
-		if (!StringUtils.isEmpty(city))
-			cityElement.sendKeys(city);
+		// Update city (autocomplete input)
+		if (!StringUtils.isEmpty(city)) {
+			AutocompleteMenu cityMenu = new AutocompleteMenu(
+					selenium_,
+					By.cssSelector("input#" + formName + "\\:city_input"),
+					By.cssSelector("span#" + formName + "\\:city_panel")
+			);
+			cityMenu.fillItem(city, null);
+		}
 
 		// Update province
 		if (!StringUtils.isEmpty(province)) {

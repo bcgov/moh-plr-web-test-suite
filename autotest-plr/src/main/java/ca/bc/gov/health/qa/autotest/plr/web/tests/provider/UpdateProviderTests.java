@@ -414,20 +414,81 @@ public class UpdateProviderTests implements SimpleTest {
     // Update Provider - Add block - Add Addresses
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testAddAddresses(ProviderType providerType) {
-        //Add valid address block 
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        //Open dialog to add address block and cancel. Check address was not added.
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
+        // Add valid address block
+        page.addAddressDataBlock(
+                AddressType.M.getText(),
+                TelecommunicationPurpose.BUSINESS_CONTACT.getText(),
+                "123 Test Street",
+                "Suite 100",
+                null,
+                "Vancouver",
+                "BC - British Columbia",
+                "CA - CANADA",
+                "V6B 1A1",
+                effective_date(),
+                increment_year_for_effective_date(),
+                false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.ADDRESSES, true), 2,
+                "Expected 2 active address data block");
+
+        page.ceaseDataBlock(ProviderSection.ADDRESSES, 1);
+
+        // Open dialog to add address block and cancel. Check address was not added.
+        page.cancelAddAddressDataBlock(
+                AddressType.M.getText(),
+                TelecommunicationPurpose.HOME_CONTACT.getText(),
+                "456 Cancel Ave",
+                null,
+                null,
+                "Victoria",
+                "BC - British Columbia",
+                "CA - CANADA",
+                "V8V 2B2",
+                effective_date(),
+                increment_year_for_effective_date());
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.ADDRESSES, true), 1,
+                "Expected no active address data blocks after cancelling add");
     }
 
     // Update Provider - Add block - Add Electronic Addresses
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testAddElectronicAddresses(ProviderType providerType) {
-        //Add valid electronic address block 
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        //Open dialog to add electronic address block and cancel. Check electronic address was not added.
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
+        // Add valid electronic address block
+        page.addElectronicAddressDataBlock(
+                ElectronicAddressType.EMAIL.getText(),
+                TelecommunicationPurpose.BUSINESS_CONTACT.getText(),
+                "test@example.com",
+                effective_date(),
+                increment_year_for_effective_date(),
+                false);
 
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.ELECTRONIC_ADDRESSES, true), 1,
+                "Expected 1 active electronic address data block");
+
+        page.ceaseDataBlock(ProviderSection.ELECTRONIC_ADDRESSES, 0);
+
+        // Open dialog to add electronic address block and cancel. Check electronic address was not added.
+        page.cancelAddElectronicAddressDataBlock(
+                ElectronicAddressType.HTTP.getText(),
+                TelecommunicationPurpose.HOME_CONTACT.getText(),
+                "https://www.example.com",
+                effective_date(),
+                increment_year_for_effective_date());
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.ELECTRONIC_ADDRESSES, true), 0,
+                "Expected no active electronic address data blocks after cancelling add");
     }
 
     // Update Provider - Add block - Add Telecommunications
