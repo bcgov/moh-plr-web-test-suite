@@ -941,4 +941,173 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
+
+	/**
+	 * Fill the Telecommunication Data Block form fields
+	 *
+	 * @param telecomType   the type of telecommunication (e.g., "T - Telephone", "MB - Mobile")
+	 * @param purpose       the purpose of telecommunication (e.g., "MC - Ministry Contact")
+	 * @param areaCode      the area code
+	 * @param phoneNumber   the phone number
+	 * @param extension     the extension (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 */
+	private void fillTelecommunicationDataBlock(String telecomType, String purpose, String areaCode,
+			String phoneNumber, String extension, String effectiveFrom, String effectiveTo) {
+		String formName = DIALOG_MAP.get(ProviderSection.TELECOMMUNICATIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomType", telecomType);
+		waitSeconds(1); // Wait for AJAX update after dropdown selection
+
+		// Organizations use "telecomPurposeFiltered", practitioners use "telecomPurpose"
+		String purposePanelCss = "div#" + formName + "\\:telecomPurposeFiltered_panel";
+		if (!selenium_.findElements(By.cssSelector(purposePanelCss)).isEmpty()) {
+			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurposeFiltered", purpose);
+		} else {
+			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurpose", purpose);
+		}
+
+		// Fill area code
+		String areaCodeCss = dialogCss + " >input#" + formName + "\\:AreaCode";
+		WebElement areaCodeElement = selenium_.findElement(By.cssSelector(areaCodeCss));
+		areaCodeElement.clear();
+		if (!StringUtils.isEmpty(areaCode))
+			areaCodeElement.sendKeys(areaCode);
+
+		// Fill phone number
+		String phoneNumberCss = dialogCss + " >input#" + formName + "\\:Phone_Number";
+		WebElement phoneNumberElement = selenium_.findElement(By.cssSelector(phoneNumberCss));
+		phoneNumberElement.clear();
+		if (!StringUtils.isEmpty(phoneNumber))
+			phoneNumberElement.sendKeys(phoneNumber);
+
+		// Fill extension
+		String extensionCss = dialogCss + " >input#" + formName + "\\:extension";
+		WebElement extensionElement = selenium_.findElement(By.cssSelector(extensionCss));
+		extensionElement.clear();
+		if (!StringUtils.isEmpty(extension))
+			extensionElement.sendKeys(extension);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.TELECOMMUNICATIONS, effectiveFrom, effectiveTo);
+	}
+
+	/**
+	 * Attempts to add a telecommunication data block with provided values
+	 *
+	 * @param telecomType   the type of telecommunication (e.g., "T - Telephone", "MB - Mobile")
+	 * @param purpose       the purpose of telecommunication (e.g., "MC - Ministry Contact")
+	 * @param areaCode      the area code
+	 * @param phoneNumber   the phone number
+	 * @param extension     the extension (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String addTelecommunicationDataBlock(String telecomType, String purpose, String areaCode,
+			String phoneNumber, String extension, String effectiveFrom, String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickHeaderAddButton(ProviderSection.TELECOMMUNICATIONS);
+
+		fillTelecommunicationDataBlock(telecomType, purpose, areaCode, phoneNumber, extension, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.TELECOMMUNICATIONS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Cancel adding a telecommunication data block after filling the form
+	 *
+	 * @param telecomType   the type of telecommunication
+	 * @param purpose       the purpose of telecommunication
+	 * @param areaCode      the area code
+	 * @param phoneNumber   the phone number
+	 * @param extension     the extension (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 */
+	public void cancelAddTelecommunicationDataBlock(String telecomType, String purpose, String areaCode,
+			String phoneNumber, String extension, String effectiveFrom, String effectiveTo) {
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickHeaderAddButton(ProviderSection.TELECOMMUNICATIONS);
+
+		fillTelecommunicationDataBlock(telecomType, purpose, areaCode, phoneNumber, extension, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
+
+	/**
+	 * Attempts to update a telecommunication data block with provided values
+	 *
+	 * @param areaCode      the area code
+	 * @param phoneNumber   the phone number
+	 * @param extension     the extension (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index         the data block index to update
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String updateTelecommunicationDataBlock(String areaCode, String phoneNumber, String extension,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.TELECOMMUNICATIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickDataBlockUpdateButton(ProviderSection.TELECOMMUNICATIONS, index);
+		waitSeconds(2);
+
+		// Update area code
+		String areaCodeCss = dialogCss + " >input#" + formName + "\\:AreaCode";
+		WebElement areaCodeElement = selenium_.findElement(By.cssSelector(areaCodeCss));
+		areaCodeElement.clear();
+		if (!StringUtils.isEmpty(areaCode))
+			areaCodeElement.sendKeys(areaCode);
+
+		// Update phone number
+		String phoneNumberCss = dialogCss + " >input#" + formName + "\\:Phone_Number";
+		WebElement phoneNumberElement = selenium_.findElement(By.cssSelector(phoneNumberCss));
+		phoneNumberElement.clear();
+		if (!StringUtils.isEmpty(phoneNumber))
+			phoneNumberElement.sendKeys(phoneNumber);
+
+		// Update extension
+		String extensionCss = dialogCss + " >input#" + formName + "\\:extension";
+		WebElement extensionElement = selenium_.findElement(By.cssSelector(extensionCss));
+		extensionElement.clear();
+		if (!StringUtils.isEmpty(extension))
+			extensionElement.sendKeys(extension);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.TELECOMMUNICATIONS, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.TELECOMMUNICATIONS, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.TELECOMMUNICATIONS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
 }
