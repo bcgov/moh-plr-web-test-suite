@@ -368,6 +368,42 @@ public class UpdateProviderTests implements SimpleTest {
 				"The default ID should follows this pattern DA.X.PRS, where X is a unique positive integer");		 
 	}
 
+    // Update Provider - Generating a Work Location ID
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testGeneratingDefaultWorkLocationID(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = logIn(workflowManager_, UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+        page.addWorkLocationDataBlock(null, false, "Test Name", "CC", null, false);
+
+        logIn(workflowManager_, UserType.PRIMARY);
+
+        UpdateProviderPage primaryPage = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        primaryPage.addWorkLocationDataBlock(null, false, "Test Name", "CC", null, false);
+
+        page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock(null, false, "Test Name", "CC", null, false);
+
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertEquals(wlContent.get("Identifier"), "1",
+                "Expected first work location to have generated identifier \"1\"");
+
+        wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 1);
+
+        assertEquals(wlContent.get("Identifier"), "2",
+                "Expected first work location to have generated identifier \"2\"");
+
+        wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 2);
+
+        assertEquals(wlContent.get("Identifier"), "3",
+                "Expected first work location to have generated identifier \"3\"");
+    }
+
 	// Update Provider - Validate Provider Conditions
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
 	public void testValidateProviderConditions(ProviderType providerType) {
