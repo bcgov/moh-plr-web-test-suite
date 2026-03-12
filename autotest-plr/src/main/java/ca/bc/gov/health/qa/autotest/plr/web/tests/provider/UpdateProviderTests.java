@@ -540,6 +540,54 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
+    // Update Provider - Validate Work Location ID
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationID(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        // TODO no error appears above 20, should likely cover this
+        String error = page.addWorkLocationDataBlock(generateNumericString(16), true,
+                "Test Name", "CC", "Test Info", true);
+
+        assertEquals(error, errorList.get("WLIDTooLong"),
+                "Expected error message for work location identifier exceeding max length when adding work location data block");
+
+        String expectedID = generateNumericString(15);
+
+        page.addWorkLocationDataBlock(expectedID, true, "Test Name",
+                "CC", "Test Info", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
+                "Expected 1 active work location data block after adding work location with valid identifier");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+
+        page.addWorkLocationDataBlock(null, false, "Test Name", "CC", "Test Info", false);
+
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
+                "Expected 1 active work location data block after adding work location with no identifier");
+        assertEquals(wlContent.get("Identifier"), String.valueOf(Long.parseLong(expectedID)+1),
+                "Expected generated identifier for work location data block when no identifier is provided");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+
+        error = page.addWorkLocationDataBlock("-1", false, "Negative ID", "CC", "Test Info", true);
+
+        // TODO error *is* not empty since it succeeds, get the expected error code + error into error-list.json
+        assertFalse(error.isEmpty() || error.contains("successfully"),
+                "Expected error message for invalid work location identifier when adding work location data block");
+
+        error = page.addWorkLocationDataBlock("test", false, "Non-numeric ID", "CC", "Test Info", true);
+
+        assertFalse(error.isEmpty(), "Expected error message for non-numeric work location identifier when adding work location data block");
+    }
+
     // Update Provider - Validate Work Location Name
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateWorkLocationName(ProviderType providerType)

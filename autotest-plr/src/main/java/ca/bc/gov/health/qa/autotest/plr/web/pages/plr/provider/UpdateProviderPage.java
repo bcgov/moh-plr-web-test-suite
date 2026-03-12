@@ -553,15 +553,20 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @return String of error messages
 	 */
 	public String waitErrorMessage(ProviderSection section) {
+		final int MAX_ATTEMPTS = 5;
+		int attempts = 0;
 		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
+			if (attempts >= MAX_ATTEMPTS) break;
 			waitSeconds(5);
 			try {
 				msgDisplay = getDialogMessages(section);
 			} catch (StaleElementReferenceException e) {
 				waitSeconds(5);
 			}
+			attempts++;
 		}
+		if (msgDisplay.contains("successfully") || msgDisplay.isEmpty()) return msgDisplay;
 		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
 		selenium_.scrollIntoView(cancelButton);
 		cancelButton.click();

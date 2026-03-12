@@ -11,9 +11,7 @@ import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DateMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationProperties;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
@@ -244,21 +242,25 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * wait Error Message showing up, and return a copy of message as result
 	 * note the result is a set of messages, if there are more than one error messages
 	 *
-	 * @param section
+	 * @param section the provider section
 	 * @return String of error messages
 	 */
 	public String waitErrorMessage(ProviderSection section) {
-		String msgDisplay = "";
+		final int MAX_ATTEMPTS = 5;
+		int attempts = 0;
 
-		msgDisplay = getDialogMessages(section);
+		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
+			if (attempts >= MAX_ATTEMPTS) break;
 			waitSeconds(5);
 			try {
 				msgDisplay = getDialogMessages(section);
 			} catch (StaleElementReferenceException e) {
 				waitSeconds(5);
 			}
+			attempts++;
 		}
+		if (msgDisplay.isEmpty() || msgDisplay.contains("successfully")) return msgDisplay;
 		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
 		selenium_.scrollIntoView(cancelButton);
 		cancelButton.click();
@@ -341,7 +343,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		String checkboxCss = dialogCss + " >div#" + formName + "\\:" + fieldCss + " >div.ui-chkbox-box";
 		// Wait for the checkbox to be visible
 		WebElement checkbox = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(checkboxCss)));
-		
+
 		boolean isChecked = checkbox.getAttribute("class").contains("ui-state-active");
 		
 		// Only click if the state needs to change
