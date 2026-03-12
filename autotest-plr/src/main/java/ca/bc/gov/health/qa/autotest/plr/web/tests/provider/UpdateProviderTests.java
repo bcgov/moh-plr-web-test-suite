@@ -549,8 +549,7 @@ public class UpdateProviderTests implements SimpleTest {
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
-        // TODO no error appears above 20, should likely cover this
-        String error = page.addWorkLocationDataBlock(generateNumericString(16), true,
+        String error = page.addWorkLocationDataBlock(generateNumericString(21), true,
                 "Test Name", "CC", "Test Info", true);
 
         assertEquals(error, errorList.get("WLIDTooLong"),
@@ -579,7 +578,7 @@ public class UpdateProviderTests implements SimpleTest {
 
         error = page.addWorkLocationDataBlock("-1", false, "Negative ID", "CC", "Test Info", true);
 
-        // TODO error *is* not empty since it succeeds, get the expected error code + error into error-list.json
+        // TODO replace with error message if possible
         assertFalse(error.isEmpty() || error.contains("successfully"),
                 "Expected error message for invalid work location identifier when adding work location data block");
 
