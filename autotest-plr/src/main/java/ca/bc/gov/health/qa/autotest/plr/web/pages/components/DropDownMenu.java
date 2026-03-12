@@ -77,6 +77,7 @@ extends BasicWebPageFragment
         {
             itemList.add(itemElement.getText());
         }
+        expandItemPanel(false); // to handle accidental click interceptions
         return itemList;
     }
 

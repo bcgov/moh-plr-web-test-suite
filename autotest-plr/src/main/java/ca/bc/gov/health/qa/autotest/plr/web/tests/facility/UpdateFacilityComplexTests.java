@@ -895,7 +895,7 @@ public class UpdateFacilityComplexTests implements SimpleTest
     @Test(groups = { "UpdateFacility", "UpdateFacilityComplex" })
     public void testValidateRelationshipTypeCode()
     {
-        final String errMsg5000OrgRel = errorList.getString("errMsg5000OrgRelType");
+        final String errMsg5000OrgRel = errorList.getString("errMsg5000RelType");
         final UpdateFacilitySimpleActions actions = workflowManager_.getSelectedWorkflow().getUpdateFacilitySimpleActions();
 
         final OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig();

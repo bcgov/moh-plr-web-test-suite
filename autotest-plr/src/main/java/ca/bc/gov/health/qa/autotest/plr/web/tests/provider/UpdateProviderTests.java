@@ -3,6 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.*;
 import static org.testng.Assert.*;
+import static ca.bc.gov.health.qa.autotest.plr.data.UpdateProviderConstants.*;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -466,6 +467,48 @@ public class UpdateProviderTests implements SimpleTest {
 		assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 2,
 				"Expected 2 active condition data blocks after adding second condition to provider");
 	}
+
+    // Update Provider - Validate Provider Relationship Type Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderRelationshipTypeCode(ProviderType providerType)
+    {
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+        List<String> relationshipTypes = page.getDropdownListOptions(ProviderSection.PROVIDER_RELATIONSHIPS,
+                "relationshipType");
+        relationshipTypes.remove("Select One");
+
+        LOG.info(relationshipTypes);
+        LOG.info(RELATIONSHIP_TYPE_OPTIONS);
+        assertTrue(relationshipTypes.containsAll(RELATIONSHIP_TYPE_OPTIONS),
+                "Expected relationship type dropdown options to contain all defined relationship types");
+
+        page.clickDialogCancelButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+        String error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "Select One", true);
+
+        assertEquals(error, errorList.get("errMsg5000RelType"),
+                "Expected error message for missing relationship type when adding provider relationship");
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after adding provider relationship with valid type");
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
 
     // Update Provider - Validate Restriction Explanation
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
