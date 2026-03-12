@@ -65,7 +65,7 @@ public class UpdateProviderTests implements SimpleTest {
 
     @AfterClass
     public void teardown() {
-        //workflowManager_.logoutAllAndClose();
+        workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
 
