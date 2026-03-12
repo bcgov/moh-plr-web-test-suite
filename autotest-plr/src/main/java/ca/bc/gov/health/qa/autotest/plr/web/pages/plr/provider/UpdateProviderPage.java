@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +45,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 			ProviderSection.DISCIPLINARY_ACTIONS, new ProviderDialog("maintainDisActionDialog", "maintainDisActionForm", "effectiveFromDate",
 					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Disciplinary Action"),
 			ProviderSection.WORK_LOCATIONS, new ProviderDialog("maintainWorkLocationDialog", "maintainWorkLocationForm", "effectiveFromDate",
-					"effectiveToDate", "idWLSubmitButton", "EndReasonType","Add a new Work Location")
+					"effectiveToDate", "idWLSubmitButton", "EndReasonType","Add a new Work Location"),
+			ProviderSection.PROVIDER_RELATIONSHIPS, new ProviderDialog("maintainProviderRelationshipDialog", "maintainProviderRelationshipForm", "effectiveStartDate",
+					"effectiveEndDate", "providerRelationshipSubmitButton", "EndReasonType","Add a new Provider Relationship"),
+			ProviderSection.REGISTRY_USER_RELATIONSHIPS, new ProviderDialog("maintainRegUserRelationshipDialog", "maintainRegUserRelationshipForm", "effectiveFromDate",
+					"effectiveToDate", "idRegUserRelationshipSubmitButton", "EndReasonType","Add a new Registry User Relationship")
 			);
 
 	public UpdateProviderPage(SeleniumSession selenium, URI uri) {
@@ -331,6 +336,34 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
+	 * fill the Provider Relationship Data Block
+	 * @param identifierType the identifier type to select
+	 * @param identifier the identifier to input
+	 * @param relationshipType the relationship type to select
+	 */
+	public void fillProviderRelationshipDataBlock(IdentifierType identifierType, String identifier, String relationshipType)
+	{
+		String formName = DIALOG_MAP.get(ProviderSection.PROVIDER_RELATIONSHIPS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "providerType", identifierType.name());
+
+		String inputIdCss=dialogCss+" >input#"+formName+"\\:rpi";
+		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if(!StringUtils.isEmpty(identifier))inputId.sendKeys(identifier);
+
+		setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "relationshipType", relationshipType);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.PROVIDER_RELATIONSHIPS,
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
+	}
+
+	/**
 	 * fill the Work Location Data Block
 	 * @param locationID the location ID to input
 	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
@@ -398,6 +431,31 @@ public class UpdateProviderPage extends ViewProviderPage {
 		clickDialogSubmitButton(ProviderSection.CONDITIONS, expectError);
 
 		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.CONDITIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Provider Relationship Data Block, perform error message check if necessary
+	 * @param identifierType the identifier type to select
+	 * @param identifier the identifier to input
+	 * @param relationshipType the relationship type to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addProviderRelationshipDataBlock(IdentifierType identifierType, String identifier, String relationshipType, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		fillProviderRelationshipDataBlock(identifierType, identifier, relationshipType);
+
+		clickDialogSubmitButton(ProviderSection.PROVIDER_RELATIONSHIPS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.PROVIDER_RELATIONSHIPS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;

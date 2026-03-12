@@ -118,6 +118,41 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected no active condition data blocks after cancelling add");
     }
 
+    // Update Provider - Add Provider Relationships
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testAddProviderRelationships(ProviderType providerType)
+    {
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        WebElement dialog = page.clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+        assertTrue(dialog.isDisplayed(), "Expected provider relationship dialog to be displayed after clicking add button");
+        page.clickDialogCancelButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after adding provider relationship");
+
+        page.clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+        page.fillProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "ER");
+        page.clickDialogCancelButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after cancelling add of second provider relationship");
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
+
     // Update Provider - Add Work Locations
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testAddWorkLocations(ProviderType providerType)
