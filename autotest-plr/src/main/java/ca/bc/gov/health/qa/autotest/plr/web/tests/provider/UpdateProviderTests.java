@@ -550,6 +550,33 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
     }
 
+    // Update Provider - Validate Related Provider ID
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateRelatedProviderID(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, "test",
+                "LOC", true);
+
+        assertEquals(error, errorList.get("errMsg7036"),
+                "Expected error message for invalid related provider identifier when adding provider relationship");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, null,
+                "LOC", true);
+
+        assertEquals(error, errorList.get("erromMessageGRS5000Id"),
+                "Expected error message for missing related provider identifier when adding provider relationship");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, "IPC.00000000.BC.PRS!#%",
+                "LOC", true);
+
+        assertEquals(error, errorList.get("foreignCharacterIdentifier"),
+                "Expected error message for invalid related provider identifier with special character when adding provider relationship");
+    }
+
     // Update Provider - Validate Restriction Explanation
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateRestrictionExplanation(ProviderType providerType)

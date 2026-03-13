@@ -1162,13 +1162,13 @@ public class UpdateFacilitySimpleActions {
 	 */
 	public void validateCreateFacilityOrganizationRelationship(UpdateFacilityPage updatePage,MaintainOrgBuilder orgQueried) {
 
-		String messageGRS7036 = errorList.getString("messageGRS7036");
+		String errMsg7036 = errorList.getString("errMsg7036");
 
 		String randomOrgId = UpdateSimpleHelper.generateNumericString(orgQueried.getOrgIdentifier().length());
 
 		String errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.ORGID.getText(),
 				randomOrgId, RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(), "", true);
-		assertEquals(errMsg, messageGRS7036);
+		assertEquals(errMsg, errMsg7036);
 		errMsg = updatePage.addRelatedOrganizationDataBlock(RelatedProviderIdentifierType.ORGID.getText(),
 				orgQueried.getOrgIdentifier(), RelationshipType.LOCATION.getText(), UpdateSimpleHelper.effective_date(),
 				"", false);
