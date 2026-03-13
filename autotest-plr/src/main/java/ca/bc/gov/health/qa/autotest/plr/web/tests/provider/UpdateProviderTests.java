@@ -444,6 +444,46 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
+    // Update Provider - Provider to Provider Relationship Validation
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testProviderRelationshipValidation(ProviderType providerType) {
+
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addProviderRelationshipDataBlock(null, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", true);
+
+        assertEquals(error, errorList.get("erromMessageGRS5000IdType"),
+                "Expected error message for missing relationship type when adding provider relationship");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, null, "LOC", true);
+
+        assertEquals(error, errorList.get("erromMessageGRS5000Id"),
+                "Expected error message for missing identifier when adding provider relationship");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "Select One", true);
+
+        assertEquals(error, errorList.get("errMsg5000RelType"),
+                "Expected error message for missing relationship type when adding provider relationship");
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after adding valid provider relationship");
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
+
 	// Update Provider - Validate Provider Conditions
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
 	public void testValidateProviderConditions(ProviderType providerType) {

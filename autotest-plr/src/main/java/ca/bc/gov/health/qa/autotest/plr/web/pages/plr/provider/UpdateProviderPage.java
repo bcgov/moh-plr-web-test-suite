@@ -350,14 +350,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "providerType", identifierType.name());
+		if (identifierType != null)
+			setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "providerType", identifierType.name());
 
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:rpi";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
-		inputId.clear();
-		if(!StringUtils.isEmpty(identifier))inputId.sendKeys(identifier);
+		if (identifier != null) {
+			String inputIdCss = dialogCss + " >input#" + formName + "\\:rpi";
+			WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+			inputId.clear();
+			if (!StringUtils.isEmpty(identifier)) inputId.sendKeys(identifier);
+		}
 
-		setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "relationshipType", relationshipType);
+		if (relationshipType != null)
+			setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "relationshipType", relationshipType);
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.PROVIDER_RELATIONSHIPS,
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
