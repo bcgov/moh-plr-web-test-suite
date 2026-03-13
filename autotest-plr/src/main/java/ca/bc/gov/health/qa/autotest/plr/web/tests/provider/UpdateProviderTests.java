@@ -577,6 +577,57 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected error message for invalid related provider identifier with special character when adding provider relationship");
     }
 
+    // Update Provider - Validate Related Provider ID and Relationship
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testRelatedProviderIDAndRelationship(ProviderType providerType) {
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after adding provider relationship with valid related provider and relationship type");
+
+        String error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", true);
+
+        assertEquals(error, errorList.get("duplicateProviderRel"),
+                "Expected error message for duplicate provider relationship when adding provider relationship with same related provider and relationship type");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, null,
+                "LOC", true);
+
+        assertEquals(error, errorList.get("erromMessageGRS5000Id"),
+                "Expected error message for missing related provider identifier when adding provider relationship with duplicate relationship type");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, "test",
+                "LOC", true);
+
+        assertEquals(error, errorList.get("errMsg7036"),
+                "Expected error message for invalid related provider identifier when adding provider relationship");
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "ER", false);
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "PHCST", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 3,
+                "Expected 3 active provider relationship data blocks after adding provider relationships with same related provider and different relationship types");
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 2);
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 1);
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
+
     // Update Provider - Validate Restriction Explanation
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateRestrictionExplanation(ProviderType providerType)
