@@ -9,6 +9,7 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGener
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderAddressFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
@@ -477,6 +478,84 @@ public class AddProviderTests implements SimpleTest {
     public void testValidateCommunicationPurposeTypeCode() {
     }*/
 
+    // OOP Provider Role Types
+    @Test(dataProvider = "oopRoleTypes", dataProviderClass = InjectableData.class)
+    public void testOOPProviderRoleTypes(ProviderRoleType roleType) {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+
+        page.fillIdentifier(roleType, null, null, "OOPID", "252526");
+        page.fillStatus("AE", StatusCodeOption.CANCELLED, StatusReasonCodeOption.LAP);
+
+        page.clickNext("Status", "");
+        page.waitForAddProviderStep("Personal Information", true);
+
+        page.fillPI("Dr.", "Testing", "Provider", null, "Smith");
+        page.fillDemographics(List.of(2011,1,1), "U");
+
+        page.clickNext("Personal Information", "");
+        page.waitForAddProviderStep("Address", true);
+
+        AddProviderAddressFragment address = page.fillAddress("P", "HC", List.of("123 Test St", "Unit 1", ""),
+                "Victoria", "BC", "CA", "V9V9V9");
+
+        page.clickNext("Address", "Address Invalid");
+        address.handleWidgetButton("Address Invalid");
+        page.waitForAddProviderStep("Credential", true);
+
+        page.fillCredentials("BD", "Test", "5358", "TestInst",
+                "Victoria", "CA", "BC", true, "2001");
+        page.fillExpertise("ENG", "2500");
+        ViewProviderPage viewPage = page.clickSubmitButton();
+
+        // Verify Role Type matches
+        String displayedRoleType = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0).get("Role Type");
+        assertTrue(displayedRoleType != null && displayedRoleType.startsWith(roleType.getText().split(" ")[0]),
+            "Displayed Role Type '" + displayedRoleType + "' does not match expected '" + roleType.getText() + "'");
+    }
+
+    // 07.Status codes for Out of Province Practitioner
+    @Test
+    public void testStatusCodesForOutOfProvincePractitioner() {
+        PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+        AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
+
+        page = page.changeProviderType(ProviderType.OOP_PRACTITIONER);
+
+        page.fillIdentifier(ProviderRoleType.OOPDEN, null, null, "OOPID", "252526");
+        page.fillStatus("AE", StatusCodeOption.UNKNOWN, StatusReasonCodeOption.OOP);
+
+        page.clickNext("Status", "");
+        page.waitForAddProviderStep("Personal Information", true);
+
+        page.fillPI("Dr.", "Testing", "Provider", null, "Smith");
+        page.fillDemographics(List.of(2011,1,1), "U");
+
+        page.clickNext("Personal Information", "");
+        page.waitForAddProviderStep("Address", true);
+
+        AddProviderAddressFragment address = page.fillAddress("P", "HC", List.of("123 Test St", "Unit 1", ""),
+                "Victoria", "BC", "CA", "V9V9V9");
+
+        page.clickNext("Address", "Address Invalid");
+        address.handleWidgetButton("Address Invalid");
+        page.waitForAddProviderStep("Credential", true);
+
+        page.fillCredentials("BD", "Test", "5358", "TestInst",
+                "Victoria", "CA", "BC", true, "2001");
+        page.fillExpertise("ENG", "2500");
+        ViewProviderPage viewPage = page.clickSubmitButton();
+
+        // Verify Status Code and Reason Code in view screen
+        String displayedStatusCode = viewPage.grabDataBlockContent(ProviderSection.STATUSES, 0).get("Type");
+        String displayedReasonCode = viewPage.grabDataBlockContent(ProviderSection.STATUSES, 0).get("Reason");
+        assertTrue(displayedStatusCode != null && displayedStatusCode.toUpperCase().contains("UNKNOWN"),
+            "Displayed Status Code '" + displayedStatusCode + "' does not match expected 'UNKNOWN'");
+        assertTrue(displayedReasonCode != null && displayedReasonCode.toUpperCase().contains("OOP"),
+            "Displayed Reason Code '" + displayedReasonCode + "' does not match expected 'OOP'");
+    }
 
     /**
      * Navigates to the Address screen on the Add Provider page using randomized template data.
