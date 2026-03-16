@@ -154,6 +154,35 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
     }
 
+    // Update Provider - Add Registry User Relationships
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testAddRegUserRelationships(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        WebElement dialog = page.clickHeaderAddButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+        assertTrue(dialog.isDisplayed(), "Expected registry user relationship dialog to be displayed after clicking add button");
+
+        page.clickDialogCancelButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+        page.addRegUserRelationshipDataBlock("RES", "00002855", UserType.ADMIN, false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.REGISTRY_USER_RELATIONSHIPS, true), 1,
+                "Expected 1 active registry user relationship data block after adding registry user relationship");
+
+        page.clickHeaderAddButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+        page.fillRegUserRelationshipDataBlock("RES", "00002855", UserType.ADMIN);
+        page.clickDialogCancelButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.REGISTRY_USER_RELATIONSHIPS, true), 1,
+                "Expected 1 active registry user relationship data block after cancelling add of second registry user relationship");
+
+        page.ceaseDataBlock(ProviderSection.REGISTRY_USER_RELATIONSHIPS, 0);
+    }
+
     // Update Provider - Add Work Locations
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testAddWorkLocations(ProviderType providerType)
