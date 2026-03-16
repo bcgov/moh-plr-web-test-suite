@@ -444,10 +444,44 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
+    // Update Provider - Provider Relationship Types
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testProviderRelationshipTypes(ProviderType providerType)
+    {
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "ER", false);
+
+        Map<String,String> prContent = page.grabDataBlockContent(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+
+        assertEquals(prContent.get("Relationship Type"), "Employer (ER)",
+                "Expected relationship type to be 'Employer (ER)' after adding provider relationship with ER type");
+
+        page = viewByIdentifierAsUpdateProvider(otherProvider.getIdentifier(IdentifierType.IPC), workflowManager_);
+
+        prContent = page.grabDataBlockContent(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+
+        assertEquals(prContent.get("Relationship Type"), "Employee (EE)",
+                "Expected relationship type to be 'Employee (EE)' on related provider after adding provider relationship with ER type");
+
+        page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
+
     // Update Provider - Provider to Provider Relationship Validation
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-    public void testProviderRelationshipValidation(ProviderType providerType) {
-
+    public void testProviderRelationshipValidation(ProviderType providerType)
+    {
         final MaintainIndividualBuilder otherProvider = switch (providerType) {
             case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
             case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
