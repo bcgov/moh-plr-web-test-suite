@@ -73,6 +73,42 @@ public class InjectableData
      * Returns a two-dimensional array of all PLR user types for use in TestNG data-driven tests.
      *
      * @return a two-dimensional array of all PLR user types, where each inner array contains a single UserType value
+     * Provides just the BC Practitioner and Organization provider types for tests that need to cover only these types.
+     *
+     * @return A two-dimensional array of BC Practitioner and Organization provider types.
+     */
+    @DataProvider(name = "indOrgTypes")
+    public static Object[][] getIndOrgTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        for (ProviderType providerType : List.of(ProviderType.BC_PRACTITIONER, ProviderType.ORGANIZATION))
+        {
+            data.add(new Object[]{providerType});
+        }
+        return toArray(data);
+    }
+
+    /**
+     * Provides just the BC Practitioner and Organization provider types for tests that need to cover only these types.
+     * (Includes null for second parameter to match builder method signature for a specific test)
+     *
+     * @return A two-dimensional array of BC Practitioner and Organization provider types.
+     */
+    @DataProvider(name = "indOrgBuilderTypes")
+    public static Object[][] getIndOrgBuilderTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        for (ProviderType providerType : List.of(ProviderType.BC_PRACTITIONER, ProviderType.ORGANIZATION))
+        {
+            data.add(new Object[]{providerType,null});
+        }
+        return toArray(data);
+    }
+
+    /**
+     * Provides a matrix of user types in PLR.
+     *
+     * @return a two-dimensional array of test parameters
      */
     @DataProvider(name = "allPlrUserTypes")
     public static Object[][] getAllPlrUserTypes()

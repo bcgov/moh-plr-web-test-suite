@@ -29,8 +29,14 @@ public class UpdateProviderPage extends ViewProviderPage {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
 	public static final Map<ProviderSection, ProviderDialog> DIALOG_MAP = Map.of(
+			ProviderSection.REGISTRY_IDENTIFIERS, new ProviderDialog("maintainRegIdDialog", "maintainRegIdForm", "effectiveStartDate",
+					"effectiveEndDate", "registryIdSubmitButton", "EndReasonType","Add"),
 			ProviderSection.IDENTIFIERS, new ProviderDialog("maintainIdDialog", "maintainIdentifierForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "","Add"),
+					"effectiveToDate", "idSubmitButton", "EndReasonType","Add"),
+			ProviderSection.ORGANIZATION_NAMES, new ProviderDialog("maintainOrgNameDialog", "maintainOrgNameForm", "effectiveStartDate",
+							"effectiveEndDate", "orgNameSubmitButton", "EndReasonType","Add a new Organizational Name"),
+			ProviderSection.PRACTITIONER_NAMES, new ProviderDialog("maintainPersonNameDialog", "maintainPersonNameForm", "effectiveStartDate",
+					"effectiveEndDate", "personNameSubmitButton", "EndReasonType","Add a new Practitioner Name"),
 			ProviderSection.NOTES, new ProviderDialog("maintainNoteDialog", "maintainNoteForm", "effectiveFromDate",
 					"effectiveToDate", "idNoteSubmitButton", "endReasonCode","Add a new Note"),
 			ProviderSection.ORGANIZATION_RELATIONSHIPS, new ProviderDialog("maintainOrganizationRelationshipDialog", "maintainOrgRelationshipForm", "effectiveStartDate",
@@ -78,6 +84,54 @@ public class UpdateProviderPage extends ViewProviderPage {
 		} catch (InterruptedException e) {
 			fail(e.getMessage());
 		}
+	}
+
+	/**
+	 * Attempts to update a practitioner name data block with provided values
+	 * @param prefix the name prefix
+	 * @param first the first name
+	 * @param second the second name
+	 * @param third the third name
+	 * @param surname the surname
+	 * @param suffix the name suffix
+	 * @param endReasonType the end reason type
+	 * @param index the data block index
+	 * @param expectError whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String updatePractitionerNameDataBlock(
+			String prefix, String first, String second, String third, String surname, String suffix,
+			EndReason endReasonType, int index, boolean expectError)
+	{
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.PRACTITIONER_NAMES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.PRACTITIONER_NAMES);
+
+		clickDataBlockUpdateButton(ProviderSection.PRACTITIONER_NAMES, index);
+
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		findAndFillInputField(dialogCss, formName, prefix, "prefix");
+		findAndFillInputField(dialogCss, formName, first, "firstName");
+		findAndFillInputField(dialogCss, formName, second, "secondName");
+		findAndFillInputField(dialogCss, formName, third, "thirdName");
+		findAndFillInputField(dialogCss, formName, surname, "surname");
+		findAndFillInputField(dialogCss, formName, suffix, "suffix");
+
+		if (endReasonType != null) {
+			setEndReasonByVisibleText(ProviderSection.PRACTITIONER_NAMES, endReasonType.getText());
+		}
+
+		clickDialogSubmitButton(ProviderSection.PRACTITIONER_NAMES, expectError);
+
+		if (expectError) {
+			msgDisplay = waitErrorMessage(ProviderSection.PRACTITIONER_NAMES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+
+		return msgDisplay;
 	}
 
 	/**
@@ -596,6 +650,23 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 		
 		return msgDisplay.toString().trim();
+	}
+
+	/**
+	 * Find And Fill an input field for organization properties (TEXT_FIELD type)
+	 *
+	 * @param dialogCss the dialog CSS selector
+	 * @param formName the form name
+	 * @param field the field value
+	 * @param fieldCss the field CSS selector
+	 */
+	private void findAndFillInputField(String dialogCss, String formName, String field, String fieldCss) {
+		String inputNameCss = dialogCss + " >input#" + formName + "\\:" + fieldCss;
+		// Wait for the input field to be visible
+		WebElement inputName = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+		inputName.clear();
+		if (!StringUtils.isEmpty(field))
+			inputName.sendKeys(field);
 	}
 
 	/**

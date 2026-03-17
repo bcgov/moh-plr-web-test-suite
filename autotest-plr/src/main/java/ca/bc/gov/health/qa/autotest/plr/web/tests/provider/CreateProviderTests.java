@@ -222,7 +222,7 @@ public class CreateProviderTests implements SimpleTest {
         AddProviderPage page = workflow.getPlrWebAccessActions().openAddProvider();
         AddProviderActions actions = workflow.getAddProviderActions();
 
-        page.fillIdentifier(ProviderRoleType.RN, null, null, "RNID", linkedRNID);
+        page.fillIdentifier(ProviderRoleTypeOptions.RN, null, null, "RNID", linkedRNID);
 
         ViewProviderPage viewPage = actions.finishCreateFlow(page, ProviderType.BC_PRACTITIONER, "Status");
 
@@ -238,7 +238,7 @@ public class CreateProviderTests implements SimpleTest {
             fail("Expected linked CPN identifier not found for provider role with RNID '" + linkedRNID + "'.");
 
         page = workflow.getPlrWebAccessActions().openAddProvider();
-        page.fillIdentifier(ProviderRoleType.RNP, null, null, "RNID", linkedRNID);
+        page.fillIdentifier(ProviderRoleTypeOptions.RNP, null, null, "RNID", linkedRNID);
 
         viewPage = actions.finishCreateFlow(page, ProviderType.BC_PRACTITIONER, "Status");
 
@@ -257,7 +257,8 @@ public class CreateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionCredential(ProviderType providerType, ProviderRoleType roleType)
     {
-        final String identifierType = IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType,
+        final ProviderRoleTypeOptions roleTypeOptions = ProviderRoleTypeOptions.valueOf(roleType.name());
+        final String identifierType = IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleTypeOptions,
                 List.of("OOPID - Out of Province Provider")).getFirst();
 
         final List<String> expectedCredentialList = Stream.concat(CREDENTIAL_BASE_OPTIONS.stream(),
@@ -293,7 +294,8 @@ public class CreateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionExpertise(ProviderType providerType, ProviderRoleType roleType)
     {
-        final String identifierType = IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleType,
+        final ProviderRoleTypeOptions roleTypeOptions = ProviderRoleTypeOptions.valueOf(roleType.name());
+        final String identifierType = IDENTIFIER_TYPE_OPTIONS_MAP.getOrDefault(roleTypeOptions,
                 List.of("OOPID - Out of Province Provider")).getFirst();
 
         final List<String> expectedExpertiseList = Stream.concat(EXPERTISE_LANG_OPTIONS.stream(),
@@ -333,7 +335,7 @@ public class CreateProviderTests implements SimpleTest {
 
         AddProviderIdFragment id = page.fillIdentifier(null, null, null, null, null);
         List<String> roleOptions = id.getProviderRoleTypeOptions();
-        for (ProviderRoleType roleType : ProviderRoleType.values())
+        for (ProviderRoleTypeOptions roleType : ProviderRoleTypeOptions.values())
         {
             if (!roleOptions.contains(roleType.getText())) continue;
 
@@ -426,7 +428,7 @@ public class CreateProviderTests implements SimpleTest {
 
         actions.skipToSection(page, providerType, "Demographic Details", null, false);
 
-        AddProviderDemographicFragment demo = page.fillDemographics("", "U");
+        AddProviderDemographicFragment demo = page.fillDemographics(null, "U");
         page.clickNext("Demographic Details", null);
 
         List<String> errorMessageList = page.waitForAlertMessagesFragment().grabErrorMessageList();
@@ -489,7 +491,7 @@ public class CreateProviderTests implements SimpleTest {
         assertEquals(genderOptions, List.of("U - Unknown", "F - Female", "M - Male"),
                 "Expected gender options not found or in unexpected order.");
 
-        page.fillDemographics("", "U");
+        page.fillDemographics(null, "U");
         page.clickNext("Demographic Details", "");
         page.waitForAddProviderStep("Address", true);
 
@@ -682,9 +684,9 @@ public class CreateProviderTests implements SimpleTest {
         {
             switch (providerType) {
                 case OOP_PRACTITIONER ->
-                        page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", testIdentifier);
+                        page.fillIdentifier(ProviderRoleTypeOptions.OOPRECT, null, null, "OOPID", testIdentifier);
                 case BC_PRACTITIONER ->
-                        page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", testIdentifier);
+                        page.fillIdentifier(ProviderRoleTypeOptions.OPT, null, null, "OPTID", testIdentifier);
                 case ORGANIZATION ->
                         page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", testIdentifier);
             }

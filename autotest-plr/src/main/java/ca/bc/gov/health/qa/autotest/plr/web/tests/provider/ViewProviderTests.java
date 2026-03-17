@@ -48,8 +48,7 @@ public class ViewProviderTests implements SimpleTest
     private final Map<ProviderType, MaintainRequestBuilder> defaultProviders = new LinkedHashMap<>();
     private final Map<ProviderType, MaintainRequestBuilder> minimumProviders = new LinkedHashMap<>();
 
-    public ViewProviderTests()
-    {}
+    private ViewProviderTests() {}
 
     @AfterClass
     private void teardown()
