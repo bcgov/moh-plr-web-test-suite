@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static org.testng.Assert.fail;
 
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,34 +18,50 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 public class UpdateProviderPage extends ViewProviderPage {
 
-	public static final Map<ProviderSection, ProviderDialog> DIALOG_MAP = Map.of(
-			ProviderSection.REGISTRY_IDENTIFIERS, new ProviderDialog("maintainRegIdDialog", "maintainRegIdForm", "effectiveStartDate",
-					"effectiveEndDate", "registryIdSubmitButton", "EndReasonType","Add"),
-			ProviderSection.IDENTIFIERS, new ProviderDialog("maintainIdDialog", "maintainIdentifierForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "EndReasonType","Add"),
-			ProviderSection.ORGANIZATION_NAMES, new ProviderDialog("maintainOrgNameDialog", "maintainOrgNameForm", "effectiveStartDate",
-							"effectiveEndDate", "orgNameSubmitButton", "EndReasonType","Add a new Organizational Name"),
-			ProviderSection.PRACTITIONER_NAMES, new ProviderDialog("maintainPersonNameDialog", "maintainPersonNameForm", "effectiveStartDate",
-					"effectiveEndDate", "personNameSubmitButton", "EndReasonType","Add a new Practitioner Name"),
-			ProviderSection.NOTES, new ProviderDialog("maintainNoteDialog", "maintainNoteForm", "effectiveFromDate",
-					"effectiveToDate", "idNoteSubmitButton", "endReasonCode","Add a new Note"),
-			ProviderSection.ORGANIZATION_RELATIONSHIPS, new ProviderDialog("maintainOrganizationRelationshipDialog", "maintainOrgRelationshipForm", "effectiveStartDate",
-					"effectiveEndDate", "orgRelationshipSubmitButton", "EndReasonType","Add a new Organization Relationship"),
-			ProviderSection.TELECOMMUNICATIONS, new ProviderDialog("maintainTelecomDialog", "maintainTelecomForm", "effectiveFromDate",
-					"effectiveToDate", "idTeleSubmitButton", "EndReasonType","Add a new Telecommunication"),
-			ProviderSection.ELECTRONIC_ADDRESSES, new ProviderDialog("maintainElectronicAddressDialog", "maintainElectronicAddressForm", "effectiveStartDate",
-					"effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType","Add a new Electronic Address"),
-			ProviderSection.CONDITIONS, new ProviderDialog("maintainConditionDialog", "maintainConditionForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Condition"),
-			ProviderSection.DISCIPLINARY_ACTIONS, new ProviderDialog("maintainDisActionDialog", "maintainDisActionForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Disciplinary Action")
-			);
+	public static final Map<ProviderSection, ProviderDialog> DIALOG_MAP = Map.ofEntries(
+			Map.entry(ProviderSection.REGISTRY_IDENTIFIERS,
+					new ProviderDialog("maintainRegIdDialog", "maintainRegIdForm", "effectiveStartDate",
+							"effectiveEndDate", "registryIdSubmitButton", "EndReasonType", "Add")),
+			Map.entry(ProviderSection.IDENTIFIERS,
+					new ProviderDialog("maintainIdDialog", "maintainIdentifierForm", "effectiveFromDate",
+							"effectiveToDate", "idSubmitButton", "EndReasonType", "Add")),
+			Map.entry(ProviderSection.ORGANIZATION_NAMES,
+					new ProviderDialog("maintainOrgNameDialog", "maintainOrgNameForm", "effectiveStartDate",
+							"effectiveEndDate", "orgNameSubmitButton", "EndReasonType",
+							"Add a new Organizational Name")),
+			Map.entry(ProviderSection.PRACTITIONER_NAMES,
+					new ProviderDialog("maintainPersonNameDialog", "maintainPersonNameForm", "effectiveStartDate",
+							"effectiveEndDate", "personNameSubmitButton", "EndReasonType",
+							"Add a new Practitioner Name")),
+			Map.entry(ProviderSection.NOTES,
+					new ProviderDialog("maintainNoteDialog", "maintainNoteForm", "effectiveFromDate", "effectiveToDate",
+							"idNoteSubmitButton", "endReasonCode", "Add a new Note")),
+			Map.entry(ProviderSection.ORGANIZATION_RELATIONSHIPS,
+					new ProviderDialog("maintainOrganizationRelationshipDialog", "maintainOrgRelationshipForm",
+							"effectiveStartDate", "effectiveEndDate", "orgRelationshipSubmitButton", "EndReasonType",
+							"Add a new Organization Relationship")),
+			Map.entry(ProviderSection.TELECOMMUNICATIONS,
+					new ProviderDialog("maintainTelecomDialog", "maintainTelecomForm", "effectiveFromDate",
+							"effectiveToDate", "idTeleSubmitButton", "EndReasonType", "Add a new Telecommunication")),
+			Map.entry(ProviderSection.ELECTRONIC_ADDRESSES,
+					new ProviderDialog("maintainElectronicAddressDialog", "maintainElectronicAddressForm",
+							"effectiveStartDate", "effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType",
+							"Add a new Electronic Address")),
+			Map.entry(ProviderSection.CONDITIONS,
+					new ProviderDialog("maintainConditionDialog", "maintainConditionForm", "effectiveFromDate",
+							"effectiveToDate", "idSubmitButton", "EndReasonType", "Add a new Condition")),
+			Map.entry(ProviderSection.DISCIPLINARY_ACTIONS,
+					new ProviderDialog("maintainDisActionDialog", "maintainDisActionForm", "effectiveFromDate",
+							"effectiveToDate", "idSubmitButton", "EndReasonType", "Add a new Disciplinary Action")),
+			Map.entry(ProviderSection.STATUSES, new ProviderDialog("maintainStatusDialog", "maintainStatusForm",
+					"effectiveFromDate", "effectiveToDate", "idSubmitButton", "endReasonCode", "Add a new Status")));
 
 	public UpdateProviderPage(SeleniumSession selenium, URI uri) {
 		super(selenium, uri);
@@ -582,7 +599,330 @@ public class UpdateProviderPage extends ViewProviderPage {
 		cancelButton.click();
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
+	
+	//============
+	public String addIdentifiersDataBlock(String idType, String id, String effectiveFrom, String effectiveTo,boolean expectError) {
+		String msgDisplay = "";
+		String formName=DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.IDENTIFIERS);
 
+		clickHeaderAddButton(ProviderSection.IDENTIFIERS);
+		//dropdown irtype
+		if(!StringUtils.isEmpty(idType))
+			setDropdownListByVisibleText(ProviderSection.IDENTIFIERS,"providerType",idType);
+		//identifier 
+		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"identifier";
+		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if(!StringUtils.isEmpty(id))inputId.sendKeys(id);
 		
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.IDENTIFIERS, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.IDENTIFIERS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.IDENTIFIERS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+	
+	public String updateIdentifiersDataBlock(String id, String effectiveFrom, String effectiveTo,EndReason endReasonCode,
+			int inswx ,boolean expectError) {
+		String msgDisplay = "";
+		String formName=DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.IDENTIFIERS,inswx);
+		
+		//identifier 
+		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"identifier";
+		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if(!StringUtils.isEmpty(id))inputId.sendKeys(id);
+		
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.IDENTIFIERS, endReasonCode.getText());
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.IDENTIFIERS, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.IDENTIFIERS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.IDENTIFIERS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+	
+	public String addNoteDataBlock(String id, String text, String effectiveFrom, String effectiveTo,
+			boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.NOTES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.NOTES);
+
+		clickHeaderAddButton(ProviderSection.NOTES);
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(id))
+			inputId.sendKeys(id);
+
+		String inputTextCss = dialogCss + " >textarea#" + formName + "\\:" + "noteText";
+		WebElement inputText = selenium_.findElement(By.cssSelector(inputTextCss));
+		inputText.clear();
+		if (!StringUtils.isEmpty(text))
+			inputText.sendKeys(text);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.NOTES, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.NOTES);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.NOTES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+
+		return msgDisplay;
+	}
+	public String updateNoteDataBlock(String text, String effectiveFrom, String effectiveTo, EndReason endReasonCode,
+			int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.NOTES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.NOTES);
+
+		clickDataBlockUpdateButton(ProviderSection.NOTES, index);
+		waitSeconds(2);
+
+		String inputTextCss = dialogCss + " >textarea#" + formName + "\\:" + "noteText";
+		WebElement inputText = selenium_.findElement(By.cssSelector(inputTextCss));
+		inputText.clear();
+		if (!StringUtils.isEmpty(text))
+			inputText.sendKeys(text);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.NOTES, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.NOTES, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.NOTES);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.NOTES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+	public String addRegIdentifiersDataBlock(String regIdType, String regId, String effectiveFrom,
+			String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		clickHeaderAddButton(ProviderSection.REGISTRY_IDENTIFIERS);
+		//fill up reg id type
+		if(!StringUtils.isEmpty(regIdType))
+			setDropdownListByVisibleText(ProviderSection.IDENTIFIERS,"providerType",regIdType);
+		//reg identifier 
+		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"identifier";
+		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if(!StringUtils.isEmpty(regId))inputId.sendKeys(regId);
+				
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_IDENTIFIERS, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.REGISTRY_IDENTIFIERS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+	
+	public String updateRegIdentifiersDataBlock(String regIdType, String regId, String effectiveFrom,
+			String effectiveTo, EndReason endReasonCode,int index,boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.REGISTRY_IDENTIFIERS, index);
+		
+		//reg identifier 
+		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"identifier";
+		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if(!StringUtils.isEmpty(regId))inputId.sendKeys(regId);
+		//end reason code
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS, endReasonCode.getText());
+		//effective dates		
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_IDENTIFIERS, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.REGISTRY_IDENTIFIERS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+	public String addStatusDataBlock(String statusClassCode, String statusCode, String statusReasonCode,
+			String effectiveFrom, String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.STATUSES);
+
+		clickHeaderAddButton(ProviderSection.STATUSES);
+		//fill up Status Class Code
+		if(!StringUtils.isEmpty(statusClassCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusClassCode",statusClassCode);
+		//Status Code
+		if(!StringUtils.isEmpty(statusCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusCode",statusCode);
+		//Status Reason Code
+		if(!StringUtils.isEmpty(statusReasonCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusReasonCode",statusReasonCode);
+		
+		//effective dates
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.STATUSES, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.STATUSES, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.STATUSES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+	
+	
+	public String updateStatusDataBlock(String statusClassCode, String statusCode, String statusReasonCode,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode,
+			int index,boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.STATUSES);
+
+		clickDataBlockUpdateButton(ProviderSection.STATUSES, index);
+		
+		//Status Code
+		if(!StringUtils.isEmpty(statusCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusCode",statusCode);
+		//Status Reason Code
+		if(!StringUtils.isEmpty(statusReasonCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusReasonCode",statusReasonCode);
+		//
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.STATUSES, endReasonCode.getText());
+		//effective dates
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.STATUSES, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.STATUSES, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.STATUSES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	public void ceaseDataBlockByKey(ProviderSection section, String key, String value) {
+		int count=this.grabDataBlockCount(section);
+		for (int index=0;index<count;index++) {
+			LinkedHashMap<String, String> content = this.grabDataBlockContent(section, index);
+			String result=content.get(key);
+			if( value.equals(result)) {
+				this.ceaseDataBlock(section, index);
+				break;
+			}
+			
+		}
+		
+	}
+
+	public LinkedHashMap<String,String> grabDataBlockByKey(ProviderSection section, String key, String value) {
+		LinkedHashMap<String,String> resultMap = new LinkedHashMap<>();
+		int count=this.grabDataBlockCount(section);
+		for (int index=0;index<count;index++) {
+			LinkedHashMap<String, String> content = this.grabDataBlockContent(section, index);
+			String result=content.get(key);
+			if( value.equals(result)) {
+				resultMap=content;
+				break;
+			}
+			
+		}
+		return resultMap;
+		
+	}
+
+	public int findDataBloackIndexByKey(ProviderSection section, String key, String value) {
+		int indexReturn=0;
+		LinkedHashMap<String,String> resultMap = new LinkedHashMap<>();
+		int count=this.grabDataBlockCount(section);
+		for (int index=0;index<count;index++) {
+			LinkedHashMap<String, String> content = this.grabDataBlockContent(section, index);
+			String result=content.get(key);
+			if( value.equals(result)) {
+				indexReturn=index;
+				break;
+			}
+			
+		}
+		return indexReturn;
+	
+	}
+
+	public List<String> getAddIdentifierTypeList() {
+		String msgDisplay = "";
+		String formName=DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.IDENTIFIERS);
+		String dropdownName="providerType";
+		clickHeaderAddButton(ProviderSection.IDENTIFIERS);
+		DropDownMenu dropdownMenu = new DropDownMenu(selenium_,
+				By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label"),
+				By.cssSelector("div#" + formName + "\\:" + dropdownName + "_panel"));
+		dropdownMenu.expandItemPanel(true);
+		List<String> providerTypeList = dropdownMenu.grabItemList();
+		providerTypeList.remove("Select One");
+		return providerTypeList;
+		
+	}
+
+	public List<String> getAddDataBloackDropdownMenuList(ProviderSection section, String dropdownName) {
+		String msgDisplay = "";
+		String formName=DIALOG_MAP.get(section).getFormName();
+		String dialogCss = getDialogCss(section);
+		//String dropdownName="providerType";
+		clickHeaderAddButton(section);
+		DropDownMenu dropdownMenu = new DropDownMenu(selenium_,
+				By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label"),
+				By.cssSelector("div#" + formName + "\\:" + dropdownName + "_panel"));
+		dropdownMenu.expandItemPanel(true);
+		List<String> providerTypeList = dropdownMenu.grabItemList();
+		providerTypeList.remove("Select One");
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+		return providerTypeList;
+	}
+
+	public List<String> getStatusReasonCodeList(String statusCode) {
+		String msgDisplay = "";
+		String formName=DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.STATUSES);
+		
+		clickHeaderAddButton(ProviderSection.STATUSES);
+		setDropdownListByVisibleText(ProviderSection.STATUSES,"statusCode",statusCode);
+		
+		String dropdownName="statusReasonCode";
+		DropDownMenu dropdownMenu = new DropDownMenu(selenium_,
+				By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label"),
+				By.cssSelector("div#" + formName + "\\:" + dropdownName + "_panel"));
+		
+		
+		dropdownMenu.expandItemPanel(true);
+		List<String> providerTypeList = dropdownMenu.grabItemList();
+		dropdownMenu.selectItem("Select One");
+		providerTypeList.remove("Select One");
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+		return providerTypeList;
 	}
 }
