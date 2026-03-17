@@ -9,6 +9,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderSt
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationalProviderRoleType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleTypeOptions;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusCodeOption;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusReasonCodeOption;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -77,7 +78,7 @@ public class AddProviderActions {
             page.fillPI(null, "Test", null, null, "Provider");
             if (section.equals("Demographic Details")) { return page; }
 
-            page.fillDemographics("1980-06-30", "U");
+            page.fillDemographics(List.of(1980, 6, 30), "U");
             page.clickNext("Demographic Details", "");
         } else {
             page.fillOrganizationName("Test Organization", "Test Description");
@@ -298,9 +299,9 @@ public class AddProviderActions {
     {
         switch (providerType) {
             case OOP_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OOPRECT, null, null, "OOPID", "1");
+                    page.fillIdentifier(ProviderRoleTypeOptions.OOPRECT, null, null, "OOPID", "1");
             case BC_PRACTITIONER ->
-                    page.fillIdentifier(ProviderRoleType.OPT, null, null, "OPTID", "1");
+                    page.fillIdentifier(ProviderRoleTypeOptions.OPT, null, null, "OPTID", "1");
             case ORGANIZATION ->
                     page.fillIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID", "1");
         }

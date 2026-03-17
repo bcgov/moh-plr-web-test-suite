@@ -1,11 +1,10 @@
-package ca.bc.gov.health.qa.autotest.plr.web.tests;
+package ca.bc.gov.health.qa.autotest.plr.web.tests.facility;
 
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.*;
 
-import ca.bc.gov.health.qa.autotest.plr.data.ViewFacilityConstants.*;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.facility.MaintainFacilityBuilder;
@@ -43,7 +42,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	public ViewFacilitySimpleTests() {}
 
 	@AfterClass
-	public void teardown() {
+	private void teardown() {
 		dummyFacility.ceaseOrganizationRelationships();
 		fhirController.close();
 
@@ -52,7 +51,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	}
 
 	@BeforeTest
-	public void beforeTest()
+	private void beforeTest()
 	{
 		fhirController = new FHIRController(UserType.ADMIN);
 
@@ -64,7 +63,7 @@ public class ViewFacilitySimpleTests implements SimpleTest {
 	}
 
 	@BeforeMethod
-	public void before(Object[] parameters) {
+	private void before(Object[] parameters) {
 		 PlrWebWorkflow workflow = workflowManager_.selectWorkflow(parameters, UserType.ADMIN);
 		 if (!workflow.isLoggedIn()) workflow.login().openPlr();
 	}

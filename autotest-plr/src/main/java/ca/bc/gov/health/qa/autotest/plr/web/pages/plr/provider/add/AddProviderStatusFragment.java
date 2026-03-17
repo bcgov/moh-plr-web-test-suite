@@ -59,6 +59,8 @@ public class AddProviderStatusFragment extends AddProviderStepFragment {
      */
     public String selectStatusClassCode(String statusClassCode)
     {
+        // Scroll dropdown into view before expanding to ensure panel appears in visible area
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector("label#form\\:statusClassCode_label")));
         DropDownMenu menu = getStatusClassCodeMenu();
         menu.expandItemPanel(true);
         menu.selectItem(statusClassCode);
@@ -104,6 +106,8 @@ public class AddProviderStatusFragment extends AddProviderStepFragment {
      */
     public String selectStatusCode(String statusCode)
     {
+        // Scroll dropdown into view before expanding to ensure panel appears in visible area
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector("label#form\\:statusCode_label")));
         DropDownMenu menu = getStatusCodeMenu();
         menu.expandItemPanel(true);
         menu.selectItem(statusCode);
@@ -149,6 +153,8 @@ public class AddProviderStatusFragment extends AddProviderStepFragment {
      */
     public String selectStatusReasonCode(String statusReasonCode)
     {
+        // Scroll dropdown into view before expanding to ensure panel appears in visible area
+        selenium_.scrollIntoView(selenium_.findElement(By.cssSelector("label#form\\:statusReasonCode_label")));
         DropDownMenu menu = getStatusReasonCodeMenu();
         menu.expandItemPanel(true);
         menu.selectItem(statusReasonCode);

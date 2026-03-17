@@ -4,13 +4,21 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
  * Enum representing different status codes.
  */
 public enum StatusCodeOption {
-	CANCELLED("CANCELLED - Cancelled"), 
-	ACTIVE("ACTIVE - Active"), 
-	TERMINATED("TERMINATED - Terminated"), 
-	INACTIVE("INACTIVE - Inactive"), 
-	SUSPENDED("SUSPENDED - Suspended"), 
+	/** Cancelled */
+	CANCELLED("CANCELLED - Cancelled"),
+	/** Active */
+	ACTIVE("ACTIVE - Active"),
+	/** Terminated */
+	TERMINATED("TERMINATED - Terminated"),
+	/** Inactive */
+	INACTIVE("INACTIVE - Inactive"),
+	/** Suspended */
+	SUSPENDED("SUSPENDED - Suspended"),
+	/** Nullified */
 	NULLIFIED("NULLIFIED - Nullified"),
+	/** Pending */
 	PENDING("PENDING - Pending"),
+	/** Unknown */
 	UNKNOWN("UNKNOWN - Unknown");
 
 	private String text;
