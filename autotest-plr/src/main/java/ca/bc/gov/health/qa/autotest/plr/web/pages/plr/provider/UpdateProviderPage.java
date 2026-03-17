@@ -383,14 +383,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS, "regUserRelationshipType", regType);
+		if (regType != null)
+			setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
+					"regUserRelationshipType", regType);
 
 		String regIdCss = dialogCss + " > input#" + formName + "\\:registryUserId";
 		WebElement regId = selenium_.findElement(By.cssSelector(regIdCss));
 		regId.clear();
 		if (!StringUtils.isEmpty(regUserID)) regId.sendKeys(regUserID);
 
-		setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS, "regUserType", userType.getRegUserType());
+		if (userType != null)
+			setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
+					"regUserType", userType.getRegUserType());
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
@@ -683,7 +687,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 			}
 			attempts++;
 		}
-		if (msgDisplay.contains("successfully") || msgDisplay.isEmpty()) return msgDisplay;
+		if (msgDisplay.contains("successfully") || msgDisplay.isEmpty()) {
+			LOG.info("Error did not occur / dialog disappeared earlier than expected.");
+			return msgDisplay;
+		}
 		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
 		selenium_.scrollIntoView(cancelButton);
 		cancelButton.click();

@@ -100,7 +100,11 @@
     "WLAddressInfoTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Additional Address Info' length must be between 0 and 240. Your transaction has not been processed. Correct and resubmit.",
     "WLNameTooLong": "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Work Location Name' length must be between 0 and 255. Your transaction has not been processed. Correct and resubmit.",
     "WLNameMissing": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Name'. Your transaction has not been processed. Correct and resubmit.",
-    "duplicateProviderRel": "GRS.SYS.UNK.UNK.1.0.7033: Cannot create duplicate record. Check the following field: provider relationship"
+    "duplicateProviderRel": "GRS.SYS.UNK.UNK.1.0.7033: Cannot create duplicate record. Check the following field: provider relationship",
+    "registryTypeMissing": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Registry Type'. Your transaction has not been processed. Correct and resubmit.",
+    "registryIdMissing": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Registry User ID'. Your transaction has not been processed. Correct and resubmit.",
+    "registryUserTypeMissing": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Registry User Type'. Your transaction has not been processed. Correct and resubmit.",
+    "registryUserDoesNotExist": "PRS.USR.UNK.CRE.1.0.2101: Entry Error. You are trying to create a relationship with a registry user that does not exist. Your transaction has not been processed. Correct your message and try again."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",

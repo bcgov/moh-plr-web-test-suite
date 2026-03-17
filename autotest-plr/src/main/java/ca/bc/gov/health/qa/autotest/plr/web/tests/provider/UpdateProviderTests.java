@@ -547,6 +547,43 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
     }
 
+    // Update Provider - Provider to Registry User Relationship
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testProviderRegistryUserRelationship(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addRegUserRelationshipDataBlock(null, "00002855", UserType.ADMIN, true);
+
+        assertEquals(error, errorList.get("registryTypeMissing"),
+                "Expected error message for missing relationship type when adding registry user relationship");
+
+        error = page.addRegUserRelationshipDataBlock("RES", null, UserType.ADMIN, true);
+
+        assertEquals(error, errorList.get("registryIdMissing"),
+                "Expected error message for missing identifier when adding registry user relationship");
+
+        error = page.addRegUserRelationshipDataBlock("RES", "00002855", null, true);
+
+        assertEquals(error, errorList.get("registryUserTypeMissing"),
+                "Expected error message for missing user type when adding registry user relationship");
+
+        error = page.addRegUserRelationshipDataBlock("RES", "nonexistentid", UserType.ADMIN, true);
+
+        assertEquals(error, errorList.get("registryUserDoesNotExist"),
+                "Expected error message for non-existent registry user when adding registry user relationship");
+
+        page.addRegUserRelationshipDataBlock("RES", "00002855", UserType.ADMIN, false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.REGISTRY_USER_RELATIONSHIPS, true), 1,
+                "Expected 1 active registry user relationship data block after adding valid registry user relationship");
+
+        page.ceaseDataBlock(ProviderSection.REGISTRY_USER_RELATIONSHIPS, 0);
+    }
+
 	// Update Provider - Validate Provider Conditions
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
 	public void testValidateProviderConditions(ProviderType providerType) {
