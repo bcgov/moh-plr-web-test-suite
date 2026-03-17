@@ -115,8 +115,11 @@
     "errorInvCharsPayeeNumber": "GRS.PRV.PRO.MTN.1.0.9017: Invalid characters entered: Payee Number.",
     "errorDuplicatePayeeNumber": "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate Payee Number",
     "errorDuplicateHdsSubType": "GRS.SYS.UNK.UNK.1.0.7093: Cannot create duplicate HDS Sub Type",
-    "errorInvalidChar7081" : "GRS.SYS.ELE.UNK.1.0.7081: Invalid characters entered."
-
+    "errorInvalidChar7081" : "GRS.SYS.ELE.UNK.1.0.7081: Invalid characters entered.",
+    "errorStatusReasonCodeMissing" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Status Reason Code'. Your transaction has not been processed. Correct and resubmit.",
+    "errorNoteTextMissing" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Note Text'. Your transaction has not been processed. Correct and resubmit.",
+    "errorNoteTextLength" : "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Note Text' length must be between 0 and 255. Your transaction has not been processed. Correct and resubmit.",
+    "errorStatusCodeMissing": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Status Code'. Your transaction has not been processed. Correct and resubmit."
   },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",
