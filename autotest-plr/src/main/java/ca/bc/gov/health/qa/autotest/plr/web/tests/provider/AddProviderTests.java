@@ -3,8 +3,6 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityBuilderFactory;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.facility.FacilityDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
@@ -20,7 +18,6 @@ import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.Provider;
 
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;

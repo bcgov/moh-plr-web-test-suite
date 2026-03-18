@@ -89,8 +89,6 @@ public class InjectableData
      *
      * @return a two-dimensional array of all PLR user types, where each inner array contains a single UserType value
      * Provides just the BC Practitioner and Organization provider types for tests that need to cover only these types.
-     *
-     * @return A two-dimensional array of BC Practitioner and Organization provider types.
      */
     @DataProvider(name = "indOrgTypes")
     public static Object[][] getIndOrgTypes()
