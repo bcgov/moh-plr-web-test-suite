@@ -166,11 +166,11 @@ public class PlrData
         final String defaultName = pracType.equals("BC") ? "TestBCPrac2" : "TestOOPPrac2";
         final String minimumName = pracType.equals("BC") ? "MinimumDataBCPrac" : "MinimumDataOOPPrac";
 
-        MaintainIndividualBuilder defaultBuilder = factory.build(new IndividualMaintainConfig()
+        MaintainIndividualBuilder defaultBuilder = factory.build(new IndividualMaintainConfig(roleType)
                         .withDemographics().withGivenNames().withAllTelecom().withNotes(2).withStatuses(2)
                         .withCredentials(2).withConditions(2).withDisciplinaryActions(2)
                         .withExpertise(0).withOrganizationRelationships(2).withIndividualRelationships(2))
-                .familyName(defaultName).roleType(roleType).confidentiality(false)
+                .familyName(defaultName).confidentiality(false)
                 .addExpertise("ENG", dataGen.shortText())
                 .addExpertise("SPAN", dataGen.shortText());
 
@@ -211,7 +211,7 @@ public class PlrData
             //defaultBuilder = defaultBuilder.addIndividualRelationship(
             //        IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            defaultIndiv = fhir.queryIndividualByIdentifier(ipc, fhir.submitIndividual(defaultBuilder).getIdentifier(ipc));
+            defaultIndiv = fhir.queryIndividualByIdentifier(roleType.getIdentifierType(), fhir.submitIndividual(defaultBuilder).getIdentifier(roleType.getIdentifierType()));
         } else defaultIndiv = defaultQuery.getFirst();
 
         defaultMap.put(providerType, defaultIndiv);
@@ -222,7 +222,7 @@ public class PlrData
 
         MaintainIndividualBuilder minimumIndiv;
         if (minimumQuery.isEmpty())
-            minimumIndiv = fhir.queryIndividualByIdentifier(ipc, fhir.submitIndividual(minimumBuilder).getIdentifier(ipc));
+            minimumIndiv = fhir.queryIndividualByIdentifier(roleType.getIdentifierType(), fhir.submitIndividual(minimumBuilder).getIdentifier(roleType.getIdentifierType()));
         else
             minimumIndiv = minimumQuery.getFirst();
 
