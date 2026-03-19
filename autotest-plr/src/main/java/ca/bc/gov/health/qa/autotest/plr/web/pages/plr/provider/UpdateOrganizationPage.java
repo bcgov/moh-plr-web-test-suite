@@ -3,11 +3,15 @@ package ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.IdType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.OrgNameType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.provider.RegIdType;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -25,6 +29,8 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
  * with specific functionality for Organization Properties section
  */
 public class UpdateOrganizationPage extends UpdateProviderPage {
+
+	private static final Logger LOG = ExecutionLogManager.getLogger();
 
 	/**
 	 * Enhanced DIALOG_MAP that includes parent's entries plus ORGANIZATION_PROPERTIES.
@@ -73,7 +79,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 				.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
 		selenium_.scrollIntoView(clickElement);
 		try {
-			clickElement.click();
+			Objects.requireNonNull(clickElement).click();
 		} catch (StaleElementReferenceException | ElementClickInterceptedException e) {
 			waitSeconds(2);
 			clickElement = selenium_.findElement(By.cssSelector(clickElementCss));
@@ -94,8 +100,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	@Override
 	public void clickDataBlockUpdateButton(ProviderSection section, int index) {
 		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
-		WebElement updateButton = selenium_.waitUntil(ExpectedConditions
-				.elementToBeClickable(By.cssSelector(selectCss)));
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(selectCss)));
+		WebElement updateButton = selenium_.findElementByCss(selectCss);
 		selenium_.scrollIntoView(updateButton);
 
 		try {
@@ -111,8 +117,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 			dialogCss = getOrgDialogCss(section);
 		} else {
 			// For other sections, use parent's DIALOG_MAP directly
-			String dialogName = UpdateProviderPage.DIALOG_MAP.get(section).getDialogName();
-			String formName = UpdateProviderPage.DIALOG_MAP.get(section).getFormName();
+			String dialogName = DIALOG_MAP.get(section).getDialogName();
+			String formName = DIALOG_MAP.get(section).getFormName();
 			dialogCss = "div#" + dialogName + " > div#" + dialogName + "_content" + " > form#" + formName;
 		}
 			
@@ -131,14 +137,16 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		
 		// Click the datepicker trigger button
 		String triggerButtonCss = "span#" + formName + "\\:" + effectiveFromStr + " > button.ui-datepicker-trigger";
-		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(triggerButtonCss))).click();
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(triggerButtonCss)));
+		selenium_.findElementByCss(triggerButtonCss).click();
 		
 		// Wait for datepicker to appear and click the "Today" button
 		By datepickerLocator = By.cssSelector("div#ui-datepicker-div");
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(datepickerLocator));
 		
 		By todayButtonLocator = By.cssSelector("button.ui-datepicker-current");
-		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(todayButtonLocator)).click();
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(todayButtonLocator));
+		selenium_.findElement(todayButtonLocator).click();
 		
 		// Get the value from the input field
 		String inputCss = "input#" + formName + "\\:" + effectiveFromStr + "_input";
@@ -258,6 +266,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 			waitSeconds(5);
 			try {
 				msgDisplay = getDialogMessages(section);
+				LOG.info(msgDisplay);
 			} catch (StaleElementReferenceException e) {
 				waitSeconds(5);
 			}
@@ -282,7 +291,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	private void findAndFillOrgInputField(String dialogCss, String formName, String field, String fieldCss) {
 		String inputNameCss = dialogCss + " >input#" + formName + "\\:" + fieldCss;
 		// Wait for the input field to be visible
-		WebElement inputName = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+		WebElement inputName = selenium_.findElementByCss(inputNameCss);
         waitSeconds(1);
 
 		inputName.clear();
@@ -301,7 +311,8 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	private void findAndFillOrgTextAreaField(String dialogCss, String formName, String field, String fieldCss) {
 		String textAreaCss = dialogCss + " >textarea#" + formName + "\\:" + fieldCss;
 		// Wait for the textarea field to be visible
-		WebElement textArea = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(textAreaCss)));
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(textAreaCss)));
+		WebElement textArea = selenium_.findElementByCss(textAreaCss);
         waitSeconds(1);
 
 		textArea.clear();
@@ -349,8 +360,11 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	private void setOrgCheckboxValue(String dialogCss, String formName, String fieldCss, boolean checked) {
 		// First try selectBooleanButton (used by PCI Flag)
 		String buttonCss = dialogCss + " > div#" + formName + "\\:" + fieldCss;
-		WebElement buttonElement = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(buttonCss)));
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(buttonCss)));
+		WebElement buttonElement = selenium_.findElement(By.cssSelector(buttonCss));
 		waitSeconds(1);
+
+		String btnClass = buttonElement.getAttribute("class");
 
 		// Check if it's a selectBooleanButton
 		if (buttonElement.getAttribute("class").contains("ui-selectbooleanbutton")) {
@@ -364,9 +378,14 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 			// Handle regular checkbox
 			String checkboxCss = buttonCss + " > div.ui-chkbox-box";
 			WebElement checkbox = selenium_.findElement(By.cssSelector(checkboxCss));
+			String chkClass = checkbox.getAttribute("class");
 
-			boolean isChecked = checkbox.getAttribute("class").contains("ui-state-active");
+			// default is to click (in the event of an unlikely null pointer)
+			boolean isChecked = !checked;
 
+			if (chkClass != null)
+				isChecked = chkClass.contains("ui-state-active");
+			
 			// Only click if the state needs to change
 			if (isChecked != checked) {
 				checkbox.click();
@@ -399,7 +418,6 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return the full message dialog of errors, if any exist. otherwise an empty string
 	 */
 	public String addRegistryIdentifierDataBlock(RegIdType identifierType, String identifier) {
-		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
 
@@ -417,7 +435,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 
 		clickOrgDialogSubmitButton(ProviderSection.REGISTRY_IDENTIFIERS);
 
-		msgDisplay = getDialogMessages(ProviderSection.REGISTRY_IDENTIFIERS);
+		String msgDisplay = getDialogMessages(ProviderSection.REGISTRY_IDENTIFIERS);
 
 		if (!StringUtils.isEmpty(msgDisplay)) {
 			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
@@ -435,7 +453,6 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return the full message dialog of errors, if any exist. otherwise an empty string
 	 */
 	public String addIdentifierDataBlock(IdType identifierType, String identifier) {
-		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.IDENTIFIERS);
 
@@ -453,7 +470,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 
 		clickOrgDialogSubmitButton(ProviderSection.IDENTIFIERS);
 
-		msgDisplay = getDialogMessages(ProviderSection.IDENTIFIERS);
+		String msgDisplay = getDialogMessages(ProviderSection.IDENTIFIERS);
 
 		if (!StringUtils.isEmpty(msgDisplay)) {
 			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
@@ -469,9 +486,10 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @param nameType the organization name type
 	 * @param name the organization name
 	 * @param description the organization description
+	 * @param expectError whether an error is anticipated
 	 * @return the full message dialog of errors, if any exist. otherwise an empty string
 	 */
-	public String addOrganizationNameDataBlock(OrgNameType nameType, String name, String description) {
+	public String addOrganizationNameDataBlock(OrgNameType nameType, String name, String description, boolean expectError) {
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_NAMES).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_NAMES);
@@ -491,14 +509,13 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		// Set Description field
 		findAndFillOrgInputField(dialogCss, formName, description, "longName");
 
-		clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_NAMES);
+		setOrgDialogEffectiveFromAndEffectiveTo(ProviderSection.ORGANIZATION_NAMES,
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
 
-		msgDisplay = getDialogMessages(ProviderSection.ORGANIZATION_NAMES);
+		clickOrgDialogSubmitButton(ProviderSection.ORGANIZATION_NAMES, expectError);
 
-		if (!StringUtils.isEmpty(msgDisplay)) {
-			WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
-			cancelButton.click();
-		}
+		if(expectError)
+			msgDisplay=waitErrorMessage(ProviderSection.CONDITIONS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
@@ -514,7 +531,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return the full message dialog of errors, if any exist. otherwise an empty string
 	 */
 	public String addOrganizationPropertyDataBlock(OrganizationProperties propertyType, String propertyValue, String effectiveFrom, String effectiveTo) {
-		String msgDisplay = "";
+		String msgDisplay;
 		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_PROPERTIES).getFormName();
 		String dialogCss = getOrgDialogCss(ProviderSection.ORGANIZATION_PROPERTIES);
 
@@ -769,9 +786,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return String of error messages
 	 */
 	public String waitOrgErrorMessage(ProviderSection section) {
-		String msgDisplay = "";
-
-		msgDisplay = getDialogMessages(section);
+		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
 			waitSeconds(5);
 			try {
