@@ -6,10 +6,12 @@ import static org.testng.Assert.assertTrue;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
@@ -32,7 +34,6 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /** Tests class for the View Provider page */
 public class ViewProviderTests implements SimpleTest
@@ -73,10 +74,26 @@ public class ViewProviderTests implements SimpleTest
     {
         fhirController = new FHIRController(UserType.ADMIN);
 
-        // TODO: CHG and CORR some records in these methods for automated history/audit view testing
-        PlrData.setupPractitioner(fhirController, ProviderType.BC_PRACTITIONER, defaultProviders, minimumProviders);
-        PlrData.setupPractitioner(fhirController, ProviderType.OOP_PRACTITIONER, defaultProviders, minimumProviders);
-        PlrData.setupOrgProvider(fhirController, defaultProviders, minimumProviders);
+        for (ProviderType providerType : ProviderType.values()) {
+            if (providerType.equals(ProviderType.ORGANIZATION)) {
+                PlrData.setupOrgProvider(fhirController, defaultProviders, minimumProviders);
+            } else {
+                PlrData.setupPractitioner(fhirController, providerType, defaultProviders, minimumProviders);
+            }
+
+            if (workflowManager_.getSelectedWorkflow() == null) {
+                before(new Object[]{UserType.ADMIN});
+            }
+            UpdateProviderPage page = viewByIdentifierAsUpdateProvider(
+                    getIdentifierFromBuilder(defaultProviders, providerType), workflowManager_);
+
+            if (page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true) == 0) {
+                page.addWorkLocationDataBlock("1", true, "Work Location", "CC", "Audit view", false);
+                page.updateWorkLocationDataBlock(true, "Corrected Work Location", "CC", null, EndReason.CORR ,false);
+                page.updateWorkLocationDataBlock(false, "Changed Work Location", "CC", "History view", EndReason.CHG, false);
+                page.addWorkLocationDataBlock("2", true, "Second Work Location", "CC", "Current view", false);
+            }
+        }
     }
 
     /** View Provider : Default Provider Detail Screen Record Display */

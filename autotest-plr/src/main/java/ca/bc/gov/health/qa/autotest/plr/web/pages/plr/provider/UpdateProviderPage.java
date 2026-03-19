@@ -375,6 +375,43 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
+	 * fill the Work Location Data Block in update scenario,
+	 * the effective date fields will not be filled in this case since they are already set
+	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
+	 * @param name the name to input
+	 * @param providerType the provider type to select
+	 * @param addressInfo the address info to input
+	 * @param endReason the end reason to select
+	 */
+	public void fillWorkLocationDataBlockUpdate(boolean defaultFlag, String name, String providerType,
+												String addressInfo, EndReason endReason) {
+		String formName = DIALOG_MAP.get(ProviderSection.WORK_LOCATIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.WORK_LOCATIONS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		String defaultFlagCss = dialogCss + " > div#" + formName + "\\:defaultFlag";
+		WebElement defaultFlagCheckbox = selenium_.findElement(By.cssSelector(defaultFlagCss));
+		if (getChkBoxState(ProviderSection.WORK_LOCATIONS, defaultFlagCheckbox) != defaultFlag) defaultFlagCheckbox.click();
+
+		String wlNameCss = dialogCss+" >input#"+formName+"\\:name";
+		WebElement wlName = selenium_.findElement(By.cssSelector(wlNameCss));
+		wlName.clear();
+		if(!StringUtils.isEmpty(name)) wlName.sendKeys(name);
+
+		setDropdownListByVisibleText(ProviderSection.WORK_LOCATIONS, "providerType", providerType);
+
+		String addressInfoCss = dialogCss + " > textarea#" + formName + "\\:additionalInfo";
+		WebElement addressInfoInput = selenium_.findElement(By.cssSelector(addressInfoCss));
+		addressInfoInput.clear();
+		if(!StringUtils.isEmpty(addressInfo)) addressInfoInput.sendKeys(addressInfo);
+
+		setEndReasonByVisibleText(ProviderSection.WORK_LOCATIONS, endReason.getText());
+	}
+
+	/**
 	 * performing action of adding Condition Data Block, perform error message check if necessary
 	 * @param conditionType the condition type to select
 	 * @param conditionIdentifier the condition identifier to input
@@ -422,6 +459,33 @@ public class UpdateProviderPage extends ViewProviderPage {
 		clickHeaderAddButton(ProviderSection.WORK_LOCATIONS);
 
 		fillWorkLocationDataBlock(locationID, defaultFlag, name, providerType, addressInfo);
+
+		clickDialogSubmitButton(ProviderSection.WORK_LOCATIONS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.WORK_LOCATIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of updating Work Location Data Block, perform error message check if necessary
+	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
+	 * @param name the name to input
+	 * @param providerType the provider type to select
+	 * @param addressInfo the address info to input
+	 * @param endReason the end reason to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String updateWorkLocationDataBlock(boolean defaultFlag, String name, String providerType, String addressInfo,
+											  EndReason endReason, boolean expectError) {
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.WORK_LOCATIONS);
+
+		clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+
+		fillWorkLocationDataBlockUpdate(defaultFlag, name, providerType, addressInfo, endReason);
 
 		clickDialogSubmitButton(ProviderSection.WORK_LOCATIONS, expectError);
 
