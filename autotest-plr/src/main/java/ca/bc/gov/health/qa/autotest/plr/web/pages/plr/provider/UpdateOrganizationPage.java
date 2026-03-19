@@ -257,8 +257,12 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @return String of error messages
 	 */
 	public String waitErrorMessage(ProviderSection section) {
+		final int MAX_ATTEMPTS = 5;
+		int attempts = 0;
+
 		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
+			if (attempts >= MAX_ATTEMPTS) break;
 			waitSeconds(5);
 			try {
 				msgDisplay = getDialogMessages(section);
@@ -266,7 +270,9 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 			} catch (StaleElementReferenceException e) {
 				waitSeconds(5);
 			}
+			attempts++;
 		}
+		if (msgDisplay.isEmpty() || msgDisplay.contains("successfully")) return msgDisplay;
 		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
 		selenium_.scrollIntoView(cancelButton);
 		cancelButton.click();
@@ -361,9 +367,9 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		String btnClass = buttonElement.getAttribute("class");
 
 		// Check if it's a selectBooleanButton
-		if (btnClass != null && btnClass.contains("ui-selectbooleanbutton")) {
-			boolean isChecked = btnClass.contains("ui-state-active");
-			
+		if (buttonElement.getAttribute("class").contains("ui-selectbooleanbutton")) {
+			boolean isChecked = buttonElement.getAttribute("class").contains("ui-state-active");
+
 			// Only click if the state needs to change
 			if (isChecked != checked) {
 				buttonElement.click();
@@ -699,7 +705,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 
 		try {
 			clickDataBlockUpdateButton(ProviderSection.ORGANIZATION_PROPERTIES, index);
-			
+
 			// Wait for dialog to be visible and stable
 			selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 			waitSeconds(2);
@@ -727,7 +733,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 			// Re-throw the original exception
 			throw e;
 		}
-	
+
 		return msgDisplay;
 	}
 	/**
