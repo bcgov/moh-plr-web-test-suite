@@ -163,7 +163,7 @@ public class PlrData
         final String pracType = providerType.equals(ProviderType.BC_PRACTITIONER) ? "BC" : "OOP";
         final IndividualRoleType roleType = pracType.equals("BC") ? IndividualRoleType.DEN : IndividualRoleType.OOP_DEN;
 
-        final String defaultName = pracType.equals("BC") ? "TestBCPrac" : "TestOOPPrac";
+        final String defaultName = pracType.equals("BC") ? "TestBCPrac2" : "TestOOPPrac2";
         final String minimumName = pracType.equals("BC") ? "MinimumDataBCPrac" : "MinimumDataOOPPrac";
 
         MaintainIndividualBuilder defaultBuilder = factory.build(new IndividualMaintainConfig()
@@ -191,25 +191,25 @@ public class PlrData
         if (defaultQuery.isEmpty())
         {
             // Create Organization/Individual relationships
-            String orgRelIdentifier = fhir.createOrganization(OrganizationDataGenerator.getInstance().randomOrgRoleType())
-                    .getIdentifier(IdentifierType.IPC);
-            defaultBuilder = defaultBuilder.addOrganizationRelationship(
-                    IdentifierType.IPC, orgRelIdentifier, dataGen.generatePractitionerRelationshipCode());
+            //String orgRelIdentifier = fhir.createOrganization(OrganizationDataGenerator.getInstance().randomOrgRoleType())
+            //        .getIdentifier(IdentifierType.IPC);
+            //defaultBuilder = defaultBuilder.addOrganizationRelationship(
+            //        IdentifierType.IPC, orgRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            orgRelIdentifier = fhir.createOrganization(OrganizationDataGenerator.getInstance().randomOrgRoleType())
-                    .getIdentifier(IdentifierType.IPC);
-            defaultBuilder = defaultBuilder.addOrganizationRelationship(
-                    IdentifierType.IPC, orgRelIdentifier, dataGen.generatePractitionerRelationshipCode());
+            //orgRelIdentifier = fhir.createOrganization(OrganizationDataGenerator.getInstance().randomOrgRoleType())
+            //        .getIdentifier(IdentifierType.IPC);
+            //defaultBuilder = defaultBuilder.addOrganizationRelationship(
+            //        IdentifierType.IPC, orgRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            String indRelIdentifier = fhir.createIndividual(dataGen.randomRoleType(false))
-                    .getIdentifier(IdentifierType.IPC);
-            defaultBuilder = defaultBuilder.addIndividualRelationship(
-                    IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
+            //String indRelIdentifier = fhir.createIndividual(dataGen.randomRoleType(false))
+            //        .getIdentifier(IdentifierType.IPC);
+            //defaultBuilder = defaultBuilder.addIndividualRelationship(
+            //        IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            indRelIdentifier = fhir.createIndividual(dataGen.randomRoleType(false))
-                    .getIdentifier(IdentifierType.IPC);
-            defaultBuilder = defaultBuilder.addIndividualRelationship(
-                    IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
+            //indRelIdentifier = fhir.createIndividual(dataGen.randomRoleType(false))
+            //        .getIdentifier(IdentifierType.IPC);
+            //defaultBuilder = defaultBuilder.addIndividualRelationship(
+            //        IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
             defaultIndiv = fhir.queryIndividualByIdentifier(ipc, fhir.submitIndividual(defaultBuilder).getIdentifier(ipc));
         } else defaultIndiv = defaultQuery.getFirst();
