@@ -49,6 +49,19 @@ public class ViewProviderActions
     private final URI             uri_;
     private final UserType        userType_;
 
+    private final List<Map<String,String>> wlMap = List.of(
+            Map.of("Identifier", "1",
+            "Work Location Details-0-Name", "Changed Work Location",
+            "Work Location Details-0-Type", "Community Care",
+            "Work Location Details-0-Default Flag", "No",
+            "Work Location Details-0-Additional Info", "History view"),
+            Map.of("Identifier", "2",
+                    "Work Location Details-0-Name", "Second Work Location",
+                    "Work Location Details-0-Type", "Community Care",
+                    "Work Location Details-0-Default Flag", "Yes",
+                    "Work Location Details-0-Additional Info", "Current view")
+    );
+
     /**
      * Initializes class and SeleniumSession.
      *
@@ -319,10 +332,6 @@ public class ViewProviderActions
                     provider.getString("owner") +
                     ") - " +
                     provider.getString("status");
-            default -> {
-                String msg = String.format("Unsupported provider type (%s).", providerType);
-                throw new IllegalStateException(msg);
-            }
         };
     }
 
@@ -708,7 +717,26 @@ public class ViewProviderActions
                     demographicFields.get(1), "Gender in webapp does not match FHIR response");
         }
 
-        // TODO: Work Locations
+        // Work Locations todo
+        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.WORK_LOCATIONS); i++)
+        {
+            Map<String,String> webConditionMap = viewProvider.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, i);
+            Map<String,String> workLocationMap = wlMap.get(i);
+
+            final String wlDetails = "Work Location Details-0-";
+
+            assertEquals(webConditionMap.get("Identifier"), workLocationMap.get("Identifier"),
+                    "Work Location Identifier in webapp does not match expectation");
+
+            assertEquals(webConditionMap.get(wlDetails + "Name"), workLocationMap.get(wlDetails + "Name"),
+                    "Work Location Name in webapp does not match expectation");
+            assertEquals(webConditionMap.get(wlDetails + "Type"), workLocationMap.get(wlDetails + "Type"),
+                    "Work Location Type in webapp does not match expectation");
+            assertEquals(webConditionMap.get(wlDetails + "Default Flag"), workLocationMap.get(wlDetails + "Default Flag"),
+                    "Work Location Default Flag in webapp does not match expectation");
+            assertEquals(webConditionMap.get(wlDetails + "Additional Info"), workLocationMap.get(wlDetails + "Additional Info"),
+                    "Work Location Additional Info in webapp does not match expectation");
+        }
 
         // Conditions
         if (!isOrganization)

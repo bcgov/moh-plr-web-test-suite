@@ -89,10 +89,12 @@ public class ViewProviderTests implements SimpleTest
 
             // TODO: this should be done for every provider section possible at some point
             if (page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true) == 0) {
-                page.addWorkLocationDataBlock("1", true, "Work Location", "CC", "Audit view", false);
+                page.addWorkLocationDataBlock("1", true, "Ceased Work Location", "CC", "test", false);
+                page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+                page.addWorkLocationDataBlock("2", true, "Work Location", "CC", "Audit view", false);
                 page.updateWorkLocationDataBlock(true, "Corrected Work Location", "CC", null, EndReason.CORR ,false);
                 page.updateWorkLocationDataBlock(false, "Changed Work Location", "CC", "History view", EndReason.CHG, false);
-                page.addWorkLocationDataBlock("2", true, "Second Work Location", "CC", "Current view", false);
+                page.addWorkLocationDataBlock("3", true, "Second Work Location", "CC", "Current view", false);
             }
         }
     }
