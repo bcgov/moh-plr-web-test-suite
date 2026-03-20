@@ -208,8 +208,9 @@ public class UpdateProviderPage extends ViewProviderPage {
      *
      * @param section the provider section to find the data block's update button within
      * @param index the specific index of the data block to find and click the update button for
+	 * @return the WebElement of the dialog content after clicking the update button and waiting for the dialog to be visible
      */
-	public void clickDataBlockUpdateButton(ProviderSection section, int index) {
+	public WebElement clickDataBlockUpdateButton(ProviderSection section, int index) {
 		String selectCss;
 		if (section.equals(ProviderSection.WORK_LOCATIONS)) {
 			expandDataBlock(section, index, true);
@@ -229,6 +230,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String dialogCss = getDialogCss(section);
 		WebElement visibleElement = selenium_
 				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
 	}
 
 	/**
@@ -264,7 +266,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	{
 		String formName = DIALOG_MAP.get(section).getFormName();
 		String dialogCss = getDialogCss(section);
-		String checkBoxCss = dialogCss + " > div#" + formName + "\\:" + checkBoxName;
+		String checkBoxCss = dialogCss + " > div#" + formName + "\\:" + checkBoxName + " > div > span";
 		WebElement checkBox = selenium_.findElement(By.cssSelector(checkBoxCss));
 		return getChkBoxState(section, checkBox);
 	}
@@ -516,8 +518,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		String defaultFlagCss = dialogCss + " > div#" + formName + "\\:defaultFlag";
+		String defaultFlagCss = dialogCss + " > div#" + formName + "\\:defaultFlag > div > span";
 		WebElement defaultFlagCheckbox = selenium_.findElement(By.cssSelector(defaultFlagCss));
+		LOG.info(getChkBoxState(ProviderSection.WORK_LOCATIONS, defaultFlagCheckbox));
+		LOG.info(defaultFlag);
 		if (getChkBoxState(ProviderSection.WORK_LOCATIONS, defaultFlagCheckbox) != defaultFlag) defaultFlagCheckbox.click();
 
 		String wlNameCss = dialogCss+" >input#"+formName+"\\:name";

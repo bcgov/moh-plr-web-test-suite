@@ -98,7 +98,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	 * @param index the index of the data block to update
 	 */
 	@Override
-	public void clickDataBlockUpdateButton(ProviderSection section, int index) {
+	public WebElement clickDataBlockUpdateButton(ProviderSection section, int index) {
 		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
 		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(selectCss)));
 		WebElement updateButton = selenium_.findElementByCss(selectCss);
@@ -123,6 +123,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 		}
 			
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
 	}
 
 	/**

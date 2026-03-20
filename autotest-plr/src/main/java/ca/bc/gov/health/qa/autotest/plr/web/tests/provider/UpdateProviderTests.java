@@ -19,6 +19,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ConditionType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -586,6 +587,28 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected 1 active registry user relationship data block after adding valid registry user relationship");
 
         page.ceaseDataBlock(ProviderSection.REGISTRY_USER_RELATIONSHIPS, 0);
+    }
+
+    // Update Provider - Update Work Locations
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testUpdateWorkLocations(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
+
+        WebElement dialog = page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+        assertTrue(dialog.isDisplayed(), "Expected work location dialog to be displayed after clicking update button on work location data block");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        page.updateWorkLocationDataBlock(false, "Updated Name", "HID", "Updated Info", EndReason.CHG, false);
+
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+
+        LOG.info(wlContent);
     }
 
 	// Update Provider - Validate Provider Conditions
