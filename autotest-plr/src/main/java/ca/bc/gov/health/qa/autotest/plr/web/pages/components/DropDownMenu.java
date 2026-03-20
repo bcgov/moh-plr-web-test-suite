@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -51,7 +52,9 @@ extends BasicWebPageFragment
     {
         if (grabItemPanelExpanded() != expand)
         {
-			selenium_.findElement(mainLocator_).click();
+        	Actions actions = new Actions(selenium_.getDriver());
+        	actions.moveToElement(selenium_.findElement(mainLocator_)).click().perform();
+			//selenium_.findElement(mainLocator_).click();
 			waitForItemPanelExpanded(expand);
         }
     }
@@ -77,6 +80,7 @@ extends BasicWebPageFragment
         {
             itemList.add(itemElement.getText());
         }
+        expandItemPanel(false); // to handle accidental click interceptions
         return itemList;
     }
 
@@ -119,7 +123,8 @@ extends BasicWebPageFragment
      */
     public String selectItem(String itemPrefix)
     {
-        expandItemPanel(true);
+        if(!grabItemPanelExpanded())
+        	expandItemPanel(true);
         return selectItemFromPanel(itemPrefix);
     }
 
@@ -147,7 +152,10 @@ extends BasicWebPageFragment
     {
         WebElement item = findItem(itemPrefix);
         selenium_.scrollIntoView(item);
+        selenium_.waitUntil(ExpectedConditions.elementToBeClickable(item));
         String itemLabel = item.getText();
+        //Actions actions = new Actions(selenium_.getDriver());
+    	//actions.moveToElement(item).click().perform();
         item.click();
         waitForItemPanelExpanded(false);
         String selectedItem = grabSelectedItem();
@@ -246,8 +254,13 @@ extends BasicWebPageFragment
     {
         if (expanded)
         {
+        	try{
             selenium_.waitUntil(
                     ExpectedConditions.visibilityOfElementLocated(itemPanelLocator_));
+        	}
+        	catch(org.openqa.selenium.TimeoutException e){
+        		
+        	}
 
             // Wait for the expand animation to complete.
             // NOTE: The value of the CSS property "opacity" is changing

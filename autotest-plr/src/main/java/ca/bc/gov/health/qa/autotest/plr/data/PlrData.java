@@ -34,7 +34,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 
 /**
- * TODO (AZ) - doc
+ * PLR Data utility class for getting and setting up PLR test data.
  */
 public class PlrData
 {
@@ -88,9 +88,9 @@ public class PlrData
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets the PLR FHIR keystore path.
      *
-     * @return ???
+     * @return the keystore path
      */
     public static Path getKeyStorePath()
     {
@@ -118,18 +118,12 @@ public class PlrData
     }
 
     /**
-     * TODO (AZ) - doc
+     * Gets provider data for the given provider type and key.
      *
-     * @param providerType
-     *        ???
-     *
-     * @param key
-     *        ???
-     *
-     * @return ???
-     *
-     * @throws IllegalStateException
-     *         if the provider type is not supported
+     * @param providerType              the provider type
+     * @param key                       the provider key
+     * @return                          provider data as JSON object
+     * @throws IllegalStateException    if the provider type is not supported
      */
     @Deprecated
     public static JSONObject getProvider(ProviderType providerType, String key)
@@ -230,7 +224,7 @@ public class PlrData
     /**
      * Finds organizations with expected properties for tests, or creates them if they don't exist.
      *
-     * @param fhir          the FHIRController reference for fhir endpoint use
+     * @param fhir          the FHIRController reference for FHIR endpoint use
      * @param defaultMap    a map of default data set provider builders based on provider type
      * @param minimumMap    a map of minimum data set provider builders based on provider type
      */
@@ -306,7 +300,7 @@ public class PlrData
     }
 
     /**
-     * TODO (KD) - doc
+     * Gets facility data for the given key.
      *
      * @param key the configuration key name
      * @return the string value for the given key, or null if absent

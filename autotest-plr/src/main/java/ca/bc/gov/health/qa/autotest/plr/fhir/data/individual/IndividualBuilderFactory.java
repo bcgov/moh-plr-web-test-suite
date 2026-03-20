@@ -16,7 +16,10 @@ public class IndividualBuilderFactory {
 
     private final IndividualDataGenerator dataGen;
 
-    /** Create a new factory with the provided data generator. */
+    /**
+     * Create a new factory with the provided data generator.
+     * @param dataGen data generator to use for populating attributes
+     */
     public IndividualBuilderFactory(IndividualDataGenerator dataGen) {
         this.dataGen = dataGen;
     }

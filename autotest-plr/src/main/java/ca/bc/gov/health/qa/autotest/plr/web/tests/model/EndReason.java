@@ -3,13 +3,13 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
 /**
  * Enumerates end reasons used for relationship/status termination.
  */
-
 public enum EndReason {
-	
-	
-	 CEASE("CEASE - Cease"), 
-	 CHG("CHG - Change"),
-	 CORR("CORR - Correct");
+	/** Cease */
+	CEASE("CEASE - Cease"),
+	/** Change */
+	CHG("CHG - Change"),
+	/** Correct */
+	CORR("CORR - Correct");
 
 	private String text;
 

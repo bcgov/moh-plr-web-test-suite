@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.AbstractDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsSubType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicOwnerBusinessType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.ClinicServices;
@@ -130,6 +131,12 @@ public final class OrganizationDataGenerator extends AbstractDataGenerator {
      * @return a random {@link ClinicType}
      */
     public ClinicType randomClinicType() { return pick(List.of(ClinicType.values())); }
+
+    /**
+     * Returns a random HDS sub type value.
+     * @return a random {@link HdsSubType}
+     */
+    public HdsSubType randomHdsSubType() { return pick(List.of(HdsSubType.values())); }
 
     /**
      * Generates a plausible legal business name for the clinic.
