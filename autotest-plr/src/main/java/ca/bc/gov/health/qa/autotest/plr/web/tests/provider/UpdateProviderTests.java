@@ -3,6 +3,7 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.*;
 import static org.testng.Assert.*;
+import static ca.bc.gov.health.qa.autotest.plr.data.UpdateProviderConstants.*;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
@@ -116,6 +117,70 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 0,
                 "Expected no active condition data blocks after cancelling add");
+    }
+
+    // Update Provider - Add Provider Relationships
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testAddProviderRelationships(ProviderType providerType)
+    {
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        WebElement dialog = page.clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+        assertTrue(dialog.isDisplayed(), "Expected provider relationship dialog to be displayed after clicking add button");
+        page.clickDialogCancelButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after adding provider relationship");
+
+        page.clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+        page.fillProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "ER");
+        page.clickDialogCancelButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after cancelling add of second provider relationship");
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
+
+    // Update Provider - Add Registry User Relationships
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testAddRegUserRelationships(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        WebElement dialog = page.clickHeaderAddButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+        assertTrue(dialog.isDisplayed(), "Expected registry user relationship dialog to be displayed after clicking add button");
+
+        page.clickDialogCancelButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+        page.addRegUserRelationshipDataBlock("RES", "00002855", UserType.ADMIN, false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.REGISTRY_USER_RELATIONSHIPS, true), 1,
+                "Expected 1 active registry user relationship data block after adding registry user relationship");
+
+        page.clickHeaderAddButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+        page.fillRegUserRelationshipDataBlock("RES", "00002855", UserType.ADMIN);
+        page.clickDialogCancelButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.REGISTRY_USER_RELATIONSHIPS, true), 1,
+                "Expected 1 active registry user relationship data block after cancelling add of second registry user relationship");
+
+        page.ceaseDataBlock(ProviderSection.REGISTRY_USER_RELATIONSHIPS, 0);
     }
 
     // Update Provider - Add Work Locations
@@ -412,6 +477,117 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
+    // Update Provider - Provider Relationship Types
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testProviderRelationshipTypes(ProviderType providerType)
+    {
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "ER", false);
+
+        Map<String,String> prContent = page.grabDataBlockContent(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+
+        assertEquals(prContent.get("Relationship Type"), "Employer (ER)",
+                "Expected relationship type to be 'Employer (ER)' after adding provider relationship with ER type");
+
+        page = viewByIdentifierAsUpdateProvider(otherProvider.getIdentifier(IdentifierType.IPC), workflowManager_);
+
+        prContent = page.grabDataBlockContent(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+
+        assertEquals(prContent.get("Relationship Type"), "Employee (EE)",
+                "Expected relationship type to be 'Employee (EE)' on related provider after adding provider relationship with ER type");
+
+        page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
+
+    // Update Provider - Provider to Provider Relationship Validation
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testProviderRelationshipValidation(ProviderType providerType)
+    {
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addProviderRelationshipDataBlock(null, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", true);
+
+        assertEquals(error, errorList.get("erromMessageGRS5000IdType"),
+                "Expected error message for missing relationship type when adding provider relationship");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, null, "LOC", true);
+
+        assertEquals(error, errorList.get("erromMessageGRS5000Id"),
+                "Expected error message for missing identifier when adding provider relationship");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "Select One", true);
+
+        assertEquals(error, errorList.get("errMsg5000RelType"),
+                "Expected error message for missing relationship type when adding provider relationship");
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after adding valid provider relationship");
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
+
+    // Update Provider - Provider to Registry User Relationship
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testProviderRegistryUserRelationship(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addRegUserRelationshipDataBlock(null, "00002855", UserType.ADMIN, true);
+
+        assertEquals(error, errorList.get("registryTypeMissing"),
+                "Expected error message for missing relationship type when adding registry user relationship");
+
+        error = page.addRegUserRelationshipDataBlock("RES", null, UserType.ADMIN, true);
+
+        assertEquals(error, errorList.get("registryIdMissing"),
+                "Expected error message for missing identifier when adding registry user relationship");
+
+        error = page.addRegUserRelationshipDataBlock("RES", "00002855", null, true);
+
+        assertEquals(error, errorList.get("registryUserTypeMissing"),
+                "Expected error message for missing user type when adding registry user relationship");
+
+        error = page.addRegUserRelationshipDataBlock("RES", "nonexistentid", UserType.ADMIN, true);
+
+        assertEquals(error, errorList.get("registryUserDoesNotExist"),
+                "Expected error message for non-existent registry user when adding registry user relationship");
+
+        page.addRegUserRelationshipDataBlock("RES", "00002855", UserType.ADMIN, false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.REGISTRY_USER_RELATIONSHIPS, true), 1,
+                "Expected 1 active registry user relationship data block after adding valid registry user relationship");
+
+        page.ceaseDataBlock(ProviderSection.REGISTRY_USER_RELATIONSHIPS, 0);
+    }
+
 	// Update Provider - Validate Provider Conditions
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
 	public void testValidateProviderConditions(ProviderType providerType) {
@@ -435,6 +611,126 @@ public class UpdateProviderTests implements SimpleTest {
 		assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 2,
 				"Expected 2 active condition data blocks after adding second condition to provider");
 	}
+
+    // Update Provider - Validate Provider Relationship Type Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderRelationshipTypeCode(ProviderType providerType)
+    {
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+        List<String> relationshipTypes = page.getDropdownListOptions(ProviderSection.PROVIDER_RELATIONSHIPS,
+                "relationshipType");
+        relationshipTypes.remove("Select One");
+
+        LOG.info(relationshipTypes);
+        LOG.info(RELATIONSHIP_TYPE_OPTIONS);
+        assertTrue(relationshipTypes.containsAll(RELATIONSHIP_TYPE_OPTIONS),
+                "Expected relationship type dropdown options to contain all defined relationship types");
+
+        page.clickDialogCancelButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+        String error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "Select One", true);
+
+        assertEquals(error, errorList.get("errMsg5000RelType"),
+                "Expected error message for missing relationship type when adding provider relationship");
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after adding provider relationship with valid type");
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
+
+    // Update Provider - Validate Related Provider ID
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateRelatedProviderID(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, "test",
+                "LOC", true);
+
+        assertEquals(error, errorList.get("errMsg7036"),
+                "Expected error message for invalid related provider identifier when adding provider relationship");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, null,
+                "LOC", true);
+
+        assertEquals(error, errorList.get("erromMessageGRS5000Id"),
+                "Expected error message for missing related provider identifier when adding provider relationship");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, "IPC.00000000.BC.PRS!#%",
+                "LOC", true);
+
+        assertEquals(error, errorList.get("foreignCharacterIdentifier"),
+                "Expected error message for invalid related provider identifier with special character when adding provider relationship");
+    }
+
+    // Update Provider - Validate Related Provider ID and Relationship
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testRelatedProviderIDAndRelationship(ProviderType providerType) {
+        final MaintainIndividualBuilder otherProvider = switch (providerType) {
+            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
+            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
+            default -> new MaintainIndividualBuilder(); // should not occur
+        };
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 1,
+                "Expected 1 active provider relationship data block after adding provider relationship with valid related provider and relationship type");
+
+        String error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "LOC", true);
+
+        assertEquals(error, errorList.get("duplicateProviderRel"),
+                "Expected error message for duplicate provider relationship when adding provider relationship with same related provider and relationship type");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, null,
+                "LOC", true);
+
+        assertEquals(error, errorList.get("erromMessageGRS5000Id"),
+                "Expected error message for missing related provider identifier when adding provider relationship with duplicate relationship type");
+
+        error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, "test",
+                "LOC", true);
+
+        assertEquals(error, errorList.get("errMsg7036"),
+                "Expected error message for invalid related provider identifier when adding provider relationship");
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "ER", false);
+
+        page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
+                "PHCST", false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.PROVIDER_RELATIONSHIPS, true), 3,
+                "Expected 3 active provider relationship data blocks after adding provider relationships with same related provider and different relationship types");
+
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 2);
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 1);
+        page.ceaseDataBlock(ProviderSection.PROVIDER_RELATIONSHIPS, 0);
+    }
 
     // Update Provider - Validate Restriction Explanation
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)

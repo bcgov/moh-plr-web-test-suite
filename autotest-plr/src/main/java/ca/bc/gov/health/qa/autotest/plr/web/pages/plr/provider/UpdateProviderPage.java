@@ -7,6 +7,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.apache.commons.lang3.StringUtils;
@@ -28,29 +30,33 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	private static final Logger LOG = ExecutionLogManager.getLogger();
 
-	public static final Map<ProviderSection, ProviderDialog> DIALOG_MAP = Map.of(
-			ProviderSection.REGISTRY_IDENTIFIERS, new ProviderDialog("maintainRegIdDialog", "maintainRegIdForm", "effectiveStartDate",
-					"effectiveEndDate", "registryIdSubmitButton", "EndReasonType","Add"),
-			ProviderSection.IDENTIFIERS, new ProviderDialog("maintainIdDialog", "maintainIdentifierForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "EndReasonType","Add"),
-			ProviderSection.ORGANIZATION_NAMES, new ProviderDialog("maintainOrgNameDialog", "maintainOrgNameForm", "effectiveStartDate",
-							"effectiveEndDate", "orgNameSubmitButton", "EndReasonType","Add a new Organizational Name"),
-			ProviderSection.PRACTITIONER_NAMES, new ProviderDialog("maintainPersonNameDialog", "maintainPersonNameForm", "effectiveStartDate",
-					"effectiveEndDate", "personNameSubmitButton", "EndReasonType","Add a new Practitioner Name"),
-			ProviderSection.NOTES, new ProviderDialog("maintainNoteDialog", "maintainNoteForm", "effectiveFromDate",
-					"effectiveToDate", "idNoteSubmitButton", "endReasonCode","Add a new Note"),
-			ProviderSection.ORGANIZATION_RELATIONSHIPS, new ProviderDialog("maintainOrganizationRelationshipDialog", "maintainOrgRelationshipForm", "effectiveStartDate",
-					"effectiveEndDate", "orgRelationshipSubmitButton", "EndReasonType","Add a new Organization Relationship"),
-			ProviderSection.TELECOMMUNICATIONS, new ProviderDialog("maintainTelecomDialog", "maintainTelecomForm", "effectiveFromDate",
-					"effectiveToDate", "idTeleSubmitButton", "EndReasonType","Add a new Telecommunication"),
-			ProviderSection.ELECTRONIC_ADDRESSES, new ProviderDialog("maintainElectronicAddressDialog", "maintainElectronicAddressForm", "effectiveStartDate",
-					"effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType","Add a new Electronic Address"),
-			ProviderSection.CONDITIONS, new ProviderDialog("maintainConditionDialog", "maintainConditionForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Condition"),
-			ProviderSection.DISCIPLINARY_ACTIONS, new ProviderDialog("maintainDisActionDialog", "maintainDisActionForm", "effectiveFromDate",
-					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Disciplinary Action"),
-			ProviderSection.WORK_LOCATIONS, new ProviderDialog("maintainWorkLocationDialog", "maintainWorkLocationForm", "effectiveFromDate",
-					"effectiveToDate", "idWLSubmitButton", "EndReasonType","Add a new Work Location")
+	public static final Map<ProviderSection, ProviderDialog> DIALOG_MAP = Map.ofEntries(
+			Map.entry(ProviderSection.REGISTRY_IDENTIFIERS, new ProviderDialog("maintainRegIdDialog", "maintainRegIdForm", "effectiveStartDate",
+					"effectiveEndDate", "registryIdSubmitButton", "EndReasonType","Add")),
+			Map.entry(ProviderSection.IDENTIFIERS, new ProviderDialog("maintainIdDialog", "maintainIdentifierForm", "effectiveFromDate",
+					"effectiveToDate", "idSubmitButton", "EndReasonType","Add")),
+			Map.entry(ProviderSection.ORGANIZATION_NAMES, new ProviderDialog("maintainOrgNameDialog", "maintainOrgNameForm", "effectiveStartDate",
+							"effectiveEndDate", "orgNameSubmitButton", "EndReasonType","Add a new Organizational Name")),
+			Map.entry(ProviderSection.PRACTITIONER_NAMES, new ProviderDialog("maintainPersonNameDialog", "maintainPersonNameForm", "effectiveStartDate",
+					"effectiveEndDate", "personNameSubmitButton", "EndReasonType","Add a new Practitioner Name")),
+			Map.entry(ProviderSection.NOTES, new ProviderDialog("maintainNoteDialog", "maintainNoteForm", "effectiveFromDate",
+					"effectiveToDate", "idNoteSubmitButton", "endReasonCode","Add a new Note")),
+			Map.entry(ProviderSection.ORGANIZATION_RELATIONSHIPS, new ProviderDialog("maintainOrganizationRelationshipDialog", "maintainOrgRelationshipForm", "effectiveStartDate",
+					"effectiveEndDate", "orgRelationshipSubmitButton", "EndReasonType","Add a new Organization Relationship")),
+			Map.entry(ProviderSection.TELECOMMUNICATIONS, new ProviderDialog("maintainTelecomDialog", "maintainTelecomForm", "effectiveFromDate",
+					"effectiveToDate", "idTeleSubmitButton", "EndReasonType","Add a new Telecommunication")),
+			Map.entry(ProviderSection.ELECTRONIC_ADDRESSES, new ProviderDialog("maintainElectronicAddressDialog", "maintainElectronicAddressForm", "effectiveStartDate",
+					"effectiveEndDate", "electronicAddressSubmitButton", "EndReasonType","Add a new Electronic Address")),
+			Map.entry(ProviderSection.CONDITIONS, new ProviderDialog("maintainConditionDialog", "maintainConditionForm", "effectiveFromDate",
+					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Condition")),
+			Map.entry(ProviderSection.DISCIPLINARY_ACTIONS, new ProviderDialog("maintainDisActionDialog", "maintainDisActionForm", "effectiveFromDate",
+					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Disciplinary Action")),
+			Map.entry(ProviderSection.WORK_LOCATIONS, new ProviderDialog("maintainWorkLocationDialog", "maintainWorkLocationForm", "effectiveFromDate",
+					"effectiveToDate", "idWLSubmitButton", "EndReasonType","Add a new Work Location")),
+			Map.entry(ProviderSection.PROVIDER_RELATIONSHIPS, new ProviderDialog("maintainProviderRelationshipDialog", "maintainProviderRelationshipForm", "effectiveStartDate",
+					"effectiveEndDate", "providerRelationshipSubmitButton", "EndReasonType","Add a new Provider Relationship")),
+			Map.entry(ProviderSection.REGISTRY_USER_RELATIONSHIPS, new ProviderDialog("maintainRegUserRelationshipDialog", "maintainRegUserRelationshipForm", "effectiveFromDate",
+					"effectiveToDate", "idRegUserRelationshipSubmitButton", "endReasonCode","Add a new Registry User Relationship"))
 			);
 
 	public UpdateProviderPage(SeleniumSession selenium, URI uri) {
@@ -385,6 +391,70 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
+	 * fill the Provider Relationship Data Block
+	 * @param identifierType the identifier type to select
+	 * @param identifier the identifier to input
+	 * @param relationshipType the relationship type to select
+	 */
+	public void fillProviderRelationshipDataBlock(IdentifierType identifierType, String identifier, String relationshipType)
+	{
+		String formName = DIALOG_MAP.get(ProviderSection.PROVIDER_RELATIONSHIPS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		if (identifierType != null)
+			setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "providerType", identifierType.name());
+
+		if (identifier != null) {
+			String inputIdCss = dialogCss + " >input#" + formName + "\\:rpi";
+			WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+			inputId.clear();
+			if (!StringUtils.isEmpty(identifier)) inputId.sendKeys(identifier);
+		}
+
+		if (relationshipType != null)
+			setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "relationshipType", relationshipType);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.PROVIDER_RELATIONSHIPS,
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
+	}
+
+	/**
+	 * fill the Registry User Relationship Data Block
+	 * @param regType the registry type to select
+	 * @param regUserID the registry user ID to input
+	 * @param userType the registry user type to select
+	 */
+	public void fillRegUserRelationshipDataBlock(String regType, String regUserID, UserType userType)
+	{
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_USER_RELATIONSHIPS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		if (regType != null)
+			setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
+					"regUserRelationshipType", regType);
+
+		String regIdCss = dialogCss + " > input#" + formName + "\\:registryUserId";
+		WebElement regId = selenium_.findElement(By.cssSelector(regIdCss));
+		regId.clear();
+		if (!StringUtils.isEmpty(regUserID)) regId.sendKeys(regUserID);
+
+		if (userType != null)
+			setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
+					"regUserType", userType.getRegUserType());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
+	}
+
+	/**
 	 * fill the Work Location Data Block
 	 * @param locationID the location ID to input
 	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
@@ -452,6 +522,57 @@ public class UpdateProviderPage extends ViewProviderPage {
 		clickDialogSubmitButton(ProviderSection.CONDITIONS, expectError);
 
 		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.CONDITIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Provider Relationship Data Block, perform error message check if necessary
+	 * @param identifierType the identifier type to select
+	 * @param identifier the identifier to input
+	 * @param relationshipType the relationship type to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addProviderRelationshipDataBlock(IdentifierType identifierType, String identifier, String relationshipType, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		fillProviderRelationshipDataBlock(identifierType, identifier, relationshipType);
+
+		clickDialogSubmitButton(ProviderSection.PROVIDER_RELATIONSHIPS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Registry User Relationship Data Block, perform error message check if necessary
+	 * @param regType the registry type to select
+	 * @param regUserId the registry user ID to input
+	 * @param userType the registry user type to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addRegUserRelationshipDataBlock(String regType, String regUserId, UserType userType,
+												  boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+		clickHeaderAddButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+		fillRegUserRelationshipDataBlock(regType, regUserId, userType);
+
+		clickDialogSubmitButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
@@ -620,7 +741,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 			}
 			attempts++;
 		}
-		if (msgDisplay.contains("successfully") || msgDisplay.isEmpty()) return msgDisplay;
+		if (msgDisplay.contains("successfully") || msgDisplay.isEmpty()) {
+			LOG.info("Error did not occur / dialog disappeared earlier than expected.");
+			return msgDisplay;
+		}
 		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
 		selenium_.scrollIntoView(cancelButton);
 		cancelButton.click();
