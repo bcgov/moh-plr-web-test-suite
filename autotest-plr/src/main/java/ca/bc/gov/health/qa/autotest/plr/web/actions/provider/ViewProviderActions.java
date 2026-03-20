@@ -394,7 +394,6 @@ public class ViewProviderActions
             if (section.equals(ProviderSection.ROLE_TYPE)) continue;
 
             //TODO: the following sections should be addressed later when update provider page objects have been developed
-            if (section.equals(ProviderSection.WORK_LOCATIONS)) continue;
             if (section.equals(ProviderSection.COMMUNICATION_PREFERENCE)) continue;
             if (section.equals(ProviderSection.REGISTRY_USER_RELATIONSHIPS)) continue;
 
@@ -412,8 +411,7 @@ public class ViewProviderActions
             }
             else
             {
-                if (   viewMode.equals(ViewMode.HISTORY)
-                    && section.equals(ProviderSection.CONFIDENTIALITY))
+                if (viewMode.equals(ViewMode.HISTORY) && section.equals(ProviderSection.CONFIDENTIALITY))
                 {
                     // NOTE: Special case
                     assertEquals(viewProvider.grabActiveDataBlockCount(section, false), 0,
@@ -464,31 +462,30 @@ public class ViewProviderActions
         boolean isOrganization = !Objects.isNull(orgProvider);
 
         // Identifiers
-        // TODO: skipped on practitioner side due to two IPC codes existing - revisit this
-        if (isOrganization) {
-            for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++) {
-                IdentifierType idType;
-                Map<String, String> idMap = viewProvider.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
-                idType = switch (idMap.get("Type")) {
-                    case "Common Party Number (CPN)" -> IdentifierType.CPN;
-                    case "Internal Provider Code (IPC)" -> IdentifierType.IPC;
-                    case "Organization (ORGID)" -> IdentifierType.ORGID;
-                    default -> {
-                        String msg = String.format("Unexpected Identifier type in Webpage (%s)", idMap.get("Type"));
-                        throw new IllegalStateException(msg);
-                    }
-                };
+        for (int i = 0; i < viewProvider.grabDataBlockCount(ProviderSection.IDENTIFIERS); i++) {
+            IdentifierType idType;
+            Map<String, String> idMap = viewProvider.grabDataBlockContent(ProviderSection.IDENTIFIERS, i);
+            idType = switch (idMap.get("Type")) {
+                case "Common Party Number (CPN)" -> IdentifierType.CPN;
+                case "Internal Provider Code (IPC)" -> IdentifierType.IPC;
+                case "Organization (ORGID)" -> IdentifierType.ORGID;
+                case "Out of Province Provider (OOPID)" -> IdentifierType.OOPID;
+                case "Dentist ID Number (DENID)" -> IdentifierType.DENID;
+                default -> {
+                    String msg = String.format("Unexpected Identifier type in Webpage (%s)", idMap.get("Type"));
+                    throw new IllegalStateException(msg);
+                }
+            };
 
-                final String expectedIdentifier = isOrganization ?
-                        orgProvider.getIdentifier(idType) : indivProvider.getIdentifier(idType);
-                final String expectedOwner = isOrganization ?
-                        orgProvider.getIdentifierOwners().get(idType) : indivProvider.getIdentifierOwners().get(idType);
+            final String expectedIdentifier = isOrganization ?
+                    orgProvider.getIdentifier(idType) : indivProvider.getIdentifier(idType);
+            final String expectedOwner = isOrganization ?
+                    orgProvider.getIdentifierOwners().get(idType) : indivProvider.getIdentifierOwners().get(idType);
 
-                assertEquals(idMap.get("Identifier"), expectedIdentifier,
-                        "Identifier in webapp does not match FHIR response");
-                assertEquals(idMap.get("Data Owner Code"), expectedOwner,
-                        "Identifier owner in webapp does not match FHIR response");
-            }
+            assertEquals(idMap.get("Identifier"), expectedIdentifier,
+                    "Identifier in webapp does not match FHIR response");
+            assertEquals(idMap.get("Data Owner Code"), expectedOwner,
+                    "Identifier owner in webapp does not match FHIR response");
         }
 
         // Role Type

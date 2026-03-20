@@ -87,6 +87,7 @@ public class ViewProviderTests implements SimpleTest
             UpdateProviderPage page = viewByIdentifierAsUpdateProvider(
                     getIdentifierFromBuilder(defaultProviders, providerType), workflowManager_);
 
+            // TODO: this should be done for every provider section possible at some point
             if (page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true) == 0) {
                 page.addWorkLocationDataBlock("1", true, "Work Location", "CC", "Audit view", false);
                 page.updateWorkLocationDataBlock(true, "Corrected Work Location", "CC", null, EndReason.CORR ,false);
