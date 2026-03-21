@@ -502,7 +502,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * fill the Work Location Data Block in update scenario,
-	 * the effective date fields will not be filled in this case since they are already set
+	 * the effective date fields cannot be manually selected, will fill in hardcoded values
 	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
 	 * @param name the name to input
 	 * @param providerType the provider type to select
@@ -520,8 +520,6 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		String defaultFlagCss = dialogCss + " > div#" + formName + "\\:defaultFlag > div > span";
 		WebElement defaultFlagCheckbox = selenium_.findElement(By.cssSelector(defaultFlagCss));
-		LOG.info(getChkBoxState(ProviderSection.WORK_LOCATIONS, defaultFlagCheckbox));
-		LOG.info(defaultFlag);
 		if (getChkBoxState(ProviderSection.WORK_LOCATIONS, defaultFlagCheckbox) != defaultFlag) defaultFlagCheckbox.click();
 
 		String wlNameCss = dialogCss+" >input#"+formName+"\\:name";
@@ -537,6 +535,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 		if(!StringUtils.isEmpty(addressInfo)) addressInfoInput.sendKeys(addressInfo);
 
 		setEndReasonByVisibleText(ProviderSection.WORK_LOCATIONS, endReason.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.WORK_LOCATIONS, "2000-01-01", "2999-01-01");
 	}
 
 	/**

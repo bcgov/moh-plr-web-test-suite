@@ -10,9 +10,12 @@ import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
@@ -52,6 +55,7 @@ public class UpdateProviderTests implements SimpleTest {
     public static JSONObject errorList;
 
     private static final Map<ProviderType, MaintainIndividualBuilder> defaultProviders = new HashMap<>();
+    private static MaintainOrgBuilder defaultOrg;
     private static final int MAX_DIS_ACTION_DES = 3000;
     private UpdateProviderTests() {
         try
@@ -88,6 +92,9 @@ public class UpdateProviderTests implements SimpleTest {
         MaintainIndividualBuilder defaultOOP = fhirController
                 .createIndividual(new IndividualMaintainConfig(IndividualRoleType.OOP_RECT));
         LOG.info("Created default OOP provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
+        defaultOrg = fhirController
+                .createOrganization(new OrganizationMaintainConfig(OrgRoleType.ORG));
+        LOG.info("Created default organization with IPC: {}", defaultOrg.getIdentifier(IdentifierType.IPC));
         fhirController.close();
 
         defaultProviders.put(ProviderType.BC_PRACTITIONER, defaultBC);
@@ -590,11 +597,14 @@ public class UpdateProviderTests implements SimpleTest {
     }
 
     // Update Provider - Update Work Locations
-    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
     public void testUpdateWorkLocations(ProviderType providerType) {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier;
+        if (providerType.equals(ProviderType.ORGANIZATION)) identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
+        else identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
@@ -607,8 +617,29 @@ public class UpdateProviderTests implements SimpleTest {
         page.updateWorkLocationDataBlock(false, "Updated Name", "HID", "Updated Info", EndReason.CHG, false);
 
         Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+        final String details = "Work Location Details-0-";
 
         LOG.info(wlContent);
+
+        assertEquals(wlContent.get(details+"Name"), "Updated Name",
+                "Expected updated name to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Type"), "Health Information Distribution",
+                "Expected updated type to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Default Flag"), "No",
+                "Expected updated default flag to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Additional Info"), "Updated Info",
+                "Expected updated additional info to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Effective From"), "2000-01-01",
+                "Expected updated effective from to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Effective To"), "2999-01-01",
+                "Expected updated effective to to be reflected in work location data block after updating work location");
+
+        page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+        page.fillWorkLocationDataBlockUpdate(true, "Test Name", "CC", "Test Info", EndReason.CHG);
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
+                "Expected 1 active work location data block after cancelling update of work location");
     }
 
 	// Update Provider - Validate Provider Conditions
@@ -655,8 +686,6 @@ public class UpdateProviderTests implements SimpleTest {
                 "relationshipType");
         relationshipTypes.remove("Select One");
 
-        LOG.info(relationshipTypes);
-        LOG.info(RELATIONSHIP_TYPE_OPTIONS);
         assertTrue(relationshipTypes.containsAll(RELATIONSHIP_TYPE_OPTIONS),
                 "Expected relationship type dropdown options to contain all defined relationship types");
 
