@@ -31,7 +31,9 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
@@ -915,6 +917,26 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(wlContent.get("Work Location Details-0-Default Flag"), "Yes",
                 "Expected 'Yes' value for default flag in work location data block when default flag checkbox is unchecked");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+    }
+
+    // Update Provider - Validate Update Work Location ID
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationIDUpdate(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock(generateNumericString(15), true, "Test Name",
+                "CC", "Test Info", false);
+
+        WebElement dialog = page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+        assertTrue(dialog.findElements(By.cssSelector("input#maintainWorkLocationForm\\:wlChid")).isEmpty(),
+                "Expected work location identifier field to be non-editable when updating work location data block");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
 
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
