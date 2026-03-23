@@ -832,6 +832,33 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
+    // Update Provider - Validate Update Work Location Additional Addressee
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationAdditionalAddresseeUpdate(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
+
+        String error = page.updateWorkLocationDataBlock(true, "Test Name", "CC",
+                generateAlphabetNumericString(241), EndReason.CHG, true);
+
+        assertEquals(error, errorList.get("WLAddressInfoTooLong"),
+                "Expected error message for addressee info exceeding max length when updating work location data block");
+
+        page.updateWorkLocationDataBlock(false, "Test Name", "CC", "", EndReason.CHG, false);
+
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertEquals(wlContent.get("Work Location Details-0-Additional Info"), "",
+                "Expected empty string for additional addressee info in work location data block when no additional addressee info is provided during update");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+    }
+
     // Update Provider - Validate Work Location Additional Addressee
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateWorkLocationAdditionalAddressee(ProviderType providerType)
