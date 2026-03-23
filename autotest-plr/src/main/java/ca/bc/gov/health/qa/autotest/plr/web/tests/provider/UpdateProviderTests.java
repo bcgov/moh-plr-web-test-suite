@@ -971,6 +971,39 @@ public class UpdateProviderTests implements SimpleTest {
         }
     }
 
+    // Update Provider - Validate Update Work Location Name
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationNameUpdate(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
+
+        String error = page.updateWorkLocationDataBlock(false, generateAlphabetNumericString(256),
+                "CC", "Test Info", EndReason.CHG, true);
+
+        assertEquals(error, errorList.get("WLNameTooLong"),
+                "Expected error message for work location name exceeding max length when updating work location data block");
+
+        error = page.updateWorkLocationDataBlock(false, "", "CC", "Test Info", EndReason.CHG, true);
+
+        assertEquals(error, errorList.get("WLNameMissing"),
+                "Expected error message for missing work location name when updating work location data block");
+
+        String name = generateAlphabetNumericString(255);
+        page.updateWorkLocationDataBlock(false, name, "CC", "Test Info", EndReason.CHG, false);
+
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertEquals(wlContent.get("Work Location Details-0-Name"), name,
+                "Expected updated name to be reflected in work location data block after updating work location with valid name");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+    }
+
     // Update Provider - Validate Work Location Name
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateWorkLocationName(ProviderType providerType)
