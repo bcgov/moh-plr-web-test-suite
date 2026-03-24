@@ -33,7 +33,6 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
@@ -133,11 +132,7 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testAddProviderRelationships(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -349,8 +344,8 @@ public class UpdateProviderTests implements SimpleTest {
     
 	// Update Provider --Add Disciplinary Actions
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-	public void testAddDisciplinaryAction(ProviderType providerType) {
-
+	public void testAddDisciplinaryAction(ProviderType providerType)
+    {
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -375,8 +370,8 @@ public class UpdateProviderTests implements SimpleTest {
 
 	//Update Provider - Validate Disciplinary Action
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-	public void testValidateDisciplinaryAction(ProviderType providerType) {
-
+	public void testValidateDisciplinaryAction(ProviderType providerType)
+    {
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -397,8 +392,8 @@ public class UpdateProviderTests implements SimpleTest {
 	}
 	// Update Provider - Validate Disciplinary Action Description Text
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-	public void testValidateDisciplinaryActionDescriptionText(ProviderType providerType) {
-		
+	public void testValidateDisciplinaryActionDescriptionText(ProviderType providerType)
+    {
 		String errorMsgDisActionDesLenth5003 = (String) errorList.get("errorMsgDisActionDesLenth5003");
 		String errorMsgDisActionDesLenthMissing5000 = (String) errorList.get("errorMsgDisActionDesLenthMissing5000");
 
@@ -423,8 +418,8 @@ public class UpdateProviderTests implements SimpleTest {
 
 	// Update Provider - Generating A Default Disciplinary Action ID
 	@Test(dataProvider = "practitioners",dataProviderClass = InjectableData.class)
-	public void testGeneratingDefaultDisciplinaryActionID(ProviderType providerType) {
-
+	public void testGeneratingDefaultDisciplinaryActionID(ProviderType providerType)
+    {
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -491,11 +486,7 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testProviderRelationshipTypes(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -525,11 +516,7 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testProviderRelationshipValidation(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -600,7 +587,8 @@ public class UpdateProviderTests implements SimpleTest {
 
     // Update Provider - Update Work Locations
     @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
-    public void testUpdateWorkLocations(ProviderType providerType) {
+    public void testUpdateWorkLocations(ProviderType providerType)
+    {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier;
@@ -646,7 +634,8 @@ public class UpdateProviderTests implements SimpleTest {
 
 	// Update Provider - Validate Provider Conditions
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-	public void testValidateProviderConditions(ProviderType providerType) {
+	public void testValidateProviderConditions(ProviderType providerType)
+    {
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -672,11 +661,7 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateProviderRelationshipTypeCode(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -710,7 +695,8 @@ public class UpdateProviderTests implements SimpleTest {
 
     // Update Provider - Validate Related Provider ID
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-    public void testValidateRelatedProviderID(ProviderType providerType) {
+    public void testValidateRelatedProviderID(ProviderType providerType)
+    {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -737,12 +723,9 @@ public class UpdateProviderTests implements SimpleTest {
 
     // Update Provider - Validate Related Provider ID and Relationship
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-    public void testRelatedProviderIDAndRelationship(ProviderType providerType) {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+    public void testRelatedProviderIDAndRelationship(ProviderType providerType)
+    {
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -886,6 +869,52 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
+    // Update Provider - Validate Update Work Location Default Flag
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationDefaultFlagUpdate(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("12345", false, "Test Name", "CC", "Test Info", false);
+
+        page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertFalse(page.isCheckBoxChecked(ProviderSection.WORK_LOCATIONS, "defaultFlag"),
+                "Expected default flag checkbox to be unchecked in work location data block when default flag is set to false");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        page.updateWorkLocationDataBlock(false, "Test Name Change", null, null, EndReason.CHG, false);
+
+        final String details = "Work Location Details-0-";
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+        assertEquals(wlContent.get(details+"Default Flag"), "No",
+                "Expected default flag to remain 'No' in work location data block after updating work location with default flag set to false");
+
+        page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertFalse(page.isCheckBoxChecked(ProviderSection.WORK_LOCATIONS, "defaultFlag"),
+                "Expected default flag checkbox to remain unchecked in work location data block after updating work location without changing default flag");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        page.updateWorkLocationDataBlock(true, "Test Name Change", null, null, EndReason.CHG, false);
+
+        wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+        assertEquals(wlContent.get(details+"Default Flag"), "Yes",
+                "Expected default flag to be 'Yes' in work location data block after updating work location with default flag set to true");
+
+        page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertTrue(page.isCheckBoxChecked(ProviderSection.WORK_LOCATIONS, "defaultFlag"),
+                "Expected default flag checkbox to be checked in work location data block after updating work location with default flag set to true");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+    }
+
     // Update Provider - Validate Work Location Default Flag
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateWorkLocationDefaultFlag(ProviderType providerType)
@@ -923,7 +952,8 @@ public class UpdateProviderTests implements SimpleTest {
 
     // Update Provider - Validate Update Work Location ID
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-    public void testValidateWorkLocationIDUpdate(ProviderType providerType) {
+    public void testValidateWorkLocationIDUpdate(ProviderType providerType)
+    {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);

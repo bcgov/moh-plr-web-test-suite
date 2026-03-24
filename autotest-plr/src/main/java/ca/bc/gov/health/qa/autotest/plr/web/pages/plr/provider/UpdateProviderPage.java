@@ -527,7 +527,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 		wlName.clear();
 		if(!StringUtils.isEmpty(name)) wlName.sendKeys(name);
 
-		setDropdownListByVisibleText(ProviderSection.WORK_LOCATIONS, "providerType", providerType);
+		if (providerType != null)
+			setDropdownListByVisibleText(ProviderSection.WORK_LOCATIONS, "providerType", providerType);
 
 		String addressInfoCss = dialogCss + " > textarea#" + formName + "\\:additionalInfo";
 		WebElement addressInfoInput = selenium_.findElement(By.cssSelector(addressInfoCss));
