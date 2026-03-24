@@ -349,7 +349,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		waitSeconds(2); // Wait for province field to update after country change
 	}
 
-	/**
+		/**
 	 * Click Dialog Submit Button
 	 *
 	 * @param section the provider section
@@ -370,8 +370,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String submitButtonName = DIALOG_MAP.get(section).getSubmitButtonName();
 		String dialogCss = getDialogCss(section);
 
-		// Use descendant selector (space) instead of direct child (>) to handle nested div structures
-		String buttonCss = dialogCss + " div.formControls" + " button#" + formName + "\\:" + submitButtonName;
+		// Use a selector that matches any button whose id starts with the expected button name
+		String buttonCss = dialogCss + " div.formControls button[id^='" + formName + ":" + submitButtonName + "']";
 		WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
 		button.click();
 		waitSeconds(2);
