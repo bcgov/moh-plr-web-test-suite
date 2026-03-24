@@ -266,7 +266,6 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 			waitSeconds(5);
 			try {
 				msgDisplay = getDialogMessages(section);
-				LOG.info(msgDisplay);
 			} catch (StaleElementReferenceException e) {
 				waitSeconds(5);
 			}
@@ -291,7 +290,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 	private void findAndFillOrgInputField(String dialogCss, String formName, String field, String fieldCss) {
 		String inputNameCss = dialogCss + " >input#" + formName + "\\:" + fieldCss;
 		// Wait for the input field to be visible
-		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+        selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
 		WebElement inputName = selenium_.findElementByCss(inputNameCss);
         waitSeconds(1);
 
@@ -385,7 +384,7 @@ public class UpdateOrganizationPage extends UpdateProviderPage {
 
 			if (chkClass != null)
 				isChecked = chkClass.contains("ui-state-active");
-			
+
 			// Only click if the state needs to change
 			if (isChecked != checked) {
 				checkbox.click();
