@@ -10,15 +10,19 @@ import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ConditionType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -27,6 +31,7 @@ import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
@@ -51,6 +56,7 @@ public class UpdateProviderTests implements SimpleTest {
     public static JSONObject errorList;
 
     private static final Map<ProviderType, MaintainIndividualBuilder> defaultProviders = new HashMap<>();
+    private static MaintainOrgBuilder defaultOrg;
     private static final int MAX_DIS_ACTION_DES = 3000;
     private UpdateProviderTests() {
         try
@@ -87,6 +93,9 @@ public class UpdateProviderTests implements SimpleTest {
         MaintainIndividualBuilder defaultOOP = fhirController
                 .createIndividual(new IndividualMaintainConfig(IndividualRoleType.OOP_RECT));
         LOG.info("Created default OOP provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
+        defaultOrg = fhirController
+                .createOrganization(new OrganizationMaintainConfig(OrgRoleType.ORG));
+        LOG.info("Created default organization with IPC: {}", defaultOrg.getIdentifier(IdentifierType.IPC));
         fhirController.close();
 
         defaultProviders.put(ProviderType.BC_PRACTITIONER, defaultBC);
@@ -123,11 +132,7 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testAddProviderRelationships(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -339,8 +344,8 @@ public class UpdateProviderTests implements SimpleTest {
     
 	// Update Provider --Add Disciplinary Actions
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-	public void testAddDisciplinaryAction(ProviderType providerType) {
-
+	public void testAddDisciplinaryAction(ProviderType providerType)
+    {
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -365,8 +370,8 @@ public class UpdateProviderTests implements SimpleTest {
 
 	//Update Provider - Validate Disciplinary Action
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-	public void testValidateDisciplinaryAction(ProviderType providerType) {
-
+	public void testValidateDisciplinaryAction(ProviderType providerType)
+    {
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -387,8 +392,8 @@ public class UpdateProviderTests implements SimpleTest {
 	}
 	// Update Provider - Validate Disciplinary Action Description Text
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-	public void testValidateDisciplinaryActionDescriptionText(ProviderType providerType) {
-		
+	public void testValidateDisciplinaryActionDescriptionText(ProviderType providerType)
+    {
 		String errorMsgDisActionDesLenth5003 = (String) errorList.get("errorMsgDisActionDesLenth5003");
 		String errorMsgDisActionDesLenthMissing5000 = (String) errorList.get("errorMsgDisActionDesLenthMissing5000");
 
@@ -413,8 +418,8 @@ public class UpdateProviderTests implements SimpleTest {
 
 	// Update Provider - Generating A Default Disciplinary Action ID
 	@Test(dataProvider = "practitioners",dataProviderClass = InjectableData.class)
-	public void testGeneratingDefaultDisciplinaryActionID(ProviderType providerType) {
-
+	public void testGeneratingDefaultDisciplinaryActionID(ProviderType providerType)
+    {
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -481,11 +486,7 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testProviderRelationshipTypes(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -515,11 +516,7 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testProviderRelationshipValidation(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -588,9 +585,57 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.REGISTRY_USER_RELATIONSHIPS, 0);
     }
 
+    // Update Provider - Update Work Locations
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testUpdateWorkLocations(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier;
+        if (providerType.equals(ProviderType.ORGANIZATION)) identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
+        else identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
+
+        WebElement dialog = page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+        assertTrue(dialog.isDisplayed(), "Expected work location dialog to be displayed after clicking update button on work location data block");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        page.updateWorkLocationDataBlock(false, "Updated Name", "HID", "Updated Info", EndReason.CHG, false);
+
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+        final String details = "Work Location Details-0-";
+
+        LOG.info(wlContent);
+
+        assertEquals(wlContent.get(details+"Name"), "Updated Name",
+                "Expected updated name to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Type"), "Health Information Distribution",
+                "Expected updated type to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Default Flag"), "No",
+                "Expected updated default flag to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Additional Info"), "Updated Info",
+                "Expected updated additional info to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Effective From"), "2000-01-01",
+                "Expected updated effective from to be reflected in work location data block after updating work location");
+        assertEquals(wlContent.get(details+"Effective To"), "2999-01-01",
+                "Expected updated effective to to be reflected in work location data block after updating work location");
+
+        page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+        page.fillWorkLocationDataBlockUpdate(true, "Test Name", "CC", "Test Info", EndReason.CHG);
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true), 1,
+                "Expected 1 active work location data block after cancelling update of work location");
+    }
+
 	// Update Provider - Validate Provider Conditions
 	@Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-	public void testValidateProviderConditions(ProviderType providerType) {
+	public void testValidateProviderConditions(ProviderType providerType)
+    {
 		PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
 		String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -616,11 +661,7 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateProviderRelationshipTypeCode(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -632,8 +673,6 @@ public class UpdateProviderTests implements SimpleTest {
                 "relationshipType");
         relationshipTypes.remove("Select One");
 
-        LOG.info(relationshipTypes);
-        LOG.info(RELATIONSHIP_TYPE_OPTIONS);
         assertTrue(relationshipTypes.containsAll(RELATIONSHIP_TYPE_OPTIONS),
                 "Expected relationship type dropdown options to contain all defined relationship types");
 
@@ -656,7 +695,8 @@ public class UpdateProviderTests implements SimpleTest {
 
     // Update Provider - Validate Related Provider ID
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-    public void testValidateRelatedProviderID(ProviderType providerType) {
+    public void testValidateRelatedProviderID(ProviderType providerType)
+    {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -683,12 +723,9 @@ public class UpdateProviderTests implements SimpleTest {
 
     // Update Provider - Validate Related Provider ID and Relationship
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
-    public void testRelatedProviderIDAndRelationship(ProviderType providerType) {
-        final MaintainIndividualBuilder otherProvider = switch (providerType) {
-            case BC_PRACTITIONER -> defaultProviders.get(ProviderType.OOP_PRACTITIONER);
-            case OOP_PRACTITIONER -> defaultProviders.get(ProviderType.BC_PRACTITIONER);
-            default -> new MaintainIndividualBuilder(); // should not occur
-        };
+    public void testRelatedProviderIDAndRelationship(ProviderType providerType)
+    {
+        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
@@ -780,6 +817,33 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
+    // Update Provider - Validate Update Work Location Additional Addressee
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationAdditionalAddresseeUpdate(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
+
+        String error = page.updateWorkLocationDataBlock(true, "Test Name", "CC",
+                generateAlphabetNumericString(241), EndReason.CHG, true);
+
+        assertEquals(error, errorList.get("WLAddressInfoTooLong"),
+                "Expected error message for addressee info exceeding max length when updating work location data block");
+
+        page.updateWorkLocationDataBlock(false, "Test Name", "CC", "", EndReason.CHG, false);
+
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertEquals(wlContent.get("Work Location Details-0-Additional Info"), "",
+                "Expected empty string for additional addressee info in work location data block when no additional addressee info is provided during update");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+    }
+
     // Update Provider - Validate Work Location Additional Addressee
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateWorkLocationAdditionalAddressee(ProviderType providerType)
@@ -803,6 +867,52 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected empty string for additional addressee info in work location data block when no additional addressee info is provided");
 
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+    }
+
+    // Update Provider - Validate Update Work Location Default Flag
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationDefaultFlagUpdate(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("12345", false, "Test Name", "CC", "Test Info", false);
+
+        page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertFalse(page.isCheckBoxChecked(ProviderSection.WORK_LOCATIONS, "defaultFlag"),
+                "Expected default flag checkbox to be unchecked in work location data block when default flag is set to false");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        page.updateWorkLocationDataBlock(false, "Test Name Change", null, null, EndReason.CHG, false);
+
+        final String details = "Work Location Details-0-";
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+        assertEquals(wlContent.get(details+"Default Flag"), "No",
+                "Expected default flag to remain 'No' in work location data block after updating work location with default flag set to false");
+
+        page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertFalse(page.isCheckBoxChecked(ProviderSection.WORK_LOCATIONS, "defaultFlag"),
+                "Expected default flag checkbox to remain unchecked in work location data block after updating work location without changing default flag");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
+
+        page.updateWorkLocationDataBlock(true, "Test Name Change", null, null, EndReason.CHG, false);
+
+        wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+        assertEquals(wlContent.get(details+"Default Flag"), "Yes",
+                "Expected default flag to be 'Yes' in work location data block after updating work location with default flag set to true");
+
+        page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertTrue(page.isCheckBoxChecked(ProviderSection.WORK_LOCATIONS, "defaultFlag"),
+                "Expected default flag checkbox to be checked in work location data block after updating work location with default flag set to true");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
     }
 
     // Update Provider - Validate Work Location Default Flag
@@ -836,6 +946,27 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(wlContent.get("Work Location Details-0-Default Flag"), "Yes",
                 "Expected 'Yes' value for default flag in work location data block when default flag checkbox is unchecked");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+    }
+
+    // Update Provider - Validate Update Work Location ID
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationIDUpdate(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock(generateNumericString(15), true, "Test Name",
+                "CC", "Test Info", false);
+
+        WebElement dialog = page.clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+        assertTrue(dialog.findElements(By.cssSelector("input#maintainWorkLocationForm\\:wlChid")).isEmpty(),
+                "Expected work location identifier field to be non-editable when updating work location data block");
+
+        page.clickDialogCancelButton(ProviderSection.WORK_LOCATIONS);
 
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
@@ -890,6 +1021,39 @@ public class UpdateProviderTests implements SimpleTest {
         if (page.grabActiveDataBlockCount(ProviderSection.WORK_LOCATIONS, true) > 0) {
             page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
         }
+    }
+
+    // Update Provider - Validate Update Work Location Name
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateWorkLocationNameUpdate(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
+
+        String error = page.updateWorkLocationDataBlock(false, generateAlphabetNumericString(256),
+                "CC", "Test Info", EndReason.CHG, true);
+
+        assertEquals(error, errorList.get("WLNameTooLong"),
+                "Expected error message for work location name exceeding max length when updating work location data block");
+
+        error = page.updateWorkLocationDataBlock(false, "", "CC", "Test Info", EndReason.CHG, true);
+
+        assertEquals(error, errorList.get("WLNameMissing"),
+                "Expected error message for missing work location name when updating work location data block");
+
+        String name = generateAlphabetNumericString(255);
+        page.updateWorkLocationDataBlock(false, name, "CC", "Test Info", EndReason.CHG, false);
+
+        Map<String,String> wlContent = page.grabDataBlockContent(ProviderSection.WORK_LOCATIONS, 0);
+
+        assertEquals(wlContent.get("Work Location Details-0-Name"), name,
+                "Expected updated name to be reflected in work location data block after updating work location with valid name");
+
+        page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
 
     // Update Provider - Validate Work Location Name

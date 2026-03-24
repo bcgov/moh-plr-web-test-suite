@@ -92,7 +92,7 @@ public class ViewProviderTests implements SimpleTest
                 page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
                 page.addWorkLocationDataBlock("2", true, "Work Location", "CC", "Audit view", false);
                 page.updateWorkLocationDataBlock(true, "Corrected Work Location", "CC", null, EndReason.CORR ,false);
-                page.updateWorkLocationDataBlock(false, "Changed Work Location", "CC", "History view", EndReason.CHG, false);
+                page.updateWorkLocationDataBlock(true, "Changed Work Location", "CC", "History view", EndReason.CHG, false);
                 page.addWorkLocationDataBlock("3", true, "Second Work Location", "CC", "Current view", false);
             }
         }

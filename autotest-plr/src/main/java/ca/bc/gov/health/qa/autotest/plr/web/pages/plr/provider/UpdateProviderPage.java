@@ -208,8 +208,9 @@ public class UpdateProviderPage extends ViewProviderPage {
      *
      * @param section the provider section to find the data block's update button within
      * @param index the specific index of the data block to find and click the update button for
+	 * @return the WebElement of the dialog content after clicking the update button and waiting for the dialog to be visible
      */
-	public void clickDataBlockUpdateButton(ProviderSection section, int index) {
+	public WebElement clickDataBlockUpdateButton(ProviderSection section, int index) {
 		String selectCss;
 		if (section.equals(ProviderSection.WORK_LOCATIONS)) {
 			expandDataBlock(section, index, true);
@@ -229,6 +230,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String dialogCss = getDialogCss(section);
 		WebElement visibleElement = selenium_
 				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
 	}
 
 	/**
@@ -264,7 +266,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	{
 		String formName = DIALOG_MAP.get(section).getFormName();
 		String dialogCss = getDialogCss(section);
-		String checkBoxCss = dialogCss + " > div#" + formName + "\\:" + checkBoxName;
+		String checkBoxCss = dialogCss + " > div#" + formName + "\\:" + checkBoxName + " > div > span";
 		WebElement checkBox = selenium_.findElement(By.cssSelector(checkBoxCss));
 		return getChkBoxState(section, checkBox);
 	}
@@ -500,7 +502,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * fill the Work Location Data Block in update scenario,
-	 * the effective date fields will not be filled in this case since they are already set
+	 * the effective date fields cannot be manually selected, will fill in hardcoded values
 	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
 	 * @param name the name to input
 	 * @param providerType the provider type to select
@@ -516,7 +518,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		String defaultFlagCss = dialogCss + " > div#" + formName + "\\:defaultFlag";
+		String defaultFlagCss = dialogCss + " > div#" + formName + "\\:defaultFlag > div > span";
 		WebElement defaultFlagCheckbox = selenium_.findElement(By.cssSelector(defaultFlagCss));
 		if (getChkBoxState(ProviderSection.WORK_LOCATIONS, defaultFlagCheckbox) != defaultFlag) defaultFlagCheckbox.click();
 
@@ -525,7 +527,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 		wlName.clear();
 		if(!StringUtils.isEmpty(name)) wlName.sendKeys(name);
 
-		setDropdownListByVisibleText(ProviderSection.WORK_LOCATIONS, "providerType", providerType);
+		if (providerType != null)
+			setDropdownListByVisibleText(ProviderSection.WORK_LOCATIONS, "providerType", providerType);
 
 		String addressInfoCss = dialogCss + " > textarea#" + formName + "\\:additionalInfo";
 		WebElement addressInfoInput = selenium_.findElement(By.cssSelector(addressInfoCss));
@@ -533,6 +536,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 		if(!StringUtils.isEmpty(addressInfo)) addressInfoInput.sendKeys(addressInfo);
 
 		setEndReasonByVisibleText(ProviderSection.WORK_LOCATIONS, endReason.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.WORK_LOCATIONS, "2000-01-01", "2999-01-01");
 	}
 
 	/**
