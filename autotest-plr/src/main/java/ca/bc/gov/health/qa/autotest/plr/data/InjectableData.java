@@ -45,7 +45,6 @@ public class InjectableData
         for (ProviderType providerType : ProviderType.values())
         {
             if (!providerType.equals(ProviderType.ORGANIZATION)) data.add(new Object[]{providerType});
-            if (!providerType.equals(ProviderType.ORGANIZATION)) data.add(new Object[]{providerType});
         }
         return toArray(data);
     }
