@@ -705,6 +705,35 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
     }
 
+    // Update Provider - Validate Provider Credential Granting Institution Name
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialInstitutionName(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addCredentialDataBlockRaw("BD ", "Test Designation", "12345",
+                "Test Institution" + generateAlphabetNumericString(241), "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("institutionTooLong"),
+                "Expected error message for credential institution exceeding max length when adding credential");
+
+        final String institution = generateAlphabetNumericString(240);
+        page.addCredentialDataBlockRaw("BD ", "Test Designation", "12345",
+                institution, "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        Map<String,String> credContent = page.grabDataBlockContent(ProviderSection.CREDENTIALS, 0);
+
+        assertEquals(credContent.get("Granting Institution"), institution,
+                "Expected institution name in credential data block to match input after adding credential with valid institution name");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
+
     // Update Provider - Validate Provider Relationship Type Code
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateProviderRelationshipTypeCode(ProviderType providerType)
