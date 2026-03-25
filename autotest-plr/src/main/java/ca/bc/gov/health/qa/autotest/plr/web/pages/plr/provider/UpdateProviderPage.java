@@ -56,7 +56,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 			Map.entry(ProviderSection.PROVIDER_RELATIONSHIPS, new ProviderDialog("maintainProviderRelationshipDialog", "maintainProviderRelationshipForm", "effectiveStartDate",
 					"effectiveEndDate", "providerRelationshipSubmitButton", "EndReasonType","Add a new Provider Relationship")),
 			Map.entry(ProviderSection.REGISTRY_USER_RELATIONSHIPS, new ProviderDialog("maintainRegUserRelationshipDialog", "maintainRegUserRelationshipForm", "effectiveFromDate",
-					"effectiveToDate", "idRegUserRelationshipSubmitButton", "endReasonCode","Add a new Registry User Relationship"))
+					"effectiveToDate", "idRegUserRelationshipSubmitButton", "endReasonCode","Add a new Registry User Relationship")),
+			Map.entry(ProviderSection.CREDENTIALS, new ProviderDialog("maintainCredentialDialog", "maintainCredentialForm", "effectiveStartDateCred",
+					"effectiveEndDate", "idCredentialSubmitButton", "endReasonCode","Add a new Credential")),
+			Map.entry(ProviderSection.EXPERTISE, new ProviderDialog("maintainExpertiseDialog", "maintainExpertiseForm", "effectiveStartDate",
+					"effectiveEndDate", "idExpertiseSubmitButton", "endReasonCode","Add a new Expertise"))
 			);
 
 	public UpdateProviderPage(SeleniumSession selenium, URI uri) {
@@ -371,10 +375,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		setDropdownListByVisibleText(ProviderSection.CONDITIONS, "conditionType", conditionType);
 
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:Identifier";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
-		inputId.clear();
-		if(!StringUtils.isEmpty(conditionIdentifier))inputId.sendKeys(conditionIdentifier);
+		findAndFillInputField(dialogCss, formName, conditionIdentifier, "Identifier");
 
 		if (restriction) {
 			String restrictionCss = dialogCss + " > input#" + formName + "\\:restriction";
@@ -382,12 +383,63 @@ public class UpdateProviderPage extends ViewProviderPage {
 			restrictionCheckbox.click();
 		}
 
-		String explanationCss = dialogCss + " > textarea#" + formName + "\\:explanation";
-		WebElement explanationInput = selenium_.findElement(By.cssSelector(explanationCss));
-		explanationInput.clear();
-		if(!StringUtils.isEmpty(explanation))explanationInput.sendKeys(explanation);
+		findAndFillInputField(dialogCss, formName, explanation, "explanation");
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.CONDITIONS, effectiveFrom, effectiveTo);
+	}
+
+	/**
+	 * fill the Credential Data Block
+	 * @param credentialType the credential type to select
+	 * @param designation the designation to input
+	 * @param registrationNo the registration number to input
+	 * @param institution the institution to input
+	 * @param city the city to input
+	 * @param country the country to select
+	 * @param province the province to select
+	 * @param equivalency the equivalency flag to indicate whether to check the equivalency checkbox
+	 * @param year the year to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 */
+	public void fillCredentialDataBlock(String credentialType, String designation, String registrationNo,
+										String institution, String city, String country, String province,
+										boolean equivalency, String year, String effectiveFrom, String effectiveTo) {
+		String formName = DIALOG_MAP.get(ProviderSection.CREDENTIALS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.CREDENTIALS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		setDropdownListByVisibleText(ProviderSection.CREDENTIALS, "credentialType", credentialType);
+
+		findAndFillInputField(dialogCss, formName, designation, "designation");
+		findAndFillInputField(dialogCss, formName, registrationNo, "regNo");
+
+		if (!StringUtils.isEmpty(institution))
+			fillAutocompleteField(institution, formName, "institution_input", "institution_panel");
+
+		if (!StringUtils.isEmpty(city))
+			fillAutocompleteField(city, formName, "cityCred_input", "cityCred_panel");
+
+		setDropdownListByVisibleText(ProviderSection.CREDENTIALS, "countryCred", country);
+		setDropdownListByVisibleText(ProviderSection.CREDENTIALS, "provinceCred", province);
+
+		if (equivalency) {
+			String equivalencyFlagCss = dialogCss + " > div#" + formName + "\\:equivalencyFlag";
+			WebElement equivalencyFlagCheckbox = selenium_.findElement(By.cssSelector(equivalencyFlagCss));
+			equivalencyFlagCheckbox.click();
+		}
+
+		if (!StringUtils.isEmpty(year)) {
+			String yearInputCss = "input#" + formName + "\\:yearIssued_input";
+			WebElement yearInput = selenium_.findElement(By.cssSelector(yearInputCss));
+			yearInput.clear();
+			yearInput.sendKeys(year);
+		}
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.CREDENTIALS, effectiveFrom, effectiveTo);
 	}
 
 	/**
@@ -408,12 +460,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 		if (identifierType != null)
 			setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "providerType", identifierType.name());
 
-		if (identifier != null) {
-			String inputIdCss = dialogCss + " >input#" + formName + "\\:rpi";
-			WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
-			inputId.clear();
-			if (!StringUtils.isEmpty(identifier)) inputId.sendKeys(identifier);
-		}
+		if (identifier != null)
+			findAndFillInputField(dialogCss, formName, identifier, "rpi");
 
 		if (relationshipType != null)
 			setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "relationshipType", relationshipType);
@@ -441,10 +489,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 			setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
 					"regUserRelationshipType", regType);
 
-		String regIdCss = dialogCss + " > input#" + formName + "\\:registryUserId";
-		WebElement regId = selenium_.findElement(By.cssSelector(regIdCss));
-		regId.clear();
-		if (!StringUtils.isEmpty(regUserID)) regId.sendKeys(regUserID);
+		findAndFillInputField(dialogCss, formName, regUserID, "registryUserId");
 
 		if (userType != null)
 			setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
@@ -471,10 +516,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:wlChid";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
-		inputId.clear();
-		if(!StringUtils.isEmpty(locationID))inputId.sendKeys(locationID);
+		findAndFillInputField(dialogCss, formName, locationID, "wlChid");
 
 		if (defaultFlag) {
 			String defaultFlagCss = dialogCss + " > div#" + formName + "\\:defaultFlag";
@@ -482,17 +524,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 			defaultFlagCheckbox.click();
 		}
 
-		String wlNameCss = dialogCss+" >input#"+formName+"\\:name";
-		WebElement wlName = selenium_.findElement(By.cssSelector(wlNameCss));
-		wlName.clear();
-		if(!StringUtils.isEmpty(name)) wlName.sendKeys(name);
+		findAndFillInputField(dialogCss, formName, name, "name");
 
 		setDropdownListByVisibleText(ProviderSection.WORK_LOCATIONS, "providerType", providerType);
 
-		String addressInfoCss = dialogCss + " > textarea#" + formName + "\\:additionalInfo";
-		WebElement addressInfoInput = selenium_.findElement(By.cssSelector(addressInfoCss));
-		addressInfoInput.clear();
-		if(!StringUtils.isEmpty(addressInfo)) addressInfoInput.sendKeys(addressInfo);
+		findAndFillInputField(dialogCss, formName, addressInfo, "additionalInfo");
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.WORK_LOCATIONS,
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
@@ -522,6 +558,42 @@ public class UpdateProviderPage extends ViewProviderPage {
 		clickDialogSubmitButton(ProviderSection.CONDITIONS, expectError);
 
 		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.CONDITIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Credential Data Block, perform error message check if necessary
+	 * @param credentialType the credential type to select
+	 * @param designation the designation to input
+	 * @param registrationNo the registration number to input
+	 * @param institution the institution to input
+	 * @param city the city to input
+	 * @param country the country to select
+	 * @param province the province to select
+	 * @param equivalency the equivalency flag to indicate whether to check the equivalency checkbox
+	 * @param year the year to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addCredentialDataBlock(String credentialType, String designation, String registrationNo,
+										String institution, String city, String country, String province,
+										boolean equivalency, String year, String effectiveFrom, String effectiveTo, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.CREDENTIALS);
+
+		clickHeaderAddButton(ProviderSection.CREDENTIALS);
+
+		fillCredentialDataBlock(credentialType, designation, registrationNo, institution, city, country,
+				province, equivalency, year, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.CREDENTIALS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.CREDENTIALS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
@@ -791,6 +863,25 @@ public class UpdateProviderPage extends ViewProviderPage {
 		inputName.clear();
 		if (!StringUtils.isEmpty(field))
 			inputName.sendKeys(field);
+	}
+
+	private void fillAutocompleteField(String field, String formName, String inputCss, String panelCss) {
+		if (StringUtils.isEmpty(field)) return;
+
+		String inputCssSelector = "input#" + formName + "\\" + ":" + inputCss;
+		String panelCssSelector = "span#" + formName + "\\" + ":" + panelCss;
+
+		WebElement inputElement = selenium_.findElement(By.cssSelector(inputCssSelector));
+		inputElement.clear();
+		inputElement.sendKeys(field);
+
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(panelCssSelector)));
+		waitSeconds(1);
+		List<WebElement> items = selenium_.findElements(By.cssSelector(panelCssSelector + " li.ui-autocomplete-item"));
+		if (!items.isEmpty()) {
+			items.getFirst().click();
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(panelCssSelector)));
+		}
 	}
 
 	/**

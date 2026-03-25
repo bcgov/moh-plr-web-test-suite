@@ -119,6 +119,38 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected no active condition data blocks after cancelling add");
     }
 
+    // Update Provider - Add Credentials
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testAddCredentials(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        WebElement dialog = page.clickHeaderAddButton(ProviderSection.CREDENTIALS);
+        assertTrue(dialog.isDisplayed(), "Expected credential dialog to be displayed after clicking add button");
+        page.clickDialogCancelButton(ProviderSection.CREDENTIALS);
+
+        page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CREDENTIALS, true), 1,
+                "Expected 1 active credential data block after adding credential");
+
+         page.clickHeaderAddButton(ProviderSection.CREDENTIALS);
+         page.fillCredentialDataBlock("BD ", "Test Designation", "12345",
+                 "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                 effective_date(), increment_year_for_effective_date());
+         page.clickDialogCancelButton(ProviderSection.CREDENTIALS);
+
+         assertEquals(page.grabActiveDataBlockCount(ProviderSection.CREDENTIALS, true), 1,
+                 "Expected 1 active credential data block after cancelling add of second credential");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
+
     // Update Provider - Add Provider Relationships
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testAddProviderRelationships(ProviderType providerType)
