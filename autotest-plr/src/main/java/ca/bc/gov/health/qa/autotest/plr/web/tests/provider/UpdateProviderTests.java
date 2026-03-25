@@ -644,6 +644,67 @@ public class UpdateProviderTests implements SimpleTest {
 				"Expected 2 active condition data blocks after adding second condition to provider");
 	}
 
+    // Update Provider - Validate Provider Credential
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredential(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addCredentialDataBlock("BD ", null, "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("missingDesignation"),
+                "Expected error message for missing credential designation when adding credential");
+
+        error = page.addCredentialDataBlock("BD ", generateAlphabetNumericString(241), "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("designationTooLong"),
+                "Expected error message for credential designation exceeding max length when adding credential");
+
+        error = page.addCredentialDataBlock("BD ", "Test Designation", generateAlphabetNumericString(241),
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("registrationNumberTooLong"),
+                "Expected error message for credential registration number exceeding max length when adding credential");
+
+        error = page.addCredentialDataBlockRaw("BD ", "Test Designation", "12345",
+                generateAlphabetNumericString(241), "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("institutionTooLong"),
+                "Expected error message for credential institution exceeding max length when adding credential");
+
+        error = page.addCredentialDataBlockRaw("BD ", "Test Designation", "12345",
+                "Test Institution", generateAlphabetNumericString(241), "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("credentialCityTooLong"),
+                "Expected error message for credential city exceeding max length when adding credential");
+
+        error = page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, generateNumericString(51),
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("yearIssuedTooLong"),
+                "Expected error message for credential year exceeding max length when adding credential");
+
+        page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CREDENTIALS, true), 1,
+                "Expected 1 active credential data block after adding valid credential");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
+
     // Update Provider - Validate Provider Relationship Type Code
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateProviderRelationshipTypeCode(ProviderType providerType)

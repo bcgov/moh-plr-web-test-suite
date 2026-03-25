@@ -13,11 +13,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import org.openqa.selenium.By;
-import org.openqa.selenium.ElementClickInterceptedException;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
@@ -432,12 +428,59 @@ public class UpdateProviderPage extends ViewProviderPage {
 			equivalencyFlagCheckbox.click();
 		}
 
-		if (!StringUtils.isEmpty(year)) {
-			String yearInputCss = "input#" + formName + "\\:yearIssued_input";
-			WebElement yearInput = selenium_.findElement(By.cssSelector(yearInputCss));
-			yearInput.clear();
-			yearInput.sendKeys(year);
+		if (!StringUtils.isEmpty(year))
+			fillAutocompleteFieldRaw(year, formName, "yearIssued_input");
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.CREDENTIALS, effectiveFrom, effectiveTo);
+	}
+
+	/**
+	 * fill the Credential Data Block with raw input without using autocomplete field,
+	 * this method is used for negative test when the input value is not in the autocomplete list
+	 * @param credentialType the credential type to select
+	 * @param designation the designation to input
+	 * @param registrationNo the registration number to input
+	 * @param institution the institution to input
+	 * @param city the city to input
+	 * @param country the country to select
+	 * @param province the province to select
+	 * @param equivalency the equivalency flag to indicate whether to check the equivalency checkbox
+	 * @param year the year to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 */
+	public void fillCredentialDataBlockRaw(String credentialType, String designation, String registrationNo,
+			String institution, String city, String country, String province,
+			boolean equivalency, String year, String effectiveFrom, String effectiveTo) {
+		String formName = DIALOG_MAP.get(ProviderSection.CREDENTIALS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.CREDENTIALS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		setDropdownListByVisibleText(ProviderSection.CREDENTIALS, "credentialType", credentialType);
+
+		findAndFillInputField(dialogCss, formName, designation, "designation");
+		findAndFillInputField(dialogCss, formName, registrationNo, "regNo");
+
+		if (!StringUtils.isEmpty(institution))
+			fillAutocompleteFieldRaw(institution, formName, "institution_input");
+
+		if (!StringUtils.isEmpty(city))
+			fillAutocompleteFieldRaw(city, formName, "cityCred_input");
+
+		setDropdownListByVisibleText(ProviderSection.CREDENTIALS, "countryCred", country);
+		setDropdownListByVisibleText(ProviderSection.CREDENTIALS, "provinceCred", province);
+
+		if (equivalency) {
+			String equivalencyFlagCss = dialogCss + " > div#" + formName + "\\:equivalencyFlag";
+			WebElement equivalencyFlagCheckbox = selenium_.findElement(By.cssSelector(equivalencyFlagCss));
+			equivalencyFlagCheckbox.click();
 		}
+
+		if (!StringUtils.isEmpty(year))
+			fillAutocompleteFieldRaw(year, formName, "yearIssued_input");
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.CREDENTIALS, effectiveFrom, effectiveTo);
 	}
@@ -594,6 +637,42 @@ public class UpdateProviderPage extends ViewProviderPage {
 		clickDialogSubmitButton(ProviderSection.CREDENTIALS, expectError);
 
 		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.CREDENTIALS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Credential Data Block with raw input without using autocomplete field, perform error message check if necessary
+	 * @param credentialType the credential type to select
+	 * @param designation the designation to input
+	 * @param registrationNo the registration number to input
+	 * @param institution the institution to input
+	 * @param city the city to input
+	 * @param country the country to select
+	 * @param province the province to select
+	 * @param equivalency the equivalency flag to indicate whether to check the equivalency checkbox
+	 * @param year the year to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return
+	 */
+	public String addCredentialDataBlockRaw(String credentialType, String designation, String registrationNo,
+			String institution, String city, String country, String province,
+			boolean equivalency, String year, String effectiveFrom, String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.CREDENTIALS);
+
+		clickHeaderAddButton(ProviderSection.CREDENTIALS);
+
+		fillCredentialDataBlockRaw(credentialType, designation, registrationNo, institution, city, country,
+				province, equivalency, year, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.CREDENTIALS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.CREDENTIALS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
@@ -882,6 +961,20 @@ public class UpdateProviderPage extends ViewProviderPage {
 			items.getFirst().click();
 			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(panelCssSelector)));
 		}
+	}
+
+	private void fillAutocompleteFieldRaw(String field, String formName, String inputCss) {
+		if (StringUtils.isEmpty(field)) return;
+
+		String inputCssSelector = "input#" + formName + "\\" + ":" + inputCss;
+
+		WebElement inputElement = selenium_.findElement(By.cssSelector(inputCssSelector));
+		inputElement.clear();
+		inputElement.sendKeys(field);
+
+		// Tab out to avoid autocomplete panel interference
+		inputElement.sendKeys(Keys.TAB);
+		waitSeconds(1);
 	}
 
 	/**
