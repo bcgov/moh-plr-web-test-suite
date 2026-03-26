@@ -1,7 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
-import static ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants.CREDENTIAL_BASE_OPTIONS;
-import static ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants.CREDENTIAL_OPTIONS_MAP;
+import static ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.*;
 import static org.testng.Assert.*;
@@ -327,6 +326,56 @@ public class UpdateProviderTests implements SimpleTest {
         }
 
         page.clickDialogCancelButton(ProviderSection.CREDENTIALS);
+    }
+
+    // Update Provider - Code Restriction Validation - Expertise
+    @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionValidationExpertise(ProviderType providerType, ProviderRoleType roleType)
+    {
+        final List<ProviderRoleType> noPermRoles = List.of(
+                ProviderRoleType.RPN,
+                ProviderRoleType.RM,
+                ProviderRoleType.PHARM,
+                ProviderRoleType.HA);
+
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        final AddProviderActions actions = workflow.getAddProviderActions();
+
+        String identifier;
+        UpdateProviderPage page;
+
+        if (roleType.equals(ProviderRoleType.OPT) || roleType.equals(ProviderRoleType.OOPRECT)) {
+            identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+
+            page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+        } else if (noPermRoles.contains(roleType)) {
+            IdentifierType idType = IndividualRoleType.resolveRoleType(roleType.getCode()).getIdentifierType();
+            AddProviderPage rolePage = workflow.getPlrWebAccessActions().openAddProvider();
+            rolePage.fillIdentifier(roleType, null, null, idType.name(), generateNumericString(15));
+            actions.finishCreateFlow(rolePage, providerType, "Status");
+
+            page = new UpdateProviderPage(workflow.getSeleniumSession(),
+                    workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
+        } else {
+            IndividualRoleType fhirType = IndividualRoleType.resolveRoleType(roleType.getCode());
+            MaintainIndividualBuilder builder = fhirController.createIndividual(new IndividualMaintainConfig(fhirType));
+
+            page = viewByIdentifierAsUpdateProvider(builder.getIdentifier(IdentifierType.IPC), workflowManager_);
+        }
+
+        page.clickHeaderAddButton(ProviderSection.EXPERTISE);
+
+        List<String> expertiseList = page.getDropdownListOptions(ProviderSection.EXPERTISE, "expertise");
+        expertiseList.remove("Select One");
+
+        List<String> expectedExpertiseList = Stream.concat(EXPERTISE_LANG_OPTIONS.stream(),
+                EXPERTISE_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
+        for (String expOption : expectedExpertiseList) {
+            assertTrue(expertiseList.contains(expOption),
+                    "Expected expertise type dropdown options to contain " + expOption + " for provider role type " + roleType.getCode());
+        }
+
+        page.clickDialogCancelButton(ProviderSection.EXPERTISE);
     }
 
     // Update Provider - Generating a Default Condition ID
