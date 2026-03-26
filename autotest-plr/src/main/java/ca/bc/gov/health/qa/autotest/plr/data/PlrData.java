@@ -146,7 +146,7 @@ public class PlrData
     public static void setupPractitioner(FHIRController fhir, ProviderType providerType,
             Map<ProviderType, MaintainRequestBuilder> defaultMap, Map<ProviderType, MaintainRequestBuilder> minimumMap)
     {
-        // TODO: to add to default: work locations, communication preferences, registry user relationships
+        // TODO: to add to default: communication preferences, registry user relationships
 
         final IndividualDataGenerator dataGen = IndividualDataGenerator.getInstance();
         final IndividualBuilderFactory factory = new IndividualBuilderFactory(dataGen);
@@ -155,14 +155,14 @@ public class PlrData
         final String pracType = providerType.equals(ProviderType.BC_PRACTITIONER) ? "BC" : "OOP";
         final IndividualRoleType roleType = pracType.equals("BC") ? IndividualRoleType.DEN : IndividualRoleType.OOP_DEN;
 
-        final String defaultName = pracType.equals("BC") ? "TestBCPrac" : "TestOOPPrac";
+        final String defaultName = pracType.equals("BC") ? "BCTestPractitioner" : "OOPTestPractitioner";
         final String minimumName = pracType.equals("BC") ? "MinimumDataBCPrac" : "MinimumDataOOPPrac";
 
-        MaintainIndividualBuilder defaultBuilder = factory.build(new IndividualMaintainConfig()
+        MaintainIndividualBuilder defaultBuilder = factory.build(new IndividualMaintainConfig(roleType)
                         .withDemographics().withGivenNames().withAllTelecom().withNotes(2).withStatuses(2)
                         .withCredentials(2).withConditions(2).withDisciplinaryActions(2)
-                        .withExpertise(0).withOrganizationRelationships(2).withIndividualRelationships(2))
-                .familyName(defaultName).roleType(roleType).confidentiality(false)
+                        .withExpertise(0))
+                .familyName(defaultName).confidentiality(false)
                 .addExpertise("ENG", dataGen.shortText())
                 .addExpertise("SPAN", dataGen.shortText());
 
@@ -183,27 +183,27 @@ public class PlrData
         if (defaultQuery.isEmpty())
         {
             // Create Organization/Individual relationships
-            String orgRelIdentifier = fhir.createOrganization(OrganizationDataGenerator.getInstance().randomOrgRoleType())
+            String orgRelIdentifier = fhir.createOrganization(OrgRoleType.ORG)
                     .getIdentifier(IdentifierType.IPC);
             defaultBuilder = defaultBuilder.addOrganizationRelationship(
                     IdentifierType.IPC, orgRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            orgRelIdentifier = fhir.createOrganization(OrganizationDataGenerator.getInstance().randomOrgRoleType())
+            orgRelIdentifier = fhir.createOrganization(OrgRoleType.CLINIC)
                     .getIdentifier(IdentifierType.IPC);
             defaultBuilder = defaultBuilder.addOrganizationRelationship(
                     IdentifierType.IPC, orgRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            String indRelIdentifier = fhir.createIndividual(dataGen.randomRoleType(false))
+            String indRelIdentifier = fhir.createIndividual(IndividualRoleType.DEN)
                     .getIdentifier(IdentifierType.IPC);
             defaultBuilder = defaultBuilder.addIndividualRelationship(
                     IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            indRelIdentifier = fhir.createIndividual(dataGen.randomRoleType(false))
+            indRelIdentifier = fhir.createIndividual(IndividualRoleType.OPT)
                     .getIdentifier(IdentifierType.IPC);
             defaultBuilder = defaultBuilder.addIndividualRelationship(
                     IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            defaultIndiv = fhir.queryIndividualByIdentifier(ipc, fhir.submitIndividual(defaultBuilder).getIdentifier(ipc));
+            defaultIndiv = fhir.queryIndividualByIdentifier(roleType.getIdentifierType(), fhir.submitIndividual(defaultBuilder).getIdentifier(roleType.getIdentifierType()));
         } else defaultIndiv = defaultQuery.getFirst();
 
         defaultMap.put(providerType, defaultIndiv);
@@ -214,7 +214,7 @@ public class PlrData
 
         MaintainIndividualBuilder minimumIndiv;
         if (minimumQuery.isEmpty())
-            minimumIndiv = fhir.queryIndividualByIdentifier(ipc, fhir.submitIndividual(minimumBuilder).getIdentifier(ipc));
+            minimumIndiv = fhir.queryIndividualByIdentifier(roleType.getIdentifierType(), fhir.submitIndividual(minimumBuilder).getIdentifier(roleType.getIdentifierType()));
         else
             minimumIndiv = minimumQuery.getFirst();
 
@@ -231,15 +231,14 @@ public class PlrData
     public static void setupOrgProvider(FHIRController fhir,
             Map<ProviderType, MaintainRequestBuilder> defaultMap, Map<ProviderType, MaintainRequestBuilder> minimumMap)
     {
-        // TODO: to add to default: work locations
         final OrganizationDataGenerator dataGen = OrganizationDataGenerator.getInstance();
         final OrganizationBuilderFactory factory = new OrganizationBuilderFactory(dataGen);
 
         final IdentifierType ipc = IdentifierType.IPC;
 
-        final String defaultName = "TestDefaultOrganization";
+        final String defaultName = "DefaultTestOrganization";
         final String minimumName = "MinimumDataOrganization";
-        final OrganizationMaintainConfig defaultConfig = new OrganizationMaintainConfig(OrgRoleType.BUSINESS)
+        final OrganizationMaintainConfig defaultConfig = new OrganizationMaintainConfig(OrgRoleType.ORG)
                 .withName(defaultName)
                 .withAddress().withAllTelecom().withNotes(2).withStatuses(2)
                 .withAllOrgProperties(2,2,2,2);
@@ -247,7 +246,7 @@ public class PlrData
 
         // Default
         List<MaintainOrgBuilder> defaultQuery = fhir.queryOrganizationByCriteria(
-                new OrgQueryCriteriaParams().setName(defaultName).setRoleType(OrgRoleType.BUSINESS));
+                new OrgQueryCriteriaParams().setName(defaultName).setRoleType(OrgRoleType.ORG));
 
         MaintainOrgBuilder defaultOrg;
         if (defaultQuery.isEmpty())
@@ -262,28 +261,26 @@ public class PlrData
                     IdentifierType.IFC, facility.getIdentifier(), facility.getName());
 
             // Organization / Individual Relationships
-            String orgRelIdentifier = fhir.createOrganization(dataGen.randomOrgRoleType())
+            String orgRelIdentifier = fhir.createOrganization(OrgRoleType.ORG)
                     .getIdentifier(IdentifierType.IPC);
             defaultBuilder = defaultBuilder.addOrganizationRelationship(
                     IdentifierType.IPC, orgRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            orgRelIdentifier = fhir.createOrganization(dataGen.randomOrgRoleType())
+            orgRelIdentifier = fhir.createOrganization(OrgRoleType.CLINIC)
                     .getIdentifier(IdentifierType.IPC);
             defaultBuilder = defaultBuilder.addOrganizationRelationship(
                     IdentifierType.IPC, orgRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            String indRelIdentifier = fhir.createIndividual(
-                    IndividualDataGenerator.getInstance().randomRoleType(false)).getIdentifier(IdentifierType.IPC);
+            String indRelIdentifier = fhir.createIndividual(IndividualRoleType.OPT).getIdentifier(IdentifierType.IPC);
             defaultBuilder = defaultBuilder.addIndividualRelationship(
                     IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
-            indRelIdentifier = fhir.createIndividual(
-                    IndividualDataGenerator.getInstance().randomRoleType(false)).getIdentifier(IdentifierType.IPC);
+            indRelIdentifier = fhir.createIndividual(IndividualRoleType.DEN).getIdentifier(IdentifierType.IPC);
             defaultBuilder = defaultBuilder.addIndividualRelationship(
                     IdentifierType.IPC, indRelIdentifier, dataGen.generatePractitionerRelationshipCode());
 
             defaultBuilder = fhir.submitOrganization(defaultBuilder);
-            defaultOrg = fhir.queryOrganizationByIdentifier(ipc, defaultBuilder.getIdentifier(ipc));
+            defaultOrg = fhir.queryOrganizationByIdentifier(IdentifierType.ORGID, defaultBuilder.getIdentifier(IdentifierType.ORGID));
         } else defaultOrg = defaultQuery.getFirst();
 
         defaultMap.put(ProviderType.ORGANIZATION, defaultOrg);
@@ -295,7 +292,7 @@ public class PlrData
         MaintainOrgBuilder minimumOrg;
         if (minimumQuery.isEmpty())
             minimumOrg = fhir.queryOrganizationByIdentifier(ipc, fhir.createOrganization(
-                    new OrganizationMaintainConfig(OrgRoleType.ORG).withName(minimumName)).getIdentifier(ipc));
+                    new OrganizationMaintainConfig(OrgRoleType.ORG).withName(minimumName)).getIdentifier(IdentifierType.ORGID));
         else
             minimumOrg = minimumQuery.getFirst();
 
