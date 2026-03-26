@@ -151,6 +151,34 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
     }
 
+    // Update Provider - Add Expertise
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testAddExpertise(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        WebElement dialog = page.clickHeaderAddButton(ProviderSection.EXPERTISE);
+        assertTrue(dialog.isDisplayed(), "Expected expertise dialog to be displayed after clicking add button");
+        page.clickDialogCancelButton(ProviderSection.EXPERTISE);
+
+        page.addExpertiseDataBlock("ENG ", "Test", effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.EXPERTISE, true), 1,
+                "Expected 1 active expertise data block after adding expertise");
+
+        page.clickHeaderAddButton(ProviderSection.EXPERTISE);
+        page.fillExpertiseDataBlock("ENG ", "Test 2", effective_date(), increment_year_for_effective_date());
+        page.clickDialogCancelButton(ProviderSection.EXPERTISE);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.EXPERTISE, true), 1,
+                "Expected 1 active expertise data block after cancelling add of second expertise");
+
+        page.ceaseDataBlock(ProviderSection.EXPERTISE, 0);
+    }
+
     // Update Provider - Add Provider Relationships
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testAddProviderRelationships(ProviderType providerType)

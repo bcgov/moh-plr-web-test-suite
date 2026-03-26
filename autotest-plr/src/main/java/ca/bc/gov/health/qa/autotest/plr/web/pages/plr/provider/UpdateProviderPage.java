@@ -55,7 +55,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 					"effectiveToDate", "idRegUserRelationshipSubmitButton", "endReasonCode","Add a new Registry User Relationship")),
 			Map.entry(ProviderSection.CREDENTIALS, new ProviderDialog("maintainCredentialDialog", "maintainCredentialForm", "effectiveStartDateCred",
 					"effectiveEndDate", "idCredentialSubmitButton", "endReasonCode","Add a new Credential")),
-			Map.entry(ProviderSection.EXPERTISE, new ProviderDialog("maintainExpertiseDialog", "maintainExpertiseForm", "effectiveStartDate",
+			Map.entry(ProviderSection.EXPERTISE, new ProviderDialog("maintainExpertiseDialog", "maintainExpertiseForm", "effectiveStartDateExpertise",
 					"effectiveEndDate", "idExpertiseSubmitButton", "endReasonCode","Add a new Expertise"))
 			);
 
@@ -486,6 +486,29 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
+	 * fill the Expertise Data Block
+	 * @param expertise the expertise to select
+	 * @param sourceCode the source code to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 */
+	public void fillExpertiseDataBlock(String expertise, String sourceCode, String effectiveFrom, String effectiveTo)
+	{
+		String formName = DIALOG_MAP.get(ProviderSection.EXPERTISE).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.EXPERTISE);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		setDropdownListByVisibleText(ProviderSection.EXPERTISE, "expertise", expertise);
+
+		findAndFillInputField(dialogCss, formName, sourceCode, "sourceCode");
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.EXPERTISE, effectiveFrom, effectiveTo);
+	}
+
+	/**
 	 * fill the Provider Relationship Data Block
 	 * @param identifierType the identifier type to select
 	 * @param identifier the identifier to input
@@ -656,7 +679,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @param effectiveFrom the effective from date to input
 	 * @param effectiveTo the effective to date to input
 	 * @param expectError if this action expect returning error messages
-	 * @return
+	 * @return expected error message or empty string if no error message expected
 	 */
 	public String addCredentialDataBlockRaw(String credentialType, String designation, String registrationNo,
 			String institution, String city, String country, String province,
@@ -673,6 +696,32 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		if (expectError)
 			msgDisplay = waitErrorMessage(ProviderSection.CREDENTIALS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Expertise Data Block, perform error message check if necessary
+	 * @param expertise the expertise to select
+	 * @param sourceCode the source code to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addExpertiseDataBlock(String expertise, String sourceCode, String effectiveFrom, String effectiveTo, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.EXPERTISE);
+
+		clickHeaderAddButton(ProviderSection.EXPERTISE);
+
+		fillExpertiseDataBlock(expertise, sourceCode, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.EXPERTISE, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.EXPERTISE);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
