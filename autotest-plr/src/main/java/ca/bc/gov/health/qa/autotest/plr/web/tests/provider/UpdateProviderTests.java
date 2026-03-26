@@ -1098,4 +1098,33 @@ public class UpdateProviderTests implements SimpleTest {
 
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
     }
+
+    // Update Provider - Validate Year of Credential Issue
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateYearOfCredentialIssue(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "1" + generateNumericString(4),
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("yearIssuedTooLong"),
+                "Expected error message for year of credential issue exceeding max length when adding credential");
+
+        final String year = "1" + generateNumericString(3);
+        page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, year,
+                effective_date(), increment_year_for_effective_date(), false);
+
+        Map<String,String> credContent = page.grabDataBlockContent(ProviderSection.CREDENTIALS, 0);
+
+        assertEquals(credContent.get("Year Issued"), year,
+                "Expected year of credential issue in credential data block to match input after adding credential with valid year of issue");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
 }
