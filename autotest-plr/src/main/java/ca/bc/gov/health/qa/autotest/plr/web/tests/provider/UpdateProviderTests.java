@@ -17,10 +17,9 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndivid
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
-import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.AddProviderActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.UpdateProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ConditionType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
@@ -282,36 +281,10 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionValidationCredential(ProviderType providerType, ProviderRoleType roleType)
     {
-        final List<ProviderRoleType> noPermRoles = List.of(
-                ProviderRoleType.RPN,
-                ProviderRoleType.RM,
-                ProviderRoleType.PHARM,
-                ProviderRoleType.HA);
-
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
-        final AddProviderActions actions = workflow.getAddProviderActions();
+        final UpdateProviderActions actions = workflow.getUpdateProviderActions();
 
-        String identifier;
-        UpdateProviderPage page;
-
-        if (roleType.equals(ProviderRoleType.OPT) || roleType.equals(ProviderRoleType.OOPRECT)) {
-            identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
-
-            page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
-        } else if (noPermRoles.contains(roleType)) {
-            IdentifierType idType = IndividualRoleType.resolveRoleType(roleType.getCode()).getIdentifierType();
-            AddProviderPage rolePage = workflow.getPlrWebAccessActions().openAddProvider();
-            rolePage.fillIdentifier(roleType, null, null, idType.name(), generateNumericString(15));
-            actions.finishCreateFlow(rolePage, providerType, "Status");
-
-            page = new UpdateProviderPage(workflow.getSeleniumSession(),
-                    workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
-        } else {
-            IndividualRoleType fhirType = IndividualRoleType.resolveRoleType(roleType.getCode());
-            MaintainIndividualBuilder builder = fhirController.createIndividual(new IndividualMaintainConfig(fhirType));
-
-            page = viewByIdentifierAsUpdateProvider(builder.getIdentifier(IdentifierType.IPC), workflowManager_);
-        }
+        UpdateProviderPage page = actions.createIndividualByRoleType(workflowManager_, fhirController, roleType, providerType, defaultProviders);
 
         page.clickHeaderAddButton(ProviderSection.CREDENTIALS);
 
@@ -332,36 +305,10 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
     public void testCodeRestrictionValidationExpertise(ProviderType providerType, ProviderRoleType roleType)
     {
-        final List<ProviderRoleType> noPermRoles = List.of(
-                ProviderRoleType.RPN,
-                ProviderRoleType.RM,
-                ProviderRoleType.PHARM,
-                ProviderRoleType.HA);
-
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
-        final AddProviderActions actions = workflow.getAddProviderActions();
+        final UpdateProviderActions actions = workflow.getUpdateProviderActions();
 
-        String identifier;
-        UpdateProviderPage page;
-
-        if (roleType.equals(ProviderRoleType.OPT) || roleType.equals(ProviderRoleType.OOPRECT)) {
-            identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
-
-            page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
-        } else if (noPermRoles.contains(roleType)) {
-            IdentifierType idType = IndividualRoleType.resolveRoleType(roleType.getCode()).getIdentifierType();
-            AddProviderPage rolePage = workflow.getPlrWebAccessActions().openAddProvider();
-            rolePage.fillIdentifier(roleType, null, null, idType.name(), generateNumericString(15));
-            actions.finishCreateFlow(rolePage, providerType, "Status");
-
-            page = new UpdateProviderPage(workflow.getSeleniumSession(),
-                    workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
-        } else {
-            IndividualRoleType fhirType = IndividualRoleType.resolveRoleType(roleType.getCode());
-            MaintainIndividualBuilder builder = fhirController.createIndividual(new IndividualMaintainConfig(fhirType));
-
-            page = viewByIdentifierAsUpdateProvider(builder.getIdentifier(IdentifierType.IPC), workflowManager_);
-        }
+        UpdateProviderPage page = actions.createIndividualByRoleType(workflowManager_, fhirController, roleType, providerType, defaultProviders);
 
         page.clickHeaderAddButton(ProviderSection.EXPERTISE);
 
