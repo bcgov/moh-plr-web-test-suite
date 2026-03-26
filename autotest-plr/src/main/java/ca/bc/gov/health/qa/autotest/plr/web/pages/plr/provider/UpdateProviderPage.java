@@ -987,7 +987,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 	private void findAndFillInputField(String dialogCss, String formName, String field, String fieldCss) {
 		String inputNameCss = dialogCss + " >input#" + formName + "\\:" + fieldCss;
 		// Wait for the input field to be visible
-		WebElement inputName = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+		WebElement inputName = selenium_.findElement(By.cssSelector(inputNameCss));
 		inputName.clear();
 		if (!StringUtils.isEmpty(field))
 			inputName.sendKeys(field);

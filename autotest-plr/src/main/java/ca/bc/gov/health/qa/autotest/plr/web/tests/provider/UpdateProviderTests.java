@@ -813,6 +813,29 @@ public class UpdateProviderTests implements SimpleTest {
         page.clickDialogCancelButton(ProviderSection.EXPERTISE);
     }
 
+    // Update Provider - Validate Provider Expertise Original Source
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderExpertiseOriginalSource(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addExpertiseDataBlock("ENG ", null, effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.EXPERTISE, true), 1,
+                "Expected 1 active expertise data block after adding expertise with no original source");
+
+        String error = page.addExpertiseDataBlock("ENG ", generateAlphabetNumericString(51),
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("expertiseSourceTooLong"),
+                "Expected error message for expertise original source exceeding max length when adding expertise");
+
+        page.ceaseDataBlock(ProviderSection.EXPERTISE, 0);
+    }
+
     // Update Provider - Validate Provider Relationship Type Code
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateProviderRelationshipTypeCode(ProviderType providerType)
