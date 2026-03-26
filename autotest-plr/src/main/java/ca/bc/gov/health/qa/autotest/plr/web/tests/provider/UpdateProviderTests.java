@@ -1,5 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
+import static ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants.CREDENTIAL_BASE_OPTIONS;
+import static ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants.CREDENTIAL_OPTIONS_MAP;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.*;
 import static org.testng.Assert.*;
@@ -16,10 +18,13 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndivid
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.AddProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
+import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.add.AddProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ConditionType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -42,6 +47,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class UpdateProviderTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -50,6 +56,7 @@ public class UpdateProviderTests implements SimpleTest {
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     public static JSONObject errorList;
+    private final FHIRController fhirController = new FHIRController(UserType.ADMIN);
 
     private static final Map<ProviderType, MaintainIndividualBuilder> defaultProviders = new HashMap<>();
     private static final int MAX_DIS_ACTION_DES = 3000;
@@ -67,7 +74,8 @@ public class UpdateProviderTests implements SimpleTest {
 
     @AfterClass
     public void teardown() {
-        //workflowManager_.logoutAllAndClose();
+        workflowManager_.logoutAllAndClose();
+        fhirController.close();
         LOG.info("Done.");
     }
 
@@ -81,14 +89,12 @@ public class UpdateProviderTests implements SimpleTest {
 
     @BeforeTest
     public void beforeTest() {
-        FHIRController fhirController = new FHIRController(UserType.ADMIN);
         MaintainIndividualBuilder defaultBC = fhirController
                 .createIndividual(new IndividualMaintainConfig(IndividualRoleType.OPT));
         LOG.info("Created default BC provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
         MaintainIndividualBuilder defaultOOP = fhirController
                 .createIndividual(new IndividualMaintainConfig(IndividualRoleType.OOP_RECT));
         LOG.info("Created default OOP provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
-        fhirController.close();
 
         defaultProviders.put(ProviderType.BC_PRACTITIONER, defaultBC);
         defaultProviders.put(ProviderType.OOP_PRACTITIONER, defaultOOP);
@@ -271,6 +277,56 @@ public class UpdateProviderTests implements SimpleTest {
 
         // cleanup for if test cases are done in sequence
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+    }
+
+    // Update Provider - Code Restriction Validation - Credential
+    @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionValidationCredential(ProviderType providerType, ProviderRoleType roleType)
+    {
+        final List<ProviderRoleType> noPermRoles = List.of(
+                ProviderRoleType.RPN,
+                ProviderRoleType.RM,
+                ProviderRoleType.PHARM,
+                ProviderRoleType.HA);
+
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        final AddProviderActions actions = workflow.getAddProviderActions();
+
+        String identifier;
+        UpdateProviderPage page;
+
+        if (roleType.equals(ProviderRoleType.OPT) || roleType.equals(ProviderRoleType.OOPRECT)) {
+            identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+
+            page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+        } else if (noPermRoles.contains(roleType)) {
+            IdentifierType idType = IndividualRoleType.resolveRoleType(roleType.getCode()).getIdentifierType();
+            AddProviderPage rolePage = workflow.getPlrWebAccessActions().openAddProvider();
+            rolePage.fillIdentifier(roleType, null, null, idType.name(), generateNumericString(15));
+            actions.finishCreateFlow(rolePage, providerType, "Status");
+
+            page = new UpdateProviderPage(workflow.getSeleniumSession(),
+                    workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
+        } else {
+            IndividualRoleType fhirType = IndividualRoleType.resolveRoleType(roleType.getCode());
+            MaintainIndividualBuilder builder = fhirController.createIndividual(new IndividualMaintainConfig(fhirType));
+
+            page = viewByIdentifierAsUpdateProvider(builder.getIdentifier(IdentifierType.IPC), workflowManager_);
+        }
+
+        page.clickHeaderAddButton(ProviderSection.CREDENTIALS);
+
+        List<String> expectedCredentialList = Stream.concat(CREDENTIAL_BASE_OPTIONS.stream(),
+                CREDENTIAL_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
+        List<String> credentialList = page.getDropdownListOptions(ProviderSection.CREDENTIALS, "credentialType");
+        credentialList.remove("Select One");
+
+        for (String credOption : expectedCredentialList) {
+            assertTrue(credentialList.contains(credOption),
+                    "Expected credential type dropdown options to contain " + credOption + " for provider role type " + roleType.getCode());
+        }
+
+        page.clickDialogCancelButton(ProviderSection.CREDENTIALS);
     }
 
     // Update Provider - Generating a Default Condition ID
