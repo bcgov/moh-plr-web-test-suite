@@ -119,8 +119,10 @@
     "errorStatusReasonCodeMissing" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Status Reason Code'. Your transaction has not been processed. Correct and resubmit.",
     "errorNoteTextMissing" : "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Note Text'. Your transaction has not been processed. Correct and resubmit.",
     "errorNoteTextLength" : "GRS.SYS.UNK.UNK.1.0.5003: Entry Error. 'Note Text' length must be between 0 and 255. Your transaction has not been processed. Correct and resubmit.",
-    "errorStatusCodeMissing": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Status Code'. Your transaction has not been processed. Correct and resubmit."
-  },
+    "errorStatusCodeMissing": "GRS.SYS.UNK.UNK.1.0.5000: Entry error. Some mandatory data is missing in your transaction. The following fields must be supplied: 'Status Code'. Your transaction has not been processed. Correct and resubmit.",
+    "errorCeaselastActiveProviderIdentifier": "PRS.PRV.MTN.IDE.1.0.2304: Entry Error. You are not allowed to cease the only identifier remaining for a provider. Your transaction has not been processed.",
+    "errorCeaselastActiveName": "GRS.PRV.MTN.DEM.1.0.2304: Entry Error. You are not allowed to cease the only name for a provider. Your transaction has not been processed."  
+ },
   "warnings": {
     "missingCriteria": "Invalid or Incomplete form data provided, please see instructions on the right side.",
     "maximumResults": "Maximum search results returned. Please refine your search criteria.",

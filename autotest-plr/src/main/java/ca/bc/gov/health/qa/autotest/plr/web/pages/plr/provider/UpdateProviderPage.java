@@ -60,8 +60,9 @@ public class UpdateProviderPage extends ViewProviderPage {
 			Map.entry(ProviderSection.DISCIPLINARY_ACTIONS,
 					new ProviderDialog("maintainDisActionDialog", "maintainDisActionForm", "effectiveFromDate",
 							"effectiveToDate", "idSubmitButton", "EndReasonType", "Add a new Disciplinary Action")),
-			Map.entry(ProviderSection.STATUSES, new ProviderDialog("maintainStatusDialog", "maintainStatusForm",
-					"effectiveFromDate", "effectiveToDate", "idStatusSubmitButton", "endReasonCode", "Add a new Status")));
+			Map.entry(ProviderSection.STATUSES,
+					new ProviderDialog("maintainStatusDialog", "maintainStatusForm", "effectiveFromDate",
+							"effectiveToDate", "idStatusSubmitButton", "endReasonCode", "Add a new Status")));
 
 	public UpdateProviderPage(SeleniumSession selenium, URI uri) {
 		super(selenium, uri);
@@ -82,12 +83,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 	}
 
-    /**
-     * Tries to wait some number of seconds. Will fail the test used in if interrupted.
-	 * TODO this should be used as little as possible in favour of selenium implicit waits.
-     *
-     * @param second the number of seconds to wait.
-     */
+	/**
+	 * Tries to wait some number of seconds. Will fail the test used in if
+	 * interrupted. TODO this should be used as little as possible in favour of
+	 * selenium implicit waits.
+	 *
+	 * @param second the number of seconds to wait.
+	 */
 	public void waitSeconds(int second) {
 		try {
 			Thread.sleep(1000L * second);
@@ -98,21 +100,20 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * Attempts to update a practitioner name data block with provided values
-	 * @param prefix the name prefix
-	 * @param first the first name
-	 * @param second the second name
-	 * @param third the third name
-	 * @param surname the surname
-	 * @param suffix the name suffix
+	 * 
+	 * @param prefix        the name prefix
+	 * @param first         the first name
+	 * @param second        the second name
+	 * @param third         the third name
+	 * @param surname       the surname
+	 * @param suffix        the name suffix
 	 * @param endReasonType the end reason type
-	 * @param index the data block index
-	 * @param expectError whether an error is expected
+	 * @param index         the data block index
+	 * @param expectError   whether an error is expected
 	 * @return the error message if expectError is true, otherwise an empty string
 	 */
-	public String updatePractitionerNameDataBlock(
-			String prefix, String first, String second, String third, String surname, String suffix,
-			EndReason endReasonType, int index, boolean expectError)
-	{
+	public String updatePractitionerNameDataBlock(String prefix, String first, String second, String third,
+			String surname, String suffix, EndReason endReasonType, int index, boolean expectError) {
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.PRACTITIONER_NAMES).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.PRACTITIONER_NAMES);
@@ -148,7 +149,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * get Data Block Header Update Button Selector
 	 *
 	 * @param section the provider section
-	 * @param index the data block index
+	 * @param index   the data block index
 	 * @return CSS selector of Data Block Header Update Button
 	 */
 	protected String getDataBlockHeaderUpdateButtonSelector(ProviderSection section, int index) {
@@ -158,6 +159,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * Using a Javascript Executor to press button
+	 * 
 	 * @param button the button element
 	 */
 	private void clickButtonWait(WebElement button) {
@@ -169,8 +171,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 	}
 
-	public void clickHeaderAddButton(ProviderSection section)
-	{
+	public void clickHeaderAddButton(ProviderSection section) {
 		String title = DIALOG_MAP.get(section).getAddButtonImgText();
 		String clickElementCss = getSectionSelector(section) + " > div > div > a > img[title='" + title + "']";
 
@@ -189,16 +190,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
 
-    /**
-     * Attempts to click the update button on a specified data block
-     *
-     * @param section the provider section to find the data block's update button within
-     * @param index the specific index of the data block to find and click the update button for
-     */
+	/**
+	 * Attempts to click the update button on a specified data block
+	 *
+	 * @param section the provider section to find the data block's update button
+	 *                within
+	 * @param index   the specific index of the data block to find and click the
+	 *                update button for
+	 */
 	public void clickDataBlockUpdateButton(ProviderSection section, int index) {
 		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
-		WebElement updateButton = selenium_.waitUntil(ExpectedConditions
-				.elementToBeClickable(By.cssSelector(selectCss)));
+		WebElement updateButton = selenium_
+				.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(selectCss)));
 		selenium_.scrollIntoView(updateButton);
 
 		try {
@@ -227,7 +230,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * set End Reason By Visible Text
-	 * @param section the provider section
+	 * 
+	 * @param section     the provider section
 	 * @param visibleText the visible text to select
 	 */
 	private void setEndReasonByVisibleText(ProviderSection section, String visibleText) {
@@ -244,9 +248,9 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * set Drop down List By Visible Text
 	 *
-	 * @param section the provider section
+	 * @param section      the provider section
 	 * @param dropdownName the dropdown field name
-	 * @param visibleText the visible text to select
+	 * @param visibleText  the visible text to select
 	 */
 	private void setDropdownListByVisibleText(ProviderSection section, String dropdownName, String visibleText) {
 		if (StringUtils.isEmpty(visibleText))
@@ -262,7 +266,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * get Drop down List Options
-	 * @param section the provider section
+	 * 
+	 * @param section      the provider section
 	 * @param dropdownName the dropdownfield name
 	 */
 	public List<String> getDropdownListOptions(ProviderSection section, String dropdownName) {
@@ -289,7 +294,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * Click the "Update/Add" dialog submission button. If an error is anticipated,
 	 * wait for the error message to appear.
 	 *
-	 * @param section the provider section
+	 * @param section     the provider section
 	 * @param expectError whether an error is expected
 	 */
 	private void clickDialogSubmitButton(ProviderSection section, boolean expectError) {
@@ -307,8 +312,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	public void fillConditionDataBlock(String conditionType, String conditionIdentifier, boolean restriction,
-										String explanation, String effectiveFrom, String effectiveTo)
-	{
+			String explanation, String effectiveFrom, String effectiveTo) {
 		String formName = DIALOG_MAP.get(ProviderSection.CONDITIONS).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.CONDITIONS);
 
@@ -318,10 +322,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		setDropdownListByVisibleText(ProviderSection.CONDITIONS, "conditionType", conditionType);
 
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:Identifier";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:Identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
 		inputId.clear();
-		if(!StringUtils.isEmpty(conditionIdentifier))inputId.sendKeys(conditionIdentifier);
+		if (!StringUtils.isEmpty(conditionIdentifier))
+			inputId.sendKeys(conditionIdentifier);
 
 		if (restriction) {
 			String restrictionCss = dialogCss + " > input#" + formName + "\\:restriction";
@@ -332,46 +337,47 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String explanationCss = dialogCss + " > textarea#" + formName + "\\:explanation";
 		WebElement explanationInput = selenium_.findElement(By.cssSelector(explanationCss));
 		explanationInput.clear();
-		if(!StringUtils.isEmpty(explanation))explanationInput.sendKeys(explanation);
+		if (!StringUtils.isEmpty(explanation))
+			explanationInput.sendKeys(explanation);
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.CONDITIONS, effectiveFrom, effectiveTo);
 	}
 
 	public String addConditionDataBlock(String conditionType, String conditionIdentifier, boolean restriction,
-										String explanation, String effectiveFrom, String effectiveTo, boolean expectError)
-	{
+			String explanation, String effectiveFrom, String effectiveTo, boolean expectError) {
 		String msgDisplay = "";
 		String dialogCss = getDialogCss(ProviderSection.CONDITIONS);
 
 		clickHeaderAddButton(ProviderSection.CONDITIONS);
 
-		fillConditionDataBlock(conditionType, conditionIdentifier, restriction, explanation, effectiveFrom, effectiveTo);
+		fillConditionDataBlock(conditionType, conditionIdentifier, restriction, explanation, effectiveFrom,
+				effectiveTo);
 
 		clickDialogSubmitButton(ProviderSection.CONDITIONS, expectError);
 
-		if(expectError)
-			msgDisplay=waitErrorMessage(ProviderSection.CONDITIONS);
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.CONDITIONS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	
-	
+
 	/**
-	 * performing action of adding Disciplinary ActionData Block, perform error message check if necessary
+	 * performing action of adding Disciplinary ActionData Block, perform error
+	 * message check if necessary
 	 * 
 	 * @param actionIdentifier id of Disciplinary Action
-	 * @param display flag of 'display' of Disciplinary Action
-	 * @param description  description of Disciplinary Action
-	 * @param archiveDate archive Date of Disciplinary Action
-	 * @param effectiveFrom effective From date of Disciplinary Action
-	 * @param effectiveTo effective To Date of Disciplinary Action
-	 * @param expectError if this action expect returning error messages
+	 * @param display          flag of 'display' of Disciplinary Action
+	 * @param description      description of Disciplinary Action
+	 * @param archiveDate      archive Date of Disciplinary Action
+	 * @param effectiveFrom    effective From date of Disciplinary Action
+	 * @param effectiveTo      effective To Date of Disciplinary Action
+	 * @param expectError      if this action expect returning error messages
 	 * 
-	 * @return expected error message or empty string if no error message expected 
+	 * @return expected error message or empty string if no error message expected
 	 */
-	public String addDisciplinaryActionDataBlock(String actionIdentifier, boolean display,
-			String description, String archiveDate, String effectiveFrom, String effectiveTo, boolean expectError) {
+	public String addDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description,
+			String archiveDate, String effectiveFrom, String effectiveTo, boolean expectError) {
 		String msgDisplay = "";
 		String dialogCss = getDialogCss(ProviderSection.DISCIPLINARY_ACTIONS);
 
@@ -392,12 +398,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * fill the Disciplinary Action Data Block
 	 * 
-	 * @param actionIdentifier id of Disciplinary Action 
-	 * @param display flag of 'display' of Disciplinary Action 
-	 * @param description description of Disciplinary Action
-	 * @param archiveDate archive Date of Disciplinary Action
-	 * @param effectiveFrom effective From date of Disciplinary Action
-	 * @param effectiveTo effective To Date of Disciplinary Action
+	 * @param actionIdentifier id of Disciplinary Action
+	 * @param display          flag of 'display' of Disciplinary Action
+	 * @param description      description of Disciplinary Action
+	 * @param archiveDate      archive Date of Disciplinary Action
+	 * @param effectiveFrom    effective From date of Disciplinary Action
+	 * @param effectiveTo      effective To Date of Disciplinary Action
 	 */
 	private void fillDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description,
 			String archiveDate, String effectiveFrom, String effectiveTo) {
@@ -408,11 +414,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:Identifier";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:Identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
 		inputId.clear();
-		if(!StringUtils.isEmpty(actionIdentifier))inputId.sendKeys(actionIdentifier);
+		if (!StringUtils.isEmpty(actionIdentifier))
+			inputId.sendKeys(actionIdentifier);
 
 		if (display) {
 			String displayCss = dialogCss + " > div#" + formName + "\\:display";
@@ -423,9 +429,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String descriptionCss = dialogCss + " > textarea#" + formName + "\\:description";
 		WebElement descriptionInput = selenium_.findElement(By.cssSelector(descriptionCss));
 		descriptionInput.clear();
-		if(!StringUtils.isEmpty(description))descriptionInput.sendKeys(description);
-		
-		String archiveDatestr="archiveDate";
+		if (!StringUtils.isEmpty(description))
+			descriptionInput.sendKeys(description);
+
+		String archiveDatestr = "archiveDate";
 		String archiveDateCss = dialogCss + " >span#" + formName + "\\:" + archiveDatestr + " >input#" + formName
 				+ "\\:" + archiveDatestr + "_input";
 		WebElement archiveDateElement = selenium_.findElement(By.cssSelector(archiveDateCss));
@@ -434,23 +441,20 @@ public class UpdateProviderPage extends ViewProviderPage {
 			archiveDateElement.sendKeys(effectiveFrom);
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.DISCIPLINARY_ACTIONS, effectiveFrom, effectiveTo);
-		
+
 	}
 
-	public List<String> getMandatoryFields(ProviderSection section)
-	{
+	public List<String> getMandatoryFields(ProviderSection section) {
 		String formName = DIALOG_MAP.get(section).getFormName();
 		String dialogCss = getDialogCss(section);
 		String mandatoryFieldCss = dialogCss + " > div > label > span.ui-outputlabel-rfi";
 		List<WebElement> mandatoryFieldSpecifiers = selenium_.findElements(By.cssSelector(mandatoryFieldCss));
 		return mandatoryFieldSpecifiers.stream()
-				.map(elem -> elem.findElement(By.xpath("./.."))
-						.getText().replace("*", ""))
-				.toList();
+				.map(elem -> elem.findElement(By.xpath("./..")).getText().replace("*", "")).toList();
 	}
 
 	private void setDialogEffectiveFromAndEffectiveTo(ProviderSection section, String effectiveFrom,
-													  String effectiveTo) {
+			String effectiveTo) {
 		String dialogCss = getDialogCss(section);
 		String formName = DIALOG_MAP.get(section).getFormName();
 		String effectiveFromStr = DIALOG_MAP.get(section).getEffectiveFromStr();
@@ -472,8 +476,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
-	 * wait Error Message showing up, and return a copy of message as result
-	 * note the result is a set of messages, if there are more than one error messages
+	 * wait Error Message showing up, and return a copy of message as result note
+	 * the result is a set of messages, if there are more than one error messages
 	 *
 	 * @param section the provider section
 	 * @return String of error messages
@@ -508,7 +512,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String formName = DIALOG_MAP.get(section).getFormName();
 		String dialogCss = getDialogCss(section);
 		String msgCss = dialogCss + "> div#" + formName + "\\:messages > div > ul > li";
-		
+
 		try {
 			java.util.List<WebElement> msgList = selenium_.findElements(By.cssSelector(msgCss));
 			for (WebElement msg : msgList) {
@@ -517,7 +521,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		} catch (Exception e) {
 			// No messages found
 		}
-		
+
 		return msgDisplay.trim();
 	}
 
@@ -525,14 +529,15 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * Find And Fill an input field for organization properties (TEXT_FIELD type)
 	 *
 	 * @param dialogCss the dialog CSS selector
-	 * @param formName the form name
-	 * @param field the field value
-	 * @param fieldCss the field CSS selector
+	 * @param formName  the form name
+	 * @param field     the field value
+	 * @param fieldCss  the field CSS selector
 	 */
 	private void findAndFillInputField(String dialogCss, String formName, String field, String fieldCss) {
 		String inputNameCss = dialogCss + " >input#" + formName + "\\:" + fieldCss;
 		// Wait for the input field to be visible
-		WebElement inputName = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+		WebElement inputName = selenium_
+				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
 		inputName.clear();
 		if (!StringUtils.isEmpty(field))
 			inputName.sendKeys(field);
@@ -542,7 +547,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * Cease Data Block
 	 *
 	 * @param section the provider section
-	 * @param index the data block index
+	 * @param index   the data block index
 	 */
 	public void ceaseDataBlock(ProviderSection section, int index) {
 		String formName = DIALOG_MAP.get(section).getFormName();
@@ -573,8 +578,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 	}
 
-	public void clickDialogCancelButton(ProviderSection providerSection)
-	{
+	public void clickDialogCancelButton(ProviderSection providerSection) {
 		String dialogCss = getDialogCss(providerSection);
 
 		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
@@ -584,8 +588,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
 
-	public void cancleAddDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description, String archiveDate,
-			String effectiveFrom, String effectiveTo) {
+	public void cancleAddDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description,
+			String archiveDate, String effectiveFrom, String effectiveTo) {
 
 		String dialogCss = getDialogCss(ProviderSection.DISCIPLINARY_ACTIONS);
 
@@ -600,31 +604,35 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 	}
-	
 
-	/**add Identifiers Data Block
-	 * @param idType id type 
-	 * @param id id 
-	 * @param effectiveFrom effective from date 
-	 * @param effectiveTo effective to date 
-	 * @param expectError if error messages are expected
-	 * @return If there are error messages, return them; otherwise return an empty string. 
+	/**
+	 * add Identifiers Data Block
+	 * 
+	 * @param idType        id type
+	 * @param id            id
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo   effective to date
+	 * @param expectError   if error messages are expected
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string.
 	 */
-	public String addIdentifiersDataBlock(String idType, String id, String effectiveFrom, String effectiveTo,boolean expectError) {
+	public String addIdentifiersDataBlock(String idType, String id, String effectiveFrom, String effectiveTo,
+			boolean expectError) {
 		String msgDisplay = "";
-		String formName=DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.IDENTIFIERS);
 
 		clickHeaderAddButton(ProviderSection.IDENTIFIERS);
-		//dropdown irtype
-		if(!StringUtils.isEmpty(idType))
-			setDropdownListByVisibleText(ProviderSection.IDENTIFIERS,"providerType",idType);
-		//identifier 
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"identifier";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		// dropdown irtype
+		if (!StringUtils.isEmpty(idType))
+			setDropdownListByVisibleText(ProviderSection.IDENTIFIERS, "providerType", idType);
+		// identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
 		inputId.clear();
-		if(!StringUtils.isEmpty(id))inputId.sendKeys(id);
-		
+		if (!StringUtils.isEmpty(id))
+			inputId.sendKeys(id);
+
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.IDENTIFIERS, effectiveFrom, effectiveTo);
 		clickDialogSubmitButton(ProviderSection.IDENTIFIERS, expectError);
 
@@ -634,30 +642,34 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	
-	/** update Identifiers Data Block
+
+	/**
+	 * update Identifiers Data Block
+	 * 
 	 * @param id
 	 * @param effectiveFrom
 	 * @param effectiveTo
 	 * @param endReasonCode
 	 * @param inswx
 	 * @param expectError
-	 * @return If there are error messages, return them; otherwise return an empty string.
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string.
 	 */
-	public String updateIdentifiersDataBlock(String id, String effectiveFrom, String effectiveTo,EndReason endReasonCode,
-			int inswx ,boolean expectError) {
+	public String updateIdentifiersDataBlock(String id, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean expectError) {
 		String msgDisplay = "";
-		String formName=DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.IDENTIFIERS);
 
-		clickDataBlockUpdateButton(ProviderSection.IDENTIFIERS,inswx);
-		
-		//identifier 
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"identifier";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		clickDataBlockUpdateButton(ProviderSection.IDENTIFIERS, index);
+
+		// identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
 		inputId.clear();
-		if(!StringUtils.isEmpty(id))inputId.sendKeys(id);
-		
+		if (!StringUtils.isEmpty(id))
+			inputId.sendKeys(id);
+
 		if (endReasonCode != null)
 			setEndReasonByVisibleText(ProviderSection.IDENTIFIERS, endReasonCode.getText());
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.IDENTIFIERS, effectiveFrom, effectiveTo);
@@ -669,14 +681,17 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	
-	/** add Note Data Block
+
+	/**
+	 * add Note Data Block
+	 * 
 	 * @param id
 	 * @param text
 	 * @param effectiveFrom
 	 * @param effectiveTo
 	 * @param expectError
-	 * @return If there are error messages, return them; otherwise return an empty string.
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string.
 	 */
 	public String addNoteDataBlock(String id, String text, String effectiveFrom, String effectiveTo,
 			boolean expectError) {
@@ -708,14 +723,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		return msgDisplay;
 	}
-	/**  update Note Data Block
+
+	/**
+	 * update Note Data Block
+	 * 
 	 * @param text
 	 * @param effectiveFrom
 	 * @param effectiveTo
 	 * @param endReasonCode
 	 * @param index
 	 * @param expectError
-	 * @return  If there are error messages, return them; otherwise return an empty string
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
 	 */
 	public String updateNoteDataBlock(String text, String effectiveFrom, String effectiveTo, EndReason endReasonCode,
 			int index, boolean expectError) {
@@ -745,30 +764,35 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	/** add RegIdentifiers Data Block
+
+	/**
+	 * add RegIdentifiers Data Block
+	 * 
 	 * @param regIdType
 	 * @param regId
 	 * @param effectiveFrom
 	 * @param effectiveTo
 	 * @param expectError
-	 * @return  If there are error messages, return them; otherwise return an empty string
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
 	 */
-	public String addRegIdentifiersDataBlock(String regIdType, String regId, String effectiveFrom,
-			String effectiveTo, boolean expectError) {
+	public String addRegIdentifiersDataBlock(String regIdType, String regId, String effectiveFrom, String effectiveTo,
+			boolean expectError) {
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
 
 		clickHeaderAddButton(ProviderSection.REGISTRY_IDENTIFIERS);
-		//fill up reg id type
-		if(!StringUtils.isEmpty(regIdType))
-			setDropdownListByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS,"providerType",regIdType);
-		//reg identifier 
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"identifier";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		// fill up reg id type
+		if (!StringUtils.isEmpty(regIdType))
+			setDropdownListByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS, "providerType", regIdType);
+		// reg identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
 		inputId.clear();
-		if(!StringUtils.isEmpty(regId))inputId.sendKeys(regId);
-				
+		if (!StringUtils.isEmpty(regId))
+			inputId.sendKeys(regId);
+
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_IDENTIFIERS, effectiveFrom, effectiveTo);
 		clickDialogSubmitButton(ProviderSection.REGISTRY_IDENTIFIERS, expectError);
 
@@ -778,8 +802,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	
-	/** update RegIdentifiers Data Block
+
+	/**
+	 * update RegIdentifiers Data Block
+	 * 
 	 * @param regIdType
 	 * @param regId
 	 * @param effectiveFrom
@@ -787,25 +813,27 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @param endReasonCode
 	 * @param index
 	 * @param expectError
-	 * @return If there are error messages, return them; otherwise return an empty string
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
 	 */
-	public String updateRegIdentifiersDataBlock(String regIdType, String regId, String effectiveFrom,
-			String effectiveTo, EndReason endReasonCode,int index,boolean expectError) {
+	public String updateRegIdentifiersDataBlock(String regId, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean expectError) {
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
 
 		clickDataBlockUpdateButton(ProviderSection.REGISTRY_IDENTIFIERS, index);
-		
-		//reg identifier 
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:"+"identifier";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+
+		// reg identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
 		inputId.clear();
-		if(!StringUtils.isEmpty(regId))inputId.sendKeys(regId);
-		//end reason code
+		if (!StringUtils.isEmpty(regId))
+			inputId.sendKeys(regId);
+		// end reason code
 		if (endReasonCode != null)
 			setEndReasonByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS, endReasonCode.getText());
-		//effective dates		
+		// effective dates
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_IDENTIFIERS, effectiveFrom, effectiveTo);
 		clickDialogSubmitButton(ProviderSection.REGISTRY_IDENTIFIERS, expectError);
 
@@ -815,14 +843,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	/** add Status Data Block
+
+	/**
+	 * add Status Data Block
+	 * 
 	 * @param statusClassCode
 	 * @param statusCode
 	 * @param statusReasonCode
 	 * @param effectiveFrom
 	 * @param effectiveTo
 	 * @param expectError
-	 * @return If there are error messages, return them; otherwise return an empty string
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
 	 */
 	public String addStatusDataBlock(String statusClassCode, String statusCode, String statusReasonCode,
 			String effectiveFrom, String effectiveTo, boolean expectError) {
@@ -831,17 +863,17 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String dialogCss = getDialogCss(ProviderSection.STATUSES);
 
 		clickHeaderAddButton(ProviderSection.STATUSES);
-		//fill up Status Class Code
-		if(!StringUtils.isEmpty(statusClassCode))
-			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusClassCode",statusClassCode);
-		//Status Code
-		if(!StringUtils.isEmpty(statusCode))
-			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusCode",statusCode);
-		//Status Reason Code
-		if(!StringUtils.isEmpty(statusReasonCode))
-			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusReasonCode",statusReasonCode);
-		
-		//effective dates
+		// fill up Status Class Code
+		if (!StringUtils.isEmpty(statusClassCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusClassCode", statusClassCode);
+		// Status Code
+		if (!StringUtils.isEmpty(statusCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusCode", statusCode);
+		// Status Reason Code
+		if (!StringUtils.isEmpty(statusReasonCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusReasonCode", statusReasonCode);
+
+		// effective dates
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.STATUSES, effectiveFrom, effectiveTo);
 		clickDialogSubmitButton(ProviderSection.STATUSES, expectError);
 
@@ -851,9 +883,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	
-	
-	/**update Status Data Block
+
+	/**
+	 * update Status Data Block
+	 * 
 	 * @param statusClassCode
 	 * @param statusCode
 	 * @param statusReasonCode
@@ -862,27 +895,27 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @param endReasonCode
 	 * @param index
 	 * @param expectError
-	 * @return If there are error messages, return them; otherwise return an empty string
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
 	 */
-	public String updateStatusDataBlock(String statusClassCode, String statusCode, String statusReasonCode,
-			String effectiveFrom, String effectiveTo, EndReason endReasonCode,
-			int index,boolean expectError) {
+	public String updateStatusDataBlock(String statusCode, String statusReasonCode, String effectiveFrom,
+			String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.STATUSES);
 
 		clickDataBlockUpdateButton(ProviderSection.STATUSES, index);
-		
-		//Status Code
-		if(!StringUtils.isEmpty(statusCode))
-			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusCode",statusCode);
-		//Status Reason Code
-		if(!StringUtils.isEmpty(statusReasonCode))
-			setDropdownListByVisibleText(ProviderSection.STATUSES,"statusReasonCode",statusReasonCode);
+
+		// Status Code
+		if (!StringUtils.isEmpty(statusCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusCode", statusCode);
+		// Status Reason Code
+		if (!StringUtils.isEmpty(statusReasonCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusReasonCode", statusReasonCode);
 		//
 		if (endReasonCode != null)
 			setEndReasonByVisibleText(ProviderSection.STATUSES, endReasonCode.getText());
-		//effective dates
+		// effective dates
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.STATUSES, effectiveFrom, effectiveTo);
 		clickDialogSubmitButton(ProviderSection.STATUSES, expectError);
 
@@ -893,80 +926,88 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return msgDisplay;
 	}
 
-	/** cease Data Block By Key
+	/**
+	 * cease Data Block By Key
+	 * 
 	 * @param section
 	 * @param key
 	 * @param value
 	 */
 	public void ceaseDataBlockByKey(ProviderSection section, String key, String value) {
-		int count=this.grabDataBlockCount(section);
-		for (int index=0;index<count;index++) {
+		int count = this.grabDataBlockCount(section);
+		for (int index = 0; index < count; index++) {
 			LinkedHashMap<String, String> content = this.grabDataBlockContent(section, index);
-			String result=content.get(key);
-			if( value.equals(result)) {
+			String result = content.get(key);
+			if (value.equals(result)) {
 				this.ceaseDataBlock(section, index);
 				break;
 			}
-			
+
 		}
-		
+
 	}
 
-	/** grab Data Block ByK ey
+	/**
+	 * grab Data Block ByK ey
+	 * 
 	 * @param section
 	 * @param key
 	 * @param value
 	 * @return data block content
 	 */
-	public LinkedHashMap<String,String> grabDataBlockByKey(ProviderSection section, String key, String value) {
-		LinkedHashMap<String,String> resultMap = new LinkedHashMap<>();
-		int count=this.grabDataBlockCount(section);
-		for (int index=0;index<count;index++) {
+	public LinkedHashMap<String, String> grabDataBlockByKey(ProviderSection section, String key, String value) {
+		LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();
+		int count = this.grabDataBlockCount(section);
+		for (int index = 0; index < count; index++) {
 			LinkedHashMap<String, String> content = this.grabDataBlockContent(section, index);
-			String result=content.get(key);
-			if( value.equals(result)) {
-				resultMap=content;
+			String result = content.get(key);
+			if (value.equals(result)) {
+				resultMap = content;
 				break;
 			}
-			
+
 		}
 		return resultMap;
-		
+
 	}
 
-	/** find Data Bloack Index ByKey
+	/**
+	 * find Data Bloack Index ByKey
+	 * 
 	 * @param section
 	 * @param key
 	 * @param value
-	 * @return Index or 0 
+	 * @return Index or 0
 	 */
 	public int findDataBloackIndexByKey(ProviderSection section, String key, String value) {
-		int indexReturn=0;
-		LinkedHashMap<String,String> resultMap = new LinkedHashMap<>();
-		int count=this.grabDataBlockCount(section);
-		for (int index=0;index<count;index++) {
+		int indexReturn = 0;
+		LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();
+		int count = this.grabDataBlockCount(section);
+		for (int index = 0; index < count; index++) {
 			LinkedHashMap<String, String> content = this.grabDataBlockContent(section, index);
-			String result=content.get(key);
-			if( value.equals(result)) {
-				indexReturn=index;
+			String result = content.get(key);
+			if (value.equals(result)) {
+				indexReturn = index;
 				break;
 			}
-			
+
 		}
 		return indexReturn;
-	
+
 	}
 
-	/** get Add Data Bloack Dropdown Menu List
+	/**
+	 * get Add Data Bloack Dropdown Menu List
+	 * 
 	 * @param section
 	 * @param dropdownName
 	 * @return List of that dropdwon menu options
 	 */
 	public List<String> getAddDataBloackDropdownMenuList(ProviderSection section, String dropdownName) {
 		String msgDisplay = "";
-		String formName=DIALOG_MAP.get(section).getFormName();
+		String formName = DIALOG_MAP.get(section).getFormName();
 		String dialogCss = getDialogCss(section);
-		//String dropdownName="providerType";
+		// String dropdownName="providerType";
 		clickHeaderAddButton(section);
 		DropDownMenu dropdownMenu = new DropDownMenu(selenium_,
 				By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label"),
@@ -982,19 +1023,21 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return providerTypeList;
 	}
 
-	/** get Status Reason Code List
+	/**
+	 * get Status Reason Code List
+	 * 
 	 * @param statusCode
-	 * @return  Status Reason Code List
+	 * @return Status Reason Code List
 	 */
 	public List<String> getStatusReasonCodeList(String statusCode) {
 		String msgDisplay = "";
-		String formName=DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
+		String formName = DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.STATUSES);
-		
+
 		clickHeaderAddButton(ProviderSection.STATUSES);
-		setDropdownListByVisibleText(ProviderSection.STATUSES,"statusCode",statusCode);
+		setDropdownListByVisibleText(ProviderSection.STATUSES, "statusCode", statusCode);
 		waitSeconds(2);
-		String dropdownName="statusReasonCode";
+		String dropdownName = "statusReasonCode";
 		DropDownMenu dropdownMenu = new DropDownMenu(selenium_,
 				By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label"),
 				By.cssSelector("div#" + formName + "\\:" + dropdownName + "_panel"));
@@ -1007,5 +1050,207 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.scrollIntoView(cancelButton);
 		cancelButton.click();
 		return providerTypeList;
+	}
+
+	/**
+	 * update Note Data Block but click Cancel button at last
+	 * 
+	 * @param text
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return
+	 */
+	public String updateNoteDataBlockCancel(String text, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.NOTES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.NOTES);
+
+		clickDataBlockUpdateButton(ProviderSection.NOTES, index);
+		waitSeconds(2);
+
+		String inputTextCss = dialogCss + " >textarea#" + formName + "\\:" + "noteText";
+		WebElement inputText = selenium_.findElement(By.cssSelector(inputTextCss));
+		inputText.clear();
+		if (!StringUtils.isEmpty(text))
+			inputText.sendKeys(text);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.NOTES, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.NOTES, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+
+	}
+
+	/**
+	 * update Identifier Data Block but click Cancel button at last
+	 * 
+	 * @param id
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param b
+	 * @return
+	 */
+	public String updateIdentifierDataBlockCancel(String id, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean b) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.IDENTIFIERS, index);
+
+		// identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(id))
+			inputId.sendKeys(id);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.IDENTIFIERS, endReasonCode.getText());
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.IDENTIFIERS, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+
+	}
+
+	/**
+	 * update RegIdentifiers Data Block but click Cancel button at last
+	 * 
+	 * @param regId
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param b
+	 * @return
+	 */
+	public String updateRegIdentifiersDataBlockCancel(String regId, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean b) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.REGISTRY_IDENTIFIERS, index);
+
+		// reg identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(regId))
+			inputId.sendKeys(regId);
+		// end reason code
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS, endReasonCode.getText());
+		// effective dates
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_IDENTIFIERS, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+
+	}
+
+	/**
+	 * update Status Data Block but click Cancel button at last
+	 * 
+	 * @param statusCode
+	 * @param statusReasonCode
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return
+	 */
+	public String updateStatusDataBlockCancel(String statusCode, String statusReasonCode, String effectiveFrom,
+			String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.STATUSES);
+
+		clickDataBlockUpdateButton(ProviderSection.STATUSES, index);
+
+		// Status Code
+		if (!StringUtils.isEmpty(statusCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusCode", statusCode);
+		// Status Reason Code
+		if (!StringUtils.isEmpty(statusReasonCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusReasonCode", statusReasonCode);
+		//
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.STATUSES, endReasonCode.getText());
+		// effective dates
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.STATUSES, effectiveFrom, effectiveTo);
+		
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+		
+		return msgDisplay;
+	}
+
+	/**
+	 * cease Data Block with expecting error message
+	 * 
+	 * @param section
+	 * @param index
+	 * @return
+	 */
+	public String ceaseDataBlockWithError(ProviderSection section, int index) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(section).getFormName();
+		String submitButtonName = DIALOG_MAP.get(section).getSubmitButtonName();
+
+		clickDataBlockUpdateButton(section, index);
+		waitSeconds(2);
+
+		String dialogCss = getDialogCss(section);
+
+		setEndReasonByVisibleText(section, EndReason.CEASE.getText());
+
+		String buttonCss = dialogCss + " > div.formControls" + " > button#" + formName + "\\:" + submitButtonName;
+		WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
+		button.click();
+		msgDisplay = waitErrorMessage(section);
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Checks whether the Update button is displayed for a data block header.
+	 *
+	 * @param section the facility section containing the data block
+	 * @param index   the zero-based index of the data block within the section
+	 * @return true if the Update button is present and visible; false otherwise
+	 */
+	public boolean isDataBlockUpdateButtonDisplayed(ProviderSection section, int index) {
+
+		WebElement updateButton = null;
+		try {
+			updateButton = selenium_
+					.findElement(By.cssSelector(getDataBlockHeaderUpdateButtonSelector(section, index)));
+		} catch (org.openqa.selenium.NoSuchElementException e) {
+			return false;
+		}
+		selenium_.scrollIntoView(updateButton);
+		return updateButton.isDisplayed();
 	}
 }

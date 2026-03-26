@@ -138,6 +138,42 @@ public class InjectableData
        
         return toArray(data);
     }
+    
+    /**
+     * Provides a matrix of user types for provider tests.
+     *
+     * @return a two-dimensional array of test parameters
+     */
+    @DataProvider(name = "providerTestUserTypes")
+    public static Object[][] getProviderTestUserTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        
+        data.add(new Object[]{UserType.ADMIN});
+        data.add(new Object[]{UserType.PRIMARY});
+        data.add(new Object[]{UserType.SECONDARY});
+        data.add(new Object[]{UserType.CONSUMER});
+       
+        return toArray(data);
+    }
+    
+    /**
+     * Provides a matrix of user types for provider tests excluding ADMIN.
+     *
+     * @return a two-dimensional array of test parameters
+     */
+    @DataProvider(name = "providerTestUserTypesNonAdmin")
+    public static Object[][] getProviderTestUserTypesNonAdmin()
+    {
+        List<Object[]> data = new ArrayList<>();
+        data.add(new Object[]{UserType.PRIMARY});
+        data.add(new Object[]{UserType.SECONDARY});
+        data.add(new Object[]{UserType.CONSUMER});
+       
+        return toArray(data);
+    }
+    
+    
 
     /**
      * Returns a two-dimensional array of all combinations of PLR user types and provider types for use in TestNG data-driven tests.
