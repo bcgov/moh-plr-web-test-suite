@@ -7,6 +7,7 @@ import static ca.bc.gov.health.qa.autotest.plr.data.UpdateProviderConstants.*;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
@@ -66,7 +67,7 @@ public class UpdateProviderTests implements SimpleTest {
 
     @AfterClass
     public void teardown() {
-        workflowManager_.logoutAllAndClose();
+        //workflowManager_.logoutAllAndClose();
         LOG.info("Done.");
     }
 
@@ -789,6 +790,27 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected registration number in credential data block to match input after adding credential with valid registration number");
 
         page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
+
+    // Update Provider - Validate Provider Expertise Type Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderExpertiseTypeCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.clickHeaderAddButton(ProviderSection.EXPERTISE);
+        assertTrue(page.getMandatoryFields(ProviderSection.EXPERTISE).contains("Expertise"),
+                "Expected 'Expertise' to be a mandatory field when adding an expertise data block");
+        List<String> expertiseList = page.getDropdownListOptions(ProviderSection.EXPERTISE, "expertise");
+
+        for (String expertise : expertiseList)
+            assertTrue(AddProviderConstants.EXPERTISE_LANG_OPTIONS.contains(expertise),
+                    "Expected expertise type dropdown options to contain all defined expertise types");
+
+        page.clickDialogCancelButton(ProviderSection.EXPERTISE);
     }
 
     // Update Provider - Validate Provider Relationship Type Code
