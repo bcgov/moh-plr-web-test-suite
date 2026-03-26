@@ -702,7 +702,7 @@ public class UpdateProviderLegacyTest {
 
 //Then Validate Provider Identifiers For Update
 	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
-	public void testalidateProviderIdentifiersForUpdate(ProviderType providerType) {
+	public void testValidateProviderIdentifiersForUpdate(ProviderType providerType) {
 		String errorMsg01 = errorList.getString("invalidDateFormatEffectiveFrom");
 		String errorMsg02 = errorList.getString("missingBCProviderIdentifier");
 		String errorMsg03 = errorList.getString("erromMessageGRS5000EffectiveFrom");
@@ -741,8 +741,9 @@ public class UpdateProviderLegacyTest {
 	}
 	
 	
-//	======================PLR 608============================
+//	======================PLR 608-02============================
 //			Then Update Electronic Addresses
+
 //			Then Update Telecommunicatons
 //			Then Validate Communication Purpose Type code
 //
