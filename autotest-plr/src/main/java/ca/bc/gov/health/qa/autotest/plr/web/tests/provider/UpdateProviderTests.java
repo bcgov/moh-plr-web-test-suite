@@ -734,6 +734,35 @@ public class UpdateProviderTests implements SimpleTest {
         page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
     }
 
+    // Update Provider - Validate Provider Credential Registration Number
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialRegistrationNumber(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addCredentialDataBlock("BD ", "Test Designation", generateAlphabetNumericString(241),
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("registrationNumberTooLong"),
+                "Expected error message for credential registration number exceeding max length when adding credential");
+
+        final String regNumber = generateAlphabetNumericString(240);
+        page.addCredentialDataBlock("BD ", "Test Designation", regNumber,
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        Map<String,String> credContent = page.grabDataBlockContent(ProviderSection.CREDENTIALS, 0);
+
+        assertEquals(credContent.get("Registration Number"), regNumber,
+                "Expected registration number in credential data block to match input after adding credential with valid registration number");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
+
     // Update Provider - Validate Provider Relationship Type Code
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateProviderRelationshipTypeCode(ProviderType providerType)
