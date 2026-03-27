@@ -8,10 +8,8 @@ import static ca.bc.gov.health.qa.autotest.plr.data.UpdateProviderConstants.*;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
-import ca.bc.gov.health.qa.autotest.plr.data.PlrData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
@@ -24,7 +22,6 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.AddressType;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.model.CanadianProvince;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.CommunicationPurpose;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ConditionType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
@@ -32,7 +29,6 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressPurpose
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationPurpose;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationType;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.model.USState;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -52,7 +48,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,10 +145,10 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testAddProviderRelationships(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
+        final MaintainIndividualBuilder otherProvider = (MaintainIndividualBuilder) getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         WebElement dialog = page.clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
@@ -183,7 +178,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         WebElement dialog = page.clickHeaderAddButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
@@ -212,7 +207,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         WebElement dialog = page.clickHeaderAddButton(ProviderSection.WORK_LOCATIONS);
@@ -466,7 +461,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = logIn(workflowManager_, UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
         page.addWorkLocationDataBlock(null, false, "Test Name", "CC", null, false);
 
@@ -504,10 +499,10 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testProviderRelationshipTypes(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
+        final MaintainIndividualBuilder otherProvider = (MaintainIndividualBuilder) getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
@@ -534,10 +529,10 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testProviderRelationshipValidation(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
+        final MaintainIndividualBuilder otherProvider = (MaintainIndividualBuilder) getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         String error = page.addProviderRelationshipDataBlock(null, otherProvider.getIdentifier(IdentifierType.IPC),
@@ -572,7 +567,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         String error = page.addRegUserRelationshipDataBlock(null, "00002855", UserType.ADMIN, true);
@@ -611,7 +606,7 @@ public class UpdateProviderTests implements SimpleTest {
 
         String identifier;
         if (providerType.equals(ProviderType.ORGANIZATION)) identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
-        else identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        else identifier = getIdentifierFromBuilder(defaultProviders, providerType);
 
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
@@ -679,10 +674,10 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testValidateProviderRelationshipTypeCode(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
+        final MaintainIndividualBuilder otherProvider = (MaintainIndividualBuilder) getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
@@ -717,7 +712,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         String error = page.addProviderRelationshipDataBlock(IdentifierType.IPC, "test",
@@ -743,10 +738,10 @@ public class UpdateProviderTests implements SimpleTest {
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
     public void testRelatedProviderIDAndRelationship(ProviderType providerType)
     {
-        final MaintainIndividualBuilder otherProvider = getOtherProvider(defaultProviders, providerType);
+        final MaintainIndividualBuilder otherProvider = (MaintainIndividualBuilder) getOtherProvider(defaultProviders, providerType);
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addProviderRelationshipDataBlock(IdentifierType.IPC, otherProvider.getIdentifier(IdentifierType.IPC),
@@ -818,7 +813,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
@@ -841,7 +836,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
@@ -868,7 +863,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         String error = page.addWorkLocationDataBlock("12345", true, "Test Name", "CC",
@@ -893,7 +888,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addWorkLocationDataBlock("12345", false, "Test Name", "CC", "Test Info", false);
@@ -939,7 +934,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.clickHeaderAddButton(ProviderSection.WORK_LOCATIONS);
@@ -974,7 +969,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addWorkLocationDataBlock(generateNumericString(15), true, "Test Name",
@@ -995,7 +990,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         String error = page.addWorkLocationDataBlock(generateNumericString(21), true,
@@ -1047,7 +1042,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
@@ -1080,7 +1075,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         String error = page.addWorkLocationDataBlock("12345", true,
@@ -1110,7 +1105,7 @@ public class UpdateProviderTests implements SimpleTest {
     {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
-        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.clickHeaderAddButton(ProviderSection.WORK_LOCATIONS);
