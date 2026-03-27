@@ -11,7 +11,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
+import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.JavascriptExecutor;
@@ -29,6 +34,8 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditi
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 public class UpdateProviderPage extends ViewProviderPage {
+
+	private static final Logger LOG = ExecutionLogManager.getLogger();
 
 	/** Pattern to extract codes from displayed format "Description (CODE)" */
 	private static final Pattern CODE_IN_PARENS_PATTERN = Pattern.compile("\\(([^)]+)\\)$");
@@ -54,6 +61,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Condition")),
 			Map.entry(ProviderSection.DISCIPLINARY_ACTIONS, new ProviderDialog("maintainDisActionDialog", "maintainDisActionForm", "effectiveFromDate",
 					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Disciplinary Action")),
+			Map.entry(ProviderSection.WORK_LOCATIONS, new ProviderDialog("maintainWorkLocationDialog", "maintainWorkLocationForm", "effectiveFromDate",
+					"effectiveToDate", "idWLSubmitButton", "EndReasonType","Add a new Work Location")),
+			Map.entry(ProviderSection.PROVIDER_RELATIONSHIPS, new ProviderDialog("maintainProviderRelationshipDialog", "maintainProviderRelationshipForm", "effectiveStartDate",
+					"effectiveEndDate", "providerRelationshipSubmitButton", "EndReasonType","Add a new Provider Relationship")),
+			Map.entry(ProviderSection.REGISTRY_USER_RELATIONSHIPS, new ProviderDialog("maintainRegUserRelationshipDialog", "maintainRegUserRelationshipForm", "effectiveFromDate",
+					"effectiveToDate", "idRegUserRelationshipSubmitButton", "endReasonCode","Add a new Registry User Relationship")),
 			Map.entry(ProviderSection.ADDRESSES, new ProviderDialog("maintainAddressDialog", "maintainAddressForm", "effectiveFromDate",
 					"effectiveToDate", "idAddressSubmitButton", "EndReasonType","Add a new Address"))
 			);
@@ -223,6 +236,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
+	 * get Work Location Data Block Update Button Selector
+	 * the work location data block has a different structure, so it has its own method to get update button selector
+	 * @param index the data block index
+	 * @return CSS selector of Work Location Data Block Update Button
+	 */
+	protected String getWorkLocationUpdateButtonSelector(int index) {
+		return getDataBlockSelector(ProviderSection.WORK_LOCATIONS, index) + " > div.ui-panel-content > div > div "
+				+ "> div.ui-panel:nth-of-type(1) > div.ui-panel-content > table > tbody > tr > td > "
+				+ "div > div.ui-panel-titlebar > div.ui-panel-actions > a > img[title^='Update']";
+	}
+
+	/**
 	 * Using a Javascript Executor to press button
 	 * @param button the button element
 	 */
@@ -235,13 +260,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 	}
 
-	public void clickHeaderAddButton(ProviderSection section)
+	/**
+	 * Click the add button in the header of a provider section, and wait for the dialog to be visible
+	 * @param section the provider section
+	 * @return the WebElement of the dialog content after clicking the add button and waiting for the dialog to be visible
+	 */
+	public WebElement clickHeaderAddButton(ProviderSection section)
 	{
 		String title = DIALOG_MAP.get(section).getAddButtonImgText();
 		String clickElementCss = getSectionSelector(section) + " > div > div > a > img[title='" + title + "']";
 
-		WebElement clickElement = selenium_
-				.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		WebElement clickElement = selenium_.findElement(By.cssSelector(clickElementCss));
 		selenium_.scrollIntoView(clickElement);
 		try {
 			clickElement.click();
@@ -253,6 +283,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		String dialogCss = getDialogCss(section);
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
 	}
 
     /**
@@ -260,11 +291,17 @@ public class UpdateProviderPage extends ViewProviderPage {
      *
      * @param section the provider section to find the data block's update button within
      * @param index the specific index of the data block to find and click the update button for
+	 * @return the WebElement of the dialog content after clicking the update button and waiting for the dialog to be visible
      */
-	public void clickDataBlockUpdateButton(ProviderSection section, int index) {
-		String selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
-		WebElement updateButton = selenium_.waitUntil(ExpectedConditions
-				.elementToBeClickable(By.cssSelector(selectCss)));
+	public WebElement clickDataBlockUpdateButton(ProviderSection section, int index) {
+		String selectCss;
+		if (section.equals(ProviderSection.WORK_LOCATIONS)) {
+			expandDataBlock(section, index, true);
+			selectCss = getWorkLocationUpdateButtonSelector(index);
+		} else selectCss = getDataBlockHeaderUpdateButtonSelector(section, index);
+
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(selectCss)));
+		WebElement updateButton = selenium_.findElementByCss(selectCss);
 		selenium_.scrollIntoView(updateButton);
 
 		try {
@@ -276,6 +313,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String dialogCss = getDialogCss(section);
 		WebElement visibleElement = selenium_
 				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
 	}
 
 	/**
@@ -289,6 +327,31 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String formName = DIALOG_MAP.get(section).getFormName();
 
 		return "div#" + dialogName + " > div#" + dialogName + "_content" + " > form#" + formName;
+	}
+
+	private boolean getChkBoxState(ProviderSection section, WebElement checkBox)
+	{
+		if (section.equals(ProviderSection.WORK_LOCATIONS)) {
+			String chkBoxClass = checkBox.getAttribute("class");
+			if (chkBoxClass != null) return chkBoxClass.contains("ui-icon-check");
+		}
+		String ariaChecked = checkBox.getAttribute("aria-checked");
+		return "true".equals(ariaChecked);
+	}
+
+	/**
+	 * Check if the checkbox is checked
+	 * @param section the provider section
+	 * @param checkBoxName the checkbox field name
+	 * @return true if the checkbox is checked, false otherwise
+	 */
+	public boolean isCheckBoxChecked(ProviderSection section, String checkBoxName)
+	{
+		String formName = DIALOG_MAP.get(section).getFormName();
+		String dialogCss = getDialogCss(section);
+		String checkBoxCss = dialogCss + " > div#" + formName + "\\:" + checkBoxName + " > div > span";
+		WebElement checkBox = selenium_.findElement(By.cssSelector(checkBoxCss));
+		return getChkBoxState(section, checkBox);
 	}
 
 	/**
@@ -384,6 +447,15 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 	}
 
+	/**
+	 * fill the Condition Data Block
+	 * @param conditionType the condition type to select
+	 * @param conditionIdentifier the condition identifier to input
+	 * @param restriction the restriction flag to indicate whether to check the restriction checkbox
+	 * @param explanation the explanation to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 */
 	public void fillConditionDataBlock(String conditionType, String conditionIdentifier, boolean restriction,
 										String explanation, String effectiveFrom, String effectiveTo)
 	{
@@ -415,6 +487,165 @@ public class UpdateProviderPage extends ViewProviderPage {
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.CONDITIONS, effectiveFrom, effectiveTo);
 	}
 
+	/**
+	 * fill the Provider Relationship Data Block
+	 * @param identifierType the identifier type to select
+	 * @param identifier the identifier to input
+	 * @param relationshipType the relationship type to select
+	 */
+	public void fillProviderRelationshipDataBlock(IdentifierType identifierType, String identifier, String relationshipType)
+	{
+		String formName = DIALOG_MAP.get(ProviderSection.PROVIDER_RELATIONSHIPS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		if (identifierType != null)
+			setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "providerType", identifierType.name());
+
+		if (identifier != null) {
+			String inputIdCss = dialogCss + " >input#" + formName + "\\:rpi";
+			WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+			inputId.clear();
+			if (!StringUtils.isEmpty(identifier)) inputId.sendKeys(identifier);
+		}
+
+		if (relationshipType != null)
+			setDropdownListByVisibleText(ProviderSection.PROVIDER_RELATIONSHIPS, "relationshipType", relationshipType);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.PROVIDER_RELATIONSHIPS,
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
+	}
+
+	/**
+	 * fill the Registry User Relationship Data Block
+	 * @param regType the registry type to select
+	 * @param regUserID the registry user ID to input
+	 * @param userType the registry user type to select
+	 */
+	public void fillRegUserRelationshipDataBlock(String regType, String regUserID, UserType userType)
+	{
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_USER_RELATIONSHIPS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		if (regType != null)
+			setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
+					"regUserRelationshipType", regType);
+
+		String regIdCss = dialogCss + " > input#" + formName + "\\:registryUserId";
+		WebElement regId = selenium_.findElement(By.cssSelector(regIdCss));
+		regId.clear();
+		if (!StringUtils.isEmpty(regUserID)) regId.sendKeys(regUserID);
+
+		if (userType != null)
+			setDropdownListByVisibleText(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
+					"regUserType", userType.getRegUserType());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_USER_RELATIONSHIPS,
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
+	}
+
+	/**
+	 * fill the Work Location Data Block
+	 * @param locationID the location ID to input
+	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
+	 * @param name the name to input
+	 * @param providerType the provider type to select
+	 * @param addressInfo the address info to input
+	 */
+	public void fillWorkLocationDataBlock(String locationID, boolean defaultFlag, String name, String providerType,
+										  String addressInfo) {
+		String formName = DIALOG_MAP.get(ProviderSection.WORK_LOCATIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.WORK_LOCATIONS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		String inputIdCss=dialogCss+" >input#"+formName+"\\:wlChid";
+		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if(!StringUtils.isEmpty(locationID))inputId.sendKeys(locationID);
+
+		if (defaultFlag) {
+			String defaultFlagCss = dialogCss + " > div#" + formName + "\\:defaultFlag";
+			WebElement defaultFlagCheckbox = selenium_.findElement(By.cssSelector(defaultFlagCss));
+			defaultFlagCheckbox.click();
+		}
+
+		String wlNameCss = dialogCss+" >input#"+formName+"\\:name";
+		WebElement wlName = selenium_.findElement(By.cssSelector(wlNameCss));
+		wlName.clear();
+		if(!StringUtils.isEmpty(name)) wlName.sendKeys(name);
+
+		setDropdownListByVisibleText(ProviderSection.WORK_LOCATIONS, "providerType", providerType);
+
+		String addressInfoCss = dialogCss + " > textarea#" + formName + "\\:additionalInfo";
+		WebElement addressInfoInput = selenium_.findElement(By.cssSelector(addressInfoCss));
+		addressInfoInput.clear();
+		if(!StringUtils.isEmpty(addressInfo)) addressInfoInput.sendKeys(addressInfo);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.WORK_LOCATIONS,
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
+	}
+
+	/**
+	 * fill the Work Location Data Block in update scenario,
+	 * the effective date fields cannot be manually selected, will fill in hardcoded values
+	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
+	 * @param name the name to input
+	 * @param providerType the provider type to select
+	 * @param addressInfo the address info to input
+	 * @param endReason the end reason to select
+	 */
+	public void fillWorkLocationDataBlockUpdate(boolean defaultFlag, String name, String providerType,
+												String addressInfo, EndReason endReason) {
+		String formName = DIALOG_MAP.get(ProviderSection.WORK_LOCATIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.WORK_LOCATIONS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		String defaultFlagCss = dialogCss + " > div#" + formName + "\\:defaultFlag > div > span";
+		WebElement defaultFlagCheckbox = selenium_.findElement(By.cssSelector(defaultFlagCss));
+		if (getChkBoxState(ProviderSection.WORK_LOCATIONS, defaultFlagCheckbox) != defaultFlag) defaultFlagCheckbox.click();
+
+		String wlNameCss = dialogCss+" >input#"+formName+"\\:name";
+		WebElement wlName = selenium_.findElement(By.cssSelector(wlNameCss));
+		wlName.clear();
+		if(!StringUtils.isEmpty(name)) wlName.sendKeys(name);
+
+		if (providerType != null)
+			setDropdownListByVisibleText(ProviderSection.WORK_LOCATIONS, "providerType", providerType);
+
+		String addressInfoCss = dialogCss + " > textarea#" + formName + "\\:additionalInfo";
+		WebElement addressInfoInput = selenium_.findElement(By.cssSelector(addressInfoCss));
+		addressInfoInput.clear();
+		if(!StringUtils.isEmpty(addressInfo)) addressInfoInput.sendKeys(addressInfo);
+
+		setEndReasonByVisibleText(ProviderSection.WORK_LOCATIONS, endReason.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.WORK_LOCATIONS, "2000-01-01", "2999-01-01");
+	}
+
+	/**
+	 * performing action of adding Condition Data Block, perform error message check if necessary
+	 * @param conditionType the condition type to select
+	 * @param conditionIdentifier the condition identifier to input
+	 * @param restriction the restriction flag to indicate whether to check the restriction checkbox
+	 * @param explanation the explanation to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
 	public String addConditionDataBlock(String conditionType, String conditionIdentifier, boolean restriction,
 										String explanation, String effectiveFrom, String effectiveTo, boolean expectError)
 	{
@@ -427,14 +658,118 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		clickDialogSubmitButton(ProviderSection.CONDITIONS, expectError);
 
-		if(expectError)
-			msgDisplay=waitErrorMessage(ProviderSection.CONDITIONS);
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.CONDITIONS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		return msgDisplay;
 	}
-	
-	
+
+	/**
+	 * performing action of adding Provider Relationship Data Block, perform error message check if necessary
+	 * @param identifierType the identifier type to select
+	 * @param identifier the identifier to input
+	 * @param relationshipType the relationship type to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addProviderRelationshipDataBlock(IdentifierType identifierType, String identifier, String relationshipType, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		clickHeaderAddButton(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		fillProviderRelationshipDataBlock(identifierType, identifier, relationshipType);
+
+		clickDialogSubmitButton(ProviderSection.PROVIDER_RELATIONSHIPS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.PROVIDER_RELATIONSHIPS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Registry User Relationship Data Block, perform error message check if necessary
+	 * @param regType the registry type to select
+	 * @param regUserId the registry user ID to input
+	 * @param userType the registry user type to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addRegUserRelationshipDataBlock(String regType, String regUserId, UserType userType,
+												  boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+		clickHeaderAddButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+		fillRegUserRelationshipDataBlock(regType, regUserId, userType);
+
+		clickDialogSubmitButton(ProviderSection.REGISTRY_USER_RELATIONSHIPS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.REGISTRY_USER_RELATIONSHIPS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Work Location Data Block, perform error message check if necessary
+	 * @param locationID the location ID to input
+	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
+	 * @param name the name to input
+	 * @param providerType the provider type to select
+	 * @param addressInfo the address info to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addWorkLocationDataBlock(String locationID, boolean defaultFlag, String name, String providerType,
+										   String addressInfo, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.WORK_LOCATIONS);
+
+		clickHeaderAddButton(ProviderSection.WORK_LOCATIONS);
+
+		fillWorkLocationDataBlock(locationID, defaultFlag, name, providerType, addressInfo);
+
+		clickDialogSubmitButton(ProviderSection.WORK_LOCATIONS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.WORK_LOCATIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of updating Work Location Data Block, perform error message check if necessary
+	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
+	 * @param name the name to input
+	 * @param providerType the provider type to select
+	 * @param addressInfo the address info to input
+	 * @param endReason the end reason to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String updateWorkLocationDataBlock(boolean defaultFlag, String name, String providerType, String addressInfo,
+											  EndReason endReason, boolean expectError) {
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.WORK_LOCATIONS);
+
+		clickDataBlockUpdateButton(ProviderSection.WORK_LOCATIONS, 0);
+
+		fillWorkLocationDataBlockUpdate(defaultFlag, name, providerType, addressInfo, endReason);
+
+		clickDialogSubmitButton(ProviderSection.WORK_LOCATIONS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.WORK_LOCATIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
 	/**
 	 * performing action of adding Disciplinary ActionData Block, perform error message check if necessary
 	 * 
@@ -560,16 +895,22 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @return String of error messages
 	 */
 	public String waitErrorMessage(ProviderSection section) {
-		String msgDisplay = "";
-
-		msgDisplay = getDialogMessages(section);
+		final int MAX_ATTEMPTS = 5;
+		int attempts = 0;
+		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
+			if (attempts >= MAX_ATTEMPTS) break;
 			waitSeconds(5);
 			try {
 				msgDisplay = getDialogMessages(section);
 			} catch (StaleElementReferenceException e) {
 				waitSeconds(5);
 			}
+			attempts++;
+		}
+		if (msgDisplay.contains("successfully") || msgDisplay.isEmpty()) {
+			LOG.info("Error did not occur / dialog disappeared earlier than expected.");
+			return msgDisplay;
 		}
 		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
 		selenium_.scrollIntoView(cancelButton);
@@ -585,7 +926,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @return String of dialog messages
 	 */
 	protected String getDialogMessages(ProviderSection section) {
-		String msgDisplay = "";
+		StringBuilder msgDisplay = new StringBuilder();
 		String formName = DIALOG_MAP.get(section).getFormName();
 		String dialogCss = getDialogCss(section);
 		String msgCss = dialogCss + "> div#" + formName + "\\:messages > div > ul > li";
@@ -593,13 +934,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 		try {
 			java.util.List<WebElement> msgList = selenium_.findElements(By.cssSelector(msgCss));
 			for (WebElement msg : msgList) {
-				msgDisplay += msg.getText() + "\n";
+				msgDisplay.append(msg.getAttribute("innerText")).append("\n");
 			}
 		} catch (Exception e) {
 			// No messages found
 		}
 		
-		return msgDisplay.trim();
+		return msgDisplay.toString().trim();
 	}
 
 	/**
@@ -665,17 +1006,17 @@ public class UpdateProviderPage extends ViewProviderPage {
 	public List<String> getUsedPurposeCodesForAddressType(String addressTypeCode) {
 		List<String> usedCodes = new ArrayList<>();
 		int totalCount = grabDataBlockCount(ProviderSection.ADDRESSES);
-		
+
 		for (int i = 0; i < totalCount; i++) {
 			// Skip inactive (ceased) blocks
 			if (!grabDataBlockActive(ProviderSection.ADDRESSES, i)) {
 				continue;
 			}
-			
+
 			LinkedHashMap<String, String> content = grabDataBlockContent(ProviderSection.ADDRESSES, i);
 			String addressType = content.get("Address Type");
 			String purposeValue = content.get("Address Purpose");
-			
+
 			if (addressType != null && purposeValue != null) {
 				// Extract the code from format "Description (CODE)" -> "CODE"
 				String typeCode = extractCodeFromParens(addressType);
@@ -719,7 +1060,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	public List<String> getUsedPurposeCodes(ProviderSection section) {
 		List<String> usedCodes = new ArrayList<>();
 		int totalCount = grabDataBlockCount(section);
-		
+
 		String purposeKey;
 		switch (section) {
 			case TELECOMMUNICATIONS:
@@ -731,13 +1072,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 			default:
 				return usedCodes;
 		}
-		
+
 		for (int i = 0; i < totalCount; i++) {
 			// Skip inactive (ceased) blocks
 			if (!grabDataBlockActive(section, i)) {
 				continue;
 			}
-			
+
 			LinkedHashMap<String, String> content = grabDataBlockContent(section, i);
 			String purposeValue = content.get(purposeKey);
 			if (purposeValue != null && !purposeValue.isEmpty()) {
@@ -761,7 +1102,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 */
 	public String getAvailablePurposeCodeForAddressType(String addressTypeCode) {
 		List<String> usedCodes = getUsedPurposeCodesForAddressType(addressTypeCode);
-		
+
 		for (TelecommunicationPurpose purpose : TelecommunicationPurpose.values()) {
 			if (!usedCodes.contains(purpose.getStartText())) {
 				return purpose.getText();
@@ -778,7 +1119,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 */
 	public String getAvailablePurposeCode(ProviderSection section) {
 		List<String> usedCodes = getUsedPurposeCodes(section);
-		
+
 		for (TelecommunicationPurpose purpose : TelecommunicationPurpose.values()) {
 			if (!usedCodes.contains(purpose.getStartText())) {
 				return purpose.getText();
@@ -840,7 +1181,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 
-		
+
 	}
 
 	/**
