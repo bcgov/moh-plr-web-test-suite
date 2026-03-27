@@ -118,13 +118,17 @@ public class UpdateProviderPage extends ViewProviderPage {
 				// Fall back to any visible button
 			}
 
-			// Generic fallback: first displayed & enabled button
+			try {
+				// Generic fallback: first displayed & enabled button
 			for (WebElement btn : validationWidget.findElements(By.tagName("button"))) {
 				if (btn.isDisplayed() && btn.isEnabled()) {
 					btn.click();
 					waitSeconds(2);
 					return;
 				}
+			}
+			} catch (org.openqa.selenium.NoSuchElementException ignore) {
+				//Generic catch block
 			}
 		}
 	}
@@ -1102,12 +1106,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
 
+		// Handle address validation popups that may appear (only when not expecting error)
+		handleAddressValidationDialog();
+
 		if (expectError) {
 			// Wait for error message (waitErrorMessage already clicks Cancel when done)
 			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
 		} else {
-			// Handle address validation popups that may appear (only when not expecting error)
-			handleAddressValidationDialog();
 			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		}
 		return msgDisplay;
