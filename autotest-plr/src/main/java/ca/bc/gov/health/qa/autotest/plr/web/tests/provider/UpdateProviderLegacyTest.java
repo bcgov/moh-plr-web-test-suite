@@ -27,6 +27,7 @@ import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.EndReasonCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
@@ -46,7 +47,9 @@ import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPag
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -88,10 +91,16 @@ public class UpdateProviderLegacyTest {
 	@BeforeTest
 	public void beforeTest() {
 		FHIRController fhirController = new FHIRController(UserType.ADMIN);
-		defaultBC = fhirController.createIndividual(new IndividualMaintainConfig(IndividualRoleType.DEN).withNotes(1));
+		MaintainIndividualBuilder individual = fhirController.createIndividual(
+				new IndividualMaintainConfig(IndividualRoleType.DEN).withNotes(1).withStatuses(1).withEmail().withPhone()
+				);
 		LOG.info("Created default BC provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
+		defaultBC=fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
 
-		defaultOrg = fhirController.createOrganization(OrgRoleType.ORG);
+		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG)
+				.withNotes(1).withStatuses(1).withEmail().withPhone();
+		MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
+		defaultOrg = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
 		LOG.info("Created default Organization provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
 		fhirController.close();
 
@@ -745,8 +754,70 @@ public class UpdateProviderLegacyTest {
 //			Then Update Electronic Addresses
 	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
 	public void testUpdateElectronicAddresses(ProviderType providerType) {
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
+		String identifier = getTestProvideridentifier(providerType);
+		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
+		UpdateProviderPage page = actions.openProvider(pauthId);
+
+		int count=page.grabActiveDataBlockCount(ProviderSection.ELECTRONIC_ADDRESSES, true);
+		 if(count==0) {
+			 page.addElectronicAddressDataBlock(ElectronicAddressType.EMAIL.getText(),"BC","test@test.com",  UpdateSimpleHelper.effective_date(),
+					 UpdateSimpleHelper.increment_year_for_effective_date(), false);
+		 }
+		 
+		// update
+		int index = 0;
+		String emailAddrss=UpdateSimpleHelper.generateAlphabetNumericString(6)+"@test.com";
+		String msg = page.updateElectronicAddressDataBlock(emailAddrss, UpdateSimpleHelper.effective_date(),
+				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
+		assertTrue(StringUtils.isEmpty(msg));
+
+		// cancel update
+		msg = page.updateElectronicAddressDataBlockCancel("newtest@test.com", UpdateSimpleHelper.effective_date(),
+				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
+		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.ELECTRONIC_ADDRESSES, index);
+		assertTrue(content.get("Address").equals(emailAddrss));
+	}
 //			Then Update Telecommunicatons
+	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
+	public void testUpdateTelecommunicatons(ProviderType providerType) {
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
+		String identifier = getTestProvideridentifier(providerType);
+		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
+		UpdateProviderPage page = actions.openProvider(pauthId);
+
+		int count=page.grabActiveDataBlockCount(ProviderSection.TELECOMMUNICATIONS, true);
+		 if(count==0) {
+			 page.addTelecommunicationDataBlock(TelecommunicationType.PHONE.getText(),"BC",
+					 UpdateSimpleHelper.generateNumericString(3),UpdateSimpleHelper.generateNumericString(7),UpdateSimpleHelper.generateNumericString(4),
+					 UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date(), false);
+		 }
+		 
+		// update
+		int index = 0;
+		String phoneNumber=UpdateSimpleHelper.generateNumericString(7);
+		String areaCode=UpdateSimpleHelper.generateNumericString(3);
+		String msg = page.updateTelecommunicationDataBlock(areaCode, phoneNumber,null,
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
+		assertTrue(StringUtils.isEmpty(msg));
+
+		// cancel update
+		String phoneNumberCancel=UpdateSimpleHelper.generateNumericString(7);
+		String areaCodeCancel=UpdateSimpleHelper.generateNumericString(3);
+		msg = page.updateTelecommunicationDataBlockCancel(areaCodeCancel, phoneNumberCancel,null,
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
+		
+		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.TELECOMMUNICATIONS, index);
+		assertTrue(content.get("Number").equals(phoneNumber));
+		assertTrue(content.get("Area Code").equals(areaCode));
+	}	
 //			Then Validate Communication Purpose Type code
+	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
+	public void testValidateCommunicationPurposeTypeCode(ProviderType providerType) {
+		
+	}
 //
 //			Then Validate Electronic Address Txt
 //
