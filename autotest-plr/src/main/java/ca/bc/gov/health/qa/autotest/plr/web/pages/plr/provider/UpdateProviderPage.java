@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static org.testng.Assert.fail;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,12 +18,7 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import org.openqa.selenium.By;
-import org.openqa.selenium.ElementClickInterceptedException;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
@@ -93,9 +89,16 @@ public class UpdateProviderPage extends ViewProviderPage {
 			}
 			if (title == null || title.isEmpty()) continue;
 			if (!title.contains(widgetTitlePrefix)) continue;
+
+			// regrab element (likely to have become stale) and check visibility
+			selenium_.setWaitTimeout(Duration.ofSeconds(10));
+			elem = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.xpath(
+					"//div[@role='dialog' and @aria-hidden='false' and .//span[contains(text(),'\" + title + \"')]]")));
+			selenium_.setWaitTimeout(Duration.ofSeconds(30));
+
 			// Skip hidden/inactive dialogs
 			String ariaHidden = elem.getAttribute("aria-hidden");
-			if ("true".equals(ariaHidden) || !elem.isDisplayed()) continue;
+			if ("true".equals(ariaHidden)) continue;
 			return elem;
 		}
 		return null;
@@ -124,7 +127,9 @@ public class UpdateProviderPage extends ViewProviderPage {
 						By.xpath(".//button[contains(.,\"Continue w/ Original\")]"));
 				if (continueBtn.isDisplayed() && continueBtn.isEnabled()) {
 					continueBtn.click();
-					waitSeconds(2);
+
+					selenium_.waitUntil(ExpectedConditions.invisibilityOf(validationWidget));
+					// waitSeconds(2);
 					return;
 				}
 			} catch (org.openqa.selenium.NoSuchElementException ignore) {
@@ -133,17 +138,18 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 			try {
 				// Generic fallback: first displayed & enabled button
-			for (WebElement btn : validationWidget.findElements(By.tagName("button"))) {
-				if (btn.isDisplayed() && btn.isEnabled()) {
-					btn.click();
-					waitSeconds(2);
-					return;
+				for (WebElement btn : validationWidget.findElements(By.tagName("button"))) {
+					if (btn.isDisplayed() && btn.isEnabled()) {
+						btn.click();
+						waitSeconds(2);
+						return;
+					}
 				}
-			}
 			} catch (org.openqa.selenium.NoSuchElementException ignore) {
 				//Generic catch block
 			}
 		}
+		LOG.info("no validation widget");
 	}
 
 	/**
