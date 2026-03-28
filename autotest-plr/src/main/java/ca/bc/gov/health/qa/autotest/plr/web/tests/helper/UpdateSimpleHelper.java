@@ -2,7 +2,9 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.helper;
 
 import java.util.*;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -252,7 +254,7 @@ public class UpdateSimpleHelper {
 	 * @return the MaintainIndividualBuilder instance for the other provider type
 	 * @throws IllegalArgumentException if the provided type is not recognized
 	 */
-	public static MaintainIndividualBuilder getOtherProvider(Map<ProviderType, MaintainIndividualBuilder> providers, ProviderType type)
+	public static MaintainRequestBuilder getOtherProvider(Map<ProviderType, MaintainRequestBuilder> providers, ProviderType type)
 	{
 		return switch(type) {
 			case BC_PRACTITIONER -> providers.get(ProviderType.OOP_PRACTITIONER);
