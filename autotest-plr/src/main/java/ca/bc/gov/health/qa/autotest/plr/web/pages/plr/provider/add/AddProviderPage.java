@@ -222,15 +222,7 @@ public class AddProviderPage extends BasicWebPage {
 
 		if (roleType != null) {
 			fragment.selectProviderRoleType(roleType);
-
-			// Wait for identifier type dropdown to refresh after role type selection
-			WebElement idType = selenium_.findElement(By.cssSelector("div#form\\:identifierType"));
-			selenium_.waitUntil(ExpectedConditions.stalenessOf(idType));
-			// Wait for the new identifier type element to be visible after refresh
-			selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div#form\\:identifierType")));
-
 			waitSeconds(2); // Wait for any additional dynamic elements to load after role type selection
-
 			if (hdsType != null && (roleType.equals(OrganizationalProviderRoleType.HDS))) {
 				selenium_
 						.waitUntil(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#form\\:hdsTypeId")));

@@ -273,19 +273,24 @@ public class AutocompleteMenu extends BasicWebPageFragment {
     {
         if (itemPrefix == null)
         {
-            selenium_.fillField(mainLocator_, autocompleteField);
+			selenium_.fillField(mainLocator_, autocompleteField);
 
-            selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("span.ui-icon-loading")));
-            WebElement spinner = selenium_.findElement(By.cssSelector("span.ui-icon-loading"));
-            selenium_.waitUntil(ExpectedConditions.stalenessOf(spinner));
+			try {
+				Thread.sleep(1000L * 2);
+			} catch (InterruptedException e) {
+			}
 
-            if (selenium_.findElement(autocompletePanelLocator_).isDisplayed())
-            {
-                waitForPanelLoad(true);
-                selenium_.click(mainLocator_);
-                waitForPanelLoad(false);
-            }
-            return grabCompletedItem();
+			// selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("span.ui-icon-loading")));
+			// WebElement spinner =
+			// selenium_.findElement(By.cssSelector("span.ui-icon-loading"));
+			// selenium_.waitUntil(ExpectedConditions.stalenessOf(spinner));
+
+			if (selenium_.findElement(autocompletePanelLocator_).isDisplayed()) {
+				waitForPanelLoad(true);
+				selenium_.click(mainLocator_);
+				waitForPanelLoad(false);
+			}
+			return grabCompletedItem();
         }
         else
         {

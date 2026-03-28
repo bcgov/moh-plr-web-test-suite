@@ -84,7 +84,141 @@ public class CreateOrganizationTest implements SimpleTest {
 			workflow.login().openPlr();
 		}
 	}
+
 //	
+//	Add Organization
+	@Test(groups = { "CreateOrganization" })
+	public void testAddOrganization() {
+		MaintainOrgBuilder providerBuilder = getOrgBuilder();
+		Map<String, String> orgAddress = providerBuilder.getAddressList().get(0);
+		String orgName = providerBuilder.getName();
+		String orgDesc = providerBuilder.getAlias();
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		AddProviderPage page = workflow.getPlrWebAccessActions().openAddOrganization()
+				.openProviderPage(ProviderType.ORGANIZATION);
+		AddProviderIdFragment fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null,
+				"ORGID", UpdateSimpleHelper.generateNumericString(8));
+		// assertTrue(fragment.isHdsTYpeDisplayed());
+		page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+		clickFirstNext(page);
+
+		page.fillOrganizationName(orgName, orgDesc);
+		clickSecondNext(page);
+
+		AddProviderAddressFragment address = page.fillAddress("P", orgAddress.get("purpose"),
+				List.of(orgAddress.get("line1"), "", ""), orgAddress.get("city"), "BC", "CA",
+				orgAddress.get("postalCode"));
+		page.fillPhone("250", UpdateSimpleHelper.generateNumericString(7), UpdateSimpleHelper.generateNumericString(3));
+		page.fillFax("250", UpdateSimpleHelper.generateNumericString(7));
+		page.fillEmail(UpdateSimpleHelper.generateEmail());
+		clickThirdNext(page, address);
+
+		page.fillCredentials("BD", "Test", "5358", "TestInst", "Victoria", "CA", "BC", true, "2001");
+		page.fillExpertise("ENG", "2500");
+
+		ViewProviderPage viewPage = page.clickSubmitButton();
+
+		LinkedHashMap<String, String> content = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
+		assertTrue(content.get("Name").equals(orgName));
+		assertTrue(content.get("Description").equals(orgDesc));
+	}
+
+//
+//	Organization Provider Minimum Data Requirements- not applicable
+//
+//	Provider Role Types for Organization Providers
+	@Test(groups = { "CreateOrganization" })
+	public void testProviderRoleTypesforOrganizationProviders() {
+		MaintainOrgBuilder providerBuilder = getOrgBuilder();
+		Map<String, String> orgAddress = providerBuilder.getAddressList().get(0);
+		String orgName = providerBuilder.getName();
+		String orgDesc = providerBuilder.getAlias();
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+
+		// Add org
+		AddProviderPage page = workflow.getPlrWebAccessActions().openAddOrganization()
+				.openProviderPage(ProviderType.ORGANIZATION);
+		AddProviderIdFragment fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null,
+				"ORGID", UpdateSimpleHelper.generateNumericString(8));
+
+		page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+		clickFirstNext(page);
+
+		page.fillOrganizationName(orgName, orgDesc);
+		clickSecondNext(page);
+		AddProviderAddressFragment address = page.fillAddress("P", orgAddress.get("purpose"),
+				List.of(orgAddress.get("line1"), "", ""), orgAddress.get("city"), "BC", "CA",
+				orgAddress.get("postalCode"));
+		page.fillPhone("250", UpdateSimpleHelper.generateNumericString(7), UpdateSimpleHelper.generateNumericString(3));
+		page.fillFax("250", UpdateSimpleHelper.generateNumericString(7));
+		page.fillEmail(UpdateSimpleHelper.generateEmail());
+		clickThirdNext(page, address);
+		ViewProviderPage viewPage = page.clickSubmitButton();
+		LinkedHashMap<String, String> content = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
+		assertTrue(content.get("Name").equals(orgName));
+		assertTrue(content.get("Description").equals(orgDesc));
+
+		// add business
+		orgName = providerBuilder.getName() + UpdateSimpleHelper.generateNumericString(2);
+		orgDesc = providerBuilder.getAlias() + UpdateSimpleHelper.generateNumericString(2);
+
+		page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
+		fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID",
+				UpdateSimpleHelper.generateNumericString(8));
+
+		page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+		clickFirstNext(page);
+
+		page.fillOrganizationName(orgName, orgDesc);
+		clickSecondNext(page);
+		address = page.fillAddress("P", orgAddress.get("purpose"), List.of(orgAddress.get("line1"), "", ""),
+				orgAddress.get("city"), "BC", "CA", orgAddress.get("postalCode"));
+		page.fillPhone("250", UpdateSimpleHelper.generateNumericString(7), UpdateSimpleHelper.generateNumericString(3));
+		page.fillFax("250", UpdateSimpleHelper.generateNumericString(7));
+		page.fillEmail(UpdateSimpleHelper.generateEmail());
+		clickThirdNext(page, address);
+		viewPage = page.clickSubmitButton();
+		content = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
+		assertTrue(content.get("Name").equals(orgName));
+		assertTrue(content.get("Description").equals(orgDesc));
+
+		// add clinic
+		orgName = providerBuilder.getName() + UpdateSimpleHelper.generateNumericString(2);
+		orgDesc = providerBuilder.getAlias() + UpdateSimpleHelper.generateNumericString(2);
+
+		page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
+		fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.CLINIC, null, null, "ORGID",
+				UpdateSimpleHelper.generateNumericString(8));
+
+		page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+		clickFirstNext(page);
+
+		page.fillOrganizationName(orgName, orgDesc);
+		clickSecondNext(page);
+		address = page.fillAddress("P", orgAddress.get("purpose"), List.of(orgAddress.get("line1"), "", ""),
+				orgAddress.get("city"), "BC", "CA", orgAddress.get("postalCode"));
+		page.fillPhone("250", UpdateSimpleHelper.generateNumericString(7), UpdateSimpleHelper.generateNumericString(3));
+		page.fillFax("250", UpdateSimpleHelper.generateNumericString(7));
+		page.fillEmail(UpdateSimpleHelper.generateEmail());
+		clickThirdNext(page, address);
+		viewPage = page.clickSubmitButton();
+		content = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
+		assertTrue(content.get("Name").equals(orgName));
+		assertTrue(content.get("Description").equals(orgDesc));
+
+		// add HDS
+		viewPage = createHDSProvider(HdsType.CLINIC, HdsSubType.LNWIC);
+		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
+		;
+		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
+			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
+		assertTrue(!resultProperty.isEmpty());
+		assertTrue(resultProperty.get("Role Type").contains("HDS"));
+		assertTrue(resultProperty.get("HDS Type").contains("CLINIC"));
+	}
+//
+//	Validate Organization name- PLR 608
+
 //	Organization Name and Long Name Accepted Characters
 	@Test(groups = { "CreateOrganization" })
 	public void testOrganizationNameAcceptedCharacters() {
