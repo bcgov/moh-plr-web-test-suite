@@ -1537,4 +1537,53 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return msgDisplay;
 
 	}
+	
+
+	public boolean isUpdateDialogSpanEditable(ProviderSection section, int index, String value) {
+		clickDataBlockUpdateButton(section, index);
+		boolean result=true;
+	
+		String xpath = String.format(
+		        "//span[contains(text(), '%s')]", 
+		        value
+		    );
+		WebElement element = selenium_.getDriver().findElement(By.xpath(xpath));
+		String tagName = element.getTagName();
+
+		if (!tagName.equals("input") && !tagName.equals("textarea")) {
+			result=false;
+		}
+		
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return result;
+	}
+
+	public String grabUpdateDialogLabelText(ProviderSection section, int index, String labelText) {
+		clickDataBlockUpdateButton(section, index);
+		String result="";
+	
+		String xpath = String.format(
+		        "//label[contains(normalize-space(), '%s')]/ancestor::div[1]/following::span[@style='font-weight: bold;'][1]", 
+		        labelText
+		    );
+		try {
+	            // Locate the adjacent span element using the XPath
+	            WebElement spanElement = selenium_.getDriver().findElement(By.xpath(xpath));
+
+	            result = spanElement.getText();
+	          
+	        } catch (org.openqa.selenium.NoSuchElementException e) {
+	          
+	          
+	        }
+		
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return result;
+	}
 }

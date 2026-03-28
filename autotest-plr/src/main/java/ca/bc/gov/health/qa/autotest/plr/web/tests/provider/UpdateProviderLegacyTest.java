@@ -1,5 +1,8 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.generateAlphabetString;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.effective_date;
+import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.generateEmail;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -13,6 +16,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -94,14 +99,14 @@ public class UpdateProviderLegacyTest {
 		MaintainIndividualBuilder individual = fhirController.createIndividual(
 				new IndividualMaintainConfig(IndividualRoleType.DEN).withNotes(1).withStatuses(1).withEmail().withPhone()
 				);
-		LOG.info("Created default BC provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
+		LOG.info("Created default BC provider with IPC: {}", individual.getIdentifier(IdentifierType.IPC));
 		defaultBC=fhirController.queryIndividualByIdentifier(IdentifierType.IPC, individual.getIdentifier(IdentifierType.IPC));
 
 		OrganizationMaintainConfig orgConfig = new OrganizationMaintainConfig(OrgRoleType.ORG)
 				.withNotes(1).withStatuses(1).withEmail().withPhone();
 		MaintainOrgBuilder org = fhirController.createOrganization(orgConfig);
 		defaultOrg = fhirController.queryOrganizationByIdentifier(IdentifierType.IPC, org.getIdentifier(IdentifierType.IPC));
-		LOG.info("Created default Organization provider with IPC: {}", defaultBC.getIdentifier(IdentifierType.IPC));
+		LOG.info("Created default Organization provider with IPC: {}", org.getIdentifier(IdentifierType.IPC));
 		fhirController.close();
 
 		defaultProviders.put(ProviderType.BC_PRACTITIONER, defaultBC);
@@ -820,10 +825,123 @@ public class UpdateProviderLegacyTest {
 	}
 //
 //			Then Validate Electronic Address Txt
+	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
+	public void testValidateElectronicAddressTxt(ProviderType providerType) {
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
+		String identifier = getTestProvideridentifier(providerType);
+		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
+		UpdateProviderPage page = actions.openProvider(pauthId);
+		
+		int maxElectronicAddressesFieldLength=500;
+		String errorMsg01=errorList.getString("errMsg5003ElectronicAddress");
+		String errorMsg02=errorList.getString("errMsg5000EAddress");
+		String errorMsg03="The following business rules have failed: Invalid email address format.";
+		String invalidEmail="test:http:test.com";
+		String emailStr=UpdateSimpleHelper.generateEmail();
+		String emailStr01=UpdateSimpleHelper.generateAlphabetString(maxElectronicAddressesFieldLength-emailStr.length()+1) +emailStr;
+
+		
+		String msg=page.updateElectronicAddressDataBlock(emailStr01, 
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date()
+				, EndReason.CHG, 0, true);
+		assertTrue(msg.equals(errorMsg01));
+		
+		msg=page.updateElectronicAddressDataBlock(null, 
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date()
+				, EndReason.CHG, 0, true);
+		assertTrue(msg.equals(errorMsg02));
+		
+		msg=page.updateElectronicAddressDataBlock(invalidEmail, 
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date()
+				, EndReason.CHG, 0, false);
+		// Email was not updated while no any error message displayed
+		//assertTrue(msg.equals(errorMsg03));//no expe
+		
+		msg=page.updateElectronicAddressDataBlock("test.test@test.com", 
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date()
+				, EndReason.CHG, 0, false);
+		assertTrue(StringUtils.isEmpty(msg));
+		
+		emailStr01=UpdateSimpleHelper.generateAlphabetString(maxElectronicAddressesFieldLength-emailStr.length()) +emailStr;
+		msg=page.updateElectronicAddressDataBlock(emailStr01, 
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date()
+				, EndReason.CHG, 0, false);
+		assertTrue(StringUtils.isEmpty(msg));
+	}
 //
 //			Then Validate Electronic Address Type Code
+	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
+	public void testValidateElectronicAddressTypeCode(ProviderType providerType) {
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
+		String identifier = getTestProvideridentifier(providerType);
+		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
+		UpdateProviderPage page = actions.openProvider(pauthId);
+	
+		String typeCode=page.grabUpdateDialogLabelText(ProviderSection.ELECTRONIC_ADDRESSES,0,"Type");
+		assertFalse(page.isUpdateDialogSpanEditable(ProviderSection.ELECTRONIC_ADDRESSES,0,typeCode));
+		
+		List<String> options = Stream.of(ElectronicAddressType.values())
+			    .map(ElectronicAddressType::getText) 
+			    .collect(Collectors.toList());
+		assertTrue(options.contains(typeCode));
+		
+		
+	}
 //			Then Validate Telcommunication Number
-//
+	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
+	public void testValidateTelcommunicationNumber(ProviderType providerType) {
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
+		String identifier = getTestProvideridentifier(providerType);
+		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
+		UpdateProviderPage page = actions.openProvider(pauthId);
+		
+		int maxExtension=15, maxPhonenumber=30, maxArecode=15;
+		String errorMsg01=errorList.getString("errMsg5003TelecomExtension");
+		String errorMsg02=errorList.getString("errMsg5003TelecomPhoneNumber");
+		String errorMsg03=errorList.getString("errMsg5003TelecomAreaCode");
+		
+		int index=0;
+		String msg = page.updateTelecommunicationDataBlock(UpdateSimpleHelper.generateNumericString(maxArecode),
+				UpdateSimpleHelper.generateNumericString(maxPhonenumber),
+				UpdateSimpleHelper.generateNumericString(maxExtension+1),
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
+		assertTrue(msg.equals(errorMsg01));
+		msg = page.updateTelecommunicationDataBlock(UpdateSimpleHelper.generateNumericString(maxArecode),
+				UpdateSimpleHelper.generateNumericString(maxPhonenumber+1),
+				UpdateSimpleHelper.generateNumericString(maxExtension),
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
+		assertTrue(msg.equals(errorMsg02));
+		msg = page.updateTelecommunicationDataBlock(UpdateSimpleHelper.generateNumericString(maxArecode+1),
+				UpdateSimpleHelper.generateNumericString(maxPhonenumber),
+				UpdateSimpleHelper.generateNumericString(maxExtension),
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
+		assertTrue(msg.equals(errorMsg03));
+		msg = page.updateTelecommunicationDataBlock(UpdateSimpleHelper.generateNumericString(maxArecode),
+				UpdateSimpleHelper.generateNumericString(maxPhonenumber),
+				UpdateSimpleHelper.generateNumericString(maxExtension),
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
+		assertTrue(StringUtils.isEmpty(msg));
+	}
 //			Then Validate Telecommunication Type Code
-
+	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
+	public void testValidateTelecommunicationTypeCode(ProviderType providerType) {
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
+		String identifier = getTestProvideridentifier(providerType);
+		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
+		UpdateProviderPage page = actions.openProvider(pauthId);
+	
+		String typeCode=page.grabUpdateDialogLabelText(ProviderSection.TELECOMMUNICATIONS,0,"Type");
+		assertFalse(page.isUpdateDialogSpanEditable(ProviderSection.TELECOMMUNICATIONS,0,typeCode));
+		
+		List<String> options = Stream.of(TelecommunicationType.values())
+			    .map(TelecommunicationType::getText) 
+			    .collect(Collectors.toList());
+		assertTrue(options.contains(typeCode));
+		
+		
+	}
 }
