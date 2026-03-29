@@ -941,7 +941,55 @@ public class UpdateProviderLegacyTest {
 			    .map(TelecommunicationType::getText) 
 			    .collect(Collectors.toList());
 		assertTrue(options.contains(typeCode));
+	}
+//=========PLR 602==========
+	//Validate Organization name
+	//this is message based test case, step 6 not applicable
+	//max org name is 100 (not 50), max org long name is 200 (not 150)
+	@Test( groups = {"UpdateProviderLegacy" })
+	public void testValidateOrganizationName() {
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
+		String identifier = identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
+		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
+		UpdateProviderPage page = actions.openProvider(pauthId);
+	
+		String errorMsg01=errorList.getString("errorMsgName");
+		String errorMsg02=errorList.getString("errorMaxOrgNameLength");
+		String errorMsg03=errorList.getString("errorMaxOrgLongNameLength");
+		int maxOrgName=100,maxOrgdesc=200;
+		int index=0;
 		
+		String msg = page.updateOrganizationalNameDataBlock(null,
+				UpdateSimpleHelper.generateAlphabetString(10),
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
+		assertTrue(msg.equals(errorMsg01));
+		msg = page.updateOrganizationalNameDataBlock(UpdateSimpleHelper.generateAlphabetString(maxOrgName+1),
+				UpdateSimpleHelper.generateAlphabetString(maxOrgdesc),
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
+		assertTrue(msg.equals(errorMsg02));
+		msg = page.updateOrganizationalNameDataBlock(UpdateSimpleHelper.generateAlphabetString(maxOrgName),
+				UpdateSimpleHelper.generateAlphabetString(maxOrgdesc+1),
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
+		assertTrue(msg.equals(errorMsg03));
+		msg = page.updateOrganizationalNameDataBlock(UpdateSimpleHelper.generateAlphabetString(maxOrgName),
+				UpdateSimpleHelper.generateAlphabetString(maxOrgdesc),
+				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
+		assertTrue(StringUtils.isEmpty(msg));
 		
 	}
+//Organization Provider Minimum Data Requirements:
+/*
+ * this is test case for message based update, and minimal set "
+Provider type (org or ind) 
+Provider role type 
+Jurisdiction 
+Provider Identifier Type 
+Provider Identifier 
+End Reason Code for each data object changed 
+Effective Start Date for each data object changed" is not applicable to web update;
+web update identifier is covered in update ticket (PLR 608 and PLR 596);
+	
+ */
+	
 }

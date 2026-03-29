@@ -1538,7 +1538,60 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	}
 	
+	
+	/** Attempts to update a OrganizationalName data block with provided values
+	 * @param orgName			name
+	 * @param orgLongName       long name
+	 * @param effectiveFrom		the effective from date to update the data block with
+	 * @param effectiveTo		the effective to date to update the data block with
+	 * @param endReasonCode			the end reason to fill the end reason code field with
+	 * @param index				the index of the telecom data block to update
+	 * @param expectError		whether an error is anticipated (true) or not (false)
+	 * @return a string of the error message, if expectError is true. otherwise an empty string
+	 */
+	public String updateOrganizationalNameDataBlock(String orgName, String orgLongName,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_NAMES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ORGANIZATION_NAMES);
 
+		clickDataBlockUpdateButton(ProviderSection.ORGANIZATION_NAMES, index);
+		waitSeconds(2);
+
+		String inputOrgNameCss = dialogCss + " >input#" + formName + "\\:" + "shortName";
+		WebElement inputOrgName = selenium_.findElement(By.cssSelector(inputOrgNameCss));
+		inputOrgName.clear();
+		if (!StringUtils.isEmpty(orgName))
+			inputOrgName.sendKeys(orgName);
+
+		String inputOrgLongNameCss = dialogCss + " >input#" + formName + "\\:" + "longName";
+		WebElement inputOrgLongName = selenium_.findElement(By.cssSelector(inputOrgLongNameCss));
+		inputOrgLongName.clear();
+		if (!StringUtils.isEmpty(orgLongName))
+			inputOrgLongName.sendKeys(orgLongName);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.ORGANIZATION_NAMES, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.ORGANIZATION_NAMES, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ORGANIZATION_NAMES);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.ORGANIZATION_NAMES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+
+	}
+	
+
+	/**determine if Update Dialog Span Editable
+	 * @param section
+	 * @param index
+	 * @param value
+	 * @return true if editable, false if not editable
+	 */
 	public boolean isUpdateDialogSpanEditable(ProviderSection section, int index, String value) {
 		clickDataBlockUpdateButton(section, index);
 		boolean result=true;
@@ -1561,6 +1614,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return result;
 	}
 
+	/**grab Update Dialog Label Text
+	 * @param section
+	 * @param index
+	 * @param labelText
+	 * @return the span text that right to the label  
+	 */
 	public String grabUpdateDialogLabelText(ProviderSection section, int index, String labelText) {
 		clickDataBlockUpdateButton(section, index);
 		String result="";
