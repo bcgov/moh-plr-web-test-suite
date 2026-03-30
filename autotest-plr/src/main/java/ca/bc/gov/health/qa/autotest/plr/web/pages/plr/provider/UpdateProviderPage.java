@@ -796,6 +796,33 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return msgDisplay;
 	}
 
+	public String addWLAddressDataBlock(int wlIndex, String addressType, String purpose,
+										String addressLine1, String addressLine2, String addressLine3,
+										String city, String province, String postalCode, String country,
+										String effectiveFrom, String effectiveTo, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickWLHeaderAddButton(ProviderSection.ADDRESSES, wlIndex);
+
+		fillAddressDataBlock(addressType, purpose, addressLine1, addressLine2, addressLine3, city, province, country,
+								postalCode, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+
+		// Handle address validation popups that may appear (only when not expecting error)
+		handleAddressValidationDialog();
+
+		if (expectError) {
+			// Wait for error message (waitErrorMessage already clicks Cancel when done)
+			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+		return msgDisplay;
+	}
+
 	/**
 	 * performing action of updating Work Location Data Block, perform error message check if necessary
 	 * @param defaultFlag the default flag to indicate whether to check the default flag checkbox
