@@ -809,11 +809,6 @@ public class UpdateProviderLegacyTest {
 		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.TELECOMMUNICATIONS, index);
         assertEquals(phoneNumber, content.get("Number"));
         assertEquals(areaCode, content.get("Area Code"));
-	}	
-//			Then Validate Communication Purpose Type code
-	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
-	public void testValidateCommunicationPurposeTypeCode(ProviderType providerType) {
-		
 	}
 //
 //			Then Validate Electronic Address Txt
