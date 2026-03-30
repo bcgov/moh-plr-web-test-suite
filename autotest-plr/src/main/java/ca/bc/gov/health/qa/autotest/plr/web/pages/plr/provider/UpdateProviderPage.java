@@ -90,11 +90,14 @@ public class UpdateProviderPage extends ViewProviderPage {
 			if (title == null || title.isEmpty()) continue;
 			if (!title.contains(widgetTitlePrefix)) continue;
 
-			// regrab element (likely to have become stale) and check visibility
-			selenium_.setWaitTimeout(Duration.ofSeconds(10));
-			elem = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.xpath(
-					"//div[@role='dialog' and @aria-hidden='false' and .//span[contains(text(),'\" + title + \"')]]")));
-			selenium_.setWaitTimeout(Duration.ofSeconds(30));
+			try {
+				// regrab element (likely to have become stale) and check visibility
+				selenium_.setWaitTimeout(Duration.ofSeconds(10));
+				elem = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.xpath(
+						"//div[@role='dialog' and @aria-hidden='false' and .//span[contains(text(),'\" + title + \"')]]")));
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
 
 			// Skip hidden/inactive dialogs
 			String ariaHidden = elem.getAttribute("aria-hidden");
@@ -109,7 +112,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * Clicks "Continue w/ Original" button if a validation dialog is displayed.
 	 */
 	public void handleAddressValidationDialog() {
-		waitSeconds(2); // Give UI time to render any validation dialogs
+		waitSeconds(3); // Give UI time to render any validation dialogs
 
 		// Try different dialog title prefixes that may appear
 		String[] dialogTitles = {"Address Invalid", "Address Recommended", "Validation", "Address Provided"};
@@ -129,7 +132,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 					continueBtn.click();
 
 					selenium_.waitUntil(ExpectedConditions.invisibilityOf(validationWidget));
-					// waitSeconds(2);
+					waitSeconds(2);
 					return;
 				}
 			} catch (org.openqa.selenium.NoSuchElementException ignore) {
@@ -901,12 +904,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @return String of error messages
 	 */
 	public String waitErrorMessage(ProviderSection section) {
-		final int MAX_ATTEMPTS = 5;
+		final int MAX_ATTEMPTS = 10;
 		int attempts = 0;
 		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
 			if (attempts >= MAX_ATTEMPTS) break;
-			waitSeconds(5);
+			waitSeconds(3);
 			try {
 				msgDisplay = getDialogMessages(section);
 			} catch (StaleElementReferenceException e) {
@@ -1350,8 +1353,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressType", addressType);
-		setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressPurpose", purpose);
+		if(addressType != null){
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressType", addressType);
+		}
+		if(purpose != null){
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressPurpose", purpose);
+		}
 
 		// Fill address line 1
 		String addressLine1Css = dialogCss + " >input#" + formName + "\\:addressLine1";
@@ -1382,7 +1389,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 
 		// Fill city (autocomplete input) - type city and click first autocomplete result
-		if (!StringUtils.isEmpty(city)) {
+		if (city != null) {
 			String cityInputCss = "input#" + formName + "\\:city_input";
 			String cityPanelCss = "span#" + formName + "\\:city_panel";
 			WebElement cityInput = selenium_.findElement(By.cssSelector(cityInputCss));
@@ -1521,8 +1528,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressType", addressType);
-		setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressPurpose", purpose);
+		if(addressType != null){
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressType", addressType);
+		}
+		if (purpose != null) {
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressPurpose", purpose);
+		}
 
 		// Fill address line 1
 		String addressLine1Css = dialogCss + " >input#" + formName + "\\:addressLine1";
@@ -1553,7 +1564,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 
 		// Fill city (raw input - no autocomplete selection)
-		if (!StringUtils.isEmpty(city)) {
+		if (city != null) {
 			String cityInputCss = "input#" + formName + "\\:city_input";
 			WebElement cityInput = selenium_.findElement(By.cssSelector(cityInputCss));
 			cityInput.clear();
@@ -1645,71 +1656,113 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
 
 		clickDataBlockUpdateButton(ProviderSection.ADDRESSES, index);
-		waitSeconds(2);
+		waitSeconds(3);
 
-		// Update address line 1
-		String addressLine1Css = dialogCss + " >input#" + formName + "\\:addressLine1";
-		WebElement addressLine1Element = selenium_.findElement(By.cssSelector(addressLine1Css));
-		addressLine1Element.clear();
-		if (!StringUtils.isEmpty(addressLine1))
-			addressLine1Element.sendKeys(addressLine1);
-
-		// Update address line 2
-		String addressLine2Css = dialogCss + " >input#" + formName + "\\:addressLine2";
-		WebElement addressLine2Element = selenium_.findElement(By.cssSelector(addressLine2Css));
-		addressLine2Element.clear();
-		if (!StringUtils.isEmpty(addressLine2))
-			addressLine2Element.sendKeys(addressLine2);
-
-		// Update address line 3
-		String addressLine3Css = dialogCss + " >input#" + formName + "\\:addressLine3";
-		WebElement addressLine3Element = selenium_.findElement(By.cssSelector(addressLine3Css));
-		addressLine3Element.clear();
-		if (!StringUtils.isEmpty(addressLine3))
-			addressLine3Element.sendKeys(addressLine3);
-
-		// Update city (autocomplete input)
-		if (!StringUtils.isEmpty(city)) {
-			AutocompleteMenu cityMenu = new AutocompleteMenu(
-					selenium_,
-					By.cssSelector("input#" + formName + "\\:city_input"),
-					By.cssSelector("span#" + formName + "\\:city_panel")
-			);
-			cityMenu.fillItem(city, null);
-		}
-
-		// Update province
-		if (!StringUtils.isEmpty(province)) {
-			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "province_address", province);
-		}
-
-		// Update country
-		if (!StringUtils.isEmpty(country)) {
-			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "country", country);
-		}
-
-		// Update postal code
-		String postalCodeCss = dialogCss + " >input#" + formName + "\\:postalCode";
-		WebElement postalCodeElement = selenium_.findElement(By.cssSelector(postalCodeCss));
-		postalCodeElement.clear();
-		if (!StringUtils.isEmpty(postalCode))
-			postalCodeElement.sendKeys(postalCode);
+		//Only fill in the address fields that are valid for an update (address type and purpose cannot be updated, so pass in null to keep existing values)
+		fillAddressDataBlock(null, null, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
 
 		if (endReasonCode != null)
 			setEndReasonByVisibleText(ProviderSection.ADDRESSES, endReasonCode.getText());
 
-		setDialogEffectiveFromAndEffectiveTo(ProviderSection.ADDRESSES, effectiveFrom, effectiveTo);
-
 		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
-
+		
+		// Handle address validation popups that may appear (only when not expecting error)
+		handleAddressValidationDialog();
+				
 		if (expectError) {
 			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
-			// Cancel the dialog since it stays open after an error
-			clickDialogCancelButton(ProviderSection.ADDRESSES);
 		} else {
 			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		}
+
+		//Small wait as sometimes due to speed, page stalls
+        waitSeconds(3);
+
 		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to update an address data block with provided values
+	 *
+	 * @param addressLine1  the first line of the address
+	 * @param addressLine2  the second line of the address (optional)
+	 * @param addressLine3  the third line of the address (optional)
+	 * @param city          the city name
+	 * @param province      the province/state code
+	 * @param country       the country code
+	 * @param postalCode    the postal code (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index         the data block index to update
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String updateAddressDataBlockRawCity(String addressLine1, String addressLine2, String addressLine3,
+			String city, String province, String country, String postalCode,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickDataBlockUpdateButton(ProviderSection.ADDRESSES, index);
+		waitSeconds(2);
+
+		//Only fill in the address fields that are valid for an update (address type and purpose cannot be updated, so pass in null to keep existing values)
+		fillAddressDataBlockRawCity(null, null, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.ADDRESSES, endReasonCode.getText());
+
+		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+		
+				
+		if (expectError) {
+			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			// Handle address validation popups that may appear
+			handleAddressValidationDialog();
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+
+		//Small wait as sometimes due to speed, page stalls
+        waitSeconds(2);
+
+		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to update an address data block with provided values
+	 *
+	 * @param addressLine1  the first line of the address
+	 * @param addressLine2  the second line of the address (optional)
+	 * @param addressLine3  the third line of the address (optional)
+	 * @param city          the city name
+	 * @param province      the province/state code
+	 * @param country       the country code
+	 * @param postalCode    the postal code (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index         the data block index to update
+	 */
+	public void updateCancelAddressDataBlock(String addressLine1, String addressLine2, String addressLine3,
+			String city, String province, String country, String postalCode,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index) {
+
+		clickDataBlockUpdateButton(ProviderSection.ADDRESSES, index);
+		waitSeconds(2);
+
+		//Only fill in the address fields that are valid for an update (address type and purpose cannot be updated, so pass in null to keep existing values)
+		fillAddressDataBlock(null, null, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.ADDRESSES, endReasonCode.getText());
+
+		clickDialogCancelButton(ProviderSection.ADDRESSES);
 	}
 
 	/**
@@ -1796,7 +1849,6 @@ public class UpdateProviderPage extends ViewProviderPage {
 			msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
 		} else {
 			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
-			clickDialogCancelButton(ProviderSection.TELECOMMUNICATIONS); // Cancel to close the dialog after successful add
 		}
 		return msgDisplay;
 	}
@@ -1879,8 +1931,6 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		if (expectError) {
 			msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
-			// Cancel the dialog since it stays open after an error
-			clickDialogCancelButton(ProviderSection.TELECOMMUNICATIONS);
 		} else {
 			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		}
