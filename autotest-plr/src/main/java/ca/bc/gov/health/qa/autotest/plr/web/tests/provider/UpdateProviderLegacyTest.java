@@ -73,7 +73,7 @@ public class UpdateProviderLegacyTest {
 
 	@AfterClass
 	public void teardown() {
-		workflowManager_.logoutAllAndClose();
+		//workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
@@ -809,6 +809,19 @@ public class UpdateProviderLegacyTest {
 		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.TELECOMMUNICATIONS, index);
         assertEquals(phoneNumber, content.get("Number"));
         assertEquals(areaCode, content.get("Area Code"));
+	}
+//			Then Validate Communication Purpose Type code
+	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
+	public void testValidateCommunicationPurposeTypeCode(ProviderType providerType) {
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
+		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
+		String identifier = getTestProvideridentifier(providerType);
+		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
+		UpdateProviderPage page = actions.openProvider(pauthId);
+
+		page.addWorkLocationDataBlock("1", false, "Work Location", "CC", "Info", false);
+
+		page.clickWLHeaderAddButton(ProviderSection.ADDRESSES, 0);
 	}
 //
 //			Then Validate Electronic Address Txt

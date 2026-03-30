@@ -297,6 +297,45 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return selenium_.findElementByCss(dialogCss);
 	}
 
+	/**
+	 * Clicks the add button in the header of a work location
+	 * @param section the provider section within the work location
+	 *                will only accept Addresses, Electronic Addresses, Telecommunications, and Communication Preferences
+	 * @param index   the index of work location to add the data block for
+	 * @return the WebElement of the dialog content after clicking the add button and waiting for the dialog to be visible
+	 */
+	public WebElement clickWLHeaderAddButton(ProviderSection section, int index)
+	{
+		// expand the work location if hasn't happened yet
+		expandDataBlock(ProviderSection.WORK_LOCATIONS, index, true);
+
+		String clickElementCss = getSectionSelector(ProviderSection.WORK_LOCATIONS) + " > div > table > tbody > tr > td > ";
+		clickElementCss += String.format("div#wlRepeat\\:%d\\:workLocationPanel > div > div > div > div#wlRepeat\\:%d\\:", index, index);
+		switch (section) {
+			case ProviderSection.ADDRESSES -> clickElementCss += "workLocationAddressesPanel";
+			case ProviderSection.TELECOMMUNICATIONS -> clickElementCss += "workLocationTelecommunicationsPanel";
+			case ProviderSection.ELECTRONIC_ADDRESSES -> clickElementCss += "workLocationElectronicAddressesPanel";
+			case ProviderSection.COMMUNICATION_PREFERENCE -> clickElementCss += "workLocationInformationRoutesPanel";
+			default -> throw new IllegalArgumentException("Section " + section + " is not supported for adding within Work Locations");
+		}
+		clickElementCss += " > div > div > a > img[title='" + DIALOG_MAP.get(section).getAddButtonImgText() + "']";
+
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		WebElement clickElement = selenium_.findElement(By.cssSelector(clickElementCss));
+		selenium_.scrollIntoView(clickElement);
+		try {
+			clickElement.click();
+		} catch (StaleElementReferenceException | ElementClickInterceptedException e) {
+			waitSeconds(2);
+			clickElement = selenium_.findElement(By.cssSelector(clickElementCss));
+			clickElement.click();
+		}
+
+		String dialogCss = getDialogCss(section);
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
+	}
+
     /**
      * Attempts to click the update button on a specified data block
      *
