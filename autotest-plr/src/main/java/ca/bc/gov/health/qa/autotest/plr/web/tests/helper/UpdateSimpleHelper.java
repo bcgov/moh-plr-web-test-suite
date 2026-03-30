@@ -1,7 +1,11 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.helper;
 
-import java.util.Random;
+import java.util.*;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
+import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.testng.Assert.assertFalse;
@@ -9,12 +13,6 @@ import static org.testng.Assert.assertTrue;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 
 public class UpdateSimpleHelper {
 
@@ -247,6 +245,22 @@ public class UpdateSimpleHelper {
 		Collections.sort(arr2);
 		// Compare the sorted arrays using Arrays.equals()
 		return arr1.equals(arr2);
+	}
+
+	/**
+	 * Get the other provider's MaintainIndividualBuilder based on the given provider type.
+	 * @param providers a map containing the MaintainIndividualBuilder instances for each provider type
+	 * @param type the provider type for which to get the other provider's MaintainIndividualBuilder
+	 * @return the MaintainIndividualBuilder instance for the other provider type
+	 * @throws IllegalArgumentException if the provided type is not recognized
+	 */
+	public static MaintainRequestBuilder getOtherProvider(Map<ProviderType, MaintainRequestBuilder> providers, ProviderType type)
+	{
+		return switch(type) {
+			case BC_PRACTITIONER -> providers.get(ProviderType.OOP_PRACTITIONER);
+			case OOP_PRACTITIONER -> providers.get(ProviderType.BC_PRACTITIONER);
+			default -> throw new IllegalArgumentException(); // should not occur
+		};
 	}
 	
 	

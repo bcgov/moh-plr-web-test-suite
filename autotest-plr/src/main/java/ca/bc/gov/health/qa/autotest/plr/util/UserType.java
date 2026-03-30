@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.util;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -45,6 +46,13 @@ public enum UserType
     private static final Set<UserType> PLR_USER_TYPE_SET =
             Collections.unmodifiableSet(EnumSet.of(ADMIN, PRIMARY, SECONDARY, CONSUMER));
 
+    private static final Map<UserType,String> REG_USER_TYPE_MAP = Map.of(
+            PRIMARY, "PSRC",
+            SECONDARY, "SSRC",
+            CONSUMER, "CONS",
+            ADMIN, "RA"
+    );
+
     /**
      * Gets the DSR user types in this enum
      *
@@ -64,4 +72,11 @@ public enum UserType
     {
         return PLR_USER_TYPE_SET;
     }
+
+    /**
+     * Gets the registry user type string for this user type
+     * @return The registry user type string for this user type,
+     * or null if this user type does not have a registry user type string
+     */
+    public String getRegUserType() { return REG_USER_TYPE_MAP.get(this); }
 }
