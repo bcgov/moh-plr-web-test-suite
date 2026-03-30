@@ -650,7 +650,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @param effectiveFrom
 	 * @param effectiveTo
 	 * @param endReasonCode
-	 * @param inswx
+	 * @param index
 	 * @param expectError
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string.
@@ -805,8 +805,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * update RegIdentifiers Data Block
-	 * 
-	 * @param regIdType
+	 *
 	 * @param regId
 	 * @param effectiveFrom
 	 * @param effectiveTo
@@ -886,8 +885,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * update Status Data Block
-	 * 
-	 * @param statusClassCode
+	 *
 	 * @param statusCode
 	 * @param statusReasonCode
 	 * @param effectiveFrom
