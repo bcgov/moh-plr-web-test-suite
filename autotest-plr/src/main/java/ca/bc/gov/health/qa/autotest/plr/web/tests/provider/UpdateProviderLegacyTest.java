@@ -1,8 +1,5 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.generateAlphabetString;
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.effective_date;
-import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.generateEmail;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -16,7 +13,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +30,6 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.EndReasonCode;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
@@ -43,13 +38,10 @@ import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRole
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.UpdateProviderActions;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.ViewFacilityPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.SearchProviderResultsFragment;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ViewProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressType;
@@ -779,10 +771,10 @@ public class UpdateProviderLegacyTest {
 		assertTrue(StringUtils.isEmpty(msg));
 
 		// cancel update
-		msg = page.updateElectronicAddressDataBlockCancel("newtest@test.com", UpdateSimpleHelper.effective_date(),
+		page.updateElectronicAddressDataBlockCancel("newtest@test.com", UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
 		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.ELECTRONIC_ADDRESSES, index);
-		assertTrue(content.get("Address").equals(emailAddrss));
+        assertEquals(emailAddrss, content.get("Address"));
 	}
 //			Then Update Telecommunicatons
 	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
@@ -811,12 +803,12 @@ public class UpdateProviderLegacyTest {
 		// cancel update
 		String phoneNumberCancel=UpdateSimpleHelper.generateNumericString(7);
 		String areaCodeCancel=UpdateSimpleHelper.generateNumericString(3);
-		msg = page.updateTelecommunicationDataBlockCancel(areaCodeCancel, phoneNumberCancel,null,
+		page.updateTelecommunicationDataBlockCancel(areaCodeCancel, phoneNumberCancel,null,
 				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
 		
 		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.TELECOMMUNICATIONS, index);
-		assertTrue(content.get("Number").equals(phoneNumber));
-		assertTrue(content.get("Area Code").equals(areaCode));
+        assertEquals(phoneNumber, content.get("Number"));
+        assertEquals(areaCode, content.get("Area Code"));
 	}	
 //			Then Validate Communication Purpose Type code
 	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
@@ -845,14 +837,14 @@ public class UpdateProviderLegacyTest {
 		String msg=page.updateElectronicAddressDataBlock(emailStr01, 
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date()
 				, EndReason.CHG, 0, true);
-		assertTrue(msg.equals(errorMsg01));
+        assertEquals(errorMsg01, msg);
 		
 		msg=page.updateElectronicAddressDataBlock(null, 
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date()
 				, EndReason.CHG, 0, true);
-		assertTrue(msg.equals(errorMsg02));
+        assertEquals(errorMsg02, msg);
 		
-		msg=page.updateElectronicAddressDataBlock(invalidEmail, 
+		page.updateElectronicAddressDataBlock(invalidEmail,
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date()
 				, EndReason.CHG, 0, false);
 		// Email was not updated while no any error message displayed
@@ -884,7 +876,7 @@ public class UpdateProviderLegacyTest {
 		
 		List<String> options = Stream.of(ElectronicAddressType.values())
 			    .map(ElectronicAddressType::getText) 
-			    .collect(Collectors.toList());
+			    .toList();
 		assertTrue(options.contains(typeCode));
 		
 		
@@ -908,17 +900,17 @@ public class UpdateProviderLegacyTest {
 				UpdateSimpleHelper.generateNumericString(maxPhonenumber),
 				UpdateSimpleHelper.generateNumericString(maxExtension+1),
 				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg01));
+        assertEquals(errorMsg01, msg);
 		msg = page.updateTelecommunicationDataBlock(UpdateSimpleHelper.generateNumericString(maxArecode),
 				UpdateSimpleHelper.generateNumericString(maxPhonenumber+1),
 				UpdateSimpleHelper.generateNumericString(maxExtension),
 				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg02));
+        assertEquals(errorMsg02, msg);
 		msg = page.updateTelecommunicationDataBlock(UpdateSimpleHelper.generateNumericString(maxArecode+1),
 				UpdateSimpleHelper.generateNumericString(maxPhonenumber),
 				UpdateSimpleHelper.generateNumericString(maxExtension),
 				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg03));
+        assertEquals(errorMsg03, msg);
 		msg = page.updateTelecommunicationDataBlock(UpdateSimpleHelper.generateNumericString(maxArecode),
 				UpdateSimpleHelper.generateNumericString(maxPhonenumber),
 				UpdateSimpleHelper.generateNumericString(maxExtension),
@@ -939,7 +931,7 @@ public class UpdateProviderLegacyTest {
 		
 		List<String> options = Stream.of(TelecommunicationType.values())
 			    .map(TelecommunicationType::getText) 
-			    .collect(Collectors.toList());
+			    .toList();
 		assertTrue(options.contains(typeCode));
 	}
 //=========PLR 602==========

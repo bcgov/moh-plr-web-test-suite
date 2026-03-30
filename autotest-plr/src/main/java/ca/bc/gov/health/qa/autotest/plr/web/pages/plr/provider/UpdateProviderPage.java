@@ -18,7 +18,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
-import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.facility.FacilitySection;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
@@ -1392,10 +1391,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		clickHeaderAddButton(ProviderSection.TELECOMMUNICATIONS);
 		if (!StringUtils.isEmpty(telecomType))
-		setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomType", telecomType);
+			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomType", telecomType);
 		//telecomPurposeFiltered
 		if (!StringUtils.isEmpty(purpose))
-		setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurposeFiltered", purpose);
+			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurposeFiltered", purpose);
 		String inputAreaCodeCss = dialogCss + " >input#" + formName + "\\:" + "AreaCode";
 		WebElement inputAreaCode = selenium_.findElement(By.cssSelector(inputAreaCodeCss));
 		inputAreaCode.clear();
