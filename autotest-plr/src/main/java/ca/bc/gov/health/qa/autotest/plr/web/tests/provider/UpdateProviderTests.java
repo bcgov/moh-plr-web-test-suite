@@ -9,6 +9,7 @@ import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
+import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
@@ -61,6 +62,7 @@ public class UpdateProviderTests implements SimpleTest {
     public static JSONObject errorList;
 
     private static final Map<ProviderType, MaintainRequestBuilder> defaultProviders = new LinkedHashMap<>();
+    private static IndividualDataGenerator individualDataGenerator = IndividualDataGenerator.getInstance();
     private static MaintainOrgBuilder defaultOrg;
     private static final int MAX_DIS_ACTION_DES = 3000;
     private UpdateProviderTests() {
@@ -2041,7 +2043,7 @@ public class UpdateProviderTests implements SimpleTest {
         assertEquals(error, errorList.get("errMsg7009"),
                 "Expected error for invalid Canadian postal code format");
 
-        // Enter address with country as Canada - postal code exceeding 25 characters - failure
+        // Enter address with country not as Canada - postal code exceeding 25 characters - failure
         purposeCode = page.getAvailablePurposeCodeForAddressType(AddressType.M.getCode());
         error = page.addAddressDataBlock(
                 AddressType.M.getText(),
@@ -2329,6 +2331,246 @@ public class UpdateProviderTests implements SimpleTest {
         }
 
    }
+
+    // Update Provider - Update block - General Address Validation
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testGeneralAddressValidationUpdate(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        int addressIndex = 0;
+
+        //[line1, city, postal]
+        String[] validAddress = individualDataGenerator.generateAddress();
+
+        // 1. Update address with address line 1 only (should succeed)
+        page.updateAddressDataBlock(
+            validAddress[0], null, null, validAddress[1], "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+        LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("Address Line 1"), validAddress[0], "Address Line 1 should be updated");
+        assertTrue(content.get("City").contains(validAddress[1]), "City should be updated");
+        assertEquals(content.get("State/Prov"), "BC", "Province should be updated");
+        assertEquals(content.get("Country"), "CANADA (CA)", "Country should be updated");
+        assertEquals(content.get("Postal/Zip Code"), validAddress[2], "Postal Code should be updated");
+
+        // 2. Update address with address line 2 only, line 1 null (should fail)
+        String error = page.updateAddressDataBlock(
+            null, validAddress[0], null, validAddress[1], "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, true);
+        assertEquals(error, errorList.get("missingAddressLine1"), "Expected error for missing address line 1");
+
+        // 3. Update address line 1 with a space between numbers "456 789 Main St" (should succeed)
+        page.updateAddressDataBlock(
+            "456 789 Main St", null, null, "Vancouver", "BC - British Columbia", "CA - CANADA", "V6B 1A1",
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+        content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("Address Line 1"), "456 789 Main St", "Address Line 1 should be updated");
+
+        // 4. Update address line 1 with Postal office information included "PO Box 1234 Station Main" (should succeed)
+        page.updateAddressDataBlock(
+            "PO Box 1234 Station Main", null, null, "Vancouver", "BC - British Columbia", "CA - CANADA", "V6B 1A1",
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+        content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("Address Line 1"), "PO Box 1234 Station Main", "Address Line 1 should be updated");
+
+        // 5. Update address with st type abbreviation (should succeed)
+        page.updateAddressDataBlock(
+            "789 Oak Ave", null, null, "Vancouver", "BC - British Columbia", "CA - CANADA", "V6B 1A1",
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+        content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("Address Line 1"), "789 Oak Ave", "Address Line 1 should be updated");
+   }
+
+   // Update Provider - Update block - Validate Postal Code
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidatePostalCodeUpdate(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        int addressIndex = 0;
+        String[] validAddress = individualDataGenerator.generateAddress();
+
+        // Update address with country as Canada - postal code with invalid format - failure
+        String error = page.updateAddressDataBlock(
+            validAddress[0], null, null, validAddress[1], "BC - British Columbia", "CA - CANADA", "INVALID",
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, true);
+        assertEquals(error, errorList.get("errMsg7009"), "Expected error for invalid Canadian postal code format");
+
+        // Update address with country not as Canada - postal code exceeding 25 characters - failure
+        error = page.updateAddressDataBlock(
+            validAddress[0], null, null, validAddress[1], "Sao Paulo", "BR - BRAZIL", generateAlphabetNumericString(26),
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, true);
+        assertEquals(error, errorList.get("errMsg5003PostalCode"), "Expected error for postal code exceeding 25 characters (country not Canada)");
+
+    }
+
+    // Update Provider - Update block - Validate Address Line One
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateAddressLineOneUpdatePartOne(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        int addressIndex = 0;
+        String[] validAddress = individualDataGenerator.generateAddress();
+
+        // Enter address with line 1 exceeding 101 characters - fail
+        String error = page.updateAddressDataBlock(
+            generateAlphabetNumericString(101), null, null, validAddress[1], "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, true);
+        assertEquals(error, errorList.get("addressLine1TooLong"), "Expected error for address line 1 exceeding 101 characters");
+
+        LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+
+        // Enter address with line 1 blank - fail
+        error = page.updateAddressDataBlock(
+            null, null, null, validAddress[1], "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, true);
+        assertEquals(error, errorList.get("missingAddressLine1"), "Expected error for blank address line 1");
+
+    }
+
+     // Update Provider - Update block - Validate Address Line One
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateAddressLineOneUpdatePartTwo(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        int addressIndex = 0;
+        String[] validAddress = individualDataGenerator.generateAddress();
+
+        // Enter address with line 1 as "NO FIXED ADDRESS" - Success
+        page.updateAddressDataBlock(
+            "NO FIXED ADDRESS", null, null, validAddress[1], "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+        LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("Address Line 1"), "NO FIXED ADDRESS", "Address Line 1 should be updated");
+
+        // Enter address with line 1 as "UNKNOWN" - Success
+        page.updateAddressDataBlock(
+            "UNKNOWN", null, null, validAddress[1], "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+        content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("Address Line 1"), "UNKNOWN", "Address Line 1 should be updated");
+
+        // Enter address line 1 as "NA" - Success
+        page.updateAddressDataBlock(
+            "NA", null, null, validAddress[1], "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+        content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("Address Line 1"), "NA", "Address Line 1 should be updated");
+    }
+
+    // Update Provider - Update block - Update Addresses
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testUpdateAddresses(ProviderType providerType) {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        // Update valid address block
+        int addressIndex = 0;
+        String[] validAddress = individualDataGenerator.generateAddress();
+        String[] secondValidAddress = individualDataGenerator.generateAddress();
+
+        page.updateAddressDataBlock(
+            validAddress[0], null, null, validAddress[1], "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+
+        LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("Address Line 1"), validAddress[0], "Address Line 1 should be updated");
+        assertTrue(content.get("City").contains(validAddress[1]), "City should be updated");
+        assertEquals(content.get("State/Prov"), "BC", "Province should be updated");
+        assertEquals(content.get("Country"), "CANADA (CA)", "Country should be updated");
+        assertEquals(content.get("Postal/Zip Code"), validAddress[2], "Postal Code should be updated");
+        
+        // Open dialog to update address block and cancel. Check address was not updated.
+        page.updateCancelAddressDataBlock(
+            secondValidAddress[0], null, null, secondValidAddress[1], "BC - British Columbia", "CA - CANADA", secondValidAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex);
+
+
+        // After cancel, the address block should remain unchanged
+        LinkedHashMap<String, String> afterCancelContent = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(afterCancelContent.get("Address Line 1"), content.get("Address Line 1"), "Address Line 1 should remain unchanged after cancel");
+        assertTrue(afterCancelContent.get("City").contains(content.get("City")), "City should remain unchanged after cancel");
+        assertEquals(afterCancelContent.get("State/Prov"), content.get("State/Prov"), "Province should remain unchanged after cancel");
+        assertEquals(afterCancelContent.get("Country"), content.get("Country"), "Country should remain unchanged after cancel");
+        assertEquals(afterCancelContent.get("Postal/Zip Code"), content.get("Postal/Zip Code"), "Postal Code should remain unchanged after cancel");
+    }
+
+    // Update Provider - Update block - Validate City
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateCityUpdate(ProviderType providerType) {
+
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        int addressIndex = 0;
+        String[] validAddress = individualDataGenerator.generateAddress();
+
+        // Update address with city blank - should fail
+        String error = page.updateAddressDataBlockRawCity(
+            validAddress[0], null, null, "", "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, true);
+        assertEquals(error, errorList.get("missingCity"), "Expected error for missing city");
+
+        // Update address with city exceeding 60 characters - should fail (use raw city to skip autocomplete)
+        error = page.updateAddressDataBlockRawCity(
+            validAddress[0], null, null, generateAlphabetNumericString(61), "BC - British Columbia", "CA - CANADA", validAddress[2],
+            effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, true);
+        assertEquals(error, errorList.get("cityTooLong"), "Expected error for city exceeding 60 characters");
+
+        // Update address with city = 60 characters - should succeed (use raw city to skip autocomplete)
+        String city60 = generateAlphabetNumericString(60);
+        page.updateAddressDataBlockRawCity(
+                validAddress[0], null, null, city60, "BC - British Columbia", "CA - CANADA", validAddress[2],
+                effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+        LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("City"), city60, "City should be updated to 60 character value");
+
+    }
+
+    // Update Provider - Update block - Validate Province
+    @Test(dataProvider = "allProviderTypes", dataProviderClass = InjectableData.class)
+    public void testValidateProvinceUpdate(ProviderType providerType) {
+
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        String identifier = getIdentifierFromBuilder(defaultProviders, providerType);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        int addressIndex = 0;
+        String[] validAddress = individualDataGenerator.generateAddress();
+
+        //In the address update screen, select a country that is not Canada or the US, leave province empty - failure
+        String nonCaUsCountry = "BR - BRAZIL";
+        String nonCaUsCountryShort = "BRAZIL (BR)";
+        String provinceEmpty = null;
+
+        // 1. Province > 30 chars, country not CA/US - should fail
+        String provinceTooLong = generateAlphabetNumericString(31);
+        String error = page.updateAddressDataBlock(
+                validAddress[0], null, null, validAddress[1], provinceTooLong, nonCaUsCountry, validAddress[2],
+                effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, true);
+        assertEquals(error, errorList.get("errMsg5003Province"), "Expected error for province exceeding 30 characters when country is not Canada/US");
+
+        // 2. Province = 30 chars - should succeed
+        String provinceMax = generateAlphabetNumericString(30);
+        page.updateAddressDataBlock(
+                validAddress[0], null, null, validAddress[1], provinceMax, nonCaUsCountry, validAddress[2],
+                effective_date(), increment_year_for_effective_date(), EndReason.CHG, addressIndex, false);
+        LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.ADDRESSES, addressIndex);
+        assertEquals(content.get("State/Prov"), provinceMax, "Province should be updated to 30 character value for non-Canada/US country");
+
+    }
 
     /**
      * Tries to wait some number of seconds. Will fail the test used in if interrupted.
