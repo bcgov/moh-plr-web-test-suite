@@ -54,6 +54,7 @@ extends BasicWebPageFragment
     public void logout()
     {
         findServicesElement().findElement(By.linkText("Logout")).click();
+        selenium_.getDriver().findElement(By.cssSelector("input[name='confirmLogout']")).click();
         waitForAbsent();
     }
 
