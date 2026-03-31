@@ -755,6 +755,7 @@ public class UpdateProviderLegacyTest {
 	
 //	======================PLR 608-02============================
 //			Then Update Electronic Addresses
+
 	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
 	public void testUpdateElectronicAddresses(ProviderType providerType) {
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
@@ -782,6 +783,7 @@ public class UpdateProviderLegacyTest {
 		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.ELECTRONIC_ADDRESSES, index);
         assertEquals(emailAddrss, content.get("Address"));
 	}
+
 //			Then Update Telecommunicatons
 	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
 	public void testUpdateTelecommunicatons(ProviderType providerType) {
