@@ -81,6 +81,14 @@ public enum ProviderRoleType {
 					OOPSW, OOPRECT, OOPRT, OOPRD, OOPOT, OOPCC, OOPSLP, OOPPO, OOPCHIRO, OOPPT, OOPVC, OOPPSYCH));
 
 	/**
+	 * Gets the code portion of the text representation of the ProviderRoleType.
+	 * @return the code portion of the text representation (the part before the " - " delimiter)
+	 */
+	public String getCode() {
+		return this.text.split(" ")[0];
+	}
+
+	/**
 	 * Gets the set of ProviderRoleType values associated with the given ProviderType.
 	 * @param providerType the ProviderType for which to retrieve the associated ProviderRoleType values
 	 * @return a set of ProviderRoleType values associated with the given ProviderType

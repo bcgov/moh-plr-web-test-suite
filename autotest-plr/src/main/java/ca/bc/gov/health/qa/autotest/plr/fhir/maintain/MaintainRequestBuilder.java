@@ -2,6 +2,7 @@ package ca.bc.gov.health.qa.autotest.plr.fhir.maintain;
 
 import org.json.JSONObject;
 
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.PlrFhirResourceType;
 
 /**
@@ -22,6 +23,8 @@ public interface MaintainRequestBuilder {
      * @return resource type enum
      */
     PlrFhirResourceType resourceType();
+
+	String getIdentifier(IdentifierType idType);
 
     /*
      * TODO (AZ) - doc

@@ -1,5 +1,6 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
+import static ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.TestHelper.*;
 import static ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper.*;
 import static org.testng.Assert.*;
@@ -7,18 +8,20 @@ import static ca.bc.gov.health.qa.autotest.plr.data.UpdateProviderConstants.*;
 
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
+import ca.bc.gov.health.qa.autotest.plr.data.AddProviderConstants;
 import ca.bc.gov.health.qa.autotest.plr.data.InjectableData;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualMaintainConfig;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.MaintainRequestBuilder;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.MaintainIndividualBuilder;
+import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.individual.model.IndividualRoleType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
 import ca.bc.gov.health.qa.autotest.plr.util.ProviderType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.UpdateProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.ProviderSection;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.provider.UpdateProviderPage;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.helper.UpdateSimpleHelper;
@@ -26,10 +29,14 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.model.AddressType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.CommunicationPurpose;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ConditionType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
+
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
+
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressPurpose;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ElectronicAddressType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationPurpose;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationType;
+
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
@@ -52,6 +59,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class UpdateProviderTests implements SimpleTest {
     private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -60,6 +68,7 @@ public class UpdateProviderTests implements SimpleTest {
     private static final Config config_ = ConfigProvider.get().getConfig();
     private static final Path errorPath = Path.of(config_.get("data.dir")).resolve("error-list.json");
     public static JSONObject errorList;
+    private final FHIRController fhirController = new FHIRController(UserType.ADMIN);
 
     private static final Map<ProviderType, MaintainRequestBuilder> defaultProviders = new LinkedHashMap<>();
     private static IndividualDataGenerator individualDataGenerator = IndividualDataGenerator.getInstance();
@@ -80,6 +89,7 @@ public class UpdateProviderTests implements SimpleTest {
     @AfterClass
     public void teardown() {
         workflowManager_.logoutAllAndClose();
+        fhirController.close();
         LOG.info("Done.");
     }
 
@@ -93,6 +103,7 @@ public class UpdateProviderTests implements SimpleTest {
 
     @BeforeTest
     public void beforeTest() {
+
         FHIRController fhirController = new FHIRController(UserType.ADMIN);
 
         // Setup practitioners
@@ -141,6 +152,66 @@ public class UpdateProviderTests implements SimpleTest {
 
         assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 0,
                 "Expected no active condition data blocks after cancelling add");
+    }
+
+    // Update Provider - Add Credentials
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testAddCredentials(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        WebElement dialog = page.clickHeaderAddButton(ProviderSection.CREDENTIALS);
+        assertTrue(dialog.isDisplayed(), "Expected credential dialog to be displayed after clicking add button");
+        page.clickDialogCancelButton(ProviderSection.CREDENTIALS);
+
+        page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CREDENTIALS, true), 1,
+                "Expected 1 active credential data block after adding credential");
+
+         page.clickHeaderAddButton(ProviderSection.CREDENTIALS);
+         page.fillCredentialDataBlock("BD ", "Test Designation", "12345",
+                 "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                 effective_date(), increment_year_for_effective_date());
+         page.clickDialogCancelButton(ProviderSection.CREDENTIALS);
+
+         assertEquals(page.grabActiveDataBlockCount(ProviderSection.CREDENTIALS, true), 1,
+                 "Expected 1 active credential data block after cancelling add of second credential");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
+
+    // Update Provider - Add Expertise
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testAddExpertise(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        WebElement dialog = page.clickHeaderAddButton(ProviderSection.EXPERTISE);
+        assertTrue(dialog.isDisplayed(), "Expected expertise dialog to be displayed after clicking add button");
+        page.clickDialogCancelButton(ProviderSection.EXPERTISE);
+
+        page.addExpertiseDataBlock("ENG ", "Test", effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.EXPERTISE, true), 1,
+                "Expected 1 active expertise data block after adding expertise");
+
+        page.clickHeaderAddButton(ProviderSection.EXPERTISE);
+        page.fillExpertiseDataBlock("ENG ", "Test 2", effective_date(), increment_year_for_effective_date());
+        page.clickDialogCancelButton(ProviderSection.EXPERTISE);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.EXPERTISE, true), 1,
+                "Expected 1 active expertise data block after cancelling add of second expertise");
+
+        page.ceaseDataBlock(ProviderSection.EXPERTISE, 0);
     }
 
     // Update Provider - Add Provider Relationships
@@ -230,6 +301,54 @@ public class UpdateProviderTests implements SimpleTest {
 
         // cleanup for if test cases are done in sequence
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+    }
+
+    // Update Provider - Code Restriction Validation - Credential
+    @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionValidationCredential(ProviderType providerType, ProviderRoleType roleType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        final UpdateProviderActions actions = workflow.getUpdateProviderActions();
+
+        UpdateProviderPage page = actions.createIndividualByRoleType(workflowManager_, fhirController, roleType, providerType, defaultProviders);
+
+        page.clickHeaderAddButton(ProviderSection.CREDENTIALS);
+
+        List<String> expectedCredentialList = Stream.concat(CREDENTIAL_BASE_OPTIONS.stream(),
+                CREDENTIAL_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
+        List<String> credentialList = page.getDropdownListOptions(ProviderSection.CREDENTIALS, "credentialType");
+        credentialList.remove("Select One");
+
+        for (String credOption : expectedCredentialList) {
+            assertTrue(credentialList.contains(credOption),
+                    "Expected credential type dropdown options to contain " + credOption + " for provider role type " + roleType.getCode());
+        }
+
+        page.clickDialogCancelButton(ProviderSection.CREDENTIALS);
+    }
+
+    // Update Provider - Code Restriction Validation - Expertise
+    @Test(dataProvider = "practitionerRoleTypes", dataProviderClass = InjectableData.class)
+    public void testCodeRestrictionValidationExpertise(ProviderType providerType, ProviderRoleType roleType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+        final UpdateProviderActions actions = workflow.getUpdateProviderActions();
+
+        UpdateProviderPage page = actions.createIndividualByRoleType(workflowManager_, fhirController, roleType, providerType, defaultProviders);
+
+        page.clickHeaderAddButton(ProviderSection.EXPERTISE);
+
+        List<String> expertiseList = page.getDropdownListOptions(ProviderSection.EXPERTISE, "expertise");
+        expertiseList.remove("Select One");
+
+        List<String> expectedExpertiseList = Stream.concat(EXPERTISE_LANG_OPTIONS.stream(),
+                EXPERTISE_OPTIONS_MAP.getOrDefault(roleType, List.of()).stream()).toList();
+        for (String expOption : expectedExpertiseList) {
+            assertTrue(expertiseList.contains(expOption),
+                    "Expected expertise type dropdown options to contain " + expOption + " for provider role type " + roleType.getCode());
+        }
+
+        page.clickDialogCancelButton(ProviderSection.EXPERTISE);
     }
 
     // Update Provider - Generating a Default Condition ID
@@ -671,6 +790,169 @@ public class UpdateProviderTests implements SimpleTest {
 		assertEquals(page.grabActiveDataBlockCount(ProviderSection.CONDITIONS, true), 2,
 				"Expected 2 active condition data blocks after adding second condition to provider");
 	}
+
+    // Update Provider - Validate Provider Credential
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredential(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addCredentialDataBlock("BD ", null, "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("missingDesignation"),
+                "Expected error message for missing credential designation when adding credential");
+
+        error = page.addCredentialDataBlock("BD ", generateAlphabetNumericString(241), "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("designationTooLong"),
+                "Expected error message for credential designation exceeding max length when adding credential");
+
+        error = page.addCredentialDataBlock("BD ", "Test Designation", generateAlphabetNumericString(241),
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("registrationNumberTooLong"),
+                "Expected error message for credential registration number exceeding max length when adding credential");
+
+        error = page.addCredentialDataBlockRaw("BD ", "Test Designation", "12345",
+                generateAlphabetNumericString(241), "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("institutionTooLong"),
+                "Expected error message for credential institution exceeding max length when adding credential");
+
+        error = page.addCredentialDataBlockRaw("BD ", "Test Designation", "12345",
+                "Test Institution", generateAlphabetNumericString(241), "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("credentialCityTooLong"),
+                "Expected error message for credential city exceeding max length when adding credential");
+
+        error = page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, generateNumericString(51),
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("yearIssuedTooLong"),
+                "Expected error message for credential year exceeding max length when adding credential");
+
+        page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.CREDENTIALS, true), 1,
+                "Expected 1 active credential data block after adding valid credential");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
+
+    // Update Provider - Validate Provider Credential Granting Institution Name
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialInstitutionName(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addCredentialDataBlockRaw("BD ", "Test Designation", "12345",
+                "Test Institution" + generateAlphabetNumericString(241), "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("institutionTooLong"),
+                "Expected error message for credential institution exceeding max length when adding credential");
+
+        final String institution = generateAlphabetNumericString(240);
+        page.addCredentialDataBlockRaw("BD ", "Test Designation", "12345",
+                institution, "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        Map<String,String> credContent = page.grabDataBlockContent(ProviderSection.CREDENTIALS, 0);
+
+        assertEquals(credContent.get("Granting Institution"), institution,
+                "Expected institution name in credential data block to match input after adding credential with valid institution name");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
+
+    // Update Provider - Validate Provider Credential Registration Number
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderCredentialRegistrationNumber(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addCredentialDataBlock("BD ", "Test Designation", generateAlphabetNumericString(241),
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("registrationNumberTooLong"),
+                "Expected error message for credential registration number exceeding max length when adding credential");
+
+        final String regNumber = generateAlphabetNumericString(240);
+        page.addCredentialDataBlock("BD ", "Test Designation", regNumber,
+                "Test Institution", "Victoria", "CA", "BC", true, "2000",
+                effective_date(), increment_year_for_effective_date(), false);
+
+        Map<String,String> credContent = page.grabDataBlockContent(ProviderSection.CREDENTIALS, 0);
+
+        assertEquals(credContent.get("Registration Number"), regNumber,
+                "Expected registration number in credential data block to match input after adding credential with valid registration number");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
+    }
+
+    // Update Provider - Validate Provider Expertise Type Code
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderExpertiseTypeCode(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.clickHeaderAddButton(ProviderSection.EXPERTISE);
+        assertTrue(page.getMandatoryFields(ProviderSection.EXPERTISE).contains("Expertise"),
+                "Expected 'Expertise' to be a mandatory field when adding an expertise data block");
+        List<String> expertiseList = page.getDropdownListOptions(ProviderSection.EXPERTISE, "expertise");
+
+        for (String expertise : expertiseList)
+            assertTrue(AddProviderConstants.EXPERTISE_LANG_OPTIONS.contains(expertise),
+                    "Expected expertise type dropdown options to contain all defined expertise types");
+
+        page.clickDialogCancelButton(ProviderSection.EXPERTISE);
+    }
+
+    // Update Provider - Validate Provider Expertise Original Source
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateProviderExpertiseOriginalSource(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        page.addExpertiseDataBlock("ENG ", null, effective_date(), increment_year_for_effective_date(), false);
+
+        assertEquals(page.grabActiveDataBlockCount(ProviderSection.EXPERTISE, true), 1,
+                "Expected 1 active expertise data block after adding expertise with no original source");
+
+        String error = page.addExpertiseDataBlock("ENG ", generateAlphabetNumericString(51),
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("expertiseSourceTooLong"),
+                "Expected error message for expertise original source exceeding max length when adding expertise");
+
+        page.ceaseDataBlock(ProviderSection.EXPERTISE, 0);
+    }
 
     // Update Provider - Validate Provider Relationship Type Code
     @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
@@ -1130,6 +1412,36 @@ public class UpdateProviderTests implements SimpleTest {
                 "Expected 1 active work location data block after adding work location with valid purpose code");
 
         page.ceaseDataBlock(ProviderSection.WORK_LOCATIONS, 0);
+    }
+
+
+    // Update Provider - Validate Year of Credential Issue
+    @Test(dataProvider = "practitioners", dataProviderClass = InjectableData.class)
+    public void testValidateYearOfCredentialIssue(ProviderType providerType)
+    {
+        PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
+
+        String identifier = defaultProviders.get(providerType).getIdentifier(IdentifierType.IPC);
+        UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
+
+        String error = page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, "1" + generateNumericString(4),
+                effective_date(), increment_year_for_effective_date(), true);
+
+        assertEquals(error, errorList.get("yearIssuedTooLong"),
+                "Expected error message for year of credential issue exceeding max length when adding credential");
+
+        final String year = "1" + generateNumericString(3);
+        page.addCredentialDataBlock("BD ", "Test Designation", "12345",
+                "Test Institution", "Victoria", "CA", "BC", true, year,
+                effective_date(), increment_year_for_effective_date(), false);
+
+        Map<String,String> credContent = page.grabDataBlockContent(ProviderSection.CREDENTIALS, 0);
+
+        assertEquals(credContent.get("Year Issued"), year,
+                "Expected year of credential issue in credential data block to match input after adding credential with valid year of issue");
+
+        page.ceaseDataBlock(ProviderSection.CREDENTIALS, 0);
     }
 
     // Update Provider - Add block - Add Addresses
@@ -2585,4 +2897,5 @@ public class UpdateProviderTests implements SimpleTest {
 			fail(e.getMessage());
 		}
 	}
+
 }
