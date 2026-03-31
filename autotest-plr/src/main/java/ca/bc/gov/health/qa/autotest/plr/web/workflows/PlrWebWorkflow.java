@@ -18,6 +18,7 @@ import ca.bc.gov.health.qa.autotest.plr.util.UserType;
 
 import ca.bc.gov.health.qa.autotest.plr.web.actions.PlrWebAccessActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.SearchProviderActions;
+import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.UpdateProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.facility.UpdateFacilitySimpleActions;
 import ca.bc.gov.health.qa.autotest.plr.web.actions.provider.ViewProviderActions;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.common.BannerFragment;
@@ -171,17 +172,28 @@ implements AutoCloseable
      * Creates and gets an actions object for the Update Provider page
      * @return an UpdateProviderActions object
      */
-    public UpdateProviderActions getUpdateProviderActions() { return new UpdateProviderActions(selenium_); }
+   // public UpdateProviderActions getUpdateProviderActions() { return new UpdateProviderActions(selenium_); }
 
     /**
      * Creates and gets an actions object for the Update Facility page corresponding to simple test cases
      *
-     * @return  a UpdateFacilitySimpleActions object
+     * @return  am UpdateFacilitySimpleActions object
      */
     public UpdateFacilitySimpleActions getUpdateFacilitySimpleActions()
     {
         return new UpdateFacilitySimpleActions(selenium_, uri_, userType_);
     }
+    /**
+     * Creates and gets an actions object for the Update provider page corresponding to test cases
+     *
+     * @return  an UpdateProviderActions object
+     */
+    
+    public UpdateProviderActions getUpdateProviderActions()
+    {
+        return new UpdateProviderActions(selenium_, uri_, userType_);
+    }
+
 
 
     /**

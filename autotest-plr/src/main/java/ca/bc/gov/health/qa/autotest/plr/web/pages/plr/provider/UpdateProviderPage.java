@@ -4,8 +4,13 @@ import static java.util.Objects.requireNonNull;
 import static org.testng.Assert.fail;
 
 import java.net.URI;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.util.UserType;
@@ -19,12 +24,16 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import ca.bc.gov.health.qa.autotest.core.util.net.UriUtils;
 import ca.bc.gov.health.qa.autotest.plr.web.pages.components.DropDownMenu;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.EndReason;
+import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationPurpose;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditions;
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 
 public class UpdateProviderPage extends ViewProviderPage {
 
 	private static final Logger LOG = ExecutionLogManager.getLogger();
+
+	/** Pattern to extract codes from displayed format "Description (CODE)" */
+	private static final Pattern CODE_IN_PARENS_PATTERN = Pattern.compile("\\(([^)]+)\\)$");
 
 	public static final Map<ProviderSection, ProviderDialog> DIALOG_MAP = Map.ofEntries(
 			Map.entry(ProviderSection.REGISTRY_IDENTIFIERS, new ProviderDialog("maintainRegIdDialog", "maintainRegIdForm", "effectiveStartDate",
@@ -47,6 +56,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Condition")),
 			Map.entry(ProviderSection.DISCIPLINARY_ACTIONS, new ProviderDialog("maintainDisActionDialog", "maintainDisActionForm", "effectiveFromDate",
 					"effectiveToDate", "idSubmitButton", "EndReasonType","Add a new Disciplinary Action")),
+            Map.entry(ProviderSection.STATUSES, new ProviderDialog("maintainStatusDialog", "maintainStatusForm", "effectiveFromDate",
+                            "effectiveToDate", "idStatusSubmitButton", "endReasonCode", "Add a new Status")),
 			Map.entry(ProviderSection.WORK_LOCATIONS, new ProviderDialog("maintainWorkLocationDialog", "maintainWorkLocationForm", "effectiveFromDate",
 					"effectiveToDate", "idWLSubmitButton", "EndReasonType","Add a new Work Location")),
 			Map.entry(ProviderSection.PROVIDER_RELATIONSHIPS, new ProviderDialog("maintainProviderRelationshipDialog", "maintainProviderRelationshipForm", "effectiveStartDate",
@@ -56,11 +67,98 @@ public class UpdateProviderPage extends ViewProviderPage {
 			Map.entry(ProviderSection.CREDENTIALS, new ProviderDialog("maintainCredentialDialog", "maintainCredentialForm", "effectiveStartDateCred",
 					"effectiveEndDate", "idCredentialSubmitButton", "endReasonCode","Add a new Credential")),
 			Map.entry(ProviderSection.EXPERTISE, new ProviderDialog("maintainExpertiseDialog", "maintainExpertiseForm", "effectiveStartDateExpertise",
-					"effectiveEndDate", "idExpertiseSubmitButton", "endReasonCode","Add a new Expertise"))
+					"effectiveEndDate", "idExpertiseSubmitButton", "endReasonCode","Add a new Expertise")),
+			Map.entry(ProviderSection.ADDRESSES, new ProviderDialog("maintainAddressDialog", "maintainAddressForm", "effectiveFromDate",
+					"effectiveToDate", "idAddressSubmitButton", "EndReasonType","Add a new Address"))
+
 			);
 
 	public UpdateProviderPage(SeleniumSession selenium, URI uri) {
 		super(selenium, uri);
+	}
+
+	private static final String WIDGET_TITLE_SPAN_CSS = "div.ui-dialog-titlebar > span.ui-dialog-title";
+
+	/**
+	 * Finds a visible dialog widget by its title prefix
+	 *
+	 * @param widgetTitlePrefix a string of characters to find in the widget title
+	 * @return a WebElement of a widget matching the prefix, or null if not found
+	 */
+	private WebElement findVisibleWidget(String widgetTitlePrefix) {
+		for (WebElement elem : selenium_.findElements(By.cssSelector("div[role='dialog']"))) {
+			String title;
+			try {
+				title = elem.findElement(By.cssSelector(WIDGET_TITLE_SPAN_CSS)).getAttribute("innerHTML");
+			} catch (org.openqa.selenium.NoSuchElementException ignore) {
+				continue;
+			}
+			if (title == null || title.isEmpty()) continue;
+			if (!title.contains(widgetTitlePrefix)) continue;
+
+			try {
+				// regrab element (likely to have become stale) and check visibility
+				selenium_.setWaitTimeout(Duration.ofSeconds(10));
+				elem = selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.xpath(
+						"//div[@role='dialog' and @aria-hidden='false' and .//span[contains(text(),'\" + title + \"')]]")));
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+
+			// Skip hidden/inactive dialogs
+			String ariaHidden = elem.getAttribute("aria-hidden");
+			if ("true".equals(ariaHidden)) continue;
+			return elem;
+		}
+		return null;
+	}
+
+	/**
+	 * Handles address validation dialogs that may appear after submitting an address.
+	 * Clicks "Continue w/ Original" button if a validation dialog is displayed.
+	 */
+	public void handleAddressValidationDialog() {
+		waitSeconds(3); // Give UI time to render any validation dialogs
+
+		// Try different dialog title prefixes that may appear
+		String[] dialogTitles = {"Address Invalid", "Address Recommended", "Validation", "Address Provided"};
+		WebElement validationWidget = null;
+
+		for (String title : dialogTitles) {
+			validationWidget = findVisibleWidget(title);
+			if (validationWidget != null) break;
+		}
+
+		if (validationWidget != null) {
+			// Look for "Continue w/ Original" button first, then fall back to any button
+			try {
+				WebElement continueBtn = validationWidget.findElement(
+						By.xpath(".//button[contains(.,\"Continue w/ Original\")]"));
+				if (continueBtn.isDisplayed() && continueBtn.isEnabled()) {
+					continueBtn.click();
+
+					selenium_.waitUntil(ExpectedConditions.invisibilityOf(validationWidget));
+					waitSeconds(2);
+					return;
+				}
+			} catch (org.openqa.selenium.NoSuchElementException ignore) {
+				// Fall back to any visible button
+			}
+
+			try {
+				// Generic fallback: first displayed & enabled button
+				for (WebElement btn : validationWidget.findElements(By.tagName("button"))) {
+					if (btn.isDisplayed() && btn.isEnabled()) {
+						btn.click();
+						waitSeconds(2);
+						return;
+					}
+				}
+			} catch (org.openqa.selenium.NoSuchElementException ignore) {
+				//Generic catch block
+			}
+		}
+		LOG.info("no validation widget");
 	}
 
 	/**
@@ -78,12 +176,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 		}
 	}
 
-    /**
-     * Tries to wait some number of seconds. Will fail the test used in if interrupted.
-	 * TODO this should be used as little as possible in favour of selenium implicit waits.
-     *
-     * @param second the number of seconds to wait.
-     */
+	/**
+	 * Tries to wait some number of seconds. Will fail the test used in if
+	 * interrupted. TODO this should be used as little as possible in favour of
+	 * selenium implicit waits.
+	 *
+	 * @param second the number of seconds to wait.
+	 */
 	public void waitSeconds(int second) {
 		try {
 			Thread.sleep(1000L * second);
@@ -94,21 +193,20 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * Attempts to update a practitioner name data block with provided values
-	 * @param prefix the name prefix
-	 * @param first the first name
-	 * @param second the second name
-	 * @param third the third name
-	 * @param surname the surname
-	 * @param suffix the name suffix
+	 *
+	 * @param prefix        the name prefix
+	 * @param first         the first name
+	 * @param second        the second name
+	 * @param third         the third name
+	 * @param surname       the surname
+	 * @param suffix        the name suffix
 	 * @param endReasonType the end reason type
-	 * @param index the data block index
-	 * @param expectError whether an error is expected
+	 * @param index         the data block index
+	 * @param expectError   whether an error is expected
 	 * @return the error message if expectError is true, otherwise an empty string
 	 */
-	public String updatePractitionerNameDataBlock(
-			String prefix, String first, String second, String third, String surname, String suffix,
-			EndReason endReasonType, int index, boolean expectError)
-	{
+	public String updatePractitionerNameDataBlock(String prefix, String first, String second, String third,
+			String surname, String suffix, EndReason endReasonType, int index, boolean expectError) {
 		String msgDisplay = "";
 		String formName = DIALOG_MAP.get(ProviderSection.PRACTITIONER_NAMES).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.PRACTITIONER_NAMES);
@@ -144,7 +242,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * get Data Block Header Update Button Selector
 	 *
 	 * @param section the provider section
-	 * @param index the data block index
+	 * @param index   the data block index
 	 * @return CSS selector of Data Block Header Update Button
 	 */
 	protected String getDataBlockHeaderUpdateButtonSelector(ProviderSection section, int index) {
@@ -166,6 +264,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * Using a Javascript Executor to press button
+	 *
 	 * @param button the button element
 	 */
 	private void clickButtonWait(WebElement button) {
@@ -273,7 +372,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * set End Reason By Visible Text
-	 * @param section the provider section
+	 *
+	 * @param section     the provider section
 	 * @param visibleText the visible text to select
 	 */
 	private void setEndReasonByVisibleText(ProviderSection section, String visibleText) {
@@ -290,9 +390,9 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * set Drop down List By Visible Text
 	 *
-	 * @param section the provider section
+	 * @param section      the provider section
 	 * @param dropdownName the dropdown field name
-	 * @param visibleText the visible text to select
+	 * @param visibleText  the visible text to select
 	 */
 	private void setDropdownListByVisibleText(ProviderSection section, String dropdownName, String visibleText) {
 		if (StringUtils.isEmpty(visibleText))
@@ -308,7 +408,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	/**
 	 * get Drop down List Options
-	 * @param section the provider section
+	 *
+	 * @param section      the provider section
 	 * @param dropdownName the dropdownfield name
 	 */
 	public List<String> getDropdownListOptions(ProviderSection section, String dropdownName) {
@@ -323,6 +424,17 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
+	 * Sets the address country dropdown value and waits for UI to update.
+	 * This is useful when testing province dropdown changes based on country selection.
+	 *
+	 * @param country the country value to select (e.g., "CA - CANADA", "US - UNITED STATES")
+	 */
+	public void setAddressCountry(String country) {
+		setDropdownListByVisibleText(ProviderSection.ADDRESSES, "country", country);
+		waitSeconds(2); // Wait for province field to update after country change
+	}
+
+		/**
 	 * Click Dialog Submit Button
 	 *
 	 * @param section the provider section
@@ -335,7 +447,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * Click the "Update/Add" dialog submission button. If an error is anticipated,
 	 * wait for the error message to appear.
 	 *
-	 * @param section the provider section
+	 * @param section     the provider section
 	 * @param expectError whether an error is expected
 	 */
 	private void clickDialogSubmitButton(ProviderSection section, boolean expectError) {
@@ -343,7 +455,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String submitButtonName = DIALOG_MAP.get(section).getSubmitButtonName();
 		String dialogCss = getDialogCss(section);
 
-		String buttonCss = dialogCss + " > div.formControls" + " > button#" + formName + "\\:" + submitButtonName;
+		// Use a selector that matches any button whose id starts with the expected button name
+		String buttonCss = dialogCss + " div.formControls button[id^='" + formName + ":" + submitButtonName + "']";
 		WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
 		button.click();
 		waitSeconds(2);
@@ -362,8 +475,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @param effectiveTo the effective to date to input
 	 */
 	public void fillConditionDataBlock(String conditionType, String conditionIdentifier, boolean restriction,
-										String explanation, String effectiveFrom, String effectiveTo)
-	{
+			String explanation, String effectiveFrom, String effectiveTo) {
 		String formName = DIALOG_MAP.get(ProviderSection.CONDITIONS).getFormName();
 		String dialogCss = getDialogCss(ProviderSection.CONDITIONS);
 
@@ -373,7 +485,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		setDropdownListByVisibleText(ProviderSection.CONDITIONS, "conditionType", conditionType);
 
-		findAndFillInputField(dialogCss, formName, conditionIdentifier, "Identifier");
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:Identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(conditionIdentifier))
+			inputId.sendKeys(conditionIdentifier);
 
 		if (restriction) {
 			String restrictionCss = dialogCss + " > input#" + formName + "\\:restriction";
@@ -381,7 +497,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 			restrictionCheckbox.click();
 		}
 
-		findAndFillInputField(dialogCss, formName, explanation, "explanation");
+		String explanationCss = dialogCss + " > textarea#" + formName + "\\:explanation";
+		WebElement explanationInput = selenium_.findElement(By.cssSelector(explanationCss));
+		explanationInput.clear();
+		if (!StringUtils.isEmpty(explanation))
+			explanationInput.sendKeys(explanation);
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.CONDITIONS, effectiveFrom, effectiveTo);
 	}
@@ -654,14 +774,14 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * @return expected error message or empty string if no error message expected
 	 */
 	public String addConditionDataBlock(String conditionType, String conditionIdentifier, boolean restriction,
-										String explanation, String effectiveFrom, String effectiveTo, boolean expectError)
-	{
+			String explanation, String effectiveFrom, String effectiveTo, boolean expectError) {
 		String msgDisplay = "";
 		String dialogCss = getDialogCss(ProviderSection.CONDITIONS);
 
 		clickHeaderAddButton(ProviderSection.CONDITIONS);
 
-		fillConditionDataBlock(conditionType, conditionIdentifier, restriction, explanation, effectiveFrom, effectiveTo);
+		fillConditionDataBlock(conditionType, conditionIdentifier, restriction, explanation, effectiveFrom,
+				effectiveTo);
 
 		clickDialogSubmitButton(ProviderSection.CONDITIONS, expectError);
 
@@ -876,20 +996,21 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
-	 * performing action of adding Disciplinary ActionData Block, perform error message check if necessary
+	 * performing action of adding Disciplinary ActionData Block, perform error
+	 * message check if necessary
 	 * 
 	 * @param actionIdentifier id of Disciplinary Action
-	 * @param display flag of 'display' of Disciplinary Action
-	 * @param description  description of Disciplinary Action
-	 * @param archiveDate archive Date of Disciplinary Action
-	 * @param effectiveFrom effective From date of Disciplinary Action
-	 * @param effectiveTo effective To Date of Disciplinary Action
-	 * @param expectError if this action expect returning error messages
+	 * @param display          flag of 'display' of Disciplinary Action
+	 * @param description      description of Disciplinary Action
+	 * @param archiveDate      archive Date of Disciplinary Action
+	 * @param effectiveFrom    effective From date of Disciplinary Action
+	 * @param effectiveTo      effective To Date of Disciplinary Action
+	 * @param expectError      if this action expect returning error messages
 	 * 
-	 * @return expected error message or empty string if no error message expected 
+	 * @return expected error message or empty string if no error message expected
 	 */
-	public String addDisciplinaryActionDataBlock(String actionIdentifier, boolean display,
-			String description, String archiveDate, String effectiveFrom, String effectiveTo, boolean expectError) {
+	public String addDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description,
+			String archiveDate, String effectiveFrom, String effectiveTo, boolean expectError) {
 		String msgDisplay = "";
 		String dialogCss = getDialogCss(ProviderSection.DISCIPLINARY_ACTIONS);
 
@@ -900,22 +1021,25 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		clickDialogSubmitButton(ProviderSection.DISCIPLINARY_ACTIONS, expectError);
 
-		if (expectError)
+		if (expectError) {
 			msgDisplay = waitErrorMessage(ProviderSection.DISCIPLINARY_ACTIONS);
-
-		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+			// Cancel the dialog since it stays open after an error
+			clickDialogCancelButton(ProviderSection.DISCIPLINARY_ACTIONS);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
 		return msgDisplay;
 	}
 
 	/**
 	 * fill the Disciplinary Action Data Block
 	 * 
-	 * @param actionIdentifier id of Disciplinary Action 
-	 * @param display flag of 'display' of Disciplinary Action 
-	 * @param description description of Disciplinary Action
-	 * @param archiveDate archive Date of Disciplinary Action
-	 * @param effectiveFrom effective From date of Disciplinary Action
-	 * @param effectiveTo effective To Date of Disciplinary Action
+	 * @param actionIdentifier id of Disciplinary Action
+	 * @param display          flag of 'display' of Disciplinary Action
+	 * @param description      description of Disciplinary Action
+	 * @param archiveDate      archive Date of Disciplinary Action
+	 * @param effectiveFrom    effective From date of Disciplinary Action
+	 * @param effectiveTo      effective To Date of Disciplinary Action
 	 */
 	private void fillDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description,
 			String archiveDate, String effectiveFrom, String effectiveTo) {
@@ -926,11 +1050,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		
-		String inputIdCss=dialogCss+" >input#"+formName+"\\:Identifier";
-		WebElement inputId=selenium_.findElement(By.cssSelector(inputIdCss));
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:Identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
 		inputId.clear();
-		if(!StringUtils.isEmpty(actionIdentifier))inputId.sendKeys(actionIdentifier);
+		if (!StringUtils.isEmpty(actionIdentifier))
+			inputId.sendKeys(actionIdentifier);
 
 		if (display) {
 			String displayCss = dialogCss + " > div#" + formName + "\\:display";
@@ -941,9 +1065,10 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String descriptionCss = dialogCss + " > textarea#" + formName + "\\:description";
 		WebElement descriptionInput = selenium_.findElement(By.cssSelector(descriptionCss));
 		descriptionInput.clear();
-		if(!StringUtils.isEmpty(description))descriptionInput.sendKeys(description);
-		
-		String archiveDatestr="archiveDate";
+		if (!StringUtils.isEmpty(description))
+			descriptionInput.sendKeys(description);
+
+		String archiveDatestr = "archiveDate";
 		String archiveDateCss = dialogCss + " >span#" + formName + "\\:" + archiveDatestr + " >input#" + formName
 				+ "\\:" + archiveDatestr + "_input";
 		WebElement archiveDateElement = selenium_.findElement(By.cssSelector(archiveDateCss));
@@ -952,23 +1077,20 @@ public class UpdateProviderPage extends ViewProviderPage {
 			archiveDateElement.sendKeys(effectiveFrom);
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.DISCIPLINARY_ACTIONS, effectiveFrom, effectiveTo);
-		
+
 	}
 
-	public List<String> getMandatoryFields(ProviderSection section)
-	{
+	public List<String> getMandatoryFields(ProviderSection section) {
 		String formName = DIALOG_MAP.get(section).getFormName();
 		String dialogCss = getDialogCss(section);
 		String mandatoryFieldCss = dialogCss + " > div > label > span.ui-outputlabel-rfi";
 		List<WebElement> mandatoryFieldSpecifiers = selenium_.findElements(By.cssSelector(mandatoryFieldCss));
 		return mandatoryFieldSpecifiers.stream()
-				.map(elem -> elem.findElement(By.xpath("./.."))
-						.getText().replace("*", ""))
-				.toList();
+				.map(elem -> elem.findElement(By.xpath("./..")).getText().replace("*", "")).toList();
 	}
 
 	private void setDialogEffectiveFromAndEffectiveTo(ProviderSection section, String effectiveFrom,
-													  String effectiveTo) {
+			String effectiveTo) {
 		String dialogCss = getDialogCss(section);
 		String formName = DIALOG_MAP.get(section).getFormName();
 		String effectiveFromStr = DIALOG_MAP.get(section).getEffectiveFromStr();
@@ -990,19 +1112,19 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
-	 * wait Error Message showing up, and return a copy of message as result
-	 * note the result is a set of messages, if there are more than one error messages
+	 * wait Error Message showing up, and return a copy of message as result note
+	 * the result is a set of messages, if there are more than one error messages
 	 *
 	 * @param section the provider section
 	 * @return String of error messages
 	 */
 	public String waitErrorMessage(ProviderSection section) {
-		final int MAX_ATTEMPTS = 5;
+		final int MAX_ATTEMPTS = 10;
 		int attempts = 0;
 		String msgDisplay = getDialogMessages(section);
 		while (StringUtils.isEmpty(msgDisplay)) {
 			if (attempts >= MAX_ATTEMPTS) break;
-			waitSeconds(5);
+			waitSeconds(3);
 			try {
 				msgDisplay = getDialogMessages(section);
 			} catch (StaleElementReferenceException e) {
@@ -1032,7 +1154,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		String formName = DIALOG_MAP.get(section).getFormName();
 		String dialogCss = getDialogCss(section);
 		String msgCss = dialogCss + "> div#" + formName + "\\:messages > div > ul > li";
-		
+
 		try {
 			java.util.List<WebElement> msgList = selenium_.findElements(By.cssSelector(msgCss));
 			for (WebElement msg : msgList) {
@@ -1049,15 +1171,17 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * Find And Fill an input field for organization properties (TEXT_FIELD type)
 	 *
 	 * @param dialogCss the dialog CSS selector
-	 * @param formName the form name
-	 * @param field the field value
-	 * @param fieldCss the field CSS selector
+	 * @param formName  the form name
+	 * @param field     the field value
+	 * @param fieldCss  the field CSS selector
 	 */
 	private void findAndFillInputField(String dialogCss, String formName, String field, String fieldCss) {
 		String inputNameCss = dialogCss + " >input#" + formName + "\\:" + fieldCss;
 		// Wait for the input field to be visible
-		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
-		WebElement inputName = selenium_.findElement(By.cssSelector(inputNameCss));
+
+		WebElement inputName = selenium_
+				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+
 		inputName.clear();
 		if (!StringUtils.isEmpty(field))
 			inputName.sendKeys(field);
@@ -1100,7 +1224,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 	 * Cease Data Block
 	 *
 	 * @param section the provider section
-	 * @param index the data block index
+	 * @param index   the data block index
 	 */
 	public void ceaseDataBlock(ProviderSection section, int index) {
 		String formName = DIALOG_MAP.get(section).getFormName();
@@ -1113,10 +1237,155 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		setEndReasonByVisibleText(section, EndReason.CEASE.getText());
 
-		String buttonCss = dialogCss + " > div.formControls" + " > button#" + formName + "\\:" + submitButtonName;
+		// Use descendant selector (space) instead of direct child (>) to handle nested div structures
+		String buttonCss = dialogCss + " div.formControls" + " button#" + formName + "\\:" + submitButtonName;
 		WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
 		button.click();
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
+
+	/**
+	 * Cease Last Data Block - ceases the last active data block in the section
+	 *
+	 * @param section the provider section
+	 */
+	public void ceaseLastDataBlock(ProviderSection section) {
+		int count = grabActiveDataBlockCount(section, true);
+		if (count > 0) {
+			ceaseDataBlock(section, count - 1);
+		}
+	}
+
+	/**
+	 * Gets a list of purpose codes currently used for a specific address type.
+	 * Uniqueness rule for addresses is based on Address Type + Purpose Code combination.
+	 *
+	 * @param addressTypeCode the address type code (e.g., "M" for Mailing, "P" for Physical)
+	 * @return list of purpose codes currently in use for that address type (e.g., "BC", "MC", "HC")
+	 */
+	public List<String> getUsedPurposeCodesForAddressType(String addressTypeCode) {
+		List<String> usedCodes = new ArrayList<>();
+		int totalCount = grabDataBlockCount(ProviderSection.ADDRESSES);
+
+		for (int i = 0; i < totalCount; i++) {
+			// Skip inactive (ceased) blocks
+			if (!grabDataBlockActive(ProviderSection.ADDRESSES, i)) {
+				continue;
+			}
+
+			LinkedHashMap<String, String> content = grabDataBlockContent(ProviderSection.ADDRESSES, i);
+			String addressType = content.get("Address Type");
+			String purposeValue = content.get("Address Purpose");
+
+			if (addressType != null && purposeValue != null) {
+				// Extract the code from format "Description (CODE)" -> "CODE"
+				String typeCode = extractCodeFromParens(addressType);
+				// Only add if the address type matches
+				if (typeCode != null && typeCode.equals(addressTypeCode)) {
+					// Extract the purpose code from format "Description (CODE)" -> "CODE"
+					String purposeCode = extractCodeFromParens(purposeValue);
+					if (purposeCode != null) {
+						usedCodes.add(purposeCode);
+					}
+				}
+			}
+		}
+		return usedCodes;
+	}
+
+	/**
+	 * Extracts the code from within parentheses at the end of a string.
+	 * For example: "Ministry Contact (MC)" -> "MC"
+	 *
+	 * @param value the string containing a code in parentheses
+	 * @return the extracted code, or null if not found
+	 */
+	private String extractCodeFromParens(String value) {
+		if (value == null || value.isEmpty()) {
+			return null;
+		}
+		Matcher matcher = CODE_IN_PARENS_PATTERN.matcher(value);
+		if (matcher.find()) {
+			return matcher.group(1);
+		}
+		return null;
+	}
+
+	/**
+	 * Gets a list of purpose codes currently used in a section (for telecoms, electronic addresses)
+	 *
+	 * @param section the provider section
+	 * @return list of purpose codes currently in use (e.g., "BC", "MC", "HC")
+	 */
+	public List<String> getUsedPurposeCodes(ProviderSection section) {
+		List<String> usedCodes = new ArrayList<>();
+		int totalCount = grabDataBlockCount(section);
+
+		String purposeKey;
+		switch (section) {
+			case TELECOMMUNICATIONS:
+				purposeKey = "Telecom Purpose";
+				break;
+			case ELECTRONIC_ADDRESSES:
+				purposeKey = "Electronic Address Purpose";
+				break;
+			default:
+				return usedCodes;
+		}
+
+		for (int i = 0; i < totalCount; i++) {
+			// Skip inactive (ceased) blocks
+			if (!grabDataBlockActive(section, i)) {
+				continue;
+			}
+
+			LinkedHashMap<String, String> content = grabDataBlockContent(section, i);
+			String purposeValue = content.get(purposeKey);
+			if (purposeValue != null && !purposeValue.isEmpty()) {
+				// Extract the code from format "Description (CODE)" -> "CODE"
+				String code = extractCodeFromParens(purposeValue);
+				if (code != null) {
+					usedCodes.add(code);
+				}
+			}
+		}
+		return usedCodes;
+	}
+
+	/**
+	 * Gets an available telecommunication purpose code that is not currently used for the given address type.
+	 * Since uniqueness is based on Address Type + Purpose Code, a purpose code can be reused
+	 * if it's only used by a different address type.
+	 *
+	 * @param addressTypeCode the address type code (e.g., "M" for Mailing, "P" for Physical)
+	 * @return the text of an available TelecommunicationPurpose, or null if all are used
+	 */
+	public String getAvailablePurposeCodeForAddressType(String addressTypeCode) {
+		List<String> usedCodes = getUsedPurposeCodesForAddressType(addressTypeCode);
+
+		for (TelecommunicationPurpose purpose : TelecommunicationPurpose.values()) {
+			if (!usedCodes.contains(purpose.getStartText())) {
+				return purpose.getText();
+			}
+		}
+		return null; // All purpose codes are used for this address type
+	}
+
+	/**
+	 * Gets an available telecommunication purpose code that is not currently used in the section
+	 *
+	 * @param section the provider section (TELECOMMUNICATIONS or ELECTRONIC_ADDRESSES)
+	 * @return the text of an available TelecommunicationPurpose, or null if all are used
+	 */
+	public String getAvailablePurposeCode(ProviderSection section) {
+		List<String> usedCodes = getUsedPurposeCodes(section);
+
+		for (TelecommunicationPurpose purpose : TelecommunicationPurpose.values()) {
+			if (!usedCodes.contains(purpose.getStartText())) {
+				return purpose.getText();
+			}
+		}
+		return null; // All purpose codes are used
 	}
 
 	/**
@@ -1133,17 +1402,25 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 	public void clickDialogCancelButton(ProviderSection providerSection)
 	{
-		String dialogCss = getDialogCss(providerSection);
-
-		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
-		selenium_.scrollIntoView(cancelButton);
-		cancelButton.click();
-
-		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		   String dialogCss = getDialogCss(providerSection);
+		   try {
+			   List<WebElement> cancelButtons = selenium_.findElements(By.linkText("Cancel"));
+			   if (!cancelButtons.isEmpty() && cancelButtons.get(0).isDisplayed()) {
+				   selenium_.scrollIntoView(cancelButtons.get(0));
+				   cancelButtons.get(0).click();
+				   selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+			   } else {
+				   // Cancel button not found or not visible, dialog may already be closed
+				   // Optionally log or handle gracefully
+			   }
+		   } catch (Exception e) {
+			   // Handle exception gracefully, dialog may already be closed
+			   // Optionally log error
+		   }
 	}
 
-	public void cancleAddDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description, String archiveDate,
-			String effectiveFrom, String effectiveTo) {
+	public void cancleAddDisciplinaryActionDataBlock(String actionIdentifier, boolean display, String description,
+			String archiveDate, String effectiveFrom, String effectiveTo) {
 
 		String dialogCss = getDialogCss(ProviderSection.DISCIPLINARY_ACTIONS);
 
@@ -1152,12 +1429,1614 @@ public class UpdateProviderPage extends ViewProviderPage {
 		fillDisciplinaryActionDataBlock(actionIdentifier, display, description, archiveDate, effectiveFrom,
 				effectiveTo);
 
+		   try {
+			   List<WebElement> cancelButtons = selenium_.findElements(By.linkText("Cancel"));
+			   if (!cancelButtons.isEmpty() && cancelButtons.get(0).isDisplayed()) {
+				   selenium_.scrollIntoView(cancelButtons.get(0));
+				   cancelButtons.get(0).click();
+			   }
+		   } catch (Exception e) {
+			   // Handle exception gracefully
+		   }
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+
+
+	}
+
+	/**
+	 * Fill the Electronic Address Data Block form fields
+	 *
+	 * @param type          the type of electronic address (e.g., "E - Email", "F - FTP", "H - HTTP")
+	 * @param purpose       the purpose of electronic address (e.g., "MC - Ministry Contact")
+	 * @param address       the electronic address value
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 */
+	private void fillElectronicAddressDataBlock(String type, String purpose, String address,
+			String effectiveFrom, String effectiveTo) {
+		String formName = DIALOG_MAP.get(ProviderSection.ELECTRONIC_ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		setDropdownListByVisibleText(ProviderSection.ELECTRONIC_ADDRESSES, "type", type);
+		setDropdownListByVisibleText(ProviderSection.ELECTRONIC_ADDRESSES, "purpose", purpose);
+
+		String inputAddressCss = dialogCss + " >input#" + formName + "\\:electronicAddress";
+		WebElement inputAddress = selenium_.findElement(By.cssSelector(inputAddressCss));
+		inputAddress.clear();
+		if (!StringUtils.isEmpty(address))
+			inputAddress.sendKeys(address);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.ELECTRONIC_ADDRESSES, effectiveFrom, effectiveTo);
+	}
+
+	/**
+	 * Attempts to add an electronic address data block with provided values
+	 *
+	 * @param type          the type of electronic address (e.g., "E - Email", "F - FTP", "H - HTTP")
+	 * @param purpose       the purpose of electronic address (e.g., "MC - Ministry Contact")
+	 * @param address       the electronic address value
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String addElectronicAddressDataBlock(String type, String purpose, String address,
+			String effectiveFrom, String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		clickHeaderAddButton(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		fillElectronicAddressDataBlock(type, purpose, address, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ELECTRONIC_ADDRESSES, expectError);
+
+		if (expectError) {
+			// Wait for error message (waitErrorMessage already clicks Cancel when done)
+			msgDisplay = waitErrorMessage(ProviderSection.ELECTRONIC_ADDRESSES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+			clickDialogCancelButton(ProviderSection.ELECTRONIC_ADDRESSES);
+		}
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Cancel adding an electronic address data block after filling the form
+	 *
+	 * @param type          the type of electronic address
+	 * @param purpose       the purpose of electronic address
+	 * @param address       the electronic address value
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 */
+	public void cancelAddElectronicAddressDataBlock(String type, String purpose, String address,
+			String effectiveFrom, String effectiveTo) {
+		String dialogCss = getDialogCss(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		clickHeaderAddButton(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		fillElectronicAddressDataBlock(type, purpose, address, effectiveFrom, effectiveTo);
+
+		   try {
+			   List<WebElement> cancelButtons = selenium_.findElements(By.linkText("Cancel"));
+			   if (!cancelButtons.isEmpty() && cancelButtons.get(0).isDisplayed()) {
+				   selenium_.scrollIntoView(cancelButtons.get(0));
+				   cancelButtons.get(0).click();
+			   }
+		   } catch (Exception e) {
+			   // Handle exception gracefully
+		   }
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
+
+	/**
+	 * Attempts to update an electronic address data block with provided values
+	 *
+	 * @param address       the electronic address value to update
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index         the data block index to update
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String updateElectronicAddressDataBlock(String address, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.ELECTRONIC_ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		clickDataBlockUpdateButton(ProviderSection.ELECTRONIC_ADDRESSES, index);
+		waitSeconds(2);
+
+		String inputAddressCss = dialogCss + " >input#" + formName + "\\:electronicAddress";
+		WebElement inputAddress = selenium_.findElement(By.cssSelector(inputAddressCss));
+		inputAddress.clear();
+		if (!StringUtils.isEmpty(address))
+			inputAddress.sendKeys(address);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.ELECTRONIC_ADDRESSES, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.ELECTRONIC_ADDRESSES, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ELECTRONIC_ADDRESSES, expectError);
+
+		if (expectError) {
+			// Wait for error message (waitErrorMessage already clicks Cancel when done)
+			msgDisplay = waitErrorMessage(ProviderSection.ELECTRONIC_ADDRESSES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+			clickDialogCancelButton(ProviderSection.ELECTRONIC_ADDRESSES);
+		}
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Fill the Address Data Block form fields
+	 *
+	 * @param addressType   the type of address (e.g., "P - Physical location", "M - Mailing address")
+	 * @param purpose       the purpose of the address (e.g., "MC - Ministry Contact")
+	 * @param addressLine1  the first line of the address
+	 * @param addressLine2  the second line of the address (optional)
+	 * @param addressLine3  the third line of the address (optional)
+	 * @param city          the city name
+	 * @param province      the province/state code (e.g., "BC - British Columbia")
+	 * @param country       the country code (e.g., "CA - CANADA")
+	 * @param postalCode    the postal code (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 */
+	private void fillAddressDataBlock(String addressType, String purpose, String addressLine1,
+			String addressLine2, String addressLine3, String city, String province, String country,
+			String postalCode, String effectiveFrom, String effectiveTo) {
+		String formName = DIALOG_MAP.get(ProviderSection.ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		if(addressType != null){
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressType", addressType);
+		}
+		if(purpose != null){
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressPurpose", purpose);
+		}
+
+		// Fill address line 1
+		String addressLine1Css = dialogCss + " >input#" + formName + "\\:addressLine1";
+		WebElement addressLine1Element = selenium_.findElement(By.cssSelector(addressLine1Css));
+		addressLine1Element.clear();
+		if (!StringUtils.isEmpty(addressLine1))
+			addressLine1Element.sendKeys(addressLine1);
+
+		// Fill address line 2
+		String addressLine2Css = dialogCss + " >input#" + formName + "\\:addressLine2";
+		WebElement addressLine2Element = selenium_.findElement(By.cssSelector(addressLine2Css));
+		addressLine2Element.clear();
+		if (!StringUtils.isEmpty(addressLine2))
+			addressLine2Element.sendKeys(addressLine2);
+
+		// Fill address line 3
+		String addressLine3Css = dialogCss + " >input#" + formName + "\\:addressLine3";
+		WebElement addressLine3Element = selenium_.findElement(By.cssSelector(addressLine3Css));
+		addressLine3Element.clear();
+		if (!StringUtils.isEmpty(addressLine3))
+			addressLine3Element.sendKeys(addressLine3);
+
+		// Set country dropdown FIRST (this may change province field to text input for non-CA/US)
+		if (!StringUtils.isEmpty(country)) {
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "country", country);
+			// Wait for province fragment to update after country change
+			waitSeconds(2);
+		}
+
+		// Fill city (autocomplete input) - type city and click first autocomplete result
+		if (city != null) {
+			String cityInputCss = "input#" + formName + "\\:city_input";
+			String cityPanelCss = "span#" + formName + "\\:city_panel";
+			WebElement cityInput = selenium_.findElement(By.cssSelector(cityInputCss));
+			cityInput.clear();
+			cityInput.sendKeys(city);
+			// Wait for autocomplete panel to appear and click first item
+			selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(cityPanelCss)));
+			waitSeconds(1);
+			List<WebElement> cityItems = selenium_.findElements(By.cssSelector(cityPanelCss + " li.ui-autocomplete-item"));
+			if (!cityItems.isEmpty()) {
+				cityItems.get(0).click();
+				selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(cityPanelCss)));
+			}
+		}
+
+		// Set province - check if it's a dropdown (CA/US) or text input (other countries)
+		if (!StringUtils.isEmpty(province)) {
+			String provinceTxtCss = dialogCss + " input#" + formName + "\\:province_txt";
+			List<WebElement> provinceTxtElements = selenium_.findElements(By.cssSelector(provinceTxtCss));
+			if (!provinceTxtElements.isEmpty() && provinceTxtElements.get(0).isDisplayed()) {
+				// Province is a text input (non-CA/US country)
+				WebElement provinceTxt = provinceTxtElements.get(0);
+				provinceTxt.clear();
+				provinceTxt.sendKeys(province);
+			} else {
+				// Province is a dropdown (CA/US)
+				setDropdownListByVisibleText(ProviderSection.ADDRESSES, "province_address", province);
+			}
+		}
+
+		// Fill postal code
+		String postalCodeCss = dialogCss + " >input#" + formName + "\\:postalCode";
+		WebElement postalCodeElement = selenium_.findElement(By.cssSelector(postalCodeCss));
+		postalCodeElement.clear();
+		if (!StringUtils.isEmpty(postalCode))
+			postalCodeElement.sendKeys(postalCode);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.ADDRESSES, effectiveFrom, effectiveTo);
+	}
+
+	/**
+	 * Attempts to add an address data block with provided values
+	 *
+	 * @param addressType   the type of address (e.g., "P - Physical location", "M - Mailing address")
+	 * @param purpose       the purpose of the address (e.g., "MC - Ministry Contact")
+	 * @param addressLine1  the first line of the address
+	 * @param addressLine2  the second line of the address (optional)
+	 * @param addressLine3  the third line of the address (optional)
+	 * @param city          the city name
+	 * @param province      the province/state code (e.g., "BC - British Columbia")
+	 * @param country       the country code (e.g., "CA - CANADA")
+	 * @param postalCode    the postal code (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String addAddressDataBlock(String addressType, String purpose, String addressLine1,
+			String addressLine2, String addressLine3, String city, String province, String country,
+			String postalCode, String effectiveFrom, String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickHeaderAddButton(ProviderSection.ADDRESSES);
+
+		fillAddressDataBlock(addressType, purpose, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+
+		// Handle address validation popups that may appear (only when not expecting error)
+		handleAddressValidationDialog();
+
+		if (expectError) {
+			// Wait for error message (waitErrorMessage already clicks Cancel when done)
+			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to add an address data block with provided values, using raw city input (no autocomplete).
+	 * Use this method when the city value is not expected to appear in autocomplete suggestions
+	 * (e.g., when testing validation with invalid/long city names).
+	 *
+	 * @param addressType   the type of address (e.g., "P - Physical location", "M - Mailing address")
+	 * @param purpose       the purpose of the address (e.g., "MC - Ministry Contact")
+	 * @param addressLine1  the first line of the address
+	 * @param addressLine2  the second line of the address (optional)
+	 * @param addressLine3  the third line of the address (optional)
+	 * @param city          the city name (entered without autocomplete)
+	 * @param province      the province/state code (e.g., "BC - British Columbia")
+	 * @param country       the country code (e.g., "CA - CANADA")
+	 * @param postalCode    the postal code (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String addAddressDataBlockRawCity(String addressType, String purpose, String addressLine1,
+			String addressLine2, String addressLine3, String city, String province, String country,
+			String postalCode, String effectiveFrom, String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickHeaderAddButton(ProviderSection.ADDRESSES);
+
+		fillAddressDataBlockRawCity(addressType, purpose, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+
+		if (expectError) {
+			// Wait for error message (waitErrorMessage already clicks Cancel when done)
+			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			// Handle address validation popups that may appear (only when not expecting error)
+			handleAddressValidationDialog();
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+		return msgDisplay;
+	}
+
+	/**
+	 * Fills the address data block form with raw city input (no autocomplete selection).
+	 */
+	private void fillAddressDataBlockRawCity(String addressType, String purpose, String addressLine1,
+			String addressLine2, String addressLine3, String city, String province, String country,
+			String postalCode, String effectiveFrom, String effectiveTo) {
+		String formName = DIALOG_MAP.get(ProviderSection.ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		if(addressType != null){
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressType", addressType);
+		}
+		if (purpose != null) {
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "addressPurpose", purpose);
+		}
+
+		// Fill address line 1
+		String addressLine1Css = dialogCss + " >input#" + formName + "\\:addressLine1";
+		WebElement addressLine1Element = selenium_.findElement(By.cssSelector(addressLine1Css));
+		addressLine1Element.clear();
+		if (!StringUtils.isEmpty(addressLine1))
+			addressLine1Element.sendKeys(addressLine1);
+
+		// Fill address line 2
+		String addressLine2Css = dialogCss + " >input#" + formName + "\\:addressLine2";
+		WebElement addressLine2Element = selenium_.findElement(By.cssSelector(addressLine2Css));
+		addressLine2Element.clear();
+		if (!StringUtils.isEmpty(addressLine2))
+			addressLine2Element.sendKeys(addressLine2);
+
+		// Fill address line 3
+		String addressLine3Css = dialogCss + " >input#" + formName + "\\:addressLine3";
+		WebElement addressLine3Element = selenium_.findElement(By.cssSelector(addressLine3Css));
+		addressLine3Element.clear();
+		if (!StringUtils.isEmpty(addressLine3))
+			addressLine3Element.sendKeys(addressLine3);
+
+		// Set country dropdown FIRST (this may change province field to text input for non-CA/US)
+		if (!StringUtils.isEmpty(country)) {
+			setDropdownListByVisibleText(ProviderSection.ADDRESSES, "country", country);
+			// Wait for province fragment to update after country change
+			waitSeconds(2);
+		}
+
+		// Fill city (raw input - no autocomplete selection)
+		if (city != null) {
+			String cityInputCss = "input#" + formName + "\\:city_input";
+			WebElement cityInput = selenium_.findElement(By.cssSelector(cityInputCss));
+			cityInput.clear();
+			cityInput.sendKeys(city);
+			// Tab out to avoid autocomplete panel interference
+			cityInput.sendKeys(Keys.TAB);
+			waitSeconds(1);
+		}
+
+		// Set province - check if it's a dropdown (CA/US) or text input (other countries)
+		if (!StringUtils.isEmpty(province)) {
+			String provinceTxtCss = dialogCss + " input#" + formName + "\\:province_txt";
+			List<WebElement> provinceTxtElements = selenium_.findElements(By.cssSelector(provinceTxtCss));
+			if (!provinceTxtElements.isEmpty() && provinceTxtElements.get(0).isDisplayed()) {
+				// Province is a text input (non-CA/US country)
+				WebElement provinceTxt = provinceTxtElements.get(0);
+				provinceTxt.clear();
+				provinceTxt.sendKeys(province);
+			} else {
+				// Province is a dropdown (CA/US)
+				setDropdownListByVisibleText(ProviderSection.ADDRESSES, "province_address", province);
+			}
+		}
+
+		// Fill postal code
+		String postalCodeCss = dialogCss + " >input#" + formName + "\\:postalCode";
+		WebElement postalCodeElement = selenium_.findElement(By.cssSelector(postalCodeCss));
+		postalCodeElement.clear();
+		if (!StringUtils.isEmpty(postalCode))
+			postalCodeElement.sendKeys(postalCode);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.ADDRESSES, effectiveFrom, effectiveTo);
+	}
+
+	/**
+	 * Cancel adding an address data block after filling the form
+	 *
+	 * @param addressType   the type of address
+	 * @param purpose       the purpose of the address
+	 * @param addressLine1  the first line of the address
+	 * @param addressLine2  the second line of the address (optional)
+	 * @param addressLine3  the third line of the address (optional)
+	 * @param city          the city name
+	 * @param province      the province/state code
+	 * @param country       the country code
+	 * @param postalCode    the postal code (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 */
+	public void cancelAddAddressDataBlock(String addressType, String purpose, String addressLine1,
+			String addressLine2, String addressLine3, String city, String province, String country,
+			String postalCode, String effectiveFrom, String effectiveTo) {
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickHeaderAddButton(ProviderSection.ADDRESSES);
+
+		fillAddressDataBlock(addressType, purpose, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
+
 		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
 		selenium_.scrollIntoView(cancelButton);
 		cancelButton.click();
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
 
-		
+	/**
+	 * Attempts to update an address data block with provided values
+	 *
+	 * @param addressLine1  the first line of the address
+	 * @param addressLine2  the second line of the address (optional)
+	 * @param addressLine3  the third line of the address (optional)
+	 * @param city          the city name
+	 * @param province      the province/state code
+	 * @param country       the country code
+	 * @param postalCode    the postal code (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index         the data block index to update
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String updateAddressDataBlock(String addressLine1, String addressLine2, String addressLine3,
+			String city, String province, String country, String postalCode,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickDataBlockUpdateButton(ProviderSection.ADDRESSES, index);
+		waitSeconds(3);
+
+		//Only fill in the address fields that are valid for an update (address type and purpose cannot be updated, so pass in null to keep existing values)
+		fillAddressDataBlock(null, null, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.ADDRESSES, endReasonCode.getText());
+
+		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+
+		// Handle address validation popups that may appear (only when not expecting error)
+		handleAddressValidationDialog();
+
+		if (expectError) {
+			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+
+		//Small wait as sometimes due to speed, page stalls
+        waitSeconds(3);
+
+		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to update an address data block with provided values
+	 *
+	 * @param addressLine1  the first line of the address
+	 * @param addressLine2  the second line of the address (optional)
+	 * @param addressLine3  the third line of the address (optional)
+	 * @param city          the city name
+	 * @param province      the province/state code
+	 * @param country       the country code
+	 * @param postalCode    the postal code (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index         the data block index to update
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String updateAddressDataBlockRawCity(String addressLine1, String addressLine2, String addressLine3,
+			String city, String province, String country, String postalCode,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickDataBlockUpdateButton(ProviderSection.ADDRESSES, index);
+		waitSeconds(2);
+
+		//Only fill in the address fields that are valid for an update (address type and purpose cannot be updated, so pass in null to keep existing values)
+		fillAddressDataBlockRawCity(null, null, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.ADDRESSES, endReasonCode.getText());
+
+		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+
+
+		if (expectError) {
+			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			// Handle address validation popups that may appear
+			handleAddressValidationDialog();
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+
+		//Small wait as sometimes due to speed, page stalls
+        waitSeconds(2);
+
+		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to update an address data block with provided values
+	 *
+	 * @param addressLine1  the first line of the address
+	 * @param addressLine2  the second line of the address (optional)
+	 * @param addressLine3  the third line of the address (optional)
+	 * @param city          the city name
+	 * @param province      the province/state code
+	 * @param country       the country code
+	 * @param postalCode    the postal code (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index         the data block index to update
+	 */
+	public void updateCancelAddressDataBlock(String addressLine1, String addressLine2, String addressLine3,
+			String city, String province, String country, String postalCode,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index) {
+
+		clickDataBlockUpdateButton(ProviderSection.ADDRESSES, index);
+		waitSeconds(2);
+
+		//Only fill in the address fields that are valid for an update (address type and purpose cannot be updated, so pass in null to keep existing values)
+		fillAddressDataBlock(null, null, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.ADDRESSES, endReasonCode.getText());
+
+		clickDialogCancelButton(ProviderSection.ADDRESSES);
+	}
+
+	/**
+	 * Fill the Telecommunication Data Block form fields
+	 *
+	 * @param telecomType   the type of telecommunication (e.g., "T - Telephone", "MB - Mobile")
+	 * @param purpose       the purpose of telecommunication (e.g., "MC - Ministry Contact")
+	 * @param areaCode      the area code
+	 * @param phoneNumber   the phone number
+	 * @param extension     the extension (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 */
+	private void fillTelecommunicationDataBlock(String telecomType, String purpose, String areaCode,
+			String phoneNumber, String extension, String effectiveFrom, String effectiveTo) {
+		String formName = DIALOG_MAP.get(ProviderSection.TELECOMMUNICATIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		// Wait for dialog to be visible and stable
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		waitSeconds(2);
+
+		setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomType", telecomType);
+		waitSeconds(1); // Wait for AJAX update after dropdown selection
+
+		// Organizations use "telecomPurposeFiltered", practitioners use "telecomPurpose"
+		String purposePanelCss = "div#" + formName + "\\:telecomPurposeFiltered_panel";
+		if (!selenium_.findElements(By.cssSelector(purposePanelCss)).isEmpty()) {
+			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurposeFiltered", purpose);
+		} else {
+			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurpose", purpose);
+		}
+
+		// Fill area code
+		String areaCodeCss = dialogCss + " >input#" + formName + "\\:AreaCode";
+		WebElement areaCodeElement = selenium_.findElement(By.cssSelector(areaCodeCss));
+		areaCodeElement.clear();
+		if (!StringUtils.isEmpty(areaCode))
+			areaCodeElement.sendKeys(areaCode);
+
+		// Fill phone number
+		String phoneNumberCss = dialogCss + " >input#" + formName + "\\:Phone_Number";
+		WebElement phoneNumberElement = selenium_.findElement(By.cssSelector(phoneNumberCss));
+		phoneNumberElement.clear();
+		if (!StringUtils.isEmpty(phoneNumber))
+			phoneNumberElement.sendKeys(phoneNumber);
+
+		// Fill extension
+		String extensionCss = dialogCss + " >input#" + formName + "\\:extension";
+		WebElement extensionElement = selenium_.findElement(By.cssSelector(extensionCss));
+		extensionElement.clear();
+		if (!StringUtils.isEmpty(extension))
+			extensionElement.sendKeys(extension);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.TELECOMMUNICATIONS, effectiveFrom, effectiveTo);
+	}
+
+	/**
+	 * Attempts to add a telecommunication data block with provided values
+	 *
+	 * @param telecomType   the type of telecommunication (e.g., "T - Telephone", "MB - Mobile")
+	 * @param purpose       the purpose of telecommunication (e.g., "MC - Ministry Contact")
+	 * @param areaCode      the area code
+	 * @param phoneNumber   the phone number
+	 * @param extension     the extension (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String addTelecommunicationDataBlock(String telecomType, String purpose, String areaCode,
+			String phoneNumber, String extension, String effectiveFrom, String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickHeaderAddButton(ProviderSection.TELECOMMUNICATIONS);
+
+		fillTelecommunicationDataBlock(telecomType, purpose, areaCode, phoneNumber, extension, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.TELECOMMUNICATIONS, expectError);
+
+		if (expectError) {
+			// Wait for error message (waitErrorMessage already clicks Cancel when done)
+			msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+		return msgDisplay;
+	}
+
+	/**
+	 * Cancel adding a telecommunication data block after filling the form
+	 *
+	 * @param telecomType   the type of telecommunication
+	 * @param purpose       the purpose of telecommunication
+	 * @param areaCode      the area code
+	 * @param phoneNumber   the phone number
+	 * @param extension     the extension (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 */
+	public void cancelAddTelecommunicationDataBlock(String telecomType, String purpose, String areaCode,
+			String phoneNumber, String extension, String effectiveFrom, String effectiveTo) {
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickHeaderAddButton(ProviderSection.TELECOMMUNICATIONS);
+
+		fillTelecommunicationDataBlock(telecomType, purpose, areaCode, phoneNumber, extension, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+	}
+
+	/**
+	 * Attempts to update a telecommunication data block with provided values
+	 *
+	 * @param areaCode      the area code
+	 * @param phoneNumber   the phone number
+	 * @param extension     the extension (optional)
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo   the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index         the data block index to update
+	 * @param expectError   whether an error is expected
+	 * @return the error message if expectError is true, otherwise an empty string
+	 */
+	public String updateTelecommunicationDataBlock(String areaCode, String phoneNumber, String extension,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.TELECOMMUNICATIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickDataBlockUpdateButton(ProviderSection.TELECOMMUNICATIONS, index);
+		waitSeconds(2);
+
+		// Update area code
+		String areaCodeCss = dialogCss + " >input#" + formName + "\\:AreaCode";
+		WebElement areaCodeElement = selenium_.findElement(By.cssSelector(areaCodeCss));
+		areaCodeElement.clear();
+		if (!StringUtils.isEmpty(areaCode))
+			areaCodeElement.sendKeys(areaCode);
+
+		// Update phone number
+		String phoneNumberCss = dialogCss + " >input#" + formName + "\\:Phone_Number";
+		WebElement phoneNumberElement = selenium_.findElement(By.cssSelector(phoneNumberCss));
+		phoneNumberElement.clear();
+		if (!StringUtils.isEmpty(phoneNumber))
+			phoneNumberElement.sendKeys(phoneNumber);
+
+		// Update extension
+		String extensionCss = dialogCss + " >input#" + formName + "\\:extension";
+		WebElement extensionElement = selenium_.findElement(By.cssSelector(extensionCss));
+		extensionElement.clear();
+		if (!StringUtils.isEmpty(extension))
+			extensionElement.sendKeys(extension);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.TELECOMMUNICATIONS, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.TELECOMMUNICATIONS, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.TELECOMMUNICATIONS);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * add Identifiers Data Block
+	 *
+	 * @param idType        id type
+	 * @param id            id
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo   effective to date
+	 * @param expectError   if error messages are expected
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string.
+	 */
+	public String addIdentifiersDataBlock(String idType, String id, String effectiveFrom, String effectiveTo,
+			boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.IDENTIFIERS);
+
+		clickHeaderAddButton(ProviderSection.IDENTIFIERS);
+		// dropdown irtype
+		if (!StringUtils.isEmpty(idType))
+			setDropdownListByVisibleText(ProviderSection.IDENTIFIERS, "providerType", idType);
+		// identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(id))
+			inputId.sendKeys(id);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.IDENTIFIERS, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.IDENTIFIERS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.IDENTIFIERS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * update Identifiers Data Block
+	 *
+	 * @param id
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string.
+	 */
+	public String updateIdentifiersDataBlock(String id, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.IDENTIFIERS, index);
+
+		// identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(id))
+			inputId.sendKeys(id);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.IDENTIFIERS, endReasonCode.getText());
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.IDENTIFIERS, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.IDENTIFIERS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.IDENTIFIERS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * add Note Data Block
+	 *
+	 * @param id
+	 * @param text
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param expectError
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string.
+	 */
+	public String addNoteDataBlock(String id, String text, String effectiveFrom, String effectiveTo,
+			boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.NOTES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.NOTES);
+
+		clickHeaderAddButton(ProviderSection.NOTES);
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(id))
+			inputId.sendKeys(id);
+
+		String inputTextCss = dialogCss + " >textarea#" + formName + "\\:" + "noteText";
+		WebElement inputText = selenium_.findElement(By.cssSelector(inputTextCss));
+		inputText.clear();
+		if (!StringUtils.isEmpty(text))
+			inputText.sendKeys(text);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.NOTES, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.NOTES);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.NOTES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+
+		return msgDisplay;
+	}
+
+	/**
+	 * update Note Data Block
+	 *
+	 * @param text
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
+	 */
+	public String updateNoteDataBlock(String text, String effectiveFrom, String effectiveTo, EndReason endReasonCode,
+			int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.NOTES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.NOTES);
+
+		clickDataBlockUpdateButton(ProviderSection.NOTES, index);
+		waitSeconds(2);
+
+		String inputTextCss = dialogCss + " >textarea#" + formName + "\\:" + "noteText";
+		WebElement inputText = selenium_.findElement(By.cssSelector(inputTextCss));
+		inputText.clear();
+		if (!StringUtils.isEmpty(text))
+			inputText.sendKeys(text);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.NOTES, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.NOTES, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.NOTES);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.NOTES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * add RegIdentifiers Data Block
+	 *
+	 * @param regIdType
+	 * @param regId
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param expectError
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
+	 */
+	public String addRegIdentifiersDataBlock(String regIdType, String regId, String effectiveFrom, String effectiveTo,
+			boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		clickHeaderAddButton(ProviderSection.REGISTRY_IDENTIFIERS);
+		// fill up reg id type
+		if (!StringUtils.isEmpty(regIdType))
+			setDropdownListByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS, "providerType", regIdType);
+		// reg identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(regId))
+			inputId.sendKeys(regId);
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_IDENTIFIERS, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.REGISTRY_IDENTIFIERS, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * update RegIdentifiers Data Block
+	 *
+	 * @param regId
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
+	 */
+	public String updateRegIdentifiersDataBlock(String regId, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.REGISTRY_IDENTIFIERS, index);
+
+		// reg identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(regId))
+			inputId.sendKeys(regId);
+		// end reason code
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.TELECOMMUNICATIONS, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.TELECOMMUNICATIONS, expectError);
+
+		if (expectError) {
+			msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+		return msgDisplay;
+	}
+
+	/**
+	 * add Status Data Block
+	 *
+	 * @param statusClassCode
+	 * @param statusCode
+	 * @param statusReasonCode
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param expectError
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
+	 */
+	public String addStatusDataBlock(String statusClassCode, String statusCode, String statusReasonCode,
+			String effectiveFrom, String effectiveTo, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.STATUSES);
+
+		clickHeaderAddButton(ProviderSection.STATUSES);
+		// fill up Status Class Code
+		if (!StringUtils.isEmpty(statusClassCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusClassCode", statusClassCode);
+		// Status Code
+		if (!StringUtils.isEmpty(statusCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusCode", statusCode);
+		// Status Reason Code
+		if (!StringUtils.isEmpty(statusReasonCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusReasonCode", statusReasonCode);
+
+		// effective dates
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.STATUSES, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.STATUSES, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.STATUSES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * update Status Data Block
+	 *
+	 * @param statusCode
+	 * @param statusReasonCode
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return If there are error messages, return them; otherwise return an empty
+	 *         string
+	 */
+	public String updateStatusDataBlock(String statusCode, String statusReasonCode, String effectiveFrom,
+			String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.STATUSES);
+
+		clickDataBlockUpdateButton(ProviderSection.STATUSES, index);
+
+		// Status Code
+		if (!StringUtils.isEmpty(statusCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusCode", statusCode);
+		// Status Reason Code
+		if (!StringUtils.isEmpty(statusReasonCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusReasonCode", statusReasonCode);
+		//
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.STATUSES, endReasonCode.getText());
+		// effective dates
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.STATUSES, effectiveFrom, effectiveTo);
+		clickDialogSubmitButton(ProviderSection.STATUSES, expectError);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.STATUSES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * cease Data Block By Key
+	 *
+	 * @param section
+	 * @param key
+	 * @param value
+	 */
+	public void ceaseDataBlockByKey(ProviderSection section, String key, String value) {
+		int count = this.grabDataBlockCount(section);
+		for (int index = 0; index < count; index++) {
+			LinkedHashMap<String, String> content = this.grabDataBlockContent(section, index);
+			String result = content.get(key);
+			if (value.equals(result)) {
+				this.ceaseDataBlock(section, index);
+				break;
+			}
+
+		}
+
+	}
+
+	/**
+	 * grab Data Block ByK ey
+	 *
+	 * @param section
+	 * @param key
+	 * @param value
+	 * @return data block content
+	 */
+	public LinkedHashMap<String, String> grabDataBlockByKey(ProviderSection section, String key, String value) {
+		LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();
+		int count = this.grabDataBlockCount(section);
+		for (int index = 0; index < count; index++) {
+			LinkedHashMap<String, String> content = this.grabDataBlockContent(section, index);
+			String result = content.get(key);
+			if (value.equals(result)) {
+				resultMap = content;
+				break;
+			}
+
+		}
+		return resultMap;
+
+	}
+
+	/**
+	 * find Data Bloack Index ByKey
+	 *
+	 * @param section
+	 * @param key
+	 * @param value
+	 * @return Index or 0
+	 */
+	public int findDataBloackIndexByKey(ProviderSection section, String key, String value) {
+		int indexReturn = 0;
+		LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();
+		int count = this.grabDataBlockCount(section);
+		for (int index = 0; index < count; index++) {
+			LinkedHashMap<String, String> content = this.grabDataBlockContent(section, index);
+			String result = content.get(key);
+			if (value.equals(result)) {
+				indexReturn = index;
+				break;
+			}
+
+		}
+		return indexReturn;
+
+	}
+
+	/**
+	 * get Add Data Bloack Dropdown Menu List
+	 *
+	 * @param section
+	 * @param dropdownName
+	 * @return List of that dropdwon menu options
+	 */
+	public List<String> getAddDataBloackDropdownMenuList(ProviderSection section, String dropdownName) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(section).getFormName();
+		String dialogCss = getDialogCss(section);
+		// String dropdownName="providerType";
+		clickHeaderAddButton(section);
+		DropDownMenu dropdownMenu = new DropDownMenu(selenium_,
+				By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label"),
+				By.cssSelector("div#" + formName + "\\:" + dropdownName + "_panel"));
+		dropdownMenu.expandItemPanel(true);
+		List<String> providerTypeList = dropdownMenu.grabItemList();
+		dropdownMenu.selectItem("Select One");
+		waitSeconds(2);
+		providerTypeList.remove("Select One");
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+		return providerTypeList;
+	}
+
+	/**
+	 * get Status Reason Code List
+	 *
+	 * @param statusCode
+	 * @return Status Reason Code List
+	 */
+	public List<String> getStatusReasonCodeList(String statusCode) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.STATUSES);
+
+		clickHeaderAddButton(ProviderSection.STATUSES);
+		setDropdownListByVisibleText(ProviderSection.STATUSES, "statusCode", statusCode);
+		waitSeconds(2);
+		String dropdownName = "statusReasonCode";
+		DropDownMenu dropdownMenu = new DropDownMenu(selenium_,
+				By.cssSelector("label#" + formName + "\\:" + dropdownName + "_label"),
+				By.cssSelector("div#" + formName + "\\:" + dropdownName + "_panel"));
+		dropdownMenu.expandItemPanel(true);
+		List<String> providerTypeList = dropdownMenu.grabItemList();
+		dropdownMenu.selectItem("Select One");
+		waitSeconds(2);
+		providerTypeList.remove("Select One");
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+		return providerTypeList;
+	}
+
+	/**
+	 * update Note Data Block but click Cancel button at last
+	 *
+	 * @param text
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return
+	 */
+	public String updateNoteDataBlockCancel(String text, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.NOTES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.NOTES);
+
+		clickDataBlockUpdateButton(ProviderSection.NOTES, index);
+		waitSeconds(2);
+
+		String inputTextCss = dialogCss + " >textarea#" + formName + "\\:" + "noteText";
+		WebElement inputText = selenium_.findElement(By.cssSelector(inputTextCss));
+		inputText.clear();
+		if (!StringUtils.isEmpty(text))
+			inputText.sendKeys(text);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.NOTES, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.NOTES, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+
+	}
+
+	/**
+	 * update Identifier Data Block but click Cancel button at last
+	 *
+	 * @param id
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param b
+	 * @return
+	 */
+	public String updateIdentifierDataBlockCancel(String id, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean b) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.IDENTIFIERS, index);
+
+		// identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(id))
+			inputId.sendKeys(id);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.IDENTIFIERS, endReasonCode.getText());
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.IDENTIFIERS, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+
+	}
+
+	/**
+	 * update RegIdentifiers Data Block but click Cancel button at last
+	 *
+	 * @param regId
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param b
+	 * @return
+	 */
+	public String updateRegIdentifiersDataBlockCancel(String regId, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean b) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.REGISTRY_IDENTIFIERS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.REGISTRY_IDENTIFIERS);
+
+		clickDataBlockUpdateButton(ProviderSection.REGISTRY_IDENTIFIERS, index);
+
+		// reg identifier
+		String inputIdCss = dialogCss + " >input#" + formName + "\\:" + "identifier";
+		WebElement inputId = selenium_.findElement(By.cssSelector(inputIdCss));
+		inputId.clear();
+		if (!StringUtils.isEmpty(regId))
+			inputId.sendKeys(regId);
+		// end reason code
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.REGISTRY_IDENTIFIERS, endReasonCode.getText());
+		// effective dates
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.REGISTRY_IDENTIFIERS, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+
+	}
+
+	/**
+	 * update Status Data Block but click Cancel button at last
+	 *
+	 * @param statusCode
+	 * @param statusReasonCode
+	 * @param effectiveFrom
+	 * @param effectiveTo
+	 * @param endReasonCode
+	 * @param index
+	 * @param expectError
+	 * @return
+	 */
+	public String updateStatusDataBlockCancel(String statusCode, String statusReasonCode, String effectiveFrom,
+			String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.STATUSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.STATUSES);
+
+		clickDataBlockUpdateButton(ProviderSection.STATUSES, index);
+
+		// Status Code
+		if (!StringUtils.isEmpty(statusCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusCode", statusCode);
+		// Status Reason Code
+		if (!StringUtils.isEmpty(statusReasonCode))
+			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusReasonCode", statusReasonCode);
+		//
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.STATUSES, endReasonCode.getText());
+		// effective dates
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.STATUSES, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+	}
+
+	/**
+	 * cease Data Block with expecting error message
+	 *
+	 * @param section
+	 * @param index
+	 * @return
+	 */
+	public String ceaseDataBlockWithError(ProviderSection section, int index) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(section).getFormName();
+		String submitButtonName = DIALOG_MAP.get(section).getSubmitButtonName();
+
+		clickDataBlockUpdateButton(section, index);
+		waitSeconds(2);
+
+		String dialogCss = getDialogCss(section);
+
+		setEndReasonByVisibleText(section, EndReason.CEASE.getText());
+
+		String buttonCss = dialogCss + " > div.formControls" + " > button#" + formName + "\\:" + submitButtonName;
+		WebElement button = selenium_.findElement(By.cssSelector(buttonCss));
+		button.click();
+		msgDisplay = waitErrorMessage(section);
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * Checks whether the Update button is displayed for a data block header.
+	 *
+	 * @param section the facility section containing the data block
+	 * @param index   the zero-based index of the data block within the section
+	 * @return true if the Update button is present and visible; false otherwise
+	 */
+	public boolean isDataBlockUpdateButtonDisplayed(ProviderSection section, int index) {
+
+		WebElement updateButton = null;
+		try {
+			updateButton = selenium_
+					.findElement(By.cssSelector(getDataBlockHeaderUpdateButtonSelector(section, index)));
+		} catch (org.openqa.selenium.NoSuchElementException e) {
+			return false;
+		}
+		selenium_.scrollIntoView(updateButton);
+		return updateButton.isDisplayed();
+	}
+
+	/**
+	 * Attempts to update an electronic address data block with provided values.but click 'Cancel' button  at last
+	 *
+	 * @param address			the address to update the data block with
+	 * @param effectiveFrom		the effective from date to update the data block with
+	 * @param effectiveTo		the effective to date to update the data block with
+	 * @param endReasonCode		the end reason string to fill in the End Reason code field
+	 * @param index				the index of the electronic address data block to update
+	 * @param expectError		whether an error is anticipated (true) or not (false)
+	 * @return					a string of the error message, if expectError is true. otherwise an empty string
+	 */
+	public String updateElectronicAddressDataBlockCancel(String address, String effectiveFrom, String effectiveTo,
+			EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.ELECTRONIC_ADDRESSES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		clickDataBlockUpdateButton(ProviderSection.ELECTRONIC_ADDRESSES, index);
+		waitSeconds(2);
+
+		String inputAddressCss = dialogCss + " >input#" + formName + "\\:" + "electronicAddress";
+		WebElement inputAddress = selenium_.findElement(By.cssSelector(inputAddressCss));
+		inputAddress.clear();
+		if (!StringUtils.isEmpty(address))
+			inputAddress.sendKeys(address);
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.ELECTRONIC_ADDRESSES, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.ELECTRONIC_ADDRESSES, effectiveFrom, effectiveTo);
+
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+	}
+
+	/**
+	 * Attempts to update a telecommunication data block with provided values, but click 'Cancel' button  at last
+	 *
+	 * @param areaCode			the area code to update the data block with
+	 * @param phoneNumber		the phone number to update the data block with
+	 * @param extension			the extension to update the data block with
+	 * @param effectiveFrom		the effective from date to update the data block with
+	 * @param effectiveTo		the effective to date to update the data block with
+	 * @param endReasonCode			the end reason to fill the end reason code field with
+	 * @param index				the index of the telecom data block to update
+	 * @param expectError		whether an error is anticipated (true) or not (false)
+	 * @return					a string of the error message, if expectError is true. otherwise an empty string
+	 */
+
+	public String updateTelecommunicationDataBlockCancel(String areaCode, String phoneNumber, String extension,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.TELECOMMUNICATIONS).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickDataBlockUpdateButton(ProviderSection.TELECOMMUNICATIONS, index);
+		waitSeconds(2);
+
+		String inputAreaCodeCss = dialogCss + " >input#" + formName + "\\:" + "AreaCode";
+		WebElement inputAreaCode = selenium_.findElement(By.cssSelector(inputAreaCodeCss));
+		inputAreaCode.clear();
+		if (!StringUtils.isEmpty(areaCode))
+			inputAreaCode.sendKeys(areaCode);
+
+		String inputPhoneNumberCss = dialogCss + " >input#" + formName + "\\:" + "Phone_Number";
+		WebElement inputPhoneNumber = selenium_.findElement(By.cssSelector(inputPhoneNumberCss));
+		inputPhoneNumber.clear();
+		if (!StringUtils.isEmpty(phoneNumber))
+			inputPhoneNumber.sendKeys(phoneNumber);
+
+		String inputExtensionCss = dialogCss + " >input#" + formName + "\\:" + "extension";
+		WebElement inputExtension = selenium_.findElement(By.cssSelector(inputExtensionCss));
+		inputExtension.clear();
+		if (!StringUtils.isEmpty(extension))
+			inputExtension.sendKeys(extension);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.TELECOMMUNICATIONS, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.TELECOMMUNICATIONS, effectiveFrom, effectiveTo);
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return msgDisplay;
+
+	}
+
+
+	/** Attempts to update a OrganizationalName data block with provided values
+	 * @param orgName			name
+	 * @param orgLongName       long name
+	 * @param effectiveFrom		the effective from date to update the data block with
+	 * @param effectiveTo		the effective to date to update the data block with
+	 * @param endReasonCode			the end reason to fill the end reason code field with
+	 * @param index				the index of the telecom data block to update
+	 * @param expectError		whether an error is anticipated (true) or not (false)
+	 * @return a string of the error message, if expectError is true. otherwise an empty string
+	 */
+	public String updateOrganizationalNameDataBlock(String orgName, String orgLongName,
+			String effectiveFrom, String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
+		String msgDisplay = "";
+		String formName = DIALOG_MAP.get(ProviderSection.ORGANIZATION_NAMES).getFormName();
+		String dialogCss = getDialogCss(ProviderSection.ORGANIZATION_NAMES);
+
+		clickDataBlockUpdateButton(ProviderSection.ORGANIZATION_NAMES, index);
+		waitSeconds(2);
+
+		String inputOrgNameCss = dialogCss + " >input#" + formName + "\\:" + "shortName";
+		WebElement inputOrgName = selenium_.findElement(By.cssSelector(inputOrgNameCss));
+		inputOrgName.clear();
+		if (!StringUtils.isEmpty(orgName))
+			inputOrgName.sendKeys(orgName);
+
+		String inputOrgLongNameCss = dialogCss + " >input#" + formName + "\\:" + "longName";
+		WebElement inputOrgLongName = selenium_.findElement(By.cssSelector(inputOrgLongNameCss));
+		inputOrgLongName.clear();
+		if (!StringUtils.isEmpty(orgLongName))
+			inputOrgLongName.sendKeys(orgLongName);
+
+		if (endReasonCode != null)
+			setEndReasonByVisibleText(ProviderSection.ORGANIZATION_NAMES, endReasonCode.getText());
+
+		setDialogEffectiveFromAndEffectiveTo(ProviderSection.ORGANIZATION_NAMES, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ORGANIZATION_NAMES);
+
+		if (expectError)
+			msgDisplay = waitErrorMessage(ProviderSection.ORGANIZATION_NAMES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+
+	}
+
+
+	/**determine if Update Dialog Span Editable
+	 * @param section
+	 * @param index
+	 * @param value
+	 * @return true if editable, false if not editable
+	 */
+	public boolean isUpdateDialogSpanEditable(ProviderSection section, int index, String value) {
+		clickDataBlockUpdateButton(section, index);
+		boolean result=true;
+
+		String xpath = String.format(
+		        "//span[contains(text(), '%s')]",
+		        value
+		    );
+		WebElement element = selenium_.getDriver().findElement(By.xpath(xpath));
+		String tagName = element.getTagName();
+
+		if (!tagName.equals("input") && !tagName.equals("textarea")) {
+			result=false;
+		}
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return result;
+	}
+
+	/**grab Update Dialog Label Text
+	 * @param section
+	 * @param index
+	 * @param labelText
+	 * @return the span text that right to the label
+	 */
+	public String grabUpdateDialogLabelText(ProviderSection section, int index, String labelText) {
+		clickDataBlockUpdateButton(section, index);
+		String result="";
+
+		String xpath = String.format(
+		        "//label[contains(normalize-space(), '%s')]/ancestor::div[1]/following::span[@style='font-weight: bold;'][1]",
+		        labelText
+		    );
+		try {
+	            // Locate the adjacent span element using the XPath
+	            WebElement spanElement = selenium_.getDriver().findElement(By.xpath(xpath));
+
+	            result = spanElement.getText();
+
+	        } catch (org.openqa.selenium.NoSuchElementException e) {
+
+
+	        }
+
+		WebElement cancelButton = selenium_.findElement(By.linkText("Cancel"));
+		selenium_.scrollIntoView(cancelButton);
+		cancelButton.click();
+
+		return result;
 	}
 }
