@@ -824,6 +824,8 @@ public class UpdateProviderLegacyTest {
 		page.addWLAddressDataBlock(0, "P", "MC", "123 Test St",
 				null, null, "Victoria", "BC", "V1V1V1", "CA",
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date(), false);
+
+		page.clickWLHeaderUpdateButton(ProviderSection.ADDRESSES, 0, 0);
 	}
 //
 //			Then Validate Electronic Address Txt

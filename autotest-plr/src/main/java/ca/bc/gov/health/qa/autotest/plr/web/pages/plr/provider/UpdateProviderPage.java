@@ -366,6 +366,48 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return selenium_.findElementByCss(dialogCss);
 	}
 
+	public WebElement clickWLHeaderUpdateButton(ProviderSection section, int wlIndex, int entityIndex) {
+		// expand the work location if hasn't happened yet
+		expandDataBlock(ProviderSection.WORK_LOCATIONS, wlIndex, true);
+
+		final String panelType = switch (section) {
+			case ProviderSection.ADDRESSES -> "wlAddressPanel";
+			case ProviderSection.TELECOMMUNICATIONS -> "telecommunicationPanel";
+			case ProviderSection.ELECTRONIC_ADDRESSES -> "eAddressPanel";
+			case ProviderSection.COMMUNICATION_PREFERENCE -> "informationRoutePanel";
+			default -> throw new IllegalArgumentException("Section " + section + " is not supported for updating within Work Locations");
+		};
+
+		final String wlRepeatId = String.format("wlRepeat\\:%d\\:", wlIndex);
+		final String wlPanelId = String.format("\\:%d\\:%s", entityIndex, panelType);
+
+		String clickElementCss = getSectionSelector(ProviderSection.WORK_LOCATIONS) + " > div > table > tbody > tr > td > div#";
+		clickElementCss += wlRepeatId + "workLocationPanel > div > div > div > div#" + wlRepeatId;
+		switch (section) {
+			case ProviderSection.ADDRESSES -> clickElementCss += "workLocationAddressesPanel";
+			case ProviderSection.TELECOMMUNICATIONS -> clickElementCss += "workLocationTelecommunicationsPanel";
+			case ProviderSection.ELECTRONIC_ADDRESSES -> clickElementCss += "workLocationElectronicAddressesPanel";
+			case ProviderSection.COMMUNICATION_PREFERENCE -> clickElementCss += "workLocationInformationRoutesPanel";
+			default -> throw new IllegalArgumentException("Section " + section + " is not supported for updating within Work Locations");
+		}
+		clickElementCss += " > div > table > tbody > tr > td > div[id^='" + wlRepeatId + "'][id*='" + wlPanelId + "'] > div > div > a > img[title^='Update']";
+
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		WebElement updateButton = selenium_.findElementByCss(clickElementCss);
+		selenium_.scrollIntoView(updateButton);
+
+		try {
+			updateButton.click();
+		} catch (StaleElementReferenceException e) {
+			waitSeconds(2);
+			updateButton.click();
+		}
+		String dialogCss = getDialogCss(section);
+		WebElement visibleElement = selenium_
+				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
+	}
+
 	/**
 	 * Get Dialog Css selector
 	 *
@@ -796,6 +838,23 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return msgDisplay;
 	}
 
+	/**
+	 * performing action of adding Work Location Address Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to add the address data block for
+	 * @param addressType the address type to select
+	 * @param purpose the purpose to select
+	 * @param addressLine1 the address line 1 to input
+	 * @param addressLine2 the address line 2 to input
+	 * @param addressLine3 the address line 3 to input
+	 * @param city the city to input
+	 * @param province the province to input
+	 * @param postalCode the postal code to input
+	 * @param country the country to select
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
 	public String addWLAddressDataBlock(int wlIndex, String addressType, String purpose,
 										String addressLine1, String addressLine2, String addressLine3,
 										String city, String province, String postalCode, String country,
@@ -808,6 +867,38 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		fillAddressDataBlock(addressType, purpose, addressLine1, addressLine2, addressLine3, city, province, country,
 								postalCode, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+
+		// Handle address validation popups that may appear (only when not expecting error)
+		handleAddressValidationDialog();
+
+		if (expectError) {
+			// Wait for error message (waitErrorMessage already clicks Cancel when done)
+			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+		return msgDisplay;
+	}
+
+	public String updateWLAddressDataBlock(int wlIndex, int entityIndex, String addressType, String purpose,
+									   String addressLine1, String addressLine2, String addressLine3,
+									   String city, String province, String postalCode, String country,
+									   String effectiveFrom, String effectiveTo, EndReason endReason,
+									   boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickWLHeaderUpdateButton(ProviderSection.ADDRESSES, wlIndex, entityIndex);
+
+		fillAddressDataBlock(addressType, purpose, addressLine1, addressLine2, addressLine3, city, province, country,
+				postalCode, effectiveFrom, effectiveTo);
+
+		if (endReason != null) {
+			setEndReasonByVisibleText(ProviderSection.ADDRESSES, endReason.getText());
+		}
 
 		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
 
