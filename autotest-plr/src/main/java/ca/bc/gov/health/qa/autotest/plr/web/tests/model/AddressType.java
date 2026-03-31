@@ -5,9 +5,9 @@ package ca.bc.gov.health.qa.autotest.plr.web.tests.model;
  */
 public enum AddressType {
 	/** Physical Location */
-	P("P - Physical Location"),
+	P("P - Physical location"),
 	/** Mailing Address */
-	M("M - Mailing Address");
+	M("M - Mailing address");
 
 	private final String text;
 

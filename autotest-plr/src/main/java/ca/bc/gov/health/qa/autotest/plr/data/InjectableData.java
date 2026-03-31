@@ -50,6 +50,21 @@ public class InjectableData
     }
 
     /**
+     * Returns a two-dimensional array of OOP ProviderRoleTypes for use in TestNG data-driven tests.
+     * @return a two-dimensional array of OOP ProviderRoleTypes,
+     *         where each inner array contains a single ProviderRoleType value
+     */
+    @DataProvider(name = "oopRoleTypes")
+    public static Object[][] getOopRoleTypes()
+    {
+        List<Object[]> data = new ArrayList<>();
+        for (ProviderRoleType roleType : ProviderRoleType.getProviderRoleTypeSet(ProviderType.OOP_PRACTITIONER)) {
+            data.add(new Object[]{roleType});
+        }
+        return toArray(data);
+    }
+
+    /**
      * Returns a two-dimensional array of practitioner role types for use in TestNG data-driven tests.
      * @return a two-dimensional array of practitioner role types,
      *         where each inner array contains a ProviderRoleType value and its corresponding ProviderType value
@@ -74,8 +89,6 @@ public class InjectableData
      *
      * @return a two-dimensional array of all PLR user types, where each inner array contains a single UserType value
      * Provides just the BC Practitioner and Organization provider types for tests that need to cover only these types.
-     *
-     * @return A two-dimensional array of BC Practitioner and Organization provider types.
      */
     @DataProvider(name = "indOrgTypes")
     public static Object[][] getIndOrgTypes()

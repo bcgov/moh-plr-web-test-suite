@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import ca.bc.gov.health.qa.autotest.plr.web.pages.plr.ViewHeaderFragment;
+import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -23,6 +25,8 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.pages.BasicWebPage;
 public class ViewProviderPage
 extends BasicWebPage
 {
+    private static final Logger LOG = ExecutionLogManager.getLogger();
+
     private static final Pattern DATA_KEY_SUFFIX_PATTERN = Pattern.compile(":$");
 
     private final ViewHeaderFragment viewHeader_;
