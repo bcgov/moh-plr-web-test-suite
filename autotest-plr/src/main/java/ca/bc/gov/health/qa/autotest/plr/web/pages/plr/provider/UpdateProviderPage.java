@@ -891,6 +891,23 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return msgDisplay;
 	}
 
+	/**
+	 * performing action of updating Work Location Address Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to update the address data block for
+	 * @param entityIndex the index of the address data block within the work location to update
+	 * @param addressLine1 the address line 1 to input
+	 * @param addressLine2 the address line 2 to input
+	 * @param addressLine3 the address line 3 to input
+	 * @param city the city to input
+	 * @param province the province to input
+	 * @param postalCode the postal code to input
+	 * @param country the country to select
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param endReason the end reason to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
 	public String updateWLAddressDataBlock(int wlIndex, int entityIndex,
 									   String addressLine1, String addressLine2, String addressLine3,
 									   String city, String province, String postalCode, String country,
@@ -2152,12 +2169,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Identifiers Data Block
 	 *
-	 * @param id
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
+	 * @param id			id
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo   effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index		 the data block index to update
+	 * @param expectError   if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string.
 	 */
@@ -2191,11 +2208,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * add Note Data Block
 	 *
-	 * @param id
-	 * @param text
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param expectError
+	 * @param id the note id
+	 * @param text the note text
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string.
 	 */
@@ -2233,12 +2250,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Note Data Block
 	 *
-	 * @param text
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
+	 * @param text the note text
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2274,11 +2291,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * add RegIdentifiers Data Block
 	 *
-	 * @param regIdType
-	 * @param regId
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param expectError
+	 * @param regIdType the registry identifier type
+	 * @param regId the registry identifier
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2312,12 +2329,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update RegIdentifiers Data Block
 	 *
-	 * @param regId
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
+	 * @param regId the registry identifier
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2354,12 +2371,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * add Status Data Block
 	 *
-	 * @param statusClassCode
-	 * @param statusCode
-	 * @param statusReasonCode
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param expectError
+	 * @param statusClassCode the status class code
+	 * @param statusCode the status code
+	 * @param statusReasonCode the status reason code
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2394,13 +2411,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Status Data Block
 	 *
-	 * @param statusCode
-	 * @param statusReasonCode
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
+	 * @param statusCode the status class code
+	 * @param statusReasonCode the status code
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2561,13 +2578,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Note Data Block but click Cancel button at last
 	 *
-	 * @param text
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
-	 * @return
+	 * @param text the note text
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
+	 * @return If there are error messages, return them; otherwise return an empty string
 	 */
 	public String updateNoteDataBlockCancel(String text, String effectiveFrom, String effectiveTo,
 			EndReason endReasonCode, int index, boolean expectError) {
@@ -2600,13 +2617,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Identifier Data Block but click Cancel button at last
 	 *
-	 * @param id
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
+	 * @param id the identifier
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
 	 * @param b
-	 * @return
+	 * @return If there are error messages, return them; otherwise return an empty string
 	 */
 	public String updateIdentifierDataBlockCancel(String id, String effectiveFrom, String effectiveTo,
 			EndReason endReasonCode, int index, boolean b) {
@@ -2638,13 +2655,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update RegIdentifiers Data Block but click Cancel button at last
 	 *
-	 * @param regId
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
+	 * @param regId the registry identifier
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
 	 * @param b
-	 * @return
+	 * @return If there are error messages, return them; otherwise return an empty string
 	 */
 	public String updateRegIdentifiersDataBlockCancel(String regId, String effectiveFrom, String effectiveTo,
 			EndReason endReasonCode, int index, boolean b) {
@@ -2677,14 +2694,14 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Status Data Block but click Cancel button at last
 	 *
-	 * @param statusCode
-	 * @param statusReasonCode
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
-	 * @return
+	 * @param statusCode the status code
+	 * @param statusReasonCode the status reason code
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
+	 * @return If there are error messages, return them; otherwise return an empty string
 	 */
 	public String updateStatusDataBlockCancel(String statusCode, String statusReasonCode, String effectiveFrom,
 			String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
