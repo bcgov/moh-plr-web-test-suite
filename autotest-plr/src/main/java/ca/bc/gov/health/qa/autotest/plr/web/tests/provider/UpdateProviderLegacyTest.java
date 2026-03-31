@@ -216,7 +216,7 @@ public class UpdateProviderLegacyTest {
 	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
 	public void testCodeRestrictionValidationStatusCode(ProviderType providerType) {
 
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);;
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
 		Map<String, List<String>> map = actions.getStatusCodeToReasonCodeMap();
 		String identifier = getTestProvideridentifier(providerType);
@@ -238,7 +238,7 @@ public class UpdateProviderLegacyTest {
 	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
 	public void testGeneratingDefaultNoteID(ProviderType providerType) {
 
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);;
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
 		String identifier = getTestProvideridentifier(providerType);
 		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
@@ -270,7 +270,7 @@ public class UpdateProviderLegacyTest {
 		// String errorMsg03="GRS.SYS.UNK.UNK.1.0.5000: Entry Error. Some mandatory data
 		// is missing in your transaction. Your transaction has not been processed.
 		// Correct and resubmit. The following fields must be supplied.";
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);;
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
 		String identifier = getTestProvideridentifier(providerType);
 		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
@@ -311,7 +311,7 @@ public class UpdateProviderLegacyTest {
 	public void testValidateStatusClassCode(ProviderType providerType) {
 		String[] expctArray = { "LIC - Licensure", "AE - Assigned Entity" };
 
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);;
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
 		String identifier = getTestProvideridentifier(providerType);
 		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
@@ -329,7 +329,7 @@ public class UpdateProviderLegacyTest {
 	@Test(dataProvider = "indOrgTypes", dataProviderClass = InjectableData.class)
 	public void testValidateStatusReasonCode(ProviderType providerType) {
 		String errorMsg = errorList.getString("errorStatusReasonCodeMissing");
-		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);;
+		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
 		String identifier = getTestProvideridentifier(providerType);
 		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
@@ -617,7 +617,7 @@ public class UpdateProviderLegacyTest {
 		String noteTextnew = "NoteTextUpdate:" + UpdateSimpleHelper.generateAlphabetString(10);
 		// int index=page.findDataBloackIndexByKey(ProviderSection.NOTES,"Note
 		// Identifier",noteId);
-		msg = page.updateNoteDataBlockCancel(noteTextnew, UpdateSimpleHelper.effective_date(),
+		page.updateNoteDataBlockCancel(noteTextnew, UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, 0, false);
 		content = page.grabDataBlockContent(ProviderSection.NOTES, 0);
 		assertEquals(noteText, content.get("Note Text"));
@@ -651,7 +651,7 @@ public class UpdateProviderLegacyTest {
 		assertEquals("IPC."+newProviderId+".BC.PRS", content.get("Identifier"));
 
 		//restore updated IPC
-		msg = page.updateRegIdentifiersDataBlock(pauthId, UpdateSimpleHelper.effective_date(),
+		page.updateRegIdentifiersDataBlock(pauthId, UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CORR, index, false);
 	}
 
@@ -672,7 +672,7 @@ public class UpdateProviderLegacyTest {
 		assertTrue(StringUtils.isEmpty(msg));
 
 		// cancel update
-		msg = page.updateStatusDataBlockCancel("ACTIVE", "UNK", UpdateSimpleHelper.effective_date(),
+		page.updateStatusDataBlockCancel("ACTIVE", "UNK", UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
 		LinkedHashMap<String, String> content = page.grabDataBlockContent(ProviderSection.STATUSES, index);
 		assertTrue(content.get("Reason").contains("GS"));
@@ -985,7 +985,7 @@ public class UpdateProviderLegacyTest {
 	public void testValidateOrganizationName() {
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
-		String identifier = identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
+		String identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
 		String pauthId = UpdateSimpleHelper.getRegIdString("IPC", identifier);
 		UpdateProviderPage page = actions.openProvider(pauthId);
 	
@@ -998,15 +998,15 @@ public class UpdateProviderLegacyTest {
 		String msg = page.updateOrganizationalNameDataBlock(null,
 				UpdateSimpleHelper.generateAlphabetString(10),
 				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg01));
+        assertEquals(errorMsg01, msg);
 		msg = page.updateOrganizationalNameDataBlock(UpdateSimpleHelper.generateAlphabetString(maxOrgName+1),
 				UpdateSimpleHelper.generateAlphabetString(maxOrgdesc),
 				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg02));
+        assertEquals(errorMsg02, msg);
 		msg = page.updateOrganizationalNameDataBlock(UpdateSimpleHelper.generateAlphabetString(maxOrgName),
 				UpdateSimpleHelper.generateAlphabetString(maxOrgdesc+1),
 				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg03));
+        assertEquals(errorMsg03, msg);
 		msg = page.updateOrganizationalNameDataBlock(UpdateSimpleHelper.generateAlphabetString(maxOrgName),
 				UpdateSimpleHelper.generateAlphabetString(maxOrgdesc),
 				UpdateSimpleHelper.effective_date(),UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, false);
