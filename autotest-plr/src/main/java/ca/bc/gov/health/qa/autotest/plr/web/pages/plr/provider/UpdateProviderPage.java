@@ -366,6 +366,15 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return selenium_.findElementByCss(dialogCss);
 	}
 
+	/**
+	 * Clicks the update button on a specified data block within a work location section
+	 * (Addresses, Electronic Addresses, Telecommunications, Communication Preferences)
+	 * @param section the provider section within the work location to find the update button
+	 *                   will only accept Addresses, Electronic Addresses, Telecommunications, and Communication Preferences
+	 * @param wlIndex the index of the work location to find the data block's update button within
+	 * @param entityIndex the index of the data block within the work location to find and click the update button for
+	 * @return the WebElement of the dialog content after clicking the update button and waiting for the dialog to be visible
+	 */
 	public WebElement clickWLHeaderUpdateButton(ProviderSection section, int wlIndex, int entityIndex) {
 		// expand the work location if hasn't happened yet
 		expandDataBlock(ProviderSection.WORK_LOCATIONS, wlIndex, true);
@@ -882,7 +891,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return msgDisplay;
 	}
 
-	public String updateWLAddressDataBlock(int wlIndex, int entityIndex, String addressType, String purpose,
+	public String updateWLAddressDataBlock(int wlIndex, int entityIndex,
 									   String addressLine1, String addressLine2, String addressLine3,
 									   String city, String province, String postalCode, String country,
 									   String effectiveFrom, String effectiveTo, EndReason endReason,
@@ -893,8 +902,8 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		clickWLHeaderUpdateButton(ProviderSection.ADDRESSES, wlIndex, entityIndex);
 
-		fillAddressDataBlock(addressType, purpose, addressLine1, addressLine2, addressLine3, city, province, country,
-				postalCode, effectiveFrom, effectiveTo);
+		fillAddressDataBlock(null, null, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
 
 		if (endReason != null) {
 			setEndReasonByVisibleText(ProviderSection.ADDRESSES, endReason.getText());
