@@ -73,7 +73,7 @@ public class UpdateProviderLegacyTest {
 
 	@AfterClass
 	public void teardown() {
-		//workflowManager_.logoutAllAndClose();
+		workflowManager_.logoutAllAndClose();
 		LOG.info("Done.");
 	}
 
@@ -195,6 +195,12 @@ public class UpdateProviderLegacyTest {
 	public void testCodeRestrictionValidationIdentifier(ProviderType providerType) {
 		List<String> expectList = new ArrayList<>(Arrays.asList("CPN - Common Party Number",
 				"IPC - Internal Provider Code", "DENID - Dentist ID Number"));
+
+		if (providerType.equals(ProviderType.ORGANIZATION)) {
+			expectList.add("ORGID - Organization");
+			expectList.remove("DENID - Dentist ID Number");
+		}
+
 		PlrWebWorkflow workflow = TestHelper.logIn(workflowManager_, UserType.ADMIN);
 		UpdateProviderActions actions = workflowManager_.getSelectedWorkflow().getUpdateProviderActions();
 		String identifier = getTestProvideridentifier(providerType);
@@ -694,16 +700,16 @@ public class UpdateProviderLegacyTest {
 		
 		String msg = page.updateIdentifiersDataBlock(foreignID, UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg01));
+        assertEquals(errorMsg01, msg);
 		msg = page.updateIdentifiersDataBlock(nonnumericID, UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg01));
+        assertEquals(errorMsg01, msg);
 		msg = page.updateIdentifiersDataBlock(nonalphaID, UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg01));
+        assertEquals(errorMsg01, msg);
 		msg = page.updateIdentifiersDataBlock(null, UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg02));
+        assertEquals(errorMsg02, msg);
 	}
 
 //Then Validate Provider Identifiers For Update

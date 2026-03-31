@@ -892,6 +892,66 @@ public class UpdateProviderPage extends ViewProviderPage {
 	}
 
 	/**
+	 * performing action of adding Work Location Telecom Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to add the telecom data block for
+	 * @param telecomType the telecom type to select
+	 * @param purpose the purpose to select
+	 * @param areaCode the area code to input
+	 * @param number the number to input
+	 * @param extension the extension to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addWLTelecomDataBlock(int wlIndex, String telecomType, String purpose, String areaCode, String number, String extension,
+										String effectiveFrom, String effectiveTo, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickWLHeaderAddButton(ProviderSection.TELECOMMUNICATIONS, wlIndex);
+
+		fillTelecommunicationDataBlock(telecomType, purpose, areaCode, number, extension, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.TELECOMMUNICATIONS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Work Location Electronic Address Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to add the electronic address data block for
+	 * @param eAddressType the electronic address type to select
+	 * @param purpose the purpose to select
+	 * @param address the electronic address to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addWLElecAddressDataBlock(int wlIndex, String eAddressType, String purpose, String address,
+										String effectiveFrom, String effectiveTo, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		clickWLHeaderAddButton(ProviderSection.ELECTRONIC_ADDRESSES, wlIndex);
+
+		fillElectronicAddressDataBlock(eAddressType, purpose, address, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ELECTRONIC_ADDRESSES, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
 	 * performing action of updating Work Location Address Data Block, perform error message check if necessary
 	 * @param wlIndex the index of work location to update the address data block for
 	 * @param entityIndex the index of the address data block within the work location to update
@@ -934,6 +994,43 @@ public class UpdateProviderPage extends ViewProviderPage {
 		if (expectError) {
 			// Wait for error message (waitErrorMessage already clicks Cancel when done)
 			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of updating Work Location Telecom Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to update the telecom data block for
+	 * @param entityIndex the index of the telecom data block within the work location to update
+	 * @param areaCode the area code to input
+	 * @param number the number to input
+	 * @param extension the extension to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param endReason the end reason to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String updateWLTelecomDataBlock(int wlIndex, int entityIndex, String areaCode, String number, String extension,
+										String effectiveFrom, String effectiveTo, EndReason endReason, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickWLHeaderUpdateButton(ProviderSection.TELECOMMUNICATIONS, wlIndex, entityIndex);
+
+		fillTelecommunicationDataBlock(null, null, areaCode, number, extension, effectiveFrom, effectiveTo);
+
+		if (endReason != null) {
+			setEndReasonByVisibleText(ProviderSection.TELECOMMUNICATIONS, endReason.getText());
+		}
+
+		clickDialogSubmitButton(ProviderSection.TELECOMMUNICATIONS, expectError);
+
+		if (expectError) {
+			msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
 		} else {
 			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
 		}
@@ -1977,15 +2074,19 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomType", telecomType);
-		waitSeconds(1); // Wait for AJAX update after dropdown selection
+		if (telecomType != null) {
+			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomType", telecomType);
+			waitSeconds(1); // Wait for AJAX update after dropdown selection
+		}
 
 		// Organizations use "telecomPurposeFiltered", practitioners use "telecomPurpose"
-		String purposePanelCss = "div#" + formName + "\\:telecomPurposeFiltered_panel";
-		if (!selenium_.findElements(By.cssSelector(purposePanelCss)).isEmpty()) {
-			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurposeFiltered", purpose);
-		} else {
-			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurpose", purpose);
+		if (purpose != null) {
+			String purposePanelCss = "div#" + formName + "\\:telecomPurposeFiltered_panel";
+			if (!selenium_.findElements(By.cssSelector(purposePanelCss)).isEmpty()) {
+				setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurposeFiltered", purpose);
+			} else {
+				setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurpose", purpose);
+			}
 		}
 
 		// Fill area code
