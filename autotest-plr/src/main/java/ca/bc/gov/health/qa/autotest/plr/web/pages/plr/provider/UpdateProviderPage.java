@@ -302,6 +302,45 @@ public class UpdateProviderPage extends ViewProviderPage {
 		return selenium_.findElementByCss(dialogCss);
 	}
 
+	/**
+	 * Clicks the add button in the header of a work location
+	 * @param section the provider section within the work location
+	 *                will only accept Addresses, Electronic Addresses, Telecommunications, and Communication Preferences
+	 * @param index   the index of work location to add the data block for
+	 * @return the WebElement of the dialog content after clicking the add button and waiting for the dialog to be visible
+	 */
+	public WebElement clickWLHeaderAddButton(ProviderSection section, int index)
+	{
+		// expand the work location if hasn't happened yet
+		expandDataBlock(ProviderSection.WORK_LOCATIONS, index, true);
+
+		String clickElementCss = getSectionSelector(ProviderSection.WORK_LOCATIONS) + " > div > table > tbody > tr > td > ";
+		clickElementCss += String.format("div#wlRepeat\\:%d\\:workLocationPanel > div > div > div > div#wlRepeat\\:%d\\:", index, index);
+		switch (section) {
+			case ProviderSection.ADDRESSES -> clickElementCss += "workLocationAddressesPanel";
+			case ProviderSection.TELECOMMUNICATIONS -> clickElementCss += "workLocationTelecommunicationsPanel";
+			case ProviderSection.ELECTRONIC_ADDRESSES -> clickElementCss += "workLocationElectronicAddressesPanel";
+			case ProviderSection.COMMUNICATION_PREFERENCE -> clickElementCss += "workLocationInformationRoutesPanel";
+			default -> throw new IllegalArgumentException("Section " + section + " is not supported for adding within Work Locations");
+		}
+		clickElementCss += " > div > div > a > img[title='" + DIALOG_MAP.get(section).getAddButtonImgText() + "']";
+
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		WebElement clickElement = selenium_.findElement(By.cssSelector(clickElementCss));
+		selenium_.scrollIntoView(clickElement);
+		try {
+			clickElement.click();
+		} catch (StaleElementReferenceException | ElementClickInterceptedException e) {
+			waitSeconds(2);
+			clickElement = selenium_.findElement(By.cssSelector(clickElementCss));
+			clickElement.click();
+		}
+
+		String dialogCss = getDialogCss(section);
+		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
+	}
+
     /**
      * Attempts to click the update button on a specified data block
      *
@@ -318,6 +357,57 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(selectCss)));
 		WebElement updateButton = selenium_.findElementByCss(selectCss);
+		selenium_.scrollIntoView(updateButton);
+
+		try {
+			updateButton.click();
+		} catch (StaleElementReferenceException e) {
+			waitSeconds(2);
+			updateButton.click();
+		}
+		String dialogCss = getDialogCss(section);
+		WebElement visibleElement = selenium_
+				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return selenium_.findElementByCss(dialogCss);
+	}
+
+	/**
+	 * Clicks the update button on a specified data block within a work location section
+	 * (Addresses, Electronic Addresses, Telecommunications, Communication Preferences)
+	 * @param section the provider section within the work location to find the update button
+	 *                   will only accept Addresses, Electronic Addresses, Telecommunications, and Communication Preferences
+	 * @param wlIndex the index of the work location to find the data block's update button within
+	 * @param entityIndex the index of the data block within the work location to find and click the update button for
+	 * @return the WebElement of the dialog content after clicking the update button and waiting for the dialog to be visible
+	 */
+	public WebElement clickWLHeaderUpdateButton(ProviderSection section, int wlIndex, int entityIndex) {
+		// expand the work location if hasn't happened yet
+		expandDataBlock(ProviderSection.WORK_LOCATIONS, wlIndex, true);
+
+		final String panelType = switch (section) {
+			case ProviderSection.ADDRESSES -> "wlAddressPanel";
+			case ProviderSection.TELECOMMUNICATIONS -> "telecommunicationPanel";
+			case ProviderSection.ELECTRONIC_ADDRESSES -> "eAddressPanel";
+			case ProviderSection.COMMUNICATION_PREFERENCE -> "informationRoutePanel";
+			default -> throw new IllegalArgumentException("Section " + section + " is not supported for updating within Work Locations");
+		};
+
+		final String wlRepeatId = String.format("wlRepeat\\:%d\\:", wlIndex);
+		final String wlPanelId = String.format("\\:%d\\:%s", entityIndex, panelType);
+
+		String clickElementCss = getSectionSelector(ProviderSection.WORK_LOCATIONS) + " > div > table > tbody > tr > td > div#";
+		clickElementCss += wlRepeatId + "workLocationPanel > div > div > div > div#" + wlRepeatId;
+		switch (section) {
+			case ProviderSection.ADDRESSES -> clickElementCss += "workLocationAddressesPanel";
+			case ProviderSection.TELECOMMUNICATIONS -> clickElementCss += "workLocationTelecommunicationsPanel";
+			case ProviderSection.ELECTRONIC_ADDRESSES -> clickElementCss += "workLocationElectronicAddressesPanel";
+			case ProviderSection.COMMUNICATION_PREFERENCE -> clickElementCss += "workLocationInformationRoutesPanel";
+			default -> throw new IllegalArgumentException("Section " + section + " is not supported for updating within Work Locations");
+		}
+		clickElementCss += " > div > table > tbody > tr > td > div[id^='" + wlRepeatId + "'][id*='" + wlPanelId + "'] > div > div > a > img[title^='Update']";
+
+		selenium_.waitUntil(ExpectedConditions.elementToBeClickable(By.cssSelector(clickElementCss)));
+		WebElement updateButton = selenium_.findElementByCss(clickElementCss);
 		selenium_.scrollIntoView(updateButton);
 
 		try {
@@ -965,6 +1055,196 @@ public class UpdateProviderPage extends ViewProviderPage {
 		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.WORK_LOCATIONS);
 
 		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Work Location Address Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to add the address data block for
+	 * @param addressType the address type to select
+	 * @param purpose the purpose to select
+	 * @param addressLine1 the address line 1 to input
+	 * @param addressLine2 the address line 2 to input
+	 * @param addressLine3 the address line 3 to input
+	 * @param city the city to input
+	 * @param province the province to input
+	 * @param postalCode the postal code to input
+	 * @param country the country to select
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addWLAddressDataBlock(int wlIndex, String addressType, String purpose,
+										String addressLine1, String addressLine2, String addressLine3,
+										String city, String province, String postalCode, String country,
+										String effectiveFrom, String effectiveTo, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickWLHeaderAddButton(ProviderSection.ADDRESSES, wlIndex);
+
+		fillAddressDataBlock(addressType, purpose, addressLine1, addressLine2, addressLine3, city, province, country,
+								postalCode, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+
+		// Handle address validation popups that may appear (only when not expecting error)
+		handleAddressValidationDialog();
+
+		if (expectError) {
+			// Wait for error message (waitErrorMessage already clicks Cancel when done)
+			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Work Location Telecom Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to add the telecom data block for
+	 * @param telecomType the telecom type to select
+	 * @param purpose the purpose to select
+	 * @param areaCode the area code to input
+	 * @param number the number to input
+	 * @param extension the extension to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addWLTelecomDataBlock(int wlIndex, String telecomType, String purpose, String areaCode, String number, String extension,
+										String effectiveFrom, String effectiveTo, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickWLHeaderAddButton(ProviderSection.TELECOMMUNICATIONS, wlIndex);
+
+		fillTelecommunicationDataBlock(telecomType, purpose, areaCode, number, extension, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.TELECOMMUNICATIONS, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of adding Work Location Electronic Address Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to add the electronic address data block for
+	 * @param eAddressType the electronic address type to select
+	 * @param purpose the purpose to select
+	 * @param address the electronic address to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String addWLElecAddressDataBlock(int wlIndex, String eAddressType, String purpose, String address,
+										String effectiveFrom, String effectiveTo, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		clickWLHeaderAddButton(ProviderSection.ELECTRONIC_ADDRESSES, wlIndex);
+
+		fillElectronicAddressDataBlock(eAddressType, purpose, address, effectiveFrom, effectiveTo);
+
+		clickDialogSubmitButton(ProviderSection.ELECTRONIC_ADDRESSES, expectError);
+
+		if (expectError) msgDisplay = waitErrorMessage(ProviderSection.ELECTRONIC_ADDRESSES);
+
+		selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of updating Work Location Address Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to update the address data block for
+	 * @param entityIndex the index of the address data block within the work location to update
+	 * @param addressLine1 the address line 1 to input
+	 * @param addressLine2 the address line 2 to input
+	 * @param addressLine3 the address line 3 to input
+	 * @param city the city to input
+	 * @param province the province to input
+	 * @param postalCode the postal code to input
+	 * @param country the country to select
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param endReason the end reason to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String updateWLAddressDataBlock(int wlIndex, int entityIndex,
+									   String addressLine1, String addressLine2, String addressLine3,
+									   String city, String province, String postalCode, String country,
+									   String effectiveFrom, String effectiveTo, EndReason endReason,
+									   boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.ADDRESSES);
+
+		clickWLHeaderUpdateButton(ProviderSection.ADDRESSES, wlIndex, entityIndex);
+
+		fillAddressDataBlock(null, null, addressLine1, addressLine2, addressLine3,
+				city, province, country, postalCode, effectiveFrom, effectiveTo);
+
+		if (endReason != null) {
+			setEndReasonByVisibleText(ProviderSection.ADDRESSES, endReason.getText());
+		}
+
+		clickDialogSubmitButton(ProviderSection.ADDRESSES, expectError);
+
+		// Handle address validation popups that may appear (only when not expecting error)
+		handleAddressValidationDialog();
+
+		if (expectError) {
+			// Wait for error message (waitErrorMessage already clicks Cancel when done)
+			msgDisplay = waitErrorMessage(ProviderSection.ADDRESSES);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
+		return msgDisplay;
+	}
+
+	/**
+	 * performing action of updating Work Location Telecom Data Block, perform error message check if necessary
+	 * @param wlIndex the index of work location to update the telecom data block for
+	 * @param entityIndex the index of the telecom data block within the work location to update
+	 * @param areaCode the area code to input
+	 * @param number the number to input
+	 * @param extension the extension to input
+	 * @param effectiveFrom the effective from date to input
+	 * @param effectiveTo the effective to date to input
+	 * @param endReason the end reason to select
+	 * @param expectError if this action expect returning error messages
+	 * @return expected error message or empty string if no error message expected
+	 */
+	public String updateWLTelecomDataBlock(int wlIndex, int entityIndex, String areaCode, String number, String extension,
+										String effectiveFrom, String effectiveTo, EndReason endReason, boolean expectError)
+	{
+		String msgDisplay = "";
+		String dialogCss = getDialogCss(ProviderSection.TELECOMMUNICATIONS);
+
+		clickWLHeaderUpdateButton(ProviderSection.TELECOMMUNICATIONS, wlIndex, entityIndex);
+
+		fillTelecommunicationDataBlock(null, null, areaCode, number, extension, effectiveFrom, effectiveTo);
+
+		if (endReason != null) {
+			setEndReasonByVisibleText(ProviderSection.TELECOMMUNICATIONS, endReason.getText());
+		}
+
+		clickDialogSubmitButton(ProviderSection.TELECOMMUNICATIONS, expectError);
+
+		if (expectError) {
+			msgDisplay = waitErrorMessage(ProviderSection.TELECOMMUNICATIONS);
+		} else {
+			selenium_.waitUntil(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(dialogCss)));
+		}
 		return msgDisplay;
 	}
 
@@ -2040,15 +2320,19 @@ public class UpdateProviderPage extends ViewProviderPage {
 		selenium_.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(dialogCss)));
 		waitSeconds(2);
 
-		setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomType", telecomType);
-		waitSeconds(1); // Wait for AJAX update after dropdown selection
+		if (telecomType != null) {
+			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomType", telecomType);
+			waitSeconds(1); // Wait for AJAX update after dropdown selection
+		}
 
 		// Organizations use "telecomPurposeFiltered", practitioners use "telecomPurpose"
-		String purposePanelCss = "div#" + formName + "\\:telecomPurposeFiltered_panel";
-		if (!selenium_.findElements(By.cssSelector(purposePanelCss)).isEmpty()) {
-			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurposeFiltered", purpose);
-		} else {
-			setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurpose", purpose);
+		if (purpose != null) {
+			String purposePanelCss = "div#" + formName + "\\:telecomPurposeFiltered_panel";
+			if (!selenium_.findElements(By.cssSelector(purposePanelCss)).isEmpty()) {
+				setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurposeFiltered", purpose);
+			} else {
+				setDropdownListByVisibleText(ProviderSection.TELECOMMUNICATIONS, "telecomPurpose", purpose);
+			}
 		}
 
 		// Fill area code
@@ -2232,12 +2516,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Identifiers Data Block
 	 *
-	 * @param id
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
+	 * @param id			id
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo   effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index		 the data block index to update
+	 * @param expectError   if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string.
 	 */
@@ -2271,11 +2555,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * add Note Data Block
 	 *
-	 * @param id
-	 * @param text
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param expectError
+	 * @param id the note id
+	 * @param text the note text
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string.
 	 */
@@ -2313,12 +2597,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Note Data Block
 	 *
-	 * @param text
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
+	 * @param text the note text
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2354,11 +2638,11 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * add RegIdentifiers Data Block
 	 *
-	 * @param regIdType
-	 * @param regId
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param expectError
+	 * @param regIdType the registry identifier type
+	 * @param regId the registry identifier
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2392,12 +2676,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update RegIdentifiers Data Block
 	 *
-	 * @param regId
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
+	 * @param regId the registry identifier
+	 * @param effectiveFrom effective from date
+	 * @param effectiveTo effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2434,12 +2718,12 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * add Status Data Block
 	 *
-	 * @param statusClassCode
-	 * @param statusCode
-	 * @param statusReasonCode
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param expectError
+	 * @param statusClassCode the status class code
+	 * @param statusCode the status code
+	 * @param statusReasonCode the status reason code
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2474,13 +2758,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Status Data Block
 	 *
-	 * @param statusCode
-	 * @param statusReasonCode
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
+	 * @param statusCode the status class code
+	 * @param statusReasonCode the status code
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
 	 * @return If there are error messages, return them; otherwise return an empty
 	 *         string
 	 */
@@ -2641,13 +2925,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Note Data Block but click Cancel button at last
 	 *
-	 * @param text
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
-	 * @return
+	 * @param text the note text
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
+	 * @return If there are error messages, return them; otherwise return an empty string
 	 */
 	public String updateNoteDataBlockCancel(String text, String effectiveFrom, String effectiveTo,
 			EndReason endReasonCode, int index, boolean expectError) {
@@ -2680,13 +2964,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Identifier Data Block but click Cancel button at last
 	 *
-	 * @param id
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
+	 * @param id the identifier
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
 	 * @param b
-	 * @return
+	 * @return If there are error messages, return them; otherwise return an empty string
 	 */
 	public String updateIdentifierDataBlockCancel(String id, String effectiveFrom, String effectiveTo,
 			EndReason endReasonCode, int index, boolean b) {
@@ -2718,13 +3002,13 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update RegIdentifiers Data Block but click Cancel button at last
 	 *
-	 * @param regId
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
+	 * @param regId the registry identifier
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
 	 * @param b
-	 * @return
+	 * @return If there are error messages, return them; otherwise return an empty string
 	 */
 	public String updateRegIdentifiersDataBlockCancel(String regId, String effectiveFrom, String effectiveTo,
 			EndReason endReasonCode, int index, boolean b) {
@@ -2757,14 +3041,14 @@ public class UpdateProviderPage extends ViewProviderPage {
 	/**
 	 * update Status Data Block but click Cancel button at last
 	 *
-	 * @param statusCode
-	 * @param statusReasonCode
-	 * @param effectiveFrom
-	 * @param effectiveTo
-	 * @param endReasonCode
-	 * @param index
-	 * @param expectError
-	 * @return
+	 * @param statusCode the status code
+	 * @param statusReasonCode the status reason code
+	 * @param effectiveFrom the effective from date
+	 * @param effectiveTo the effective to date
+	 * @param endReasonCode the end reason code
+	 * @param index the data block index to update
+	 * @param expectError if error messages are expected
+	 * @return If there are error messages, return them; otherwise return an empty string
 	 */
 	public String updateStatusDataBlockCancel(String statusCode, String statusReasonCode, String effectiveFrom,
 			String effectiveTo, EndReason endReasonCode, int index, boolean expectError) {
