@@ -1,7 +1,5 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
-import static org.testng.Assert.assertTrue;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,12 +16,9 @@ import org.testng.annotations.Test;
 import ca.bc.gov.health.qa.autotest.core.util.config.Config;
 import ca.bc.gov.health.qa.autotest.core.util.config.ConfigProvider;
 import ca.bc.gov.health.qa.autotest.plr.fhir.FHIRController;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualBuilderFactory;
-import ca.bc.gov.health.qa.autotest.plr.fhir.data.individual.IndividualDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationBuilderFactory;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationDataGenerator;
 import ca.bc.gov.health.qa.autotest.plr.fhir.data.organization.OrganizationMaintainConfig;
-import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.common.model.IdentifierType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.MaintainOrgBuilder;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.HdsSubType;
 import ca.bc.gov.health.qa.autotest.plr.fhir.maintain.organization.model.OrgRoleType;
@@ -41,13 +36,14 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.model.HdsType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationProperties;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.OrganizationalProviderRoleType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderIdentifierTypeOptions;
-import ca.bc.gov.health.qa.autotest.plr.web.tests.model.ProviderRoleType;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusCodeOption;
 import ca.bc.gov.health.qa.autotest.plr.web.tests.model.StatusReasonCodeOption;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
 import ca.bc.gov.health.qa.autotest.runner.util.testng.SimpleTest;
+
+import static org.testng.Assert.*;
 
 public class CreateOrganizationTest implements SimpleTest {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -84,7 +80,141 @@ public class CreateOrganizationTest implements SimpleTest {
 			workflow.login().openPlr();
 		}
 	}
+
 //	
+//	Add Organization
+	@Test(groups = { "CreateOrganization" })
+	public void testAddOrganization() {
+		MaintainOrgBuilder providerBuilder = getOrgBuilder();
+		Map<String, String> orgAddress = providerBuilder.getAddressList().getFirst();
+		String orgName = providerBuilder.getName();
+		String orgDesc = providerBuilder.getAlias();
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+		AddProviderPage page = workflow.getPlrWebAccessActions().openAddOrganization()
+				.openProviderPage(ProviderType.ORGANIZATION);
+		AddProviderIdFragment fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null,
+				"ORGID", UpdateSimpleHelper.generateNumericString(8));
+		// assertTrue(fragment.isHdsTYpeDisplayed());
+		page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+		clickFirstNext(page);
+
+		page.fillOrganizationName(orgName, orgDesc);
+		clickSecondNext(page);
+
+		AddProviderAddressFragment address = page.fillAddress("P", orgAddress.get("purpose"),
+				List.of(orgAddress.get("line1"), "", ""), orgAddress.get("city"), "BC", "CA",
+				orgAddress.get("postalCode"));
+		page.fillPhone("250", UpdateSimpleHelper.generateNumericString(7), UpdateSimpleHelper.generateNumericString(3));
+		page.fillFax("250", UpdateSimpleHelper.generateNumericString(7));
+		page.fillEmail(UpdateSimpleHelper.generateEmail());
+		clickThirdNext(page, address);
+
+		page.fillCredentials("BD", "Test", "5358", "TestInst", "Victoria", "CA", "BC", true, "2001");
+		page.fillExpertise("ENG", "2500");
+
+		ViewProviderPage viewPage = page.clickSubmitButton();
+
+		LinkedHashMap<String, String> content = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
+        assertEquals(orgName, content.get("Name"));
+        assertEquals(orgDesc, content.get("Description"));
+	}
+
+//
+//	Organization Provider Minimum Data Requirements- not applicable
+//
+//	Provider Role Types for Organization Providers
+	@Test(groups = { "CreateOrganization" })
+	public void testProviderRoleTypesforOrganizationProviders() {
+		MaintainOrgBuilder providerBuilder = getOrgBuilder();
+		Map<String, String> orgAddress = providerBuilder.getAddressList().get(0);
+		String orgName = providerBuilder.getName();
+		String orgDesc = providerBuilder.getAlias();
+		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();
+
+		// Add org
+		AddProviderPage page = workflow.getPlrWebAccessActions().openAddOrganization()
+				.openProviderPage(ProviderType.ORGANIZATION);
+		AddProviderIdFragment fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null,
+				"ORGID", UpdateSimpleHelper.generateNumericString(8));
+
+		page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+		clickFirstNext(page);
+
+		page.fillOrganizationName(orgName, orgDesc);
+		clickSecondNext(page);
+		AddProviderAddressFragment address = page.fillAddress("P", orgAddress.get("purpose"),
+				List.of(orgAddress.get("line1"), "", ""), orgAddress.get("city"), "BC", "CA",
+				orgAddress.get("postalCode"));
+		page.fillPhone("250", UpdateSimpleHelper.generateNumericString(7), UpdateSimpleHelper.generateNumericString(3));
+		page.fillFax("250", UpdateSimpleHelper.generateNumericString(7));
+		page.fillEmail(UpdateSimpleHelper.generateEmail());
+		clickThirdNext(page, address);
+		ViewProviderPage viewPage = page.clickSubmitButton();
+		LinkedHashMap<String, String> content = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
+        assertEquals(orgName, content.get("Name"));
+        assertEquals(orgDesc, content.get("Description"));
+
+		// add business
+		orgName = providerBuilder.getName() + UpdateSimpleHelper.generateNumericString(2);
+		orgDesc = providerBuilder.getAlias() + UpdateSimpleHelper.generateNumericString(2);
+
+		page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
+		fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.BUSINESS, null, null, "ORGID",
+				UpdateSimpleHelper.generateNumericString(8));
+
+		page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+		clickFirstNext(page);
+
+		page.fillOrganizationName(orgName, orgDesc);
+		clickSecondNext(page);
+		address = page.fillAddress("P", orgAddress.get("purpose"), List.of(orgAddress.get("line1"), "", ""),
+				orgAddress.get("city"), "BC", "CA", orgAddress.get("postalCode"));
+		page.fillPhone("250", UpdateSimpleHelper.generateNumericString(7), UpdateSimpleHelper.generateNumericString(3));
+		page.fillFax("250", UpdateSimpleHelper.generateNumericString(7));
+		page.fillEmail(UpdateSimpleHelper.generateEmail());
+		clickThirdNext(page, address);
+		viewPage = page.clickSubmitButton();
+		content = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
+        assertEquals(orgName, content.get("Name"));
+        assertEquals(orgDesc, content.get("Description"));
+
+		// add clinic
+		orgName = providerBuilder.getName() + UpdateSimpleHelper.generateNumericString(2);
+		orgDesc = providerBuilder.getAlias() + UpdateSimpleHelper.generateNumericString(2);
+
+		page = workflow.getPlrWebAccessActions().openAddOrganization().openProviderPage(ProviderType.ORGANIZATION);
+		fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.CLINIC, null, null, "ORGID",
+				UpdateSimpleHelper.generateNumericString(8));
+
+		page.fillStatus("LIC", StatusCodeOption.ACTIVE, StatusReasonCodeOption.GS);
+		clickFirstNext(page);
+
+		page.fillOrganizationName(orgName, orgDesc);
+		clickSecondNext(page);
+		address = page.fillAddress("P", orgAddress.get("purpose"), List.of(orgAddress.get("line1"), "", ""),
+				orgAddress.get("city"), "BC", "CA", orgAddress.get("postalCode"));
+		page.fillPhone("250", UpdateSimpleHelper.generateNumericString(7), UpdateSimpleHelper.generateNumericString(3));
+		page.fillFax("250", UpdateSimpleHelper.generateNumericString(7));
+		page.fillEmail(UpdateSimpleHelper.generateEmail());
+		clickThirdNext(page, address);
+		viewPage = page.clickSubmitButton();
+		content = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
+        assertEquals(orgName, content.get("Name"));
+        assertEquals(orgDesc, content.get("Description"));
+
+		// add HDS
+		viewPage = createHDSProvider(HdsType.CLINIC, HdsSubType.LNWIC);
+		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
+		;
+		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
+			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
+        assertFalse(resultProperty.isEmpty());
+		assertTrue(resultProperty.get("Role Type").contains("HDS"));
+		assertTrue(resultProperty.get("HDS Type").contains("CLINIC"));
+	}
+//
+//	Validate Organization name- PLR 608
+
 //	Organization Name and Long Name Accepted Characters
 	@Test(groups = { "CreateOrganization" })
 	public void testOrganizationNameAcceptedCharacters() {
@@ -109,7 +239,7 @@ public class CreateOrganizationTest implements SimpleTest {
         page.fillOrganizationName(invalidNams, fullSetChars);
         page.clickNext("Organization");
         String errMsg=page.grabPageErrorMessage();
-        assertTrue(errMsg.equals(errorInvalidChar7081),"Expected error message not found");
+        assertEquals(errorInvalidChar7081, errMsg, "Expected error message not found");
        
  
         page.fillOrganizationName(orgName,fullSetChars);
@@ -130,7 +260,7 @@ public class CreateOrganizationTest implements SimpleTest {
         
         ViewProviderPage viewPage = page.clickSubmitButton();
         LinkedHashMap<String, String> resultName = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
-        assertTrue(resultName.get("Description").equals(fullSetChars),"Excepted acceptable charset not supported");
+        assertEquals(resultName.get("Description"), fullSetChars, "Excepted acceptable charset not supported");
 	}
 	
 
@@ -182,7 +312,7 @@ public class CreateOrganizationTest implements SimpleTest {
 				.openProviderPage(ProviderType.ORGANIZATION);
 		// Select a provider role type other than HDS.hds type hides
 		AddProviderIdFragment fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.ORG, null, null, null, null);
-		assertTrue(!fragment.isHdsTYpeDisplayed());
+        assertFalse(fragment.isHdsTYpeDisplayed());
 		// Select provider role type of HDS., hds type appears and fill the form
 		fragment = page.fillOrganizationIdentifier(OrganizationalProviderRoleType.HDS, HdsType.CLINIC, HdsSubType.LNWIC.getText(), "ORGID",
 				UpdateSimpleHelper.generateNumericString(8));
@@ -207,11 +337,11 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("CLINIC"));
 		LinkedHashMap<String, String> resultName = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_NAMES, 0);
-		assertTrue(resultName.get("Description").equals(orgDesc), "Excepted acceptable charset not supported");
+        assertEquals(orgDesc, resultName.get("Description"), "Excepted acceptable charset not supported");
 	}
 
 //	Create HDS Organization with Provider role type = EMERGENCY
@@ -221,13 +351,13 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("EMERGENCY"));
 		
 		if (viewPage.grabDataBlockCount(ProviderSection.ORGANIZATION_PROPERTIES) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ORGANIZATION_PROPERTIES, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Property Type").contains("HDS Sub Type"));
 		assertTrue(resultProperty.get("Property Value").contains("Emergency Medical Care"));
 	}
@@ -239,7 +369,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("GENERAL_CARE"));
 	}
@@ -251,7 +381,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("HOSPITAL"));
 	}
@@ -263,7 +393,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("HOUSING"));
 	}
@@ -275,7 +405,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("INPATIENT"));
 	}
@@ -287,7 +417,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("LAB"));
 	}
@@ -299,7 +429,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("OUTPATIENT"));
 	}
@@ -311,7 +441,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("PHARMACY"));
 	}
@@ -323,7 +453,7 @@ public class CreateOrganizationTest implements SimpleTest {
 		LinkedHashMap<String, String> resultProperty = new LinkedHashMap<String, String>();
 		if (viewPage.grabDataBlockCount(ProviderSection.ROLE_TYPE) > 0)
 			resultProperty = viewPage.grabDataBlockContent(ProviderSection.ROLE_TYPE, 0);
-		assertTrue(!resultProperty.isEmpty());
+        assertFalse(resultProperty.isEmpty());
 		assertTrue(resultProperty.get("Role Type").contains("HDS"));
 		assertTrue(resultProperty.get("HDS Type").contains("CLINIC"));
 	}
@@ -404,7 +534,7 @@ public class CreateOrganizationTest implements SimpleTest {
         page.fillFax("250", UpdateSimpleHelper.generateNumericString(7));
         page.fillEmail(UpdateSimpleHelper.generateEmail());
         clickThirdNext(page,address);
-        
+
         ViewProviderPage viewPage = page.clickSubmitButton();
         return viewPage;
 
@@ -414,7 +544,7 @@ public class CreateOrganizationTest implements SimpleTest {
 	
 	private ViewProviderPage createHDSProvider(HdsType hdsType, HdsSubType hdsSubType,ProviderIdentifierTypeOptions idType) {
 		MaintainOrgBuilder providerBuilder = getHdsBuilder();
-		Map<String, String> orgAddress = providerBuilder.getAddressList().get(0);
+		Map<String, String> orgAddress = providerBuilder.getAddressList().getFirst();
 		String orgName = providerBuilder.getName();
 		String orgDesc = providerBuilder.getAlias();
 		PlrWebWorkflow workflow = workflowManager_.getSelectedWorkflow();

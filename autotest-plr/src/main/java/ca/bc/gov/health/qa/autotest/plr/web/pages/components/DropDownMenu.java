@@ -151,7 +151,7 @@ extends BasicWebPageFragment
     public String selectItemFromPanel(String itemPrefix)
     {
         WebElement item = findItem(itemPrefix);
-        selenium_.scrollIntoView(item);
+        //selenium_.scrollIntoView(item);
         selenium_.waitUntil(ExpectedConditions.elementToBeClickable(item));
         String itemLabel = item.getText();
         //Actions actions = new Actions(selenium_.getDriver());
