@@ -427,7 +427,7 @@ public final class TestHelper {
                                         workflow.getURUri().resolve("/plr/ProviderDetails.xhtml"));
     }
 
-    public static UpdateProviderPage viewByIdentifierAsUpdateIndividual(String identifier, PlrWebWorkflowManager workflowManager) {
+    public static UpdateProviderPage viewByIdentifierAsUpdateProvider(String identifier, PlrWebWorkflowManager workflowManager) {
         final PlrWebWorkflow workflow = workflowManager.getSelectedWorkflow();
 
         SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();

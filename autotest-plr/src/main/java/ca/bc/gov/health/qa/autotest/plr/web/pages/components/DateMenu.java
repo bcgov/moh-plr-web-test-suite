@@ -126,6 +126,7 @@ public class DateMenu extends BasicWebPageFragment {
             yearElements = selenium_.findElementsByCss("select.ui-datepicker-year > option");
             for (WebElement elem : yearElements)
             {
+                if (elem.getText().isEmpty()) continue;
                 yearOptions.add(Integer.parseInt(elem.getText()));
                 if (elem.getText().equals(String.valueOf(dateYear))) yearIndex = yearElements.indexOf(elem);
             }

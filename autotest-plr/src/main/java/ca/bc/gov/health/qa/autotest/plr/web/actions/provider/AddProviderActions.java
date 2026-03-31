@@ -122,6 +122,7 @@ public class AddProviderActions {
      *                        (e.g. if the current fragment is "Address", the method will start filling in fields from the address step)
      * @return the ViewProviderPage object that is reached after submitting the add provider form
      */
+    @SuppressWarnings("fallthrough")
     public ViewProviderPage finishCreateFlow(AddProviderPage page, ProviderType providerType, String currentFragment)
     {
         switch (currentFragment) {

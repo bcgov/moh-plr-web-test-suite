@@ -480,4 +480,10 @@ public class MaintainFacilityBuilder implements MaintainRequestBuilder
         copy.ceaseRelationships_ = false; // explicit
         return copy;
     }
+
+	@Override
+	public String getIdentifier(IdentifierType idType) {
+		// TODO Auto-generated method stub
+		 return identifier_;
+	}
 }

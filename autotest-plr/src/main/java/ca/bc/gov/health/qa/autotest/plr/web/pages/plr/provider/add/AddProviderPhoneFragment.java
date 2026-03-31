@@ -5,6 +5,9 @@ import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumExpectedConditi
 import ca.bc.gov.health.qa.autotest.runner.util.selenium.SeleniumSession;
 import org.openqa.selenium.By;
 
+/**
+ * Page object for the Phone Number step of the Add Provider flow.
+ */
 public class AddProviderPhoneFragment extends AddProviderStepFragment {
 
     private static final String AREA_CODE_FIELD_CSS = "input#form\\:areaCode";

@@ -9,6 +9,9 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
+/**
+ * Fragment for the Address form in the Add Provider workflow.
+ */
 public class AddProviderAddressFragment extends AddFacilityStepFragment {
 
     private static final String AUTOCOMPLETE_FIELD_CSS = "input#form\\:autoComplete_input";

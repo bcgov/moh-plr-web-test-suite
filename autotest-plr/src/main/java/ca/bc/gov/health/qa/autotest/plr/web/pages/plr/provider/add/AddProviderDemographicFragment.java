@@ -10,7 +10,7 @@ import org.openqa.selenium.By;
  */
 public class AddProviderDemographicFragment extends AddProviderStepFragment {
 
-    public static final String DOB_PREFIX_CSS = "span#form\\:dob";
+    private static final String DOB_PREFIX_CSS = "span#form\\:dob";
 
     /**
      * Initializes page object and changes selenium's main locator to the Demographic Details heading
