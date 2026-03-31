@@ -1,9 +1,5 @@
 package ca.bc.gov.health.qa.autotest.plr.web.tests.provider;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +14,8 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
@@ -50,6 +48,8 @@ import ca.bc.gov.health.qa.autotest.plr.web.tests.model.TelecommunicationType;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflow;
 import ca.bc.gov.health.qa.autotest.plr.web.workflows.PlrWebWorkflowManager;
 import ca.bc.gov.health.qa.autotest.runner.util.log.ExecutionLogManager;
+
+import static org.testng.Assert.*;
 
 public class UpdateProviderLegacyTest {
 	private static final Logger LOG = ExecutionLogManager.getLogger();
@@ -422,7 +422,7 @@ public class UpdateProviderLegacyTest {
 				page.ceaseDataBlock(ProviderSection.IDENTIFIERS, i);
 			}
 			String msg = page.ceaseDataBlockWithError(ProviderSection.IDENTIFIERS, 0);
-			assertTrue(msg.equals(errorMsg));
+            assertEquals(errorMsg, msg);
 		}
 		if(UserType.SECONDARY.equals(userType)) {
 			// secondary has no permission to cease CPN/IPN
@@ -443,7 +443,7 @@ public class UpdateProviderLegacyTest {
 		page = actions.openProvider(pauthId);
 		page.ceaseAllDataBlockUnderSection(ProviderSection.IDENTIFIERS);
 		count = page.grabActiveDataBlockCount(ProviderSection.IDENTIFIERS, true);
-		assertTrue(count == 0);
+        assertEquals(count, 0);
 		workflowAdm.logout();
 		workflowAdm.close();
 		// ORG
@@ -459,7 +459,7 @@ public class UpdateProviderLegacyTest {
 				page.ceaseDataBlock(ProviderSection.IDENTIFIERS, i);
 			}
 			String msg = page.ceaseDataBlockWithError(ProviderSection.IDENTIFIERS, 0);
-			assertTrue(msg.equals(errorMsg));
+            assertEquals(errorMsg, msg);
 		}
 		if(UserType.SECONDARY.equals(userType)) {
 			// secondary has no permission to cease CPN/IPN
@@ -480,7 +480,7 @@ public class UpdateProviderLegacyTest {
 		page = actions.openProvider(pauthId);
 		page.ceaseAllDataBlockUnderSection(ProviderSection.IDENTIFIERS);
 		count = page.grabActiveDataBlockCount(ProviderSection.IDENTIFIERS, true);
-		assertTrue(count == 0);
+        assertEquals(count, 0);
 		workflowAdm.logout();
 		workflowAdm.close();
 		workflowManager_.logoutAllAndClose();
@@ -522,13 +522,13 @@ public class UpdateProviderLegacyTest {
 		}else {
 			// non-admin user type cannot see the reg id
 			int count=page.grabDataBlockCount(ProviderSection.REGISTRY_IDENTIFIERS);
-			assertTrue(count==0);
+            assertEquals(count, 0);
 		}
 		// search by CPN and return zero result--provider
 		SearchProviderPage searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		SearchProviderResultsFragment searchResults = searchProviderPage
 				.searchByRegistryIdentifier(IdentifierType.CPN.name(), pauthId);
-		if (UserType.ADMIN.equals(userType))assertTrue(searchResults.grabResultsRowCount() == 0);
+		if (UserType.ADMIN.equals(userType)) assertEquals(searchResults.grabResultsRowCount(), 0);
 		else assertTrue(searchResults.grabResultsRowCount() > 0);
 		// ORG
 		cpnString = defaultTestOrg.getIdentifier(IdentifierType.CPN);
@@ -547,12 +547,12 @@ public class UpdateProviderLegacyTest {
 		}else {
 			// non-admin user type cannot see the reg id
 			int count=page.grabDataBlockCount(ProviderSection.REGISTRY_IDENTIFIERS);
-			assertTrue(count==0);
+            assertEquals(count, 0);
 		}
 		// search by CPN and return zero result--org
 		searchProviderPage = workflow.getPlrWebAccessActions().openSearchProvider();
 		searchResults = searchProviderPage.searchByRegistryIdentifier(IdentifierType.CPN.name(), pauthId);
-		if (UserType.ADMIN.equals(userType))assertTrue(searchResults.grabResultsRowCount() == 0);
+		if (UserType.ADMIN.equals(userType)) assertEquals(searchResults.grabResultsRowCount(), 0);
 		else assertTrue(searchResults.grabResultsRowCount() > 0);
 		workflowManager_.logoutAndClose(userType);
 
@@ -621,7 +621,7 @@ public class UpdateProviderLegacyTest {
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, 0, false);
 		content = page.grabDataBlockContent(ProviderSection.NOTES, 0);
 		assertEquals(noteText, content.get("Note Text"));
-		assertTrue(!noteTextnew.equals(content.get("Note Text")));
+        assertNotEquals(content.get("Note Text"), noteTextnew);
 
 	}
 
@@ -736,20 +736,20 @@ public class UpdateProviderLegacyTest {
 		// invalid effective from
 		msg = page.updateIdentifiersDataBlock(newProviderId, "2026.03.24th",
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg01));
+        assertEquals(errorMsg01, msg);
 		// blank id
 		msg = page.updateIdentifiersDataBlock(null, UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg02));
+        assertEquals(errorMsg02, msg);
 		// blank effective from
 		String newProviderIdCancel = UpdateSimpleHelper.generateNumericString(10);
 		msg = page.updateIdentifiersDataBlock(newProviderIdCancel, null,
 				UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, index, true);
-		assertTrue(msg.equals(errorMsg03));
+        assertEquals(errorMsg03, msg);
 		// null end reason
 		msg = page.updateIdentifiersDataBlock(newProviderIdCancel, UpdateSimpleHelper.effective_date(),
 				UpdateSimpleHelper.increment_year_for_effective_date(), null, index, true);
-		assertTrue(msg.equals(errorMsg04));
+        assertEquals(errorMsg04, msg);
 	}
 	
 	
@@ -831,9 +831,30 @@ public class UpdateProviderLegacyTest {
 				null, null, "Victoria", "BC", "V1V1V1", "CA",
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date(), false);
 
-		page.updateWLAddressDataBlock(0, 0, "456 Test St",
-				null, null, "Victoria", "BC", "V0V0V0", "CA",
-				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date(), EndReason.CHG, false);
+		page.addWLTelecomDataBlock(0, TelecommunicationType.PHONE.getText(), "BC",
+				UpdateSimpleHelper.generateNumericString(3), UpdateSimpleHelper.generateNumericString(7),
+				UpdateSimpleHelper.generateNumericString(4), UpdateSimpleHelper.effective_date(),
+				UpdateSimpleHelper.increment_year_for_effective_date(), false);
+
+		page.addWLElecAddressDataBlock(0, ElectronicAddressType.EMAIL.getText(), "BC", "test@test.com",
+				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date(), false);
+
+		for (ProviderSection section : List.of(ProviderSection.ADDRESSES, ProviderSection.TELECOMMUNICATIONS, ProviderSection.ELECTRONIC_ADDRESSES)) {
+			final String xpath = String.format("//form[@id='%s']//div//label[contains(text(), 'Purpose')]/following::span[1]",
+					UpdateProviderPage.DIALOG_MAP.get(section).getFormName());
+
+			WebElement purpose = page.clickDataBlockUpdateButton(section, 0)
+					.findElement(By.xpath(xpath));
+			assertTrue(purpose.isDisplayed(), "Purpose field is not displayed in update dialog for section: " + section);
+			assertTrue(purpose.getText().contains("Contact"), "Purpose field does not contain 'Contact' in update dialog for section: " + section);
+			page.clickDialogCancelButton(section);
+
+			purpose = page.clickWLHeaderUpdateButton(section, 0, 0).findElement(By.xpath(xpath));
+			assertTrue(purpose.isDisplayed(), "Purpose field is not displayed in update dialog for Work Location section: " + section);
+			assertTrue(purpose.getText().contains("Contact"), "Purpose field does not contain 'Contact' in update dialog for section: " + section);
+			page.clickDialogCancelButton(section);
+		}
+
 	}
 //
 //			Then Validate Electronic Address Txt
