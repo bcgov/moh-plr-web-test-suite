@@ -136,8 +136,8 @@ public class UpdateProviderActions extends AddProviderActions {
 	/**
 	 * get Status Code To Reason Code Map
 	 * 
-	 * @return a Map of < key=String of Status Code, value=List<String of Reason
-	 *         Code> >
+	 * @return a Map of key=String of Status Code, value=List String of Reason
+	 *         Code
 	 */
 	public Map<String, List<String>> getStatusCodeToReasonCodeMap() {
 
