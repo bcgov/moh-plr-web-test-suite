@@ -806,7 +806,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 
 		setDropdownListByVisibleText(ProviderSection.WORK_LOCATIONS, "providerType", providerType);
 
-		findAndFillInputField(dialogCss, formName, addressInfo, "additionalInfo");
+		findAndFillTextAreaField(dialogCss, formName, addressInfo, "additionalInfo");
 
 		setDialogEffectiveFromAndEffectiveTo(ProviderSection.WORK_LOCATIONS,
 				UpdateSimpleHelper.effective_date(), UpdateSimpleHelper.increment_year_for_effective_date());
@@ -1467,6 +1467,28 @@ public class UpdateProviderPage extends ViewProviderPage {
 			inputName.sendKeys(field);
 	}
 
+
+	/**
+	 * Find And Fill an input field for organization properties (TEXT_FIELD type)
+	 *
+	 * @param dialogCss the dialog CSS selector
+	 * @param formName  the form name
+	 * @param field     the field value
+	 * @param fieldCss  the field CSS selector
+	 */
+	private void findAndFillTextAreaField(String dialogCss, String formName, String field, String fieldCss) {
+		String inputNameCss = dialogCss + " >textarea#" + formName + "\\:" + fieldCss;
+		// Wait for the input field to be visible
+
+		WebElement inputName = selenium_
+				.waitUntil(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(inputNameCss)));
+
+		inputName.clear();
+		if (!StringUtils.isEmpty(field))
+			inputName.sendKeys(field);
+	}
+
+	
 	private void fillAutocompleteField(String field, String formName, String inputCss, String panelCss) {
 		if (StringUtils.isEmpty(field)) return;
 
