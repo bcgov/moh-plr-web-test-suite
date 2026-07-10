@@ -1,6 +1,7 @@
 package ca.bc.gov.health.qa.autotest.plr.web.pages.components;
 
 import static java.util.Objects.requireNonNull;
+import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -268,9 +269,10 @@ extends BasicWebPageFragment
             //       and "1" when the animation completes.
             selenium_.waitUntil(
                     ExpectedConditions.attributeToBe(itemPanelLocator_, "opacity", "1"));
-
+            waitSeconds(2);
             // wait for dropdown to be open (i.e. animation to be done and dropdown to be in final open state)
             selenium_.waitUntil(ExpectedConditions.attributeContains(
+            		
                     itemPanelLocator_, "class", "ui-connected-overlay-enter-done"));
         }
         else
@@ -279,4 +281,17 @@ extends BasicWebPageFragment
                     ExpectedConditions.invisibilityOfElementLocated(itemPanelLocator_));
         }
     }
+    /**
+     * Tries to wait some number of seconds. Will fail the test used in if interrupted.
+	 * TODO this should be used as little as possible in favour of selenium implicit waits.
+     *
+     * @param second the number of seconds to wait.
+     */
+        public void waitSeconds(int second) {
+		try {
+			Thread.sleep(1000L * second);
+		} catch (InterruptedException e) {
+			fail(e.getMessage());
+		}
+	}
 }

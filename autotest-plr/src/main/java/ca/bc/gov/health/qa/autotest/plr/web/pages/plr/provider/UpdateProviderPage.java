@@ -2762,6 +2762,7 @@ public class UpdateProviderPage extends ViewProviderPage {
 		// Status Code
 		if (!StringUtils.isEmpty(statusCode))
 			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusCode", statusCode);
+		
 		// Status Reason Code
 		if (!StringUtils.isEmpty(statusReasonCode))
 			setDropdownListByVisibleText(ProviderSection.STATUSES, "statusReasonCode", statusReasonCode);

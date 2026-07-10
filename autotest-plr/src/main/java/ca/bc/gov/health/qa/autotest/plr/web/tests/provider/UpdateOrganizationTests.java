@@ -90,15 +90,15 @@ public class UpdateOrganizationTests implements SimpleTest {
 
         error = page.addOrganizationNameDataBlock(OrgNameType.CURR, generateAlphabetString(101), "Test Desc", true);
 
-        assertEquals(error, errorList.get("errorNameTooLong"), "Error message did not match expected value.");
+        assertEquals(error, errorList.get("errorMaxOrgNameLength"), "Error message did not match expected value.");
 
         error = page.addOrganizationNameDataBlock(OrgNameType.CURR, "Test Name", generateAlphabetString(201), true);
 
-        assertEquals(error, errorList.get("errorLongNameTooLong"), "Error message did not match expected value.");
+        assertEquals(error, errorList.get("errorMaxOrgLongNameLength"), "Error message did not match expected value.");
 
         error = page.addOrganizationNameDataBlock(OrgNameType.CURR, generateAlphabetString(101), generateAlphabetString(201), true);
 
-        assertEquals(error, errorList.get("errorNameTooLong") + "\n" + errorList.get("errorLongNameTooLong"),
+        assertEquals(error, errorList.get("errorMaxOrgNameLength") + "\n" + errorList.get("errorMaxOrgLongNameLength"),
                 "Did not receive expected multiple errors.");
 
         final String expectedName = generateAlphabetString(100);

@@ -88,6 +88,7 @@ public class UpdateProviderTests implements SimpleTest {
 
     @AfterClass
     public void teardown() {
+    	  waitSeconds(3);
         workflowManager_.logoutAllAndClose();
         fhirController.close();
         LOG.info("Done.");
@@ -726,9 +727,9 @@ public class UpdateProviderTests implements SimpleTest {
         PlrWebWorkflow workflow = workflowManager_.selectWorkflow(UserType.ADMIN);
 
         String identifier;
-        if (providerType.equals(ProviderType.ORGANIZATION)) identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
-        else identifier = getIdentifierFromBuilder(defaultProviders, providerType);
-
+        //if (providerType.equals(ProviderType.ORGANIZATION)) identifier = defaultOrg.getIdentifier(IdentifierType.IPC);
+       // else 
+        identifier = getIdentifierFromBuilder(defaultProviders, providerType);
         UpdateProviderPage page = viewByIdentifierAsUpdateProvider(identifier, workflowManager_);
 
         page.addWorkLocationDataBlock("12345", true, "Test Name", "CC", "Test Info", false);
